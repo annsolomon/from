@@ -1,11 +1,9 @@
 # Dexter v2 — Build README (living handoff)
 
-**Last updated:** 2026-10-04 · **Chat/phase:** P02b r11 · **Model:** Claude Opus 5.5
-**All of P02 is written.** Next: run `./scripts/verify.sh full` **and** `./scripts/trail-check.sh` on r11 in `/workspaces/d2b`
-(§8), open `p02-libs.html` in Live mode, and paste both reports. P02 becomes **DONE** when both pass; the next chat then
-fixes whatever failed, or verifies P02 and starts **P03**.
-r11 = r10 (`dexter-cache` + Redis ACLs, `ArchRules`, demo on cache) + the P02 trail: `libs/dexter-lab` (`/_dev/p02/*` in ledger),
-`test-ui/p02-libs.html`, api-smoke P02 block, trail-check P02 checks. Status: **WRITTEN** (type-checked, not run by Maven).
+**Last updated:** 2026-10-16 · **Chat/phase:** P02 DONE (r11.1) · **Model:** Claude Opus 5.5
+**P02 is DONE (2026-10-16).** `verify.sh full` 17/17 PASS + `trail-check.sh` PASS on a GitHub runner (repo `annsolomon/from`,
+commit `7d4ebf0`, run 38913491961; reports on branch `verify-reports`). Next chat: **P03** (harness, seed generator, trail kit).
+Upload `MASTER_PLAN.md` + this README; the code is in the repo (clone it instead of a zip).
 
 ## 1. Phase status
 
@@ -13,7 +11,7 @@ r11 = r10 (`dexter-cache` + Redis ACLs, `ArchRules`, demo on cache) + the P02 tr
 |---|---|---|---|---|
 | P00 | Bootstrap, toolchain, infra | **DONE** | `verify.sh full` PASS 17/17 (run 7, 2026-09-21) + `trail-check.sh` PASS 12/12 (r12, 2026-09-21) | |
 | P01 | Core libs A (core/db/web) | **DONE** | `verify.sh full` 17/17 PASS (2026-09-22; re-run 2026-09-27 git 0fcfed1: core 28 unit, db 20 unit + 30 IT, web 12 unit, 10 service smoke); trail-check 15/15 PASS | IT-GREEN 2026-09-22 |
-| P02 | Core libs B (idempotency/events/security/test) | **P02a IT-GREEN** · P02b security + demo-on-JWT **IT-GREEN** (2026-10-04) · cache + ACL + ArchRules + demo-on-cache + p02 trail/lab **WRITTEN** (r10/r11) | P02a r4: `verify.sh full` **PASS 17/17** in Codespaces (2026-09-27): maven (unit + failsafe ITs incl. Testcontainers PG17 + Kafka, convergence enforced), 10 services UP, api-smoke PASS, k6 thresholds met | Split P02a/P02b (A-13). P02 is DONE when P02b is IT-GREEN + p02 trail check. Per-module test counts: read from the r4 `verify-report.md` in the P02b chat. |
+| P02 | Core libs B (idempotency/events/security/test) | **DONE** 2026-10-16 — verify full 17/17 + trail-check PASS (CI run 38913491961) |
 | P03 | Harness, seed, trail kit | NOT STARTED | — | |
 | P04 | Identity A | NOT STARTED | — | |
 | P05 | Identity B (MFA/admin/RBAC) | NOT STARTED | — | |
