@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>P00 infra - Dexter trail</title>
+  <link rel="stylesheet" href="trail.css">
+</head>
+<body>
+<main>
+  <section class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <h2 style="margin:0">Service health</h2>
+      <button class="act" id="check" type="button">Check all</button>
+    </div>
+    <p style="color:var(--muted);margin:8px 0 12px">Live mode calls <span class="mono">/svc/&lt;name&gt;/actuator/health</span>
+      through the trail nginx proxy. Start the services first: <span class="mono">./scripts/run.sh services</span>.</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Service</th><th>Port</th><th>Status</th><th>HTTP</th><th>Time</th><th>X-Request-Id</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+  <section class="card" id="log"></section>
+</main>
+<script src="trail.js"></script>
+<script>
+  const SERVICES = [['gateway', 8080], ['identity', 8081], ['ledger', 8082], ['catalog', 8083], ['portfolio', 8084], ['planning', 8085], ['reco', 8086], ['billing', 8087], ['commerce', 8088], ['audit', 8089]];
+  Trail.mountHeader('Infrastructure and health', 'P00');
+  Trail.mountLog(document.getElementById('log'));
+  Trail.mock('GET', /^\/svc\/([a-z]+)\/actuator\/health$/, async (m) => {
+    const all = await Trail.fixture('p00-health.json');
+    return all[m[1]] || { status: 'UNKNOWN' };
+  });
+
+  const rows = document.getElementById('rows');
+  function render() {
+    rows.innerHTML = SERVICES.map(([name, port]) =>
+      `<tr id="row-${name}"><td>${name}</td><td class="mono">${port}</td>
+         <td data-k="status">-</td><td class="mono" data-k="http">-</td>
+         <td class="mono" data-k="ms">-</td><td class="mono" data-k="rid">-</td></tr>`).join('');
+  }
+  async function checkAll() {
+    await Promise.all(SERVICES.map(async ([name]) => {
+      const row = document.getElementById('row-' + name);
+      const t0 = performance.now();
+      const r = await Trail.api('GET', `/svc/${name}/actuator/health`);
+      const up = r.status === 200 && r.data && r.data.status === 'UP';
+      row.querySelector('[data-k=status]').innerHTML = `<span class="${up ? 'ok' : 'bad'}">${up ? 'UP' : (r.data && r.data.status) || 'DOWN'}</span>`;
+      row.querySelector('[data-k=http]').textContent = r.status || 'ERR';
+      row.querySelector('[data-k=ms]').textContent = Math.round(performance.now() - t0) + 'ms';
+      row.querySelector('[data-k=rid]').textContent = r.headers['x-request-id'] || r.requestId;
+    }));
+  }
+  document.getElementById('check').addEventListener('click', checkAll);
+  document.addEventListener('trail:mode', () => { render(); checkAll(); });
+  render(); checkAll();
+</script>
+</body>
+</html>

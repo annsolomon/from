@@ -1,0 +1,63 @@
+-- ============================================================================
+-- DEV ONLY. Per-service database + the 5 roles of MASTER_PLAN 3.1.
+-- Rendered once per entry of DEXTER_DB_SERVICES by infra/postgres/render-roles.sh.
+-- Placeholders: {{svc}}, {{pw_owner}}, {{pw_app}}, {{pw_admin}}, {{pw_relay}}, {{pw_readonly}}.
+-- Production roles are created by ops (docs/runbooks/postgres-roles.md), never by Flyway.
+-- No role may bypass row security, and none gets SUPERUSER, CREATEDB, CREATEROLE or REPLICATION.
+-- ============================================================================
+
+-- ---- {{svc}}: roles (idempotent) --------------------------------------------
+SELECT format('CREATE ROLE %I LOGIN', r)
+FROM unnest(ARRAY['{{svc}}_owner','{{svc}}_app','{{svc}}_admin','{{svc}}_relay','{{svc}}_readonly']) AS r
+WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = r)
+\gexec
+
+ALTER ROLE {{svc}}_owner    WITH LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS NOINHERIT PASSWORD '{{pw_owner}}';
+ALTER ROLE {{svc}}_app      WITH LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS NOINHERIT PASSWORD '{{pw_app}}';
+ALTER ROLE {{svc}}_admin    WITH LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS NOINHERIT PASSWORD '{{pw_admin}}';
+ALTER ROLE {{svc}}_relay    WITH LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS NOINHERIT PASSWORD '{{pw_relay}}';
+ALTER ROLE {{svc}}_readonly WITH LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS NOINHERIT PASSWORD '{{pw_readonly}}';
+
+-- ---- {{svc}}: per-role safety settings (MASTER_PLAN 3.1) --------------------
+ALTER ROLE {{svc}}_owner    SET search_path = {{svc}}, public;
+ALTER ROLE {{svc}}_owner    SET lock_timeout = '10s';
+
+ALTER ROLE {{svc}}_app      SET statement_timeout = '5s';
+ALTER ROLE {{svc}}_app      SET lock_timeout = '2s';
+ALTER ROLE {{svc}}_app      SET idle_in_transaction_session_timeout = '10s';
+ALTER ROLE {{svc}}_app      SET search_path = {{svc}}, public;
+
+ALTER ROLE {{svc}}_admin    SET statement_timeout = '10s';
+ALTER ROLE {{svc}}_admin    SET lock_timeout = '2s';
+ALTER ROLE {{svc}}_admin    SET idle_in_transaction_session_timeout = '10s';
+ALTER ROLE {{svc}}_admin    SET search_path = {{svc}}, public;
+
+ALTER ROLE {{svc}}_relay    SET statement_timeout = '30s';
+ALTER ROLE {{svc}}_relay    SET lock_timeout = '5s';
+ALTER ROLE {{svc}}_relay    SET idle_in_transaction_session_timeout = '30s';
+ALTER ROLE {{svc}}_relay    SET search_path = {{svc}}, public;
+
+ALTER ROLE {{svc}}_readonly SET statement_timeout = '30s';
+ALTER ROLE {{svc}}_readonly SET default_transaction_read_only = on;
+ALTER ROLE {{svc}}_readonly SET idle_in_transaction_session_timeout = '30s';
+ALTER ROLE {{svc}}_readonly SET search_path = {{svc}}, public;
+
+-- ---- {{svc}}: database -------------------------------------------------------
+SELECT format('CREATE DATABASE %I OWNER %I', '{{svc}}', '{{svc}}_owner')
+WHERE NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = '{{svc}}')
+\gexec
+
+REVOKE ALL ON DATABASE {{svc}} FROM PUBLIC;
+GRANT CONNECT ON DATABASE {{svc}} TO {{svc}}_owner, {{svc}}_app, {{svc}}_admin, {{svc}}_relay, {{svc}}_readonly;
+
+-- ---- {{svc}}: inside the database: lock down public, add extensions ----------
+\connect {{svc}}
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+GRANT USAGE ON SCHEMA public TO {{svc}}_owner, {{svc}}_app, {{svc}}_admin, {{svc}}_relay, {{svc}}_readonly;
+CREATE EXTENSION IF NOT EXISTS pgcrypto   WITH SCHEMA public;
+CREATE EXTENSION IF NOT EXISTS citext     WITH SCHEMA public;
+CREATE EXTENSION IF NOT EXISTS ltree      WITH SCHEMA public;
+CREATE EXTENSION IF NOT EXISTS pg_trgm    WITH SCHEMA public;
+CREATE EXTENSION IF NOT EXISTS btree_gist WITH SCHEMA public;
+CREATE EXTENSION IF NOT EXISTS pg_stat_statements WITH SCHEMA public;
+\connect postgres

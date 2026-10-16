@@ -1,0 +1,7 @@
+# .env.example contains DEV-ONLY placeholder passwords by design.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "dev-only example env"
+paths = ['''\.env\.example''']

@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dexter.in/events/demo.note.renamed.v1.json",
+  "title": "demo.note.renamed v1 - data of the P02 template module (dexter-test demo)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["noteId", "title"],
+  "properties": {
+    "noteId": {"type": "string", "format": "uuid"},
+    "title": {"type": "string", "minLength": 1, "maxLength": 200}
+  }
+}

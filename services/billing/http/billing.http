@@ -1,0 +1,9 @@
+### billing health
+GET http://localhost:8087/actuator/health
+X-Request-Id: manual-billing-health
+
+### billing liveness
+GET http://localhost:8087/actuator/health/liveness
+
+### billing prometheus
+GET http://localhost:8087/actuator/prometheus

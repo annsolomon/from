@@ -1,0 +1,9 @@
+### reco health
+GET http://localhost:8086/actuator/health
+X-Request-Id: manual-reco-health
+
+### reco liveness
+GET http://localhost:8086/actuator/health/liveness
+
+### reco prometheus
+GET http://localhost:8086/actuator/prometheus

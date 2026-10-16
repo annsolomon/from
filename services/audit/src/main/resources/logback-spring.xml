@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- P01: shared Dexter logging (PII-masked %m, ECS JSON under prod). Lives in dexter-web. -->
+<configuration>
+  <include resource="in/dexter/web/logging/dexter-logback.xml"/>
+</configuration>

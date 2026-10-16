@@ -1,0 +1,70 @@
+# Full verification on a GitHub runner (Docker + network): ./scripts/verify.sh full and ./scripts/trail-check.sh.
+# Same commands as in the Codespace (BUILD_README §8). Reports + logs are uploaded as the `verify-full` artifact and
+# printed into the job log / summary. Runs on every push to main and on demand.
+name: verify-full
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-full-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  full:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with: { distribution: temurin, java-version: '25', cache: maven }
+      - name: dev .env from the example
+        run: cp .env.example .env
+      - name: verify.sh full
+        id: full
+        continue-on-error: true
+        run: ./scripts/verify.sh full
+      - name: trail-check.sh
+        id: trail
+        continue-on-error: true
+        run: ./scripts/trail-check.sh 2>&1 | tee target/verify/trail-check.txt
+      - name: print report and failing logs
+        if: always()
+        run: |
+          {
+            echo '## verify-report.md'; cat verify-report.md 2>/dev/null || echo '(no report)'
+            echo; echo '## trail-check'; echo '```'; cat target/verify/trail-check.txt 2>/dev/null; echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+          for f in $(awk -F'\t' '$2=="FAIL"{print $1}' target/verify/steps.tsv 2>/dev/null); do
+            echo "::group::$f.log (last 150 lines)"; tail -n 150 "target/verify/$f.log" 2>/dev/null; echo "::endgroup::"
+          done
+          if [ -f target/verify/mvn.log ]; then
+            echo "::group::mvn.log errors and failed tests"
+            grep -nE '\[ERROR\]|Tests run:.*(Failures: [1-9]|Errors: [1-9])|FAILURE!|BUILD (SUCCESS|FAILURE)|Reactor Summary' -A2 target/verify/mvn.log | head -n 400
+            echo "::endgroup::"
+          fi
+          [ -f target/verify/smoke.txt ] && { echo "::group::smoke.txt"; cat target/verify/smoke.txt; echo "::endgroup::"; } || true
+      - name: collect test reports
+        if: always()
+        run: |
+          mkdir -p target/verify/reports
+          find . -path ./target -prune -o -type d \( -name surefire-reports -o -name failsafe-reports \) -print \
+            | while read -r d; do m=$(echo "$d" | sed 's#^\./##; s#/target/.*##; s#/#_#g'); mkdir -p "target/verify/reports/$m"; cp -r "$d" "target/verify/reports/$m/"; done
+          ls .run 2>/dev/null && cp -r .run target/verify/run-logs || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: verify-full
+          path: |
+            verify-report.md
+            target/verify/
+      - name: result
+        if: always()
+        run: |
+          echo "verify.sh full: ${{ steps.full.outcome }} · trail-check: ${{ steps.trail.outcome }}"
+          [ "${{ steps.full.outcome }}" = success ] && [ "${{ steps.trail.outcome }}" = success ]

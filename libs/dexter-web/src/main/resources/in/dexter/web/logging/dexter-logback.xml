@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Shared Dexter logback setup (MASTER_PLAN 7.4). Include from each service's logback-spring.xml.
+  %m / %msg are replaced with a PII-masking converter; prod uses Boot's structured (ECS) appender,
+  masked by PiiMaskingJsonMembersCustomizer (logging.structured.json.customizer).
+-->
+<included>
+  <conversionRule conversionWord="m" class="in.dexter.web.logging.PiiMaskingMessageConverter"/>
+  <conversionRule conversionWord="msg" class="in.dexter.web.logging.PiiMaskingMessageConverter"/>
+  <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+  <springProfile name="prod">
+    <include resource="org/springframework/boot/logging/logback/structured-console-appender.xml"/>
+  </springProfile>
+  <springProfile name="!prod">
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+  </springProfile>
+  <root level="INFO">
+    <appender-ref ref="CONSOLE"/>
+  </root>
+</included>

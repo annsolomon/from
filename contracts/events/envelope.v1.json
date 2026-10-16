@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dexter.in/events/envelope.v1.json",
+  "title": "Dexter event envelope v1 (MASTER_PLAN 6.1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "type", "version", "source", "time", "accountId", "aggregateId", "aggregateVersion", "traceparent", "data"],
+  "properties": {
+    "id": {"type": "string", "format": "uuid"},
+    "type": {"type": "string", "pattern": "^[a-z][a-z0-9-]*\\.[a-z][a-z0-9-]*\\.[a-z][a-z0-9-]*$"},
+    "version": {"type": "integer", "minimum": 1},
+    "source": {"type": "string", "pattern": "^[a-z][a-z0-9-]{0,39}$"},
+    "time": {"type": "string", "format": "date-time"},
+    "accountId": {"type": ["string", "null"], "format": "uuid"},
+    "aggregateId": {"type": "string", "format": "uuid"},
+    "aggregateVersion": {"type": "integer", "minimum": 0},
+    "traceparent": {"type": ["string", "null"], "maxLength": 55},
+    "data": {"type": "object"}
+  }
+}

@@ -1,0 +1,2 @@
+in.dexter.security.autoconfigure.DexterSecurityAutoConfiguration
+in.dexter.security.autoconfigure.DexterSecurityWebAutoConfiguration

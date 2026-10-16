@@ -1,0 +1,7 @@
+# Per-service Redis ACL (ADR-0004 §8). DEV ONLY passwords; rendered by render-acl.sh at container start.
+# One user per service: its own key prefixes (values, generation counters, single-flight locks), its own
+# invalidation channel, and only the commands dexter-cache needs. Reads/writes/locks/bumps are Lua scripts,
+# so the commands they call (get set incr pexpire pttl unlink) must be listed too. No KEYS, FLUSH*, CONFIG, DEL.
+# ping/info: Boot's Redis health indicator; client|setinfo/setname: Lettuce's connection handshake.
+# dexter-test (RedisAclIT, DemoApp) applies this exact line with ACL SETUSER, so tests prove it is sufficient.
+user {{svc}} on >{{pw}} resetkeys ~{{svc}}:* ~gen:{{svc}}:* ~lock:{{svc}}:* resetchannels &cache:inv:{{svc}} -@all +get +set +incr +pexpire +pttl +unlink +scan +eval +evalsha +publish +subscribe +ping +info +client|setinfo +client|setname

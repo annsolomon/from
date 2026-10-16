@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dexter trail · P01 core libraries</title>
+  <link rel="stylesheet" href="trail.css">
+</head>
+<body>
+<main>
+  <section class="card">
+    <h2>P01 · dexter-core / dexter-db / dexter-web</h2>
+    <p class="mono" style="color:var(--muted);margin:0">
+      Live mode calls the dev-only lab <b>/svc/ledger/_dev/p01/*</b> (ledger started with the <b>dev</b> profile by run.sh).
+      Mock mode mirrors the same rules in the browser. Testing aid only; deleted in P19.</p>
+  </section>
+
+  <div class="grid2">
+    <section class="card" id="money">
+      <h2>1 · Money × bps (paise, BigDecimal, HALF_EVEN)</h2>
+      <div class="row">
+        <input class="in" id="m-paise" type="number" value="500" style="width:120px" aria-label="paise">
+        <span>paise ×</span>
+        <input class="in" id="m-bps" type="number" value="50" style="width:90px" aria-label="bps"> <span>bps</span>
+        <select class="in" id="m-round" aria-label="rounding">
+          <option>HALF_EVEN</option><option>HALF_UP</option><option>FLOOR</option><option>CEILING</option>
+        </select>
+        <button class="act" id="m-go" type="button">Compute</button>
+      </div>
+      <div class="row">
+        <button class="ghost" type="button" data-case="300,50">300×50 → 2 (1.5 → even 2)</button>
+        <button class="ghost" type="button" data-case="500,50">500×50 → 2 (2.5 → even 2)</button>
+        <button class="ghost" type="button" data-case="700,50">700×50 → 4 (3.5 → even 4)</button>
+        <button class="ghost" type="button" data-case="123456789,4200">APR 42%</button>
+      </div>
+      <pre class="out" id="m-out">—</pre>
+    </section>
+
+    <section class="card" id="errors">
+      <h2>2 · ProblemDetail codes + X-Request-Id</h2>
+      <div class="row">
+        <select class="in" id="e-code" aria-label="error code">
+          <option>VALIDATION_FAILED</option><option>NOT_FOUND</option><option>VERSION_CONFLICT</option>
+          <option>IF_MATCH_REQUIRED</option><option>RATE_LIMITED</option><option>CURSOR_INVALID</option>
+          <option>INTERNAL_ERROR</option>
+        </select>
+        <button class="act" id="e-go" type="button">Trigger</button>
+      </div>
+      <pre class="out" id="e-out">—</pre>
+    </section>
+
+    <section class="card" id="strict">
+      <h2>3 · Strict JSON (unknown / duplicate keys → 400)</h2>
+      <div class="row">
+        <button class="ghost" type="button" data-body='{"name":"asha","amountPaise":12345}'>valid</button>
+        <button class="ghost" type="button" data-body='{"name":"asha","amountPaise":12345,"admin":true}'>unknown field</button>
+        <button class="ghost" type="button" data-body='{"name":"asha","name":"ravi","amountPaise":1}'>duplicate key</button>
+        <button class="ghost" type="button" data-body='{"name":"","amountPaise":0}'>invalid values</button>
+        <button class="ghost" type="button" data-body='{"name":'>broken JSON</button>
+      </div>
+      <pre class="out" id="s-out">—</pre>
+    </section>
+
+    <section class="card" id="etag">
+      <h2>4 · ETag / If-Match (428 → 412 → 200)</h2>
+      <div class="row">
+        <button class="ghost" type="button" id="t-get">GET (read ETag)</button>
+        <button class="ghost" type="button" id="t-none">PUT no If-Match</button>
+        <button class="ghost" type="button" id="t-weak">PUT weak W/"n"</button>
+        <button class="ghost" type="button" id="t-stale">PUT stale "0"</button>
+        <button class="act" type="button" id="t-cur">PUT current</button>
+      </div>
+      <pre class="out" id="t-out">—</pre>
+    </section>
+  </div>
+
+  <section class="card" id="cursor">
+    <h2>5 · Signed keyset cursor (HMAC, kid rotation, filter binding)</h2>
+    <div class="row">
+      <label>ring <select class="in" id="c-ring"><option>c1</option><option>c2</option><option>c2-only</option></select></label>
+      <label>category <input class="in" id="c-cat" value="food" style="width:100px"></label>
+      <button class="act" type="button" id="c-enc">Encode</button>
+      <button class="ghost" type="button" id="c-dec">Verify with ring</button>
+      <button class="ghost" type="button" id="c-tamper">Tamper 1 char</button>
+      <button class="ghost" type="button" id="c-filter">Verify with category=travel</button>
+    </div>
+    <p class="mono" style="color:var(--muted);margin:4px 0">Encode with c1, then verify with <b>c2</b> (rotation: old kid still accepted)
+      and <b>c2-only</b> (c1 retired → CURSOR_INVALID).</p>
+    <pre class="out" id="c-out">—</pre>
+  </section>
+
+  <section class="card" id="window">
+    <h2>6 · Keyset pager + 50/25/24 window (MASTER_PLAN 4.4)</h2>
+    <div class="row">
+      <button class="act" type="button" id="w-init">Load first page (limit 50)</button>
+      <button class="ghost" type="button" id="w-bad">limit=101</button>
+      <span class="mono" style="color:var(--muted)">120 items, 40 share one timestamp; scroll the list.</span>
+    </div>
+    <div class="grid2">
+      <div class="list" id="w-list" aria-label="items"></div>
+      <div class="kv" id="w-dbg"></div>
+    </div>
+  </section>
+
+  <section class="card" id="log"></section>
+</main>
+<script src="trail.js"></script>
+<script>
+(function () {
+  'use strict';
+  Trail.mountHeader('Core libraries', 'P01');
+  Trail.mountLog(document.getElementById('log'));
+  const LAB = '/svc/ledger/_dev/p01';
+  const $ = id => document.getElementById(id);
+  const show = (el, r) => { el.textContent = `HTTP ${r.status}  X-Request-Id: ${r.headers['x-request-id'] || '-'}`
+      + (r.headers.etag ? `  ETag: ${r.headers.etag}` : '') + '\n' + JSON.stringify(r.data, null, 2); };
+
+  // ---------------------------------------------------------------- mock mode (mirrors the Java rules)
+  const problem = (status, code, detail, extra = {}) => Trail.reply(status, { type: 'https://docs.dexter.in/problems/'
+      + code.toLowerCase().replace(/_/g, '-'), title: code, status, detail, code, requestId: '(mock)', ...extra });
+  const STATUS = { VALIDATION_FAILED: 400, NOT_FOUND: 404, VERSION_CONFLICT: 412, IF_MATCH_REQUIRED: 428,
+                   RATE_LIMITED: 429, CURSOR_INVALID: 400, INTERNAL_ERROR: 500 };
+  function divRound(n, d, mode) {                       // n, d BigInt, d > 0
+    const q = n / d, r = n % d; if (r === 0n) return q;
+    const neg = n < 0n, twice = (r < 0n ? -r : r) * 2n;
+    const away = neg ? q - 1n : q + 1n;
+    switch (mode) {
+      case 'FLOOR': return neg ? q - 1n : q;
+      case 'CEILING': return neg ? q : q + 1n;
+      case 'HALF_UP': return twice >= d ? away : q;
+      default: return twice > d ? away : twice < d ? q : ((q % 2n === 0n) ? q : away);  // HALF_EVEN
+    }
+  }
+  Trail.mock('GET', /\/_dev\/p01\/money\?(.*)$/, m => {
+    const p = new URLSearchParams(m[1]); const paise = BigInt(p.get('paise')), bps = BigInt(p.get('bps'));
+    const mode = p.get('rounding') || 'HALF_EVEN'; const res = divRound(paise * bps, 10000n, mode);
+    return { inputPaise: Number(paise), rateBps: Number(bps), rounding: mode,
+             exactPaise: (Number(paise * bps) / 10000).toString(), resultPaise: Number(res) };
+  });
+  Trail.mock('GET', /\/_dev\/p01\/errors\/(\w+)$/, m => m[1] === 'VALIDATION_FAILED'
+      ? problem(400, 'VALIDATION_FAILED', 'One or more fields are invalid', { errors: [
+          { field: 'name', code: 'REQUIRED', message: 'name is required' },
+          { field: 'amountPaise', code: 'MUST_BE_POSITIVE', message: 'amountPaise must be > 0' }] })
+      : problem(STATUS[m[1]] || 404, STATUS[m[1]] ? m[1] : 'NOT_FOUND', 'lab-triggered ' + m[1]));
+  Trail.mock('POST', /\/_dev\/p01\/strict-json$/, (m, req) => {
+    const raw = req.raw;
+    const keys = [...raw.matchAll(/"(\w+)"\s*:/g)].map(x => x[1]);
+    const dup = keys.find((k, i) => keys.indexOf(k) !== i);
+    if (dup) return problem(400, 'DUPLICATE_FIELD', 'Request body has a duplicate field', { errors: [{ field: dup, code: 'DUPLICATE_FIELD' }] });
+    let b; try { b = JSON.parse(raw); } catch { return problem(400, 'MALFORMED_JSON', 'Request body is missing or is not valid JSON'); }
+    const extra = Object.keys(b).find(k => !['name', 'amountPaise'].includes(k));
+    if (extra) return problem(400, 'UNKNOWN_FIELD', 'Request body has a field that is not allowed', { errors: [{ field: extra, code: 'UNKNOWN_FIELD' }] });
+    const errors = [];
+    if (!b.name) errors.push({ field: 'name', code: 'REQUIRED', message: 'name is required' });
+    if (!(b.amountPaise > 0)) errors.push({ field: 'amountPaise', code: 'MUST_BE_POSITIVE', message: 'amountPaise must be > 0' });
+    return errors.length ? problem(400, 'VALIDATION_FAILED', 'One or more fields are invalid', { errors }) : b;
+  });
+  let mockVersion = 0;
+  Trail.mock('GET', /\/_dev\/p01\/doc$/, () => Trail.reply(200, { version: mockVersion }, { etag: `"${mockVersion}"` }));
+  Trail.mock('PUT', /\/_dev\/p01\/doc$/, (m, req) => {
+    const h = req.headers['If-Match'];
+    if (!h) return problem(428, 'IF_MATCH_REQUIRED', 'If-Match header with the current ETag is required');
+    const mm = /^"(\d+)"$/.exec(h); if (!mm) return problem(400, 'IF_MATCH_INVALID', 'If-Match must be a single strong ETag like "3"');
+    if (Number(mm[1]) !== mockVersion) return problem(412, 'VERSION_CONFLICT', 'lab doc was modified by another request', { expectedVersion: Number(mm[1]) });
+    mockVersion++; return Trail.reply(200, { version: mockVersion }, { etag: `"${mockVersion}"` });
+  });
+  // mock cursor: base64url(JSON) + "." + fake signature (a hash of payload+kid); same failure codes as Java
+  const b64 = s => btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const unb64 = s => atob(s.replace(/-/g, '+').replace(/_/g, '/'));
+  const fsig = (p, kid) => { let h = 7; for (const ch of p + kid) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return b64(String(h)); };
+  const RINGS = { c1: { active: 'c1', keys: ['c1'] }, c2: { active: 'c2', keys: ['c1', 'c2'] }, 'c2-only': { active: 'c2', keys: ['c2'] } };
+  const fhash = f => b64(JSON.stringify(Object.keys(f || {}).sort().map(k => [k, f[k]]))).slice(0, 16);
+  function mockEncode(ring, keys, filters) {
+    const payload = b64(JSON.stringify({ v: 1, s: 'occurred_desc', k: keys, f: fhash(filters), kid: RINGS[ring].active }));
+    return payload + '.' + fsig(payload, RINGS[ring].active);
+  }
+  function mockDecode(ring, cursor, filters) {
+    const [p, s, ...rest] = (cursor || '').split('.');
+    let obj; try { obj = JSON.parse(unb64(p)); } catch { obj = null; }
+    if (!obj || rest.length || !RINGS[ring].keys.includes(obj.kid) || fsig(p, obj.kid) !== s) return { err: 'CURSOR_INVALID' };
+    if (obj.f !== fhash(filters)) return { err: 'CURSOR_FILTER_MISMATCH' };
+    return { ok: obj };
+  }
+  Trail.mock('POST', /\/_dev\/p01\/cursor\/encode$/, (m, req) => {
+    const c = mockEncode(req.body.ring, req.body.keys, req.body.filters); return { cursor: c, payload: unb64(c.split('.')[0]) };
+  });
+  Trail.mock('POST', /\/_dev\/p01\/cursor\/decode$/, (m, req) => {
+    const r = mockDecode(req.body.ring, req.body.cursor, req.body.filters);
+    if (r.err) return problem(400, r.err, r.err === 'CURSOR_INVALID' ? 'The cursor is invalid or has expired'
+        : 'The cursor was issued for different filters; restart from the first page');
+    return { sort: r.ok.s, keys: r.ok.k, kid: r.ok.kid };
+  });
+  const ITEMS = Array.from({ length: 120 }, (_, i) => ({
+    id: '0192f0c1-7d3e-7' + String(i).padStart(3, '0') + '-8000-' + String(i * 7919).padStart(12, '0'),
+    occurredAt: new Date(Date.parse('2026-09-01T10:00:00Z') - (i < 40 ? 0 : 60000 * i)).toISOString(),
+    amountPaise: 1000 + i * 37, category: i % 3 === 0 ? 'food' : 'travel' }))
+    .sort((a, b) => a.occurredAt === b.occurredAt ? (a.id < b.id ? 1 : -1) : (a.occurredAt < b.occurredAt ? 1 : -1));
+  Trail.mock('GET', /\/_dev\/p01\/items\?(.*)$/, m => {
+    const q = new URLSearchParams(m[1]); const limit = q.has('limit') ? Number(q.get('limit')) : 25;
+    if (!(limit >= 1 && limit <= 100)) return problem(400, 'LIMIT_INVALID', 'limit must be between 1 and 100');
+    let start = 0;
+    if (q.get('cursor')) {
+      const r = mockDecode('c1', q.get('cursor'), {}); if (r.err) return problem(400, r.err, r.err);
+      const [t, id] = r.ok.k; start = ITEMS.findIndex(x => x.occurredAt < t || (x.occurredAt === t && x.id < id));
+      if (start < 0) start = ITEMS.length;
+    }
+    const rows = ITEMS.slice(start, start + limit + 1); const hasMore = rows.length > limit; if (hasMore) rows.pop();
+    const last = rows[rows.length - 1];
+    return { data: rows, page: { limit, hasMore, nextCursor: hasMore ? mockEncode('c1', [last.occurredAt, last.id], {}) : null } };
+  });
+
+  // ---------------------------------------------------------------- 1 money
+  async function money() {
+    const r = await Trail.api('GET', `${LAB}/money?paise=${$('m-paise').value}&bps=${$('m-bps').value}&rounding=${$('m-round').value}`);
+    show($('m-out'), r);
+  }
+  $('m-go').addEventListener('click', money);
+  document.querySelectorAll('[data-case]').forEach(b => b.addEventListener('click', () => {
+    const [p, bp] = b.dataset.case.split(','); $('m-paise').value = p; $('m-bps').value = bp; money();
+  }));
+  // ---------------------------------------------------------------- 2 errors
+  $('e-go').addEventListener('click', async () => show($('e-out'), await Trail.api('GET', `${LAB}/errors/${$('e-code').value}`)));
+  // ---------------------------------------------------------------- 3 strict json
+  document.querySelectorAll('[data-body]').forEach(b => b.addEventListener('click', async () =>
+    show($('s-out'), await Trail.api('POST', `${LAB}/strict-json`, { raw: b.dataset.body }))));
+  // ---------------------------------------------------------------- 4 etag
+  let etag = null;
+  $('t-get').addEventListener('click', async () => { const r = await Trail.api('GET', `${LAB}/doc`); etag = r.headers.etag; show($('t-out'), r); });
+  $('t-none').addEventListener('click', async () => show($('t-out'), await Trail.api('PUT', `${LAB}/doc`)));
+  $('t-weak').addEventListener('click', async () => show($('t-out'), await Trail.api('PUT', `${LAB}/doc`, { headers: { 'If-Match': 'W/"0"' } })));
+  $('t-stale').addEventListener('click', async () => show($('t-out'), await Trail.api('PUT', `${LAB}/doc`, { headers: { 'If-Match': '"0"' } })));
+  $('t-cur').addEventListener('click', async () => {
+    if (!etag) etag = (await Trail.api('GET', `${LAB}/doc`)).headers.etag;
+    const r = await Trail.api('PUT', `${LAB}/doc`, { headers: { 'If-Match': etag } }); if (r.headers.etag) etag = r.headers.etag; show($('t-out'), r);
+  });
+  // ---------------------------------------------------------------- 5 cursor
+  let lastCursor = null;
+  const filters = () => ({ category: $('c-cat').value });
+  $('c-enc').addEventListener('click', async () => {
+    const r = await Trail.api('POST', `${LAB}/cursor/encode`, { body: { ring: $('c-ring').value,
+        keys: ['2026-09-01T10:00:00Z', '0192f0c1-7d3e-7abc-8def-0123456789ab'], filters: filters() } });
+    if (r.data && r.data.cursor) lastCursor = r.data.cursor; show($('c-out'), r);
+  });
+  const dec = async (cursor, f) => show($('c-out'), await Trail.api('POST', `${LAB}/cursor/decode`, { body: { ring: $('c-ring').value, cursor, filters: f } }));
+  $('c-dec').addEventListener('click', () => dec(lastCursor, filters()));
+  $('c-filter').addEventListener('click', () => dec(lastCursor, { category: 'travel' }));
+  $('c-tamper').addEventListener('click', () => {
+    if (!lastCursor) return; const i = 8; const c = lastCursor[i] === 'A' ? 'B' : 'A';
+    dec(lastCursor.slice(0, i) + c + lastCursor.slice(i + 1), filters());
+  });
+  // ---------------------------------------------------------------- 6 window (4.4)
+  const FIRST = 50, PAGE = 25, TRIGGER_OFFSET = 1;
+  let st = null;
+  function render() {
+    const list = $('w-list'); list.innerHTML = '';
+    st.buffer.slice(0, st.shown).forEach((it, i) => {
+      const d = document.createElement('div'); d.dataset.i = i + 1;
+      d.textContent = `${String(i + 1).padStart(3)} ${it.occurredAt} ${it.id.slice(0, 18)}… ${it.amountPaise}p ${it.category}`;
+      list.appendChild(d);
+    });
+    if (st.inflight && st.shown >= st.buffer.length) { const s = document.createElement('div'); s.className = 'skel'; s.textContent = 'loading…'; list.appendChild(s); }
+    let payload = '-'; try { payload = st.cursor ? unb64(st.cursor.split('.')[0]) : 'null'; } catch { /* mock */ }
+    $('w-dbg').innerHTML = `<span>buffer</span><span>1–${st.buffer.length}</span><span>shown</span><span>1–${st.shown}</span>
+      <span>hasMore</span><span>${st.hasMore}</span><span>in-flight</span><span>${st.inflight ? 'yes' : 'no'}</span>
+      <span>unique ids</span><span>${new Set(st.buffer.map(x => x.id)).size}</span>
+      <span>cursor</span><span style="word-break:break-all">${payload}</span>`;
+  }
+  function add(r) {
+    const ids = new Set(st.buffer.map(x => x.id));
+    st.buffer.push(...r.data.data.filter(x => !ids.has(x.id)));
+    st.cursor = r.data.page.nextCursor; st.hasMore = r.data.page.hasMore;
+  }
+  $('w-init').addEventListener('click', async () => {
+    st = { buffer: [], shown: 0, cursor: null, hasMore: true, inflight: null };
+    const r = await Trail.api('GET', `${LAB}/items?limit=${FIRST}`); if (r.status !== 200) { $('w-dbg').textContent = JSON.stringify(r.data); return; }
+    add(r); st.shown = Math.min(PAGE, st.buffer.length); render();
+  });
+  $('w-bad').addEventListener('click', async () => { const r = await Trail.api('GET', `${LAB}/items?limit=101`); $('w-dbg').textContent = JSON.stringify(r.data, null, 1); });
+  $('w-list').addEventListener('scroll', () => {
+    if (!st) return;
+    const list = $('w-list'); const rows = [...list.children].filter(d => d.dataset.i);
+    const visible = rows.filter(d => d.offsetTop - list.scrollTop < list.clientHeight).pop();
+    const i = visible ? Number(visible.dataset.i) : 0;
+    if (i >= st.shown - TRIGGER_OFFSET) {
+      if (st.shown < st.buffer.length) { st.shown = Math.min(st.shown + PAGE, st.buffer.length); render(); }
+      if (st.hasMore && !st.inflight) {
+        st.inflight = Trail.api('GET', `${LAB}/items?limit=${PAGE}&cursor=${encodeURIComponent(st.cursor)}`)
+          .then(r => { if (r.status === 200) add(r); st.inflight = null; render(); });
+        render();
+      }
+    }
+  });
+  document.addEventListener('trail:mode', () => { etag = null; lastCursor = null; st = null; $('w-list').innerHTML = ''; $('w-dbg').innerHTML = ''; });
+})();
+</script>
+</body>
+</html>

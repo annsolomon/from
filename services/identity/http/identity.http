@@ -1,0 +1,9 @@
+### identity health
+GET http://localhost:8081/actuator/health
+X-Request-Id: manual-identity-health
+
+### identity liveness
+GET http://localhost:8081/actuator/health/liveness
+
+### identity prometheus
+GET http://localhost:8081/actuator/prometheus

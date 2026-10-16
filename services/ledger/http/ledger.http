@@ -1,0 +1,79 @@
+### ledger health
+GET http://localhost:8082/actuator/health
+X-Request-Id: manual-ledger-health
+
+### ledger liveness
+GET http://localhost:8082/actuator/health/liveness
+
+### ledger prometheus
+GET http://localhost:8082/actuator/prometheus
+
+### ---- P01 dev-only lab (dev profile; run.sh sets it) ----
+### money: 500 paise x 50 bps, HALF_EVEN -> 2
+GET http://localhost:8082/_dev/p01/money?paise=500&bps=50
+X-Request-Id: manual-p01-money
+
+### ProblemDetail for a code
+GET http://localhost:8082/_dev/p01/errors/VERSION_CONFLICT
+
+### strict JSON: unknown field -> 400 UNKNOWN_FIELD
+POST http://localhost:8082/_dev/p01/strict-json
+Content-Type: application/json
+
+{"name":"asha","amountPaise":12345,"admin":true}
+
+### ETag
+GET http://localhost:8082/_dev/p01/doc
+
+### If-Match (428 without the header, 412 when stale)
+PUT http://localhost:8082/_dev/p01/doc
+If-Match: "0"
+
+### keyset page (then pass page.nextCursor as ?cursor=)
+GET http://localhost:8082/_dev/p01/items?limit=50
+
+### coded 404
+GET http://localhost:8082/v1/__nope
+
+### ---- P02 dev-only lab (dexter-lab, dev profile): real Postgres db `lab`, Kafka, Redis user `lab` ----
+### status (starts the lab on first call)
+GET http://localhost:8082/_dev/p02/status?init=true
+
+### mint a token (persona asha|ravi|svc-reco; defect none|expired|not-yet-valid|lifetime-too-long|wrong-audience|
+### wrong-issuer|wrong-typ|alg-none|hs256-confusion|unknown-kid|embedded-jwk|bad-signature)
+POST http://localhost:8082/_dev/p02/jwt/token
+Content-Type: application/json
+
+{"persona":"asha","defect":"none"}
+
+### verify it (paste the token)
+GET http://localhost:8082/_dev/p02/jwt/whoami
+Authorization: Bearer {{token}}
+
+### create a note (send twice with the same key: replay; change the body: 422; add ?holdMs=3000 and send twice: 409)
+POST http://localhost:8082/_dev/p02/notes
+Authorization: Bearer {{token}}
+Idempotency-Key: 6f1c2a3b-0000-4000-8000-000000000001
+Content-Type: application/json
+
+{"title":"lunch","amountPaise":25000}
+
+### cached read (X-Dexter-Cache: miss|hit|bypass)
+GET http://localhost:8082/_dev/p02/notes/{{noteId}}
+Authorization: Bearer {{token}}
+
+### outbox / projection / DLQ / cache state
+GET http://localhost:8082/_dev/p02/outbox
+Authorization: Bearer {{token}}
+
+###
+GET http://localhost:8082/_dev/p02/projection
+Authorization: Bearer {{token}}
+
+###
+GET http://localhost:8082/_dev/p02/dlq
+Authorization: Bearer {{token}}
+
+###
+GET http://localhost:8082/_dev/p02/cache
+Authorization: Bearer {{token}}

@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# Trail Live-mode check (MASTER_PLAN 0.4 "trail page exercised"): brings up core + services + trail,
+# then asserts that every service answers UP *through the trail nginx proxy* (the path Live mode uses),
+# plus /api/ (gateway) and the phase page. Stops the services afterwards. Exit 0 = pass.
+set -uo pipefail
+ROOT=$(cd "$(dirname "$0")/.." && pwd)
+cd "$ROOT"
+source scripts/lib/services.sh
+PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html})
+BASE=http://127.0.0.1:8099
+fail=0
+
+./scripts/run.sh core >/dev/null && ./scripts/run.sh services && ./scripts/run.sh trail >/dev/null || { echo "FAIL: could not start core/services/trail"; exit 1; }
+trap './scripts/run.sh stop >/dev/null 2>&1' EXIT
+
+check() {  # label url
+  local body code
+  body=$(curl -s --max-time 5 -w $'\n%{http_code}' "$2"); code=${body##*$'\n'}; body=${body%$'\n'*}
+  if [[ $code == 200 && ( $body == *'"status":"UP"'* || $1 == page ) ]]; then printf 'PASS  %-10s %s\n' "$1" "$code"
+  else printf 'FAIL  %-10s http=%s %s\n' "$1" "$code" "${body:0:100}"; fail=1; fi
+}
+
+for pg in "${PAGES[@]}"; do check page "$BASE/$pg"; done
+check api "$BASE/api/actuator/health"
+for entry in "${DEXTER_SERVICES[@]}"; do check "${entry%%:*}" "$BASE/svc/${entry%%:*}/actuator/health"; done
+
+# P01 lab through the proxy (what p01-core.html Live mode calls)
+lab=$(curl -s --max-time 5 -D /tmp/trail-p01.h -H 'X-Request-Id: trail-check-p01' "$BASE/svc/ledger/_dev/p01/money?paise=500&bps=50")
+if [[ $lab == *'"resultPaise":2'* ]] && grep -qi '^x-request-id: trail-check-p01' /tmp/trail-p01.h; then printf 'PASS  %-10s %s\n' p01-lab 200
+else printf 'FAIL  %-10s %s\n' p01-lab "${lab:0:100}"; fail=1; fi
+pd=$(curl -s --max-time 5 "$BASE/svc/ledger/_dev/p01/errors/VERSION_CONFLICT")
+if [[ $pd == *'"code":"VERSION_CONFLICT"'* ]]; then printf 'PASS  %-10s %s\n' p01-problem 412
+else printf 'FAIL  %-10s %s\n' p01-problem "${pd:0:100}"; fail=1; fi
+
+# P02 lab through the proxy (what p02-libs.html Live mode calls): start, mint, verify, idempotent POST
+P2=$BASE/svc/ledger/_dev/p02
+st=$(curl -s --max-time 90 "$P2/status?init=true")
+if [[ $st == *'"ready":true'* ]]; then printf 'PASS  %-10s %s\n' p02-lab ready; else printf 'FAIL  %-10s %s\n' p02-lab "${st:0:160}"; fail=1; fi
+tok=$(curl -s --max-time 5 -H 'Content-Type: application/json' -d '{"persona":"asha","defect":"none"}' "$P2/jwt/token" \
+  | sed -E 's/.*"token":"([^"]+)".*/\1/')
+who=$(curl -s --max-time 5 -H "Authorization: Bearer $tok" "$P2/jwt/whoami")
+if [[ $who == *'"accepted":true'* ]]; then printf 'PASS  %-10s %s\n' p02-jwt 200; else printf 'FAIL  %-10s %s\n' p02-jwt "${who:0:160}"; fail=1; fi
+k=$(cat /proc/sys/kernel/random/uuid)
+c1=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 -H "Authorization: Bearer $tok" -H "Idempotency-Key: $k" \
+  -H 'Content-Type: application/json' -d '{"title":"trail-check","amountPaise":1}' "$P2/notes")
+c2=$(curl -s -D - -o /dev/null --max-time 10 -H "Authorization: Bearer $tok" -H "Idempotency-Key: $k" \
+  -H 'Content-Type: application/json' -d '{"title":"trail-check","amountPaise":1}' "$P2/notes" | grep -ci '^idempotent-replayed: true')
+if [[ $c1 == 201 && $c2 == 1 ]]; then printf 'PASS  %-10s %s\n' p02-idem "201 + replay"
+else printf 'FAIL  %-10s %s\n' p02-idem "first=$c1 replayed=$c2"; fail=1; fi
+
+echo "trail-check: $([[ $fail -eq 0 ]] && echo PASS || echo FAIL)"
+exit $fail

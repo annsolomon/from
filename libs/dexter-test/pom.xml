@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>in.dexter</groupId>
+    <artifactId>dexter-v2-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+  <artifactId>dexter-test</artifactId>
+  <packaging>jar</packaging>
+  <name>dexter-test</name>
+  <description>Shared test kit (Testcontainers singletons PG17/Kafka/Redis, service database kit, RlsProofKit, IdempotencyContract, PaginationContract) plus the demo template module and the cross-library ITs (P02a), plus TestJwt, TcpProxy, CacheContract, ArchRules and the cache/ACL ITs (P02b).</description>
+  <dependencies>
+    <dependency><groupId>in.dexter</groupId><artifactId>dexter-core</artifactId></dependency>
+    <dependency><groupId>in.dexter</groupId><artifactId>dexter-db</artifactId></dependency>
+    <dependency><groupId>in.dexter</groupId><artifactId>dexter-web</artifactId></dependency>
+    <dependency><groupId>in.dexter</groupId><artifactId>dexter-idempotency</artifactId></dependency>
+    <dependency><groupId>in.dexter</groupId><artifactId>dexter-events</artifactId></dependency>
+    <dependency><groupId>in.dexter</groupId><artifactId>dexter-contracts</artifactId></dependency>
+    <dependency><groupId>in.dexter</groupId><artifactId>dexter-security</artifactId></dependency>
+    <dependency><groupId>in.dexter</groupId><artifactId>dexter-cache</artifactId></dependency>
+    <dependency><groupId>com.tngtech.archunit</groupId><artifactId>archunit</artifactId></dependency>
+    <dependency><groupId>org.testcontainers</groupId><artifactId>testcontainers</artifactId></dependency>
+    <dependency><groupId>org.testcontainers</groupId><artifactId>testcontainers-postgresql</artifactId></dependency>
+    <dependency><groupId>org.testcontainers</groupId><artifactId>testcontainers-kafka</artifactId></dependency>
+    <dependency><groupId>com.zaxxer</groupId><artifactId>HikariCP</artifactId></dependency>
+    <dependency><groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter-api</artifactId></dependency>
+    <dependency><groupId>org.assertj</groupId><artifactId>assertj-core</artifactId></dependency>
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-test</artifactId><scope>test</scope></dependency>
+    <dependency><groupId>org.awaitility</groupId><artifactId>awaitility</artifactId><scope>test</scope></dependency>
+  </dependencies>
+</project>

@@ -1,0 +1,9 @@
+### portfolio health
+GET http://localhost:8084/actuator/health
+X-Request-Id: manual-portfolio-health
+
+### portfolio liveness
+GET http://localhost:8084/actuator/health/liveness
+
+### portfolio prometheus
+GET http://localhost:8084/actuator/prometheus

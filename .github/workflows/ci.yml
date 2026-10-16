@@ -1,0 +1,65 @@
+# Dexter v2 CI (MASTER_PLAN P00 step 7).
+# PR: static + build + unit. main: + integration tests (Testcontainers; runners have Docker).
+# Supply chain (MASTER_PLAN 7.5): third-party actions are pinned to major tags for now and are
+# switched to full commit SHAs in P19. Trivy stays disabled until images exist.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: ./scripts/verify.sh static
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: verify-static, path: verify-report.md }
+
+  unit:
+    needs: static
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with: { distribution: temurin, java-version: '25', cache: maven }
+      - run: ./scripts/verify.sh unit
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: verify-unit, path: verify-report.md }
+
+  integration:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: unit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with: { distribution: temurin, java-version: '25', cache: maven }
+      - run: mvn -B verify
+
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with: { fetch-depth: 0 }
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  trivy:
+    # Enabled once Jib images exist (P19), pinned by commit SHA.
+    if: false
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "trivy image scan - enabled in P19"

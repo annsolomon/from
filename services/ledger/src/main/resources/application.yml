@@ -1,0 +1,64 @@
+spring:
+  application:
+    name: ledger
+  threads:
+    virtual:
+      enabled: true
+  main:
+    banner-mode: "off"
+
+server:
+  port: ${PORT_LEDGER:8082}
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+  metrics:
+    tags:
+      service: ledger
+
+logging:
+  pattern:
+    # X-Request-Id on every console line (dexter-web RequestIdFilter puts it in the MDC)
+    level: "%5p [%X{requestId:-}]"
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+logging:
+  structured:
+    format:
+      console: ecs
+    json:
+      # PII masking for ECS JSON logs (MASTER_PLAN 7.4)
+      customizer: in.dexter.web.logging.PiiMaskingJsonMembersCustomizer
+
+---
+# DEV-ONLY P02 lab (dexter-lab, A-23): database `lab`, Kafka, Redis user `lab`. run.sh exports .env, so these
+# placeholders pick up the dev passwords; the defaults match .env.example. Removed in P19.
+spring:
+  config:
+    activate:
+      on-profile: dev
+dexter:
+  lab:
+    p02:
+      enabled: true
+      jdbc-url: jdbc:postgresql://127.0.0.1:${POSTGRES_PORT:5432}/lab
+      owner-password: ${PG_PW_LAB_OWNER:${PG_PW_OWNER:dev_owner_pw}}
+      app-password: ${PG_PW_LAB_APP:${PG_PW_APP:dev_app_pw}}
+      relay-password: ${PG_PW_LAB_RELAY:${PG_PW_RELAY:dev_relay_pw}}
+      kafka-bootstrap: 127.0.0.1:${KAFKA_PORT:9092}
+      redis-host: 127.0.0.1
+      redis-port: ${REDIS_PORT:6379}
+      redis-password: ${REDIS_PW_LAB:${REDIS_PW_SERVICE:dev_redis_svc_pw}}

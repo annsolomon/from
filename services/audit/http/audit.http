@@ -1,0 +1,9 @@
+### audit health
+GET http://localhost:8089/actuator/health
+X-Request-Id: manual-audit-health
+
+### audit liveness
+GET http://localhost:8089/actuator/health/liveness
+
+### audit prometheus
+GET http://localhost:8089/actuator/prometheus

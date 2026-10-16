@@ -1,0 +1,188 @@
+# Dexter v2 local infrastructure. Run through scripts/run.sh (it passes --env-file ../../.env).
+# Profiles: core (verify.sh full), obs (observability), trail (throwaway HTML trail, deleted in P19).
+name: ${COMPOSE_PROJECT_NAME:-dexter}
+
+x-restart: &restart
+  restart: unless-stopped
+
+services:
+  # ------------------------------------------------------------------ core
+  postgres:
+    <<: *restart
+    image: postgres:17
+    profiles: [core]
+    env_file: [../../.env]
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
+      POSTGRES_DB: postgres
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_stat_statements
+      -c max_connections=300
+      -c log_min_duration_statement=500
+    ports: ["127.0.0.1:${POSTGRES_PORT:-5432}:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ../postgres:/opt/dexter/postgres:ro
+      - ../postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      # TCP (not socket) so the check stays red while init scripts run on the temp server.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U \"$$POSTGRES_USER\" -d postgres && psql -h 127.0.0.1 -U \"$$POSTGRES_USER\" -d postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='audit_app'\" | grep -q 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  redis:
+    <<: *restart
+    image: redis:7.4-alpine
+    profiles: [core]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?set in .env}
+      # Per-service ACL users (ADR-0004 §8, infra/redis/acl.tmpl). Defaults keep older .env files working.
+      REDIS_PW_SERVICE: ${REDIS_PW_SERVICE:-dev_redis_svc_pw}
+      DEXTER_REDIS_USERS: ${DEXTER_REDIS_USERS:-gateway identity ledger catalog portfolio planning reco billing commerce audit}
+    # The ACL file is rendered into /tmp at every start (never persisted in the data volume).
+    command: ["sh", "-c", "sh /opt/dexter/redis/render-acl.sh /opt/dexter/redis/acl.tmpl > /tmp/users.acl && exec redis-server --aclfile /tmp/users.acl --appendonly yes"]
+    ports: ["127.0.0.1:${REDIS_PORT:-6379}:6379"]
+    volumes:
+      - redisdata:/data
+      - ../redis:/opt/dexter/redis:ro
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" --no-auth-warning ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  kafka:
+    <<: *restart
+    image: apache/kafka:4.1.0
+    profiles: [core]
+    environment:
+      CLUSTER_ID: ${KAFKA_CLUSTER_ID:?set in .env}
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:19092,CONTROLLER://:9093,PLAINTEXT_HOST://:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:19092,PLAINTEXT_HOST://localhost:${KAFKA_PORT:-9092}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_NUM_PARTITIONS: 3                   # MASTER_PLAN 6.2: dev = 3
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"  # topics come from the topic registry (P02)
+      KAFKA_LOG_RETENTION_HOURS: 168
+    ports: ["127.0.0.1:${KAFKA_PORT:-9092}:9092"]
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 30s
+
+  objectstore:
+    <<: *restart
+    # S3-compatible store (ADR-0003). MinIO community images were deleted from Docker Hub on 2026-09-11.
+    image: chrislusf/seaweedfs:4.22
+    profiles: [core]
+    command: "server -s3 -dir=/data -ip.bind=0.0.0.0 -master.volumeSizeLimitMB=1024"
+    ports: ["127.0.0.1:${OBJECTSTORE_PORT:-8333}:8333"]
+    volumes: [s3data:/data]
+    healthcheck:
+      # dev mode has no S3 identities configured -> anonymous ListBuckets returns 200 once the gateway is up
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8333/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 20s
+
+  mailpit:
+    <<: *restart
+    image: axllent/mailpit:v1.30.5
+    profiles: [core]
+    ports: ["127.0.0.1:1025:1025", "127.0.0.1:8025:8025"]
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ------------------------------------------------------------------ obs
+  otel-collector:
+    <<: *restart
+    image: otel/opentelemetry-collector-contrib:0.130.0
+    profiles: [obs]
+    command: ["--config=/etc/otel/config.yaml"]
+    volumes: [../otel/config.yaml:/etc/otel/config.yaml:ro]
+    ports: ["127.0.0.1:4317:4317", "127.0.0.1:4318:4318", "127.0.0.1:13133:13133"]
+    # Distroless image: no shell for a healthcheck. Probed from the host by scripts/run.sh status.
+    depends_on: [tempo]
+
+  tempo:
+    <<: *restart
+    image: grafana/tempo:2.8.1
+    profiles: [obs]
+    user: "0"  # dev only: avoids volume ownership issues with the image's non-root uid
+    command: ["-config.file=/etc/tempo/tempo.yaml"]
+    volumes:
+      - ../tempo/tempo.yaml:/etc/tempo/tempo.yaml:ro
+      - tempodata:/var/tempo
+    ports: ["127.0.0.1:3200:3200"]
+
+  prometheus:
+    <<: *restart
+    image: prom/prometheus:v3.5.0
+    profiles: [obs]
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--web.enable-remote-write-receiver"]
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    volumes: [../prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro]
+    ports: ["127.0.0.1:9090:9090"]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:9090/-/healthy"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  grafana:
+    <<: *restart
+    image: grafana/grafana:12.1.0
+    profiles: [obs]
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?set in .env}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes: [../grafana/provisioning:/etc/grafana/provisioning:ro]
+    ports: ["127.0.0.1:3000:3000"]
+    depends_on: [prometheus, tempo]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ------------------------------------------------------------------ trail (deleted in P19)
+  trail:
+    <<: *restart
+    image: nginx:1.28-alpine
+    profiles: [trail]
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    volumes:
+      - ../../test-ui:/usr/share/nginx/html:ro
+      # directory mount, not a single file: single-file bind mounts pin the old inode when the file is replaced
+      - ../nginx:/etc/nginx/conf.d:ro
+    ports: ["127.0.0.1:8099:80"]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/index.html"]  # not "localhost": may resolve to ::1
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:
+  redisdata:
+  s3data:
+  tempodata:

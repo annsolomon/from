@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dexter.in/events/demo.note.created.v1.json",
+  "title": "demo.note.created v1 - data of the P02 template module (dexter-test demo)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["noteId", "title", "amountPaise", "createdAt"],
+  "properties": {
+    "noteId": {"type": "string", "format": "uuid"},
+    "title": {"type": "string", "minLength": 1, "maxLength": 200},
+    "amountPaise": {"type": "integer", "minimum": 0},
+    "createdAt": {"type": "string", "format": "date-time"}
+  }
+}

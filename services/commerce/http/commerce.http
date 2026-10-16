@@ -1,0 +1,9 @@
+### commerce health
+GET http://localhost:8088/actuator/health
+X-Request-Id: manual-commerce-health
+
+### commerce liveness
+GET http://localhost:8088/actuator/health/liveness
+
+### commerce prometheus
+GET http://localhost:8088/actuator/prometheus

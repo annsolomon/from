@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Dexter platform BOM. Single place where versions are pinned (ADR-0001).
+  Used as the PARENT of the reactor root (not an import-scoped BOM) - see Plan Amendment A-01:
+  Maven 3.9 cannot import a BOM that lives in the same reactor on a clean first build.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>4.0.8</version>
+    <relativePath/>
+  </parent>
+
+  <groupId>in.dexter</groupId>
+  <artifactId>dexter-platform-bom</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <name>dexter-platform-bom</name>
+
+  <properties>
+    <!-- ADR-0001. Fallback path: java.version=21 (Boot 4.0 supports 17+). -->
+    <java.version>25</java.version>
+    <maven.compiler.release>${java.version}</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <spring-cloud.version>2025.1.3</spring-cloud.version>
+    <!--
+      Managed by spring-boot-dependencies 4.0.8 (not overridden here):
+      Spring Framework 7, Jackson 3, Flyway 11, Testcontainers 2.x, Kafka clients 4.x,
+      Micrometer, JUnit 5, AssertJ, PostgreSQL JDBC, HikariCP.
+      Third-party libs not managed by Boot (uuid-creator, nimbus, bouncycastle, resilience4j,
+      archunit, wiremock, rest-assured, jacoco, jib) are pinned in the phase that first uses
+      them (Plan Amendment A-02).
+    -->
+    <dexter.enforce.convergence>true</dexter.enforce.convergence>
+    <!-- P01 pins (A-02), verified on Maven Central 2026-09-22 -->
+    <uuid-creator.version>6.1.1</uuid-creator.version>
+    <jacoco.version>0.8.15</jacoco.version>
+    <!-- P02b pins (A-02), checked against the repo1.maven.org directory listing 2026-09-27.
+         10.9.1 (2026-05-31) rather than 10.10 (2026-09-17): the newest release is ten days old. -->
+    <nimbus-jose-jwt.version>10.9.1</nimbus-jose-jwt.version>
+    <!-- P02b ArchRules (A-19): core artifact only, plain JUnit (no archunit-junit engine).
+         1.4.2 (2026-04-18) is the newest release; 1.4.1+ reads Java 25 class files (major 69). -->
+    <archunit.version>1.4.2</archunit.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-dependencies</artifactId>
+        <version>${spring-cloud.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.github.f4b6a3</groupId>
+        <artifactId>uuid-creator</artifactId>
+        <version>${uuid-creator.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.tngtech.archunit</groupId>
+        <artifactId>archunit</artifactId>
+        <version>${archunit.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.nimbusds</groupId>
+        <artifactId>nimbus-jose-jwt</artifactId>
+        <version>${nimbus-jose-jwt.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.jacoco</groupId>
+          <artifactId>jacoco-maven-plugin</artifactId>
+          <version>${jacoco.version}</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+</project>

@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: identity
+  threads:
+    virtual:
+      enabled: true
+  main:
+    banner-mode: "off"
+
+server:
+  port: ${PORT_IDENTITY:8081}
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+  metrics:
+    tags:
+      service: identity
+
+logging:
+  pattern:
+    # X-Request-Id on every console line (dexter-web RequestIdFilter puts it in the MDC)
+    level: "%5p [%X{requestId:-}]"
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+logging:
+  structured:
+    format:
+      console: ecs
+    json:
+      # PII masking for ECS JSON logs (MASTER_PLAN 7.4)
+      customizer: in.dexter.web.logging.PiiMaskingJsonMembersCustomizer

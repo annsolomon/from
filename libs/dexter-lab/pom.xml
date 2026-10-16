@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>in.dexter</groupId>
+    <artifactId>dexter-v2-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+  <artifactId>dexter-lab</artifactId>
+  <packaging>jar</packaging>
+  <name>dexter-lab</name>
+  <description>DEV-ONLY trail labs (A-23). The P02 lab (/_dev/p02/*) runs every P02 library against real Postgres
+    (database `lab`), Kafka and Redis (ACL user `lab`). Active only with the dev profile and
+    dexter.lab.p02.enabled=true. Hosted by ledger. Deleted in P19 together with the trail pages.</description>
+  <dependencies>
+    <dependency><groupId>in.dexter</groupId><artifactId>dexter-core</artifactId></dependency>
+    <dependency><groupId>in.dexter</groupId><artifactId>dexter-db</artifactId></dependency>
+    <dependency><groupId>in.dexter</groupId><artifactId>dexter-web</artifactId></dependency>
+    <dependency><groupId>in.dexter</groupId><artifactId>dexter-idempotency</artifactId></dependency>
+    <dependency><groupId>in.dexter</groupId><artifactId>dexter-events</artifactId></dependency>
+    <dependency><groupId>in.dexter</groupId><artifactId>dexter-security</artifactId></dependency>
+    <dependency><groupId>in.dexter</groupId><artifactId>dexter-cache</artifactId></dependency>
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-test</artifactId><scope>test</scope></dependency>
+  </dependencies>
+</project>

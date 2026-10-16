@@ -1,0 +1,32 @@
+{
+  "gateway": {
+    "status": "UP"
+  },
+  "identity": {
+    "status": "UP"
+  },
+  "ledger": {
+    "status": "UP"
+  },
+  "catalog": {
+    "status": "UP"
+  },
+  "portfolio": {
+    "status": "UP"
+  },
+  "planning": {
+    "status": "UP"
+  },
+  "reco": {
+    "status": "UP"
+  },
+  "billing": {
+    "status": "UP"
+  },
+  "commerce": {
+    "status": "UP"
+  },
+  "audit": {
+    "status": "UP"
+  }
+}

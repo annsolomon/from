@@ -1,0 +1,9 @@
+### gateway health
+GET http://localhost:8080/actuator/health
+X-Request-Id: manual-gateway-health
+
+### gateway liveness
+GET http://localhost:8080/actuator/health/liveness
+
+### gateway prometheus
+GET http://localhost:8080/actuator/prometheus

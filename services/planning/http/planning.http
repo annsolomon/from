@@ -1,0 +1,9 @@
+### planning health
+GET http://localhost:8085/actuator/health
+X-Request-Id: manual-planning-health
+
+### planning liveness
+GET http://localhost:8085/actuator/health/liveness
+
+### planning prometheus
+GET http://localhost:8085/actuator/prometheus

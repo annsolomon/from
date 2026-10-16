@@ -1,0 +1,19 @@
+# build
+target/
+*.class
+# local env and runtime
+.env
+.run/
+verify-report.md
+# ide
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+# node / python
+node_modules/
+__pycache__/
+.venv/
+# release zips uploaded into the Codespace
+*.zip

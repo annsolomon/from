@@ -1,0 +1,9 @@
+### catalog health
+GET http://localhost:8083/actuator/health
+X-Request-Id: manual-catalog-health
+
+### catalog liveness
+GET http://localhost:8083/actuator/health/liveness
+
+### catalog prometheus
+GET http://localhost:8083/actuator/prometheus

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>in.dexter</groupId>
+    <artifactId>dexter-v2-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+  <artifactId>dexter-contracts</artifactId>
+  <packaging>jar</packaging>
+  <name>dexter-contracts</name>
+  <description>Event JSON Schemas (contracts/events/*.json) and their hand-written Java records, checked by a schema validation test (MASTER_PLAN 6.1, amendment A-04/A-15).</description>
+  <dependencies>
+    <dependency><groupId>tools.jackson.core</groupId><artifactId>jackson-databind</artifactId><scope>test</scope></dependency>
+    <dependency><groupId>in.dexter</groupId><artifactId>dexter-events</artifactId><scope>test</scope></dependency>
+    <dependency><groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId><scope>test</scope></dependency>
+    <dependency><groupId>org.assertj</groupId><artifactId>assertj-core</artifactId><scope>test</scope></dependency>
+  </dependencies>
+  <build>
+    <resources>
+      <!-- schemas stay at contracts/events/ (MASTER_PLAN 6.1) and ship on the classpath as events/*.json -->
+      <resource>
+        <directory>events</directory>
+        <targetPath>events</targetPath>
+      </resource>
+    </resources>
+  </build>
+</project>

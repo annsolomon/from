@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dexter trail · P02 libraries</title>
+  <link rel="stylesheet" href="trail.css">
+</head>
+<body>
+<main>
+  <section class="card">
+    <h2>P02 · security / idempotency / events / cache</h2>
+    <p class="mono" style="color:var(--muted);margin:0">
+      Live mode calls the dev-only lab <b>/svc/ledger/_dev/p02/*</b>: the real libraries against real Postgres (database
+      <b>lab</b>), Kafka and Redis (ACL user <b>lab</b>). The lab starts on first use (a few seconds). Mock mode mirrors the
+      behaviour in the browser. Testing aid only; deleted in P19.</p>
+    <div class="row">
+      <label>Persona <select class="in" id="persona" aria-label="persona">
+        <option value="asha">Asha (user)</option><option value="ravi">Ravi (user)</option>
+        <option value="svc-reco">svc:reco (service token)</option></select></label>
+      <button class="act" id="login" type="button">Get a valid token</button>
+      <button class="ghost" id="start" type="button">Lab status / start</button>
+      <span class="mono" id="who">no token</span>
+    </div>
+    <pre class="out" id="status-out">—</pre>
+  </section>
+
+  <div class="grid2">
+    <section class="card" id="jwt">
+      <h2>1 · JWT playground (ES256, JWKS cache, A-18 contract)</h2>
+      <div class="row">
+        <select class="in" id="defect" aria-label="token defect">
+          <option>none</option><option>expired</option><option>not-yet-valid</option><option>lifetime-too-long</option>
+          <option>wrong-audience</option><option>wrong-issuer</option><option>wrong-typ</option><option>alg-none</option>
+          <option>hs256-confusion</option><option>unknown-kid</option><option>embedded-jwk</option><option>bad-signature</option>
+        </select>
+        <button class="act" id="mint" type="button">Mint + verify</button>
+        <button class="ghost" id="rotate" type="button">Rotate key</button>
+        <button class="ghost" id="retire" type="button">Retire old keys</button>
+        <button class="ghost" id="jwks" type="button">JWKS</button>
+      </div>
+      <pre class="out" id="jwt-out">—</pre>
+    </section>
+
+    <section class="card" id="idem">
+      <h2>2 · Idempotency-Key (replay · 422 · 409 · 400)</h2>
+      <div class="row">
+        <input class="in" id="i-title" value="lunch" aria-label="title" style="width:140px">
+        <input class="in" id="i-amt" type="number" value="25000" aria-label="amount paise" style="width:110px"> <span>paise</span>
+      </div>
+      <div class="row">
+        <input class="in mono" id="i-key" aria-label="Idempotency-Key" style="width:320px">
+        <button class="ghost" id="i-new" type="button">New key</button>
+      </div>
+      <div class="row">
+        <button class="act" id="i-send" type="button">Send</button>
+        <button class="ghost" id="i-again" type="button">Send again (replay)</button>
+        <button class="ghost" id="i-reuse" type="button">Same key, other body (422)</button>
+        <button class="ghost" id="i-race" type="button">Two at once (409)</button>
+        <button class="ghost" id="i-nokey" type="button">No key (400)</button>
+      </div>
+      <pre class="out" id="i-out">—</pre>
+    </section>
+  </div>
+
+  <div class="grid2">
+    <section class="card" id="events">
+      <h2>3 · Outbox → relay → Kafka → projection (inbox, retries, DLQ)</h2>
+      <div class="row">
+        <button class="act" id="e-refresh" type="button">Refresh</button>
+        <label><input type="checkbox" id="e-auto"> auto every 2 s</label>
+        <button class="ghost" id="e-poison" type="button">Send poison ("always-fails" → retry-2s → retry-5s → DLQ)</button>
+      </div>
+      <pre class="out" id="e-out">—</pre>
+    </section>
+
+    <section class="card" id="cache">
+      <h2>4 · Cache (generation keys, Path A/B, outage bypass, purge)</h2>
+      <div class="row">
+        <input class="in mono" id="c-id" placeholder="note id (send one in 2)" aria-label="note id" style="width:320px">
+        <button class="act" id="c-read" type="button">Read</button>
+        <button class="ghost" id="c-list" type="button">List</button>
+      </div>
+      <div class="row">
+        <input class="in" id="c-title" value="renamed" aria-label="new title" style="width:140px">
+        <button class="ghost" id="c-rename" type="button">Rename (Path A)</button>
+        <button class="ghost" id="c-bump" type="button">Bump (Path B)</button>
+        <button class="ghost" id="c-cut" type="button">Cut Redis</button>
+        <button class="ghost" id="c-restore" type="button">Restore Redis</button>
+        <button class="ghost" id="c-purge" type="button">Purge my keys</button>
+      </div>
+      <pre class="out" id="c-out">—</pre>
+      <pre class="out" id="c-info">—</pre>
+    </section>
+  </div>
+
+  <section class="card" id="log"></section>
+</main>
+<script src="trail.js"></script>
+<script>
+(function () {
+  'use strict';
+  Trail.mountHeader('P02 libraries', 'P02');
+  Trail.mountLog(document.getElementById('log'));
+  const LAB = '/svc/ledger/_dev/p02';
+  const $ = id => document.getElementById(id);
+  const uuid = () => crypto.randomUUID();
+  const st = { token: null, persona: 'asha', lastVersion: null };
+  $('i-key').value = uuid();
+
+  const auth = () => (st.token ? { Authorization: 'Bearer ' + st.token } : {});
+  function show(el, r, pick = []) {
+    const hs = pick.map(h => `${h}: ${r.headers[h.toLowerCase()] ?? '—'}`).join('\n');
+    $(el).textContent = `HTTP ${r.status}${r.error ? ' · ' + r.error : ''}\n${hs ? hs + '\n' : ''}${JSON.stringify(r.data, null, 1)}`;
+  }
+
+  // ------------------------------------------------------------------ MOCK (same rules, in the browser)
+  const M = { kid: 1, kids: [1], fetches: 1, notes: {}, idem: {}, outbox: {}, titles: {}, stats: {}, dlq: {}, gen: {},
+              cached: {}, cut: false, metrics: { hit: 0, miss: 0, bypass: 0, staleRefresh: 0, loads: 0, invalidationFailures: 0 } };
+  const ACC = { asha: '0192a5a1-0000-7000-8000-000000000001', ravi: '0192a5a1-0000-7000-8000-000000000002' };
+  const DEFECT = { 'none': null, 'expired': 'EXPIRED', 'not-yet-valid': 'NOT_YET_VALID', 'lifetime-too-long': 'LIFETIME',
+    'wrong-audience': 'AUDIENCE', 'wrong-issuer': 'ISSUER', 'wrong-typ': 'TYPE', 'alg-none': 'MALFORMED',
+    'hs256-confusion': 'ALGORITHM', 'unknown-kid': 'KID_UNKNOWN', 'embedded-jwk': 'HEADER', 'bad-signature': 'SIGNATURE' };
+  const problem = (status, code, detail, extra = {}) => Trail.reply(status, { code, title: code, status, detail, ...extra });
+  function mockAuth(req) {
+    const h = req.headers.Authorization; if (!h) return problem(401, 'UNAUTHENTICATED', 'A Bearer access token is required');
+    const [, persona, defect, kid] = h.slice(7).split('.');
+    const reason = DEFECT[defect] || (!M.kids.includes(Number(kid)) ? 'KID_UNKNOWN' : null);
+    if (reason) return problem(401, 'UNAUTHENTICATED', 'The access token was rejected: ' + reason, { reason });
+    return { persona, account: ACC[persona] || null };
+  }
+  function mockUser(req) {
+    const a = mockAuth(req); if (a.account === undefined) return a;
+    return a.account ? a : problem(403, 'FORBIDDEN', 'Service tokens are not accepted on this endpoint');
+  }
+  const isReply = x => x && x.account === undefined;
+  function emit(acc, type, note) {
+    const e = { id: uuid(), type, createdAt: new Date().toISOString(), publishedAt: null, attempts: 0 };
+    (M.outbox[acc] ||= []).unshift(e);
+    setTimeout(() => { e.publishedAt = new Date().toISOString(); }, 300);
+    if (note.title === 'always-fails') { setTimeout(() => (M.dlq[acc] ||= []).push({ attempt: '3', type, error: 'IllegalStateException: lab: notes titled \'always-fails\' can never be projected' }), 2500); return; }
+    setTimeout(() => { M.titles[acc] = { ...(M.titles[acc] || {}), [note.id]: { noteId: note.id, title: note.title, projectedVersion: note.version } };
+      if (type.endsWith('created')) { const s = M.stats[acc] ||= { notes: 0, amountPaise: 0 }; s.notes++; s.amountPaise += note.amountPaise; }
+      if (!M.cut) M.gen[acc] = (M.gen[acc] || 0) + 1; }, 700);
+  }
+  const bumpA = acc => { if (M.cut) M.metrics.invalidationFailures++; else M.gen[acc] = (M.gen[acc] || 0) + 1; };
+  Trail.mock('GET', /\/_dev\/p02\/status/, () => ({ ready: true, issuer: 'https://identity.dexter.lab', audience: 'lab',
+    currentKid: 'lab-' + M.kid, publishedKids: M.kids.map(k => 'lab-' + k), jwksFetches: M.fetches, redisCut: M.cut, cache: M.metrics }));
+  Trail.mock('POST', /\/_dev\/p02\/jwt\/token$/, (m, req) => ({ persona: req.body.persona, defect: req.body.defect,
+    expected: DEFECT[req.body.defect] || 'accepted', token: `mock.${req.body.persona}.${req.body.defect}.${M.kid}`, currentKid: 'lab-' + M.kid }));
+  Trail.mock('GET', /\/_dev\/p02\/jwt\/whoami$/, (m, req) => { const a = mockAuth(req); if (a.account === undefined) return a;
+    return { accepted: true, kind: a.account ? 'USER' : 'SERVICE', accountId: a.account, roles: a.account ? ['USER'] : [], jwksFetches: M.fetches }; });
+  Trail.mock('POST', /\/_dev\/p02\/jwt\/rotate$/, () => { M.kid++; M.kids.push(M.kid); M.fetches++; return { currentKid: 'lab-' + M.kid, publishedKids: M.kids.map(k => 'lab-' + k) }; });
+  Trail.mock('POST', /\/_dev\/p02\/jwt\/retire$/, () => { const r = M.kids.filter(k => k !== M.kid); M.kids = [M.kid];
+    return { retired: r.map(k => 'lab-' + k), publishedKids: ['lab-' + M.kid], note: 'verifiers drop retired keys at their next JWKS refresh (TTL 5 min)' }; });
+  Trail.mock('GET', /\/_dev\/p02\/jwt\/jwks$/, () => ({ jwks: { keys: M.kids.map(k => ({ kty: 'EC', crv: 'P-256', kid: 'lab-' + k, use: 'sig', alg: 'ES256' })) }, fetches: M.fetches }));
+  Trail.mock('POST', /\/_dev\/p02\/notes(\?.*)?$/, async (m, req) => {
+    const key = req.headers['Idempotency-Key']; if (!key) return problem(400, 'IDEMPOTENCY_KEY_REQUIRED', 'Idempotency-Key header required');
+    const u = mockUser(req); if (isReply(u)) return u;
+    const fp = JSON.stringify(req.body), slot = u.account + key, prev = M.idem[slot];
+    if (prev && prev.busy) return problem(409, 'IDEMPOTENCY_IN_PROGRESS', 'A request with this key is in progress', { retryAfterSeconds: 1 });
+    if (prev && prev.fp !== fp) return problem(422, 'IDEMPOTENCY_KEY_REUSED', 'Idempotency-Key reused with a different request');
+    if (prev) return Trail.reply(201, prev.body, { location: prev.body.location, 'idempotent-replayed': 'true' });
+    const hold = Number((req.path.match(/holdMs=(\d+)/) || [])[1] || 0);
+    M.idem[slot] = { busy: true, fp };
+    if (hold) await new Promise(r => setTimeout(r, hold));
+    const n = { id: uuid(), title: req.body.title, amountPaise: req.body.amountPaise, createdAt: new Date().toISOString(), version: 1 };
+    (M.notes[u.account] ||= {})[n.id] = n; emit(u.account, 'lab.note.created', n); bumpA(u.account);
+    M.idem[slot] = { fp, body: { ...n, location: '/_dev/p02/notes/' + n.id } };
+    return Trail.reply(201, n, { location: '/_dev/p02/notes/' + n.id });
+  });
+  function mockRead(acc, key, load) {
+    if (M.cut) { M.metrics.bypass++; M.metrics.loads++; return [load(), 'bypass']; }
+    const k = `${acc}:g${M.gen[acc] || 0}:${key}`;
+    if (k in M.cached) { M.metrics.hit++; return [M.cached[k], 'hit']; }
+    M.metrics.miss++; M.metrics.loads++; return [M.cached[k] = load(), 'miss'];
+  }
+  Trail.mock('GET', /\/_dev\/p02\/notes\/([0-9a-f-]{36})$/, (m, req) => { const u = mockUser(req); if (isReply(u)) return u;
+    const [n, how] = mockRead(u.account, 'id=' + m[1], () => { const x = (M.notes[u.account] || {})[m[1]]; return x ? { ...x } : null; });
+    return n ? Trail.reply(200, n, { 'x-dexter-cache': how }) : problem(404, 'NOT_FOUND', 'note not found'); });
+  Trail.mock('GET', /\/_dev\/p02\/notes(\?.*)?$/, (m, req) => { const u = mockUser(req); if (isReply(u)) return u;
+    const [list] = mockRead(u.account, 'list', () => Object.values(M.notes[u.account] || {}).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 25));
+    return { data: list, page: { limit: 25, hasMore: false, nextCursor: null } }; });
+  Trail.mock('PUT', /\/_dev\/p02\/notes\/([0-9a-f-]{36})$/, (m, req) => { const u = mockUser(req); if (isReply(u)) return u;
+    const n = (M.notes[u.account] || {})[m[1]]; if (!n) return problem(404, 'NOT_FOUND', 'note not found');
+    if (n.version !== req.body.version) return problem(412, 'VERSION_CONFLICT', 'note was changed (expected version ' + req.body.version + ')');
+    n.title = req.body.title; n.version++; emit(u.account, 'lab.note.renamed', n); bumpA(u.account);
+    return { id: n.id, title: n.title, version: n.version }; });
+  function mockCacheInfo(acc) {
+    const keys = M.cut ? [] : Object.keys(M.cached).filter(k => k.startsWith(acc)).map(k => 'lab:v1:{' + acc + '}:notes:' + k.slice(acc.length + 1));
+    if (!M.cut && M.gen[acc] !== undefined) keys.push('gen:lab:{' + acc + '}:notes');
+    return { metrics: M.metrics, redisCut: M.cut, generation: M.cut ? null : String(M.gen[acc] || 0), keys };
+  }
+  Trail.mock('GET', /\/_dev\/p02\/cache$/, (m, req) => { const u = mockUser(req); return isReply(u) ? u : mockCacheInfo(u.account); });
+  Trail.mock('POST', /\/_dev\/p02\/cache\/bump$/, (m, req) => { const u = mockUser(req); if (isReply(u)) return u;
+    if (M.cut) return problem(503, 'SERVICE_UNAVAILABLE', 'Redis is unreachable; the bump was not applied');
+    M.gen[u.account] = (M.gen[u.account] || 0) + 1; return mockCacheInfo(u.account); });
+  Trail.mock('POST', /\/_dev\/p02\/cache\/purge$/, (m, req) => { const u = mockUser(req); if (isReply(u)) return u;
+    if (M.cut) return problem(503, 'SERVICE_UNAVAILABLE', 'Redis is unreachable; nothing was purged');
+    let removed = 0; Object.keys(M.cached).filter(k => k.startsWith(u.account)).forEach(k => { delete M.cached[k]; removed++; });
+    if (M.gen[u.account] !== undefined) { delete M.gen[u.account]; removed++; }
+    return { ...mockCacheInfo(u.account), removed }; });
+  Trail.mock('POST', /\/_dev\/p02\/cache\/redis\/cut$/, () => { M.cut = true; return { redisCut: true }; });
+  Trail.mock('POST', /\/_dev\/p02\/cache\/redis\/restore$/, () => { M.cut = false; return { redisCut: false }; });
+  Trail.mock('GET', /\/_dev\/p02\/outbox$/, (m, req) => { const u = mockUser(req); return isReply(u) ? u : (M.outbox[u.account] || []).slice(0, 20); });
+  Trail.mock('GET', /\/_dev\/p02\/projection$/, (m, req) => { const u = mockUser(req); if (isReply(u)) return u;
+    return { titles: Object.values(M.titles[u.account] || {}), stats: M.stats[u.account] || { notes: 0, amountPaise: 0 } }; });
+  Trail.mock('GET', /\/_dev\/p02\/dlq$/, (m, req) => { const u = mockUser(req); return isReply(u) ? u : (M.dlq[u.account] || []); });
+
+  // ------------------------------------------------------------------ actions
+  async function token(persona, defect) {
+    return Trail.api('POST', `${LAB}/jwt/token`, { body: { persona, defect } });
+  }
+  $('persona').addEventListener('change', e => { st.persona = e.target.value; });
+  $('login').addEventListener('click', async () => {
+    const r = await token(st.persona, 'none');
+    if (r.status === 200) { st.token = r.data.token; $('who').textContent = `${st.persona} · token ${st.token.slice(0, 18)}…`; }
+    show('status-out', r);
+  });
+  $('start').addEventListener('click', async () => show('status-out', await Trail.api('GET', `${LAB}/status?init=true`)));
+
+  $('mint').addEventListener('click', async () => {
+    const m = await token(st.persona, $('defect').value);
+    if (m.status !== 200) { show('jwt-out', m); return; }
+    const w = await Trail.api('GET', `${LAB}/jwt/whoami`, { headers: { Authorization: 'Bearer ' + m.data.token } });
+    $('jwt-out').textContent = `defect ${m.data.defect} → expected ${m.data.expected}\nverifier: HTTP ${w.status}` +
+      `${w.data && w.data.reason ? ' · reason ' + w.data.reason : ''}\n${JSON.stringify(w.data, null, 1)}`;
+  });
+  $('rotate').addEventListener('click', async () => show('jwt-out', await Trail.api('POST', `${LAB}/jwt/rotate`)));
+  $('retire').addEventListener('click', async () => show('jwt-out', await Trail.api('POST', `${LAB}/jwt/retire`)));
+  $('jwks').addEventListener('click', async () => show('jwt-out', await Trail.api('GET', `${LAB}/jwt/jwks`)));
+
+  const noteBody = () => ({ title: $('i-title').value, amountPaise: Number($('i-amt').value) });
+  const IDEM_H = ['Location', 'Idempotent-Replayed', 'Retry-After'];
+  async function sendNote(body, key, hold = 0) {
+    const headers = { ...auth() }; if (key) headers['Idempotency-Key'] = key;
+    const r = await Trail.api('POST', `${LAB}/notes${hold ? '?holdMs=' + hold : ''}`, { body, headers });
+    if (r.status === 201 && r.data && r.data.id) { $('c-id').value = r.data.id; st.lastVersion = r.data.version; }
+    return r;
+  }
+  $('i-new').addEventListener('click', () => { $('i-key').value = uuid(); });
+  $('i-send').addEventListener('click', async () => show('i-out', await sendNote(noteBody(), $('i-key').value), IDEM_H));
+  $('i-again').addEventListener('click', async () => show('i-out', await sendNote(noteBody(), $('i-key').value), IDEM_H));
+  $('i-reuse').addEventListener('click', async () => show('i-out',
+    await sendNote({ ...noteBody(), amountPaise: noteBody().amountPaise + 1 }, $('i-key').value), IDEM_H));
+  $('i-nokey').addEventListener('click', async () => show('i-out', await sendNote(noteBody(), null), IDEM_H));
+  $('i-race').addEventListener('click', async () => {
+    const key = uuid(); $('i-key').value = key; $('i-out').textContent = 'first request holds its key for 3 s…';
+    const first = sendNote(noteBody(), key, 3000);
+    await new Promise(r => setTimeout(r, 400));
+    const second = await sendNote(noteBody(), key);
+    const one = await first;
+    $('i-out').textContent = `first : HTTP ${one.status}\nsecond: HTTP ${second.status} · Retry-After ${second.headers['retry-after'] ?? '—'}\n` +
+      JSON.stringify(second.data, null, 1);
+  });
+
+  async function refreshEvents() {
+    const [o, p, d] = await Promise.all([Trail.api('GET', `${LAB}/outbox`, { headers: auth() }),
+      Trail.api('GET', `${LAB}/projection`, { headers: auth() }), Trail.api('GET', `${LAB}/dlq`, { headers: auth() })]);
+    const rows = Array.isArray(o.data) ? o.data.map(e => `${e.type.padEnd(18)} published ${e.publishedAt ? e.publishedAt.slice(11, 23) : 'pending'}`) : [JSON.stringify(o.data)];
+    $('e-out').textContent = `OUTBOX (HTTP ${o.status})\n${rows.join('\n') || '(empty)'}\n\nPROJECTION (HTTP ${p.status})\n${JSON.stringify(p.data, null, 1)}` +
+      `\n\nDLQ projector (HTTP ${d.status})\n${JSON.stringify(d.data, null, 1)}`;
+  }
+  let timer = null;
+  $('e-refresh').addEventListener('click', refreshEvents);
+  $('e-auto').addEventListener('change', e => { clearInterval(timer); timer = e.target.checked ? setInterval(refreshEvents, 2000) : null; });
+  $('e-poison').addEventListener('click', async () => { show('e-out', await sendNote({ title: 'always-fails', amountPaise: 1 }, uuid())); });
+
+  async function cacheInfo() { show('c-info', await Trail.api('GET', `${LAB}/cache`, { headers: auth() })); }
+  $('c-read').addEventListener('click', async () => {
+    const r = await Trail.api('GET', `${LAB}/notes/${$('c-id').value.trim()}`, { headers: auth() });
+    if (r.status === 200) st.lastVersion = r.data.version;
+    show('c-out', r, ['X-Dexter-Cache']); cacheInfo();
+  });
+  $('c-list').addEventListener('click', async () => { show('c-out', await Trail.api('GET', `${LAB}/notes?limit=5`, { headers: auth() })); cacheInfo(); });
+  $('c-rename').addEventListener('click', async () => {
+    show('c-out', await Trail.api('PUT', `${LAB}/notes/${$('c-id').value.trim()}`,
+      { headers: auth(), body: { title: $('c-title').value, version: st.lastVersion ?? 1 } })); cacheInfo();
+  });
+  $('c-bump').addEventListener('click', async () => show('c-info', await Trail.api('POST', `${LAB}/cache/bump`, { headers: auth() })));
+  $('c-purge').addEventListener('click', async () => show('c-info', await Trail.api('POST', `${LAB}/cache/purge`, { headers: auth() })));
+  $('c-cut').addEventListener('click', async () => show('c-out', await Trail.api('POST', `${LAB}/cache/redis/cut`)));
+  $('c-restore').addEventListener('click', async () => show('c-out', await Trail.api('POST', `${LAB}/cache/redis/restore`)));
+  document.addEventListener('trail:mode', () => { st.token = null; $('who').textContent = 'no token'; });
+})();
+</script>
+</body>
+</html>
