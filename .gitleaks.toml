@@ -3,5 +3,9 @@
 useDefault = true
 
 [allowlist]
-description = "dev-only example env"
-paths = ['''\.env\.example''']
+description = "dev-only example env + fixed test keys in unit tests"
+paths = [
+  '''\.env\.example''',
+  # P01 cursor-key fixture: base64 of "cursor-key-0123456789abcdef0123456789ab", test-only
+  '''libs/dexter-db/src/test/java/in/dexter/db/autoconfigure/DexterDbAutoConfigurationTest\.java''',
+]

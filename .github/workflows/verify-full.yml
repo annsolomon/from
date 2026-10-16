@@ -18,6 +18,8 @@ concurrency:
 jobs:
   full:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write   # only to force-push the reports to the orphan branch `verify-reports`
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v5
@@ -56,6 +58,25 @@ jobs:
           find . -path ./target -prune -o -type d \( -name surefire-reports -o -name failsafe-reports \) -print \
             | while read -r d; do m=$(echo "$d" | sed 's#^\./##; s#/target/.*##; s#/#_#g'); mkdir -p "target/verify/reports/$m"; cp -r "$d" "target/verify/reports/$m/"; done
           ls .run 2>/dev/null && cp -r .run target/verify/run-logs || true
+      - name: publish reports to branch verify-reports
+        # Reports as plain files on an orphan branch, readable with git (no log/artifact download needed).
+        if: always()
+        env:
+          TOKEN: ${{ github.token }}
+          FULL: ${{ steps.full.outcome }}
+          TRAIL: ${{ steps.trail.outcome }}
+        run: |
+          set +e
+          out="$RUNNER_TEMP/reports"; rm -rf "$out"; mkdir -p "$out/run"
+          cp verify-report.md "$out/run/" 2>/dev/null
+          cp -r target/verify/. "$out/run/" 2>/dev/null
+          find "$out" -type f -size +20M -exec sh -c 'tail -c 5M "$1" > "$1.tail" && rm "$1"' _ {} \;
+          printf 'sha=%s\nrun=%s\nverify_full=%s\ntrail_check=%s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$FULL" "$TRAIL" > "$out/run/RUN.txt"
+          cd "$out" && git init -q && git checkout -q -b verify-reports
+          git config user.name github-actions
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A && git commit -qm "verify-full run $GITHUB_RUN_ID for $GITHUB_SHA"
+          git push -q -f "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" verify-reports
       - uses: actions/upload-artifact@v4
         if: always()
         with:
