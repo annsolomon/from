@@ -77,7 +77,9 @@ class RedisAclIT {
     }
     assertThatThrownBy(() -> asService.execute((RedisCallback<Object>) x -> x.execute(command, raw)))
         .as(command + " " + String.join(" ", args))
-        .satisfies(e -> assertThat(messages(e)).containsAnyOf("NOPERM", "can't access", "no permissions"));
+        // wording differs by path and version ("NOPERM ...", "ERR ACL failure in script: No permissions ...")
+        .satisfies(e -> assertThat(messages(e).toLowerCase(java.util.Locale.ROOT))
+            .containsAnyOf("noperm", "can't access", "no permissions"));
   }
 
   static String messages(Throwable e) {

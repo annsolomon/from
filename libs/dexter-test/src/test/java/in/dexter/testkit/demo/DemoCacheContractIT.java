@@ -23,7 +23,7 @@ import org.springframework.http.MediaType;
 
 /** ADR-0004 §10 on GET /demo/notes/{id} and GET /demo/notes (scope {@code notes}). */
 class DemoCacheContractIT extends CacheContract {
-  static final Pattern ID = Pattern.compile("\"id\":\"([0-9a-f-]{36})\"");
+  static final Pattern ID = Pattern.compile("\"id\"\\s*:\\s*\"([0-9a-f-]{36})\"");
   final DemoApp app = DemoApp.get();
 
   @Override

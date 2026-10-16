@@ -358,6 +358,7 @@ press **Lab status / start**, then **Get a valid token**. (After a manual `run.s
 
 ## 10. Changelog (one line per response)
 
+- 2026-10-16 P02b r11.1: repo `annsolomon/from` (code at root); CI `verify-full.yml` runs `verify.sh full` + `trail-check.sh` on a GitHub runner and force-pushes reports to branch `verify-reports`; gitleaks allowlists the P01 test cursor key. First real run: static/infra/ACL/unit/trail-check PASS; 2 test-code bugs fixed (`DemoCacheContractIT` id regex vs `"id": "` spacing, `RedisAclIT` case of Redis 7.4's "No permissions").
 - 2026-10-04 P02b r11: P02 trail — `libs/dexter-lab` (dev-only `/_dev/p02/*` in ledger: JWT playground, idempotency, outbox/Kafka/projection/DLQ, cache controls) + `LabIssuerTest`/`P02LabAutoConfigurationTest`, `test-ui/p02-libs.html`, api-smoke P02 block (`p02_smoke.py`), trail-check P02, lab database/Redis user, A-23. P02 complete in code; WRITTEN.
 - 2026-10-04 P02b r10: `dexter-cache` (ADR-0004) + Redis ACLs (template, compose `--aclfile`, verify checks), `ArchRules` (archunit 1.4.2), `TcpProxy`, `CacheContract`, demo on cache (detail + list, Path A/B), ITs `TenantCacheIT`/`RedisAclIT`/`DemoCacheContractIT`/`DemoCacheInvalidationIT`, `ArchRulesTest`; A-20..A-22, ADR-0004 §12, runbook. Type-checked (javac 25) + scripts/ACL run on Redis 7.0. WRITTEN.
 - 2026-10-04 P02b (no zip, tool limit): first draft of the r10 work; nothing shipped.
