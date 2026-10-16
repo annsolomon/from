@@ -1,8 +1,9 @@
 # Dexter v2 — Build README (living handoff)
 
-**Last updated:** 2026-10-16 · **Chat/phase:** P02 DONE (r11.1) · **Model:** Claude Opus 5.5
-**P02 is DONE (2026-10-16).** `verify.sh full` 17/17 PASS + `trail-check.sh` PASS on a GitHub runner (repo `annsolomon/from`,
-commit `7d4ebf0`, run 38913491961; reports on branch `verify-reports`). Next chat: **P03** (harness, seed generator, trail kit).
+**Last updated:** 2026-10-16 · **Chat/phase:** P03 DONE (r1) · **Model:** Claude Opus 5.5
+**P03 is DONE (2026-10-16).** `verify.sh full` 19/19 PASS (incl. `static.trail-pager`, `full.seed-medium`,
+`full.seed-determinism`) + `trail-check.sh` PASS on a GitHub runner (repo `annsolomon/from`, commit `4dc9033`,
+run 38922523673; `ci` run 38922523543 green; reports on branch `verify-reports`). Next chat: **P04** (Identity A).
 Upload `MASTER_PLAN.md` + this README; the code is in the repo (clone it instead of a zip).
 
 ## 1. Phase status
@@ -12,7 +13,7 @@ Upload `MASTER_PLAN.md` + this README; the code is in the repo (clone it instead
 | P00 | Bootstrap, toolchain, infra | **DONE** | `verify.sh full` PASS 17/17 (run 7, 2026-09-21) + `trail-check.sh` PASS 12/12 (r12, 2026-09-21) | |
 | P01 | Core libs A (core/db/web) | **DONE** | `verify.sh full` 17/17 PASS (2026-09-22; re-run 2026-09-27 git 0fcfed1: core 28 unit, db 20 unit + 30 IT, web 12 unit, 10 service smoke); trail-check 15/15 PASS | IT-GREEN 2026-09-22 |
 | P02 | Core libs B (idempotency/events/security/test) | **DONE** 2026-10-16 — verify full 17/17 + trail-check PASS (CI run 38913491961) |
-| P03 | Harness, seed, trail kit | NOT STARTED | — | |
+| P03 | Harness, seed, trail kit | **DONE** 2026-10-16 | `verify.sh full` 19/19 PASS + trail-check PASS (CI run 38922523673, git 4dc9033): seed 25 unit + `SeedLoadIT` 4, 11 ArchitectureTests, pager.spec.js 18/18, medium seed generate+load 16 s, determinism checksum `a67ed5cf…` (identical in the sandbox and on CI) | DoD all ticked (§3) |
 | P04 | Identity A | NOT STARTED | — | |
 | P05 | Identity B (MFA/admin/RBAC) | NOT STARTED | — | |
 | P06 | Gateway | NOT STARTED | — | |
@@ -31,6 +32,13 @@ Upload `MASTER_PLAN.md` + this README; the code is in the repo (clone it instead
 | P19 | Hardening & release | NOT STARTED | — | |
 
 ## 2. In progress (exact stopping point)
+
+- **P03 r1 (2026-10-16): complete.** Nothing in progress. Next action: P04 (verify P03 first, then Identity A).
+  P04 owes the seed one step (ADR-0008): after `identity.accounts` exists, run `./scripts/seed.sh small` and fix
+  `seed/…/Tables.ACCOUNTS` + `Generator` if the loader reports a missing column (`display_name` is not seeded;
+  personas carry it in fixtures only).
+
+### History (P02)
 
 - **r10 (2026-10-04) stopped after:** `dexter-cache` (main + 3 unit test classes), Redis ACL infra + verify checks, `ArchRules` +
   fixtures + `ArchRulesTest`, `TcpProxy`, `TestRedis` ACL kit, `CacheContract` + `LoadGate`, demo on cache
@@ -79,6 +87,26 @@ Upload `MASTER_PLAN.md` + this README; the code is in the repo (clone it instead
 - **P02b scope (A-13):** `dexter-security` (resource server, JWKS cache + unknown-kid refetch, `AuthContext`, audience check, `@RequiresStepUp`, `@RequiresPermission`, service-token client, test JWKS/JWT factory; pins nimbus + bouncycastle, verified on Maven Central), `dexter-cache` (ADR-0004, generation keys, Redis ACLs, cache contract), `ArchRules` (pins archunit), demo module switched from the `X-Demo-Account` test header to `AuthContext`, `p02-*.html` trail page + lab endpoints (idempotency replay/409/422, outbox → Kafka → projection, DLQ).
 
 ## 3. Verification of previous phase
+
+### P03 against its DoD (CI run 38922523673, git 4dc9033, 2026-10-16)
+
+| DoD / requirement | Result | Evidence |
+|---|---|---|
+| `seed.sh medium` works | PASS | `full.seed-medium`: generate 7 s + load (13 tables, 2,340,273 rows as `<svc>_owner`), total 16 s, limit 600 s |
+| Medium seed < 10 min | PASS | 16 s on CI; 35 s in the sandbox |
+| Same seed → same checksum | PASS | `full.seed-determinism` (2 medium generations) + `GeneratorTest.sameSeedGivesTheSameBytesAndChecksum`; CI and sandbox medium checksums identical (`a67ed5cf…`) |
+| `pager.spec.js` green | PASS | `static.trail-pager` 18/18 (node 22); mutation check: breaking dedupe, filter binding, the keyset predicate or the trigger offset each fails ≥ 1 test |
+| Trail index opens with mock data | PASS | trail-check: `p03-harness.html`, all 7 seed fixtures served byte-identical, `trail.js` has the kit; jsdom render: 25 shown / 50 buffered, replay, 400 codes, outbox event, 0 errors (p01/p02 pages too) |
+| ArchitectureTest in every servlet service (A-22) + gateway | PASS | 9 × 1 + `GatewayArchitectureTest` 2, all green |
+| Argon2 hashes usable by P04 | PASS | `PasswordsTest` (Spring `Argon2PasswordEncoder`) |
+| Loader: staging / real FORCE-RLS table / refuse overwrite / missing column | PASS | `SeedLoadIT` 4/4 (PG17); sandbox PG16: 1.2 M rows into a FORCE-RLS `ledger.expenses` with the planned CHECKs, FORCE restored, `ledger_app` sees 500 for Asha / 0 without context |
+| Daily totals = SUM | PASS | `GeneratorTest.dailyTotalsEqualTheSumOfLiveExpenses`; SQL on the medium seed: 0 mismatching keys |
+
+### P02 re-check in the P03 chat
+
+P02's DoD still holds: the same run re-ran every P02 IT, api-smoke P02 block (36 checks) and the trail-check P02 lab — all PASS.
+No P02 code issue found while wiring ArchRules into the services (the gateway "needs care" gap is closed by excluding
+dexter-test's transitive deps, A-26).
 
 ### P02a re-check in the P02b chat (2026-09-27)
 
@@ -132,6 +160,35 @@ Issues found in P01's own code during self-review and fixed:
 4. The web test asserted an exact `Content-Type`; now a compatible-type check (a charset suffix must not fail it).
 
 ## 4. What exists now
+
+**P03 (DONE)**
+
+| Piece | What it does |
+|---|---|
+| `seed/` (`dexter-seed`, executable jar `seed/target/seed.jar`) | `generate` / `load` / `checksum` (ADR-0008). SplitMix64 `Rng` with label forks, deterministic UUIDv7, `CopyWriter` (COPY text + SHA-256), `RefData` (v1 CSVs, seed-independent ids), `Generator` (streams account by account; exact totals; salary week, Diwali 2025, weekends, UPI/card mix, price points, rent, imports with `client_ref`, 1 % soft-deleted, 3 % edited; `expense_daily_totals`), `Passwords` (Argon2id once per distinct password), `Loader` (owner role; real table with FORCE off in-tx, else `seed_stage`), fixtures + `manifest.json/tsv` |
+| `seed/data/v1/` | 48 categories, spend model (36 leaves), 357 merchants, 635 aliases, 10 fictional `MOCK_` issuers, 40 `MOCK_` cards, 103 reward rules, 10 milestones |
+| Sizes | small: 2 demo × 500 expenses, 5 cards; medium: 10,000 / 1,200,000 / 30,000; large: 100,000 / 5,000,000 / 300,000 (+ admin, + 1.1 M daily-total rows on medium) |
+| `scripts/seed.sh` | `small|medium|large [--seed N] [--regen] [--no-load]`, `check [size]`, `fixtures`; reuses an unchanged dataset; `SEED_MAX_SECONDS` (600) |
+| Tests | `RngTest` 6 (SplitMix64 reference values), `CopyWriterTest` 3, `GeneratorTest` 10, `PasswordsTest` 2, `SeedCliTest` 3, `FixturesInSyncTest` 1, `SeedLoadIT` 4 |
+| `test-ui/trail.js` | Complete kit: personas + `mountTenantSwitcher` (Live login → `/api/v1/auth/login`), mock router `collection`/`mockList` (limit 1..100, signed cursor, filter binding, limit+1, (key, id) DESC), `idempotent` (replay, 422, 400, in-flight join, 5xx leaves no key), mock outbox `events` + `mountEvents`, `Pager` (MASTER_PLAN 4.4) + `mountPager` debug panel, `mountIdempotencyTester`, `useSeed`/`loadSeed`. P00–P02 API unchanged |
+| `test-ui/p03-harness.html`, `fixtures/seed/*.json`, `tests/pager.spec.js` | P03 page (tenant switch, 50/25/24 window, cursor checks, idempotency tester, events, catalog); generated fixtures; 18 node tests (4.5 contract on the mock router, 4.4 window, 5.5 idempotency) |
+| `perf/k6/` | `lib/base.js` (request ids, `class` tags, login, `walkList` 50/25, `idempotentPost` same-key retries, `expectProblem`), `thresholds.js` (8.1 targets, smoke/full, `SHAPES`), `scenario.template.js`; `perf/smoke.js` uses them |
+| ArchitectureTests | `<Svc>ArchitectureTest` in all 9 servlet services (`ArchRules.check`) + `GatewayArchitectureTest` (shared rules + no `Mono/Flux.block*`, no servlet API) |
+| verify / CI | `static.trail-pager`; `full.seed-medium`, `full.seed-determinism`; trail-check P03 page + fixtures; devcontainer Node 22; `.env.example` `SEED_BULK_PASSWORD` |
+
+**Seed tables (staged in `seed_stage` until the phase's migration exists)**
+
+| DB | Table | Real table in | Medium rows |
+|---|---|---|---|
+| identity | accounts / admins | P04 / P05 | 10,000 / 1 |
+| catalog | issuers, card_products, card_product_versions, reward_rules, milestones | P09 | 10, 40, 40, 103, 10 |
+| portfolio | user_cards | P11 | 30,000 |
+| ledger | categories, expenses, expense_daily_totals / merchants, merchant_aliases | P07 / P08 | 48, 1,200,000, 1,099,029 / 357, 635 |
+
+**Query→Index (P03):** no service queries. The loader's own statements are `to_regclass`, `information_schema.columns`,
+`pg_class.relforcerowsecurity` lookups and one `count(*)` per loaded table (dev only).
+
+### Before P03
 
 **P02b r11: dev-only P02 lab (WRITTEN, type-checked)** — deleted in P19 with `test-ui/`
 
@@ -250,6 +307,7 @@ Issues found in P01's own code during self-review and fixed:
 | 0005 | Replica routing via `LazyConnectionDataSourceProxy.setReadOnlyDataSource`; library-free cursor codec and PlanAssert (jsonpath) | Accepted: proven by the P01 run (2026-09-22) |
 | 0006 | Events on plain kafka-clients; per-consumer retry/DLQ topics `<topic>.<consumer>.retry-1m`/`retry-10m`/`dlq` | Accepted: proven by the P02a r4 run (`OutboxRelayIT`, `ConsumerIT`, 2026-09-27) |
 | 0007 | Request authentication: Nimbus ES256 verifier + JWKS cache + MVC `SecurityInterceptor` (default deny), no Spring Security filter chain | Accepted: proven by the 2026-10-04 run (`JwtVerifierTest`, `SecurityInterceptorTest`, `ServiceTokenClientTest`, `DemoAuthIT`) |
+| 0008 | Seed data: deterministic generator, `seed_stage` before migrations, owner-role COPY with FORCE off in-tx, passwords hashed once | Accepted: proven by CI run 38922523673 (`SeedLoadIT`, `GeneratorTest`, `full.seed-medium`, `full.seed-determinism`) |
 
 ## 6. Plan amendments (deviations from MASTER_PLAN.md)
 
@@ -277,9 +335,38 @@ Issues found in P01's own code during self-review and fixed:
 | 2026-10-04 | P02b | A-21 (revises ADR-0004 §9): `CacheInvalidator` may be called from app use-cases and from event consumers (`EventConsumer.Handler`); `ArchRules` enforces it. | ADR-0004 §4 itself has projections bump from their own transaction (infra). | P14/P15 projections. |
 | 2026-10-04 | P02b | A-22: all dexter-cache Redis access is Lua scripts + SCAN/UNLINK; ACL = `eval evalsha get set incr pexpire pttl unlink scan publish subscribe ping info client\|setinfo client\|setname` on `<svc>:*`, `gen:<svc>:*`, `lock:<svc>:*`, `&cache:inv:<svc>`; one Redis user per service, default user for ops only. `ArchRules` lives in `dexter-test` (main) as plain rules (`ArchRules.check`), no `archunit-junit` engine. The demo adds `GET /demo/notes/{id}`. | Smallest command set; one template shared by compose and tests. | Each service sets `spring.data.redis.username/password/timeout=200ms` and adds an `ArchitectureTest` (P03 harness adds it to the servlet services). |
 | 2026-10-04 | P02b | A-23: the P02 trail is backed by a dev-only module `libs/dexter-lab` hosted by ledger (`/_dev/p02/*`, `dev` profile + `dexter.lab.p02.enabled`), with its own Postgres database/roles `lab` and Redis user `lab` that the dev init scripts always create. It replaces MASTER_PLAN 11.2's `/_dev/outbox/recent` with `/_dev/p02/outbox|projection|dlq`. The lab mints its own tokens (issuer `https://identity.dexter.lab`, audience `lab`) and shows the verifier's rejection reason. | P02 has no service schema (A-12's reason); a separate database keeps the lab out of ledger's future Flyway history, and a separate module keeps the libraries free of lab code. | P19 deletes `libs/dexter-lab`, the ledger dependency, the `dev` block in ledger's `application.yml`, the `lab` additions in `apply-roles.sh`/`render-acl.sh`/`verify.sh`, and `test-ui/`. |
+| 2026-10-16 | P03 | A-24: until a table's migration exists, `seed.sh` loads its rows into `seed_stage.<table>` (owner-only schema, planned columns, dropped/recreated per load); once it exists, into the real table as `<svc>_owner` with `NO FORCE ROW LEVEL SECURITY` only inside the load transaction. `--replace` truncates (CASCADE). ADR-0008. | No service table exists in P03 (the task asked to decide this); FORCE makes RLS apply to the owner. | P04/P05/P07/P08/P09/P11: run `seed.sh small` after the first migration; update `seed/…/Tables` + `Generator` when columns differ (the loader names them). |
+| 2026-10-16 | P03 | A-25 (revises A-19): `bcprov-jdk18on` is pinned in P03 at **1.85.2** (seed Argon2id). | The seed needs Argon2id now; 1.84 and older are affected by CVE-2026-5598. | P04 reuses the pin through spring-security-crypto. |
+| 2026-10-16 | P03 | A-26: each service's `ArchitectureTest` depends on `dexter-test` (test scope) with **all transitive deps excluded**, plus `archunit`. The gateway uses the same rules plus "no `Mono/Flux.block*`, no servlet API". | `ArchRules` needs only ArchUnit; dexter-test's transitives (Testcontainers, Kafka, Redis, servlet) would change the services' Spring test contexts and put servlet classes on the reactive gateway. | A service that needs the other test kits (ServiceDb, contracts) declares dexter-test again without the exclusion in its own phase. |
+| 2026-10-16 | P03 | A-27: `test-ui/tests/pager.spec.js` is plain `node --test` on the DOM-free parts of `trail.js` (no Playwright/npm), and runs in `verify.sh static` (`static.trail-pager`). | MASTER_PLAN P03 allows Node or Playwright; no dependency to pin, runs in every verify mode and CI job. | Pages' DOM code stays outside the spec; trail-check covers serving. |
+| 2026-10-16 | P03 | A-28 (revises A-02): rest-assured and wiremock are pinned by their first user (P04 API tests / P06 gateway), not in P03. | P03 has no HTTP API test; A-02's own rule is "pin in the phase that first uses it". | P04, P06. |
+| 2026-10-16 | P03 | A-29: trail Mock/Live paths are the planned gateway paths under `/api/v1/…` (`/api/v1/expenses`, `/api/v1/auth/login`, …); fixtures are generated by `seed/`, never edited; the event viewer's Live mode polls a per-page dev endpoint (`livePath`) and is a stub until a service emits events. | One mock router for every later page; Live mode starts working as each phase ships its endpoints. | P04+ pages call `Trail.loadSeed()` and the same paths. |
 | 2026-09-22 | P01 | A-12: the P01 trail is backed by a dev-only lab controller in `dexter-web` (`/_dev/p01/*`, `@Profile("dev")`, guard test) instead of database-backed endpoints. | P01 has no service schema yet; the lab runs the real library code. Paging against a real table is P07. | P19 deletes it with the trail; `run.sh` defaults to the dev profile locally. |
 
 ## 7. Known gaps / tech debt (honest, never deleted silently)
+
+- **P03 seed:**
+  - The planned column lists (`Tables`) are a forward commitment. Each phase must reconcile them with its
+    migration. The loader fails loudly; it never drops columns silently.
+  - `identity.accounts` has no `display_name` column in the seed (MASTER_PLAN P04 lists none); the personas carry
+    one in the fixtures only.
+  - A load is one transaction **per table**, not per dataset. A failure midway leaves earlier tables loaded;
+    re-run with `--replace`.
+  - Bulk accounts share one password hash and a seeded salt (dev only, ADR-0008).
+  - `large` (5 M) has not been run anywhere yet (P19). Medium is the only size proven on CI.
+  - The data version is v1. Changing a CSV changes reference ids and every checksum; once P08/P09 hard-code ids,
+    add `v2` instead of editing.
+  - `expense_daily_totals` has ~0.9 rows per expense on medium (sparse per account/day/root): realistic, but P07
+    should expect that ratio.
+- **P03 trail kit:**
+  - Live mode has nothing to call yet (login P04, expenses P07, catalog P09, cards P11), so it shows 404/401 and
+    says so.
+  - The mock cursor signature is FNV-1a, not HMAC. It is a mock only; the real codec is `KeysetCursorCodec`.
+  - The mock collection sorts only DESC; the catalog mock is "name DESC" to reuse it.
+  - The pager spec does not cover the DOM (`mountPager` paint/IntersectionObserver). The jsdom render was a manual
+    sandbox check, not a CI step.
+- **P03 k6:** `walkList`/`idempotentPost`/`login` are not exercised until P04/P07 endpoints exist (smoke still
+  checks gateway health only). The gateway `X-Request-Id` echo check is deferred to P06.
 
 - **Jackson tree equality is type-exact** (`IntNode(5)` ≠ `LongNode(5)`): never compare `JsonNode`s or envelopes built by `valueToTree` against parsed ones; compare encoded text or typed records.
 - **Sandbox verification method (works, reuse it):** Maven Central is blocked, so the sandbox type-checks against dependency *sources* fetched from GitHub (javac 25, `-sourcepath`, flow analysis on) and runs pure-Jackson code on Jackson 3.1.5 compiled from source. It caught nothing Maven later disagreed with except runtime test semantics (the r3 `LongNode`/`IntNode` test bug).
@@ -331,9 +418,22 @@ Issues found in P01's own code during self-review and fixed:
 - **Postgres 17 behaviour** was verified on PG16 in the sandbox. The Codespaces `infra-checks` step re-verifies on 17.
 - Roles are created only on first volume init. Changing `.env` passwords requires `run.sh nuke` (see the runbook).
 - CI actions are pinned by major tag. SHA pinning comes in P19 (§7.5).
-- `seed.sh` is a stub (P03). The demo accounts don't exist yet.
+- ~~`seed.sh` is a stub (P03).~~ Done in P03; the demo accounts are seeded (staging until P04).
 
 ## 8. How to run & verify (Codespaces)
+
+P03 additions (code is in the repo; `git pull` instead of unzipping):
+```bash
+cp -n .env.example .env; grep -q SEED_BULK_PASSWORD .env || echo 'SEED_BULK_PASSWORD=Seed-Bulk-2026!' >> .env
+./scripts/run.sh core
+./scripts/seed.sh small                 # or medium (≈ 30 s), large (P19)
+./scripts/seed.sh check medium          # determinism
+node --test test-ui/tests/pager.spec.js
+./scripts/verify.sh full && ./scripts/trail-check.sh   # CI does the same: workflow verify-full, reports on branch verify-reports
+```
+Trail: `./scripts/run.sh trail` → port 8099 → `p03-harness.html` (Mock mode works without services).
+
+Earlier instructions (zip-based, pre-repo):
 
 ```bash
 # Unpack a new zip: upload it into the Codespace (drag into the Explorer), then use its real path.
@@ -352,9 +452,14 @@ press **Lab status / start**, then **Get a valid token**. (After a manual `run.s
 
 ## 9. Demo accounts (dev only)
 
-- Created in P03. Passwords are already in `.env.example` (`DEMO_PASSWORD_*`).
+- `asha@demo.in` (PREMIUM, 3 cards, 500 expenses), `ravi@demo.in` (FREE, 2 cards, 500 expenses) in `identity.accounts`;
+  `admin@demo.in` (SUPER_ADMIN) in `identity.admins`. Passwords: `DEMO_PASSWORD_*` in `.env.example`.
+- Bulk seed users `u0000001@seed.test` … (medium: 9,998, large: 99,998), password `SEED_BULK_PASSWORD`.
+- Until P04/P05 create the tables, these rows live in `identity.seed_stage.*` (ADR-0008).
 
 ## 10. Changelog (one line per response)
+
+- 2026-10-16 P03 r1: seed generator `seed/` (ADR-0008, A-24/A-25), reference data v1 (40 MOCK_ cards, 357 merchants), `seed.sh`, generated trail fixtures; complete `trail.js` + `p03-harness.html` + `pager.spec.js` (A-27, A-29); `perf/k6` base + thresholds; ArchitectureTest in all 10 services (A-26); verify `static.trail-pager`, `full.seed-medium`, `full.seed-determinism`; trail-check P03. CI run 38922523673: 19/19 + trail-check PASS → **P03 DONE**.
 
 - 2026-10-16 P02b r11.1: repo `annsolomon/from` (code at root); CI `verify-full.yml` runs `verify.sh full` + `trail-check.sh` on a GitHub runner and force-pushes reports to branch `verify-reports`; gitleaks allowlists the P01 test cursor key. First real run: static/infra/ACL/unit/trail-check PASS; 2 test-code bugs fixed (`DemoCacheContractIT` id regex vs `"id": "` spacing, `RedisAclIT` case of Redis 7.4's "No permissions").
 - 2026-10-04 P02b r11: P02 trail — `libs/dexter-lab` (dev-only `/_dev/p02/*` in ledger: JWT playground, idempotency, outbox/Kafka/projection/DLQ, cache controls) + `LabIssuerTest`/`P02LabAutoConfigurationTest`, `test-ui/p02-libs.html`, api-smoke P02 block (`p02_smoke.py`), trail-check P02, lab database/Redis user, A-23. P02 complete in code; WRITTEN.
