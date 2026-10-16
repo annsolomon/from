@@ -1,0 +1,636 @@
+alias_normalized,merchant_slug,weight
+swiggy,swiggy,1000
+zomato,zomato,1000
+swiggy instamart,swiggy-instamart,1000
+swiggyinstamart,swiggy-instamart,900
+eatsure,eatsure,1000
+box8,box8,1000
+faasos,faasos,1000
+behrouz biryani,behrouz-biryani,1000
+behrouzbiryani,behrouz-biryani,900
+behrouz,behrouz-biryani,600
+oven story pizza,oven-story-pizza,1000
+ovenstorypizza,oven-story-pizza,900
+dominos pizza,dominos-pizza,1000
+dominospizza,dominos-pizza,900
+dominos,dominos-pizza,600
+pizza hut,pizza-hut,1000
+pizzahut,pizza-hut,900
+pizza,pizza-hut,600
+freshmenu,freshmenu,1000
+rebel foods,rebel-foods,1000
+rebelfoods,rebel-foods,900
+rebel,rebel-foods,600
+licious,licious,1000
+magicpin,magicpin,1000
+barbeque nation,barbeque-nation,1000
+barbequenation,barbeque-nation,900
+barbeque,barbeque-nation,600
+haldirams,haldirams,1000
+saravana bhavan,saravana-bhavan,1000
+saravanabhavan,saravana-bhavan,900
+saravana,saravana-bhavan,600
+paradise biryani,paradise-biryani,1000
+paradisebiryani,paradise-biryani,900
+paradise,paradise-biryani,600
+mainland china,mainland-china,1000
+mainlandchina,mainland-china,900
+mainland,mainland-china,600
+social,social,1000
+farzi cafe,farzi-cafe,1000
+farzicafe,farzi-cafe,900
+farzi,farzi-cafe,600
+punjab grill,punjab-grill,1000
+punjabgrill,punjab-grill,900
+punjab,punjab-grill,600
+bikanervala,bikanervala,1000
+sagar ratna,sagar-ratna,1000
+sagarratna,sagar-ratna,900
+sagar,sagar-ratna,600
+wow momo,wow-momo,1000
+wowmomo,wow-momo,900
+burger king,burger-king,1000
+burgerking,burger-king,900
+burger,burger-king,600
+mcdonalds,mcdonalds,1000
+kfc,kfc,1000
+subway,subway,1000
+taco bell,taco-bell,1000
+tacobell,taco-bell,900
+truffles,truffles,1000
+meghana foods,meghana-foods,1000
+meghanafoods,meghana-foods,900
+meghana,meghana-foods,600
+rameshwaram cafe,rameshwaram-cafe,1000
+rameshwaramcafe,rameshwaram-cafe,900
+rameshwaram,rameshwaram-cafe,600
+vidyarthi bhavan,vidyarthi-bhavan,1000
+vidyarthibhavan,vidyarthi-bhavan,900
+vidyarthi,vidyarthi-bhavan,600
+karims,karims,1000
+bademiya,bademiya,1000
+pind balluchi,pind-balluchi,1000
+pindballuchi,pind-balluchi,900
+copper chimney,copper-chimney,1000
+copperchimney,copper-chimney,900
+copper,copper-chimney,600
+the bombay canteen,the-bombay-canteen,1000
+thebombaycanteen,the-bombay-canteen,900
+theobroma,theobroma,1000
+biryani by kilo,biryani-by-kilo,1000
+biryanibykilo,biryani-by-kilo,900
+chaayos kitchen,chaayos-kitchen,1000
+chaayoskitchen,chaayos-kitchen,900
+absolute barbecues,absolute-barbecues,1000
+absolutebarbecues,absolute-barbecues,900
+udupi grand,udupi-grand,1000
+udupigrand,udupi-grand,900
+udupi,udupi-grand,600
+bigbasket,bigbasket,1000
+blinkit,blinkit,1000
+zepto,zepto,1000
+dmart,dmart,1000
+reliance fresh,reliance-fresh,1000
+reliancefresh,reliance-fresh,900
+jiomart,jiomart,1000
+more supermarket,more-supermarket,1000
+moresupermarket,more-supermarket,900
+spencers,spencers,1000
+natures basket,natures-basket,1000
+naturesbasket,natures-basket,900
+natures,natures-basket,600
+star bazaar,star-bazaar,1000
+starbazaar,star-bazaar,900
+ratnadeep,ratnadeep,1000
+big bazaar,big-bazaar,1000
+bigbazaar,big-bazaar,900
+amazon fresh,amazon-fresh,1000
+amazonfresh,amazon-fresh,900
+flipkart minutes,flipkart-minutes,1000
+flipkartminutes,flipkart-minutes,900
+country delight,country-delight,1000
+countrydelight,country-delight,900
+milkbasket,milkbasket,1000
+spar hypermarket,spar-hypermarket,1000
+sparhypermarket,spar-hypermarket,900
+easyday,easyday,1000
+nilgiris,nilgiris,1000
+heritage fresh,heritage-fresh,1000
+heritagefresh,heritage-fresh,900
+heritage,heritage-fresh,600
+starbucks,starbucks,1000
+cafe coffee day,cafe-coffee-day,1000
+cafecoffeeday,cafe-coffee-day,900
+third wave coffee,third-wave-coffee,1000
+thirdwavecoffee,third-wave-coffee,900
+third,third-wave-coffee,600
+blue tokai,blue-tokai,1000
+bluetokai,blue-tokai,900
+chaayos,chaayos,1000
+chai point,chai-point,1000
+chaipoint,chai-point,900
+barista,barista,1000
+costa coffee,costa-coffee,1000
+costacoffee,costa-coffee,900
+costa,costa-coffee,600
+tim hortons,tim-hortons,1000
+timhortons,tim-hortons,900
+dunkin,dunkin,1000
+chai sutta bar,chai-sutta-bar,1000
+chaisuttabar,chai-sutta-bar,900
+araku coffee,araku-coffee,1000
+arakucoffee,araku-coffee,900
+araku,araku-coffee,600
+irctc,irctc,1000
+irctc ewallet,irctc-ewallet,1000
+irctcewallet,irctc-ewallet,900
+mumbai metro,mumbai-metro,1000
+mumbaimetro,mumbai-metro,900
+delhi metro,delhi-metro,1000
+delhimetro,delhi-metro,900
+namma metro,namma-metro,1000
+nammametro,namma-metro,900
+chennai metro,chennai-metro,1000
+chennaimetro,chennai-metro,900
+hyderabad metro,hyderabad-metro,1000
+hyderabadmetro,hyderabad-metro,900
+kolkata metro,kolkata-metro,1000
+kolkatametro,kolkata-metro,900
+confirmtkt,confirmtkt,1000
+railyatri,railyatri,1000
+indigo,indigo,1000
+air india,air-india,1000
+airindia,air-india,900
+air india express,air-india-express,1000
+airindiaexpress,air-india-express,900
+akasa air,akasa-air,1000
+akasaair,akasa-air,900
+akasa,akasa-air,600
+spicejet,spicejet,1000
+vistara,vistara,1000
+makemytrip flights,makemytrip-flights,1000
+makemytripflights,makemytrip-flights,900
+makemytrip,makemytrip-flights,600
+cleartrip,cleartrip,1000
+yatra,yatra,1000
+easemytrip,easemytrip,1000
+ixigo,ixigo,1000
+uber,uber,1000
+ola,ola,1000
+rapido,rapido,1000
+blusmart,blusmart,1000
+meru cabs,meru-cabs,1000
+merucabs,meru-cabs,900
+namma yatri,namma-yatri,1000
+nammayatri,namma-yatri,900
+uber moto,uber-moto,1000
+ubermoto,uber-moto,900
+ola auto,ola-auto,1000
+olaauto,ola-auto,900
+indrive,indrive,1000
+quick ride,quick-ride,1000
+quickride,quick-ride,900
+quick,quick-ride,600
+oyo,oyo,1000
+taj hotels,taj-hotels,1000
+tajhotels,taj-hotels,900
+itc hotels,itc-hotels,1000
+itchotels,itc-hotels,900
+oberoi hotels,oberoi-hotels,1000
+oberoihotels,oberoi-hotels,900
+oberoi,oberoi-hotels,600
+lemon tree,lemon-tree,1000
+lemontree,lemon-tree,900
+lemon,lemon-tree,600
+treebo,treebo,1000
+fabhotels,fabhotels,1000
+marriott india,marriott-india,1000
+marriottindia,marriott-india,900
+marriott,marriott-india,600
+radisson india,radisson-india,1000
+radissonindia,radisson-india,900
+radisson,radisson-india,600
+ginger hotels,ginger-hotels,1000
+gingerhotels,ginger-hotels,900
+ginger,ginger-hotels,600
+airbnb india,airbnb-india,1000
+airbnbindia,airbnb-india,900
+airbnb,airbnb-india,600
+booking com,booking-com,1000
+bookingcom,booking-com,900
+redbus,redbus,1000
+abhibus,abhibus,1000
+ksrtc,ksrtc,1000
+msrtc,msrtc,1000
+apsrtc,apsrtc,1000
+tsrtc,tsrtc,1000
+zingbus,zingbus,1000
+intrcity smartbus,intrcity-smartbus,1000
+intrcitysmartbus,intrcity-smartbus,900
+intrcity,intrcity-smartbus,600
+flixbus india,flixbus-india,1000
+flixbusindia,flixbus-india,900
+flixbus,flixbus-india,600
+gsrtc,gsrtc,1000
+indian oil,indian-oil,1000
+indianoil,indian-oil,900
+bharat petroleum,bharat-petroleum,1000
+bharatpetroleum,bharat-petroleum,900
+hindustan petroleum,hindustan-petroleum,1000
+hindustanpetroleum,hindustan-petroleum,900
+shell india,shell-india,1000
+shellindia,shell-india,900
+shell,shell-india,600
+nayara energy,nayara-energy,1000
+nayaraenergy,nayara-energy,900
+nayara,nayara-energy,600
+jio bp,jio-bp,1000
+jiobp,jio-bp,900
+indianoil xtrapower,indianoil-xtrapower,1000
+indianoilxtrapower,indianoil-xtrapower,900
+indianoil,indianoil-xtrapower,600
+bpcl speed,bpcl-speed,1000
+bpclspeed,bpcl-speed,900
+hp pay,hp-pay,1000
+hppay,hp-pay,900
+reliance petroleum,reliance-petroleum,1000
+reliancepetroleum,reliance-petroleum,900
+tata power ez charge,tata-power-ez-charge,1000
+tatapowerezcharge,tata-power-ez-charge,900
+statiq,statiq,1000
+chargezone,chargezone,1000
+ather grid,ather-grid,1000
+athergrid,ather-grid,900
+ather,ather-grid,600
+jio bp pulse,jio-bp-pulse,1000
+jiobppulse,jio-bp-pulse,900
+amazon,amazon,1000
+flipkart,flipkart,1000
+meesho,meesho,1000
+nykaa,nykaa,1000
+tata cliq,tata-cliq,1000
+tatacliq,tata-cliq,900
+snapdeal,snapdeal,1000
+ajio,ajio,1000
+firstcry,firstcry,1000
+pepperfry,pepperfry,1000
+lenskart,lenskart,1000
+purplle,purplle,1000
+shopsy,shopsy,1000
+croma online,croma-online,1000
+cromaonline,croma-online,900
+pharmeasy store,pharmeasy-store,1000
+pharmeasystore,pharmeasy-store,900
+mamaearth,mamaearth,1000
+boat,boat,1000
+bewakoof,bewakoof,1000
+urbanic,urbanic,1000
+ikea online,ikea-online,1000
+ikeaonline,ikea-online,900
+amazon pay,amazon-pay,1000
+amazonpay,amazon-pay,900
+myntra,myntra,1000
+westside,westside,1000
+pantaloons,pantaloons,1000
+lifestyle,lifestyle,1000
+max fashion,max-fashion,1000
+maxfashion,max-fashion,900
+shoppers stop,shoppers-stop,1000
+shoppersstop,shoppers-stop,900
+shoppers,shoppers-stop,600
+zara india,zara-india,1000
+zaraindia,zara-india,900
+h and m india,h-and-m-india,1000
+handmindia,h-and-m-india,900
+fabindia,fabindia,1000
+biba,biba,1000
+manyavar,manyavar,1000
+w for woman,w-for-woman,1000
+wforwoman,w-for-woman,900
+tanishq,tanishq,1000
+kalyan jewellers,kalyan-jewellers,1000
+kalyanjewellers,kalyan-jewellers,900
+kalyan,kalyan-jewellers,600
+bata,bata,1000
+metro shoes,metro-shoes,1000
+metroshoes,metro-shoes,900
+metro,metro-shoes,600
+raymond,raymond,1000
+peter england,peter-england,1000
+peterengland,peter-england,900
+peter,peter-england,600
+allen solly,allen-solly,1000
+allensolly,allen-solly,900
+allen,allen-solly,600
+van heusen,van-heusen,1000
+vanheusen,van-heusen,900
+levis india,levis-india,1000
+levisindia,levis-india,900
+levis,levis-india,600
+decathlon,decathlon,1000
+croma,croma,1000
+reliance digital,reliance-digital,1000
+reliancedigital,reliance-digital,900
+vijay sales,vijay-sales,1000
+vijaysales,vijay-sales,900
+vijay,vijay-sales,600
+apple store india,apple-store-india,1000
+applestoreindia,apple-store-india,900
+samsung shop,samsung-shop,1000
+samsungshop,samsung-shop,900
+mi store,mi-store,1000
+mistore,mi-store,900
+oneplus store,oneplus-store,1000
+oneplusstore,oneplus-store,900
+oneplus,oneplus-store,600
+poorvika,poorvika,1000
+sangeetha mobiles,sangeetha-mobiles,1000
+sangeethamobiles,sangeetha-mobiles,900
+bajaj electronics,bajaj-electronics,1000
+bajajelectronics,bajaj-electronics,900
+bajaj,bajaj-electronics,600
+ikea,ikea,1000
+pepperfry store,pepperfry-store,1000
+pepperfrystore,pepperfry-store,900
+urban ladder,urban-ladder,1000
+urbanladder,urban-ladder,900
+urban,urban-ladder,600
+homecentre,homecentre,1000
+home town,home-town,1000
+hometown,home-town,900
+godrej interio,godrej-interio,1000
+godrejinterio,godrej-interio,900
+godrej,godrej-interio,600
+wakefit,wakefit,1000
+sleepwell,sleepwell,1000
+nilkamal,nilkamal,1000
+durian,durian,1000
+bescom,bescom,1000
+msedcl,msedcl,1000
+tangedco,tangedco,1000
+tata power,tata-power,1000
+tatapower,tata-power,900
+adani electricity,adani-electricity,1000
+adanielectricity,adani-electricity,900
+adani,adani-electricity,600
+bses rajdhani,bses-rajdhani,1000
+bsesrajdhani,bses-rajdhani,900
+bses yamuna,bses-yamuna,1000
+bsesyamuna,bses-yamuna,900
+cesc,cesc,1000
+tsspdcl,tsspdcl,1000
+apspdcl,apspdcl,1000
+uppcl,uppcl,1000
+kseb,kseb,1000
+torrent power,torrent-power,1000
+torrentpower,torrent-power,900
+torrent,torrent-power,600
+wbsedcl,wbsedcl,1000
+jio prepaid,jio-prepaid,1000
+jioprepaid,jio-prepaid,900
+jio postpaid,jio-postpaid,1000
+jiopostpaid,jio-postpaid,900
+airtel prepaid,airtel-prepaid,1000
+airtelprepaid,airtel-prepaid,900
+airtel postpaid,airtel-postpaid,1000
+airtelpostpaid,airtel-postpaid,900
+vi prepaid,vi-prepaid,1000
+viprepaid,vi-prepaid,900
+vi postpaid,vi-postpaid,1000
+vipostpaid,vi-postpaid,900
+bsnl mobile,bsnl-mobile,1000
+bsnlmobile,bsnl-mobile,900
+jiofiber,jiofiber,1000
+airtel xstream fiber,airtel-xstream-fiber,1000
+airtelxstreamfiber,airtel-xstream-fiber,900
+act fibernet,act-fibernet,1000
+actfibernet,act-fibernet,900
+hathway,hathway,1000
+excitel,excitel,1000
+tata play fiber,tata-play-fiber,1000
+tataplayfiber,tata-play-fiber,900
+bsnl bharat fibre,bsnl-bharat-fibre,1000
+bsnlbharatfibre,bsnl-bharat-fibre,900
+you broadband,you-broadband,1000
+youbroadband,you-broadband,900
+indane gas,indane-gas,1000
+indanegas,indane-gas,900
+indane,indane-gas,600
+bharatgas,bharatgas,1000
+hp gas,hp-gas,1000
+hpgas,hp-gas,900
+mahanagar gas,mahanagar-gas,1000
+mahanagargas,mahanagar-gas,900
+mahanagar,mahanagar-gas,600
+indraprastha gas,indraprastha-gas,1000
+indraprasthagas,indraprastha-gas,900
+indraprastha,indraprastha-gas,600
+gujarat gas,gujarat-gas,1000
+gujaratgas,gujarat-gas,900
+gujarat,gujarat-gas,600
+adani total gas,adani-total-gas,1000
+adanitotalgas,adani-total-gas,900
+adani,adani-total-gas,600
+bwssb,bwssb,1000
+delhi jal board,delhi-jal-board,1000
+delhijalboard,delhi-jal-board,900
+mcgm water,mcgm-water,1000
+mcgmwater,mcgm-water,900
+hmwssb,hmwssb,1000
+cmwssb,cmwssb,1000
+tata play,tata-play,1000
+tataplay,tata-play,900
+airtel digital tv,airtel-digital-tv,1000
+airteldigitaltv,airtel-digital-tv,900
+dish tv,dish-tv,1000
+dishtv,dish-tv,900
+sun direct,sun-direct,1000
+sundirect,sun-direct,900
+d2h,d2h,1000
+bookmyshow,bookmyshow,1000
+pvr inox,pvr-inox,1000
+pvrinox,pvr-inox,900
+cinepolis,cinepolis,1000
+miraj cinemas,miraj-cinemas,1000
+mirajcinemas,miraj-cinemas,900
+miraj,miraj-cinemas,600
+paytm movies,paytm-movies,1000
+paytmmovies,paytm-movies,900
+district,district,1000
+netflix,netflix,1000
+amazon prime,amazon-prime,1000
+amazonprime,amazon-prime,900
+jiohotstar,jiohotstar,1000
+sonyliv,sonyliv,1000
+zee5,zee5,1000
+spotify,spotify,1000
+youtube premium,youtube-premium,1000
+youtubepremium,youtube-premium,900
+youtube,youtube-premium,600
+apple services,apple-services,1000
+appleservices,apple-services,900
+aha,aha,1000
+gaana,gaana,1000
+jiosaavn,jiosaavn,1000
+paytm insider,paytm-insider,1000
+paytminsider,paytm-insider,900
+bookmyshow events,bookmyshow-events,1000
+bookmyshowevents,bookmyshow-events,900
+skillbox,skillbox,1000
+wonderla,wonderla,1000
+imagicaa,imagicaa,1000
+smaaash,smaaash,1000
+apollo pharmacy,apollo-pharmacy,1000
+apollopharmacy,apollo-pharmacy,900
+pharmeasy,pharmeasy,1000
+tata 1mg,tata-1mg,1000
+tata1mg,tata-1mg,900
+netmeds,netmeds,1000
+medplus,medplus,1000
+wellness forever,wellness-forever,1000
+wellnessforever,wellness-forever,900
+wellness,wellness-forever,600
+truemeds,truemeds,1000
+frank ross,frank-ross,1000
+frankross,frank-ross,900
+frank,frank-ross,600
+practo,practo,1000
+apollo hospitals,apollo-hospitals,1000
+apollohospitals,apollo-hospitals,900
+fortis healthcare,fortis-healthcare,1000
+fortishealthcare,fortis-healthcare,900
+fortis,fortis-healthcare,600
+manipal hospitals,manipal-hospitals,1000
+manipalhospitals,manipal-hospitals,900
+narayana health,narayana-health,1000
+narayanahealth,narayana-health,900
+narayana,narayana-health,600
+dr lal pathlabs,dr-lal-pathlabs,1000
+drlalpathlabs,dr-lal-pathlabs,900
+thyrocare,thyrocare,1000
+metropolis,metropolis,1000
+max healthcare,max-healthcare,1000
+maxhealthcare,max-healthcare,900
+aster hospitals,aster-hospitals,1000
+asterhospitals,aster-hospitals,900
+aster,aster-hospitals,600
+cult fit,cult-fit,1000
+cultfit,cult-fit,900
+golds gym,golds-gym,1000
+goldsgym,golds-gym,900
+golds,golds-gym,600
+anytime fitness,anytime-fitness,1000
+anytimefitness,anytime-fitness,900
+anytime,anytime-fitness,600
+healthifyme,healthifyme,1000
+snap fitness,snap-fitness,1000
+snapfitness,snap-fitness,900
+fitpass,fitpass,1000
+delhi public school,delhi-public-school,1000
+delhipublicschool,delhi-public-school,900
+kendriya vidyalaya,kendriya-vidyalaya,1000
+kendriyavidyalaya,kendriya-vidyalaya,900
+amity university,amity-university,1000
+amityuniversity,amity-university,900
+amity,amity-university,600
+manipal academy,manipal-academy,1000
+manipalacademy,manipal-academy,900
+vit university,vit-university,1000
+vituniversity,vit-university,900
+srm university,srm-university,1000
+srmuniversity,srm-university,900
+unacademy,unacademy,1000
+byjus,byjus,1000
+coursera,coursera,1000
+udemy,udemy,1000
+upgrad,upgrad,1000
+physics wallah,physics-wallah,1000
+physicswallah,physics-wallah,900
+physics,physics-wallah,600
+vedantu,vedantu,1000
+great learning,great-learning,1000
+greatlearning,great-learning,900
+great,great-learning,600
+lic,lic,1000
+hdfc life,hdfc-life,1000
+hdfclife,hdfc-life,900
+icici prudential life,icici-prudential-life,1000
+iciciprudentiallife,icici-prudential-life,900
+icici,icici-prudential-life,600
+sbi life,sbi-life,1000
+sbilife,sbi-life,900
+star health,star-health,1000
+starhealth,star-health,900
+niva bupa,niva-bupa,1000
+nivabupa,niva-bupa,900
+care health,care-health,1000
+carehealth,care-health,900
+acko,acko,1000
+digit insurance,digit-insurance,1000
+digitinsurance,digit-insurance,900
+digit,digit-insurance,600
+policybazaar,policybazaar,1000
+zerodha,zerodha,1000
+groww,groww,1000
+upstox,upstox,1000
+kuvera,kuvera,1000
+coin by zerodha,coin-by-zerodha,1000
+coinbyzerodha,coin-by-zerodha,900
+paytm money,paytm-money,1000
+paytmmoney,paytm-money,900
+et money,et-money,1000
+etmoney,et-money,900
+angel one,angel-one,1000
+angelone,angel-one,900
+angel,angel-one,600
+nobroker rent,nobroker-rent,1000
+nobrokerrent,nobroker-rent,900
+nobroker,nobroker-rent,600
+cred rentpay,cred-rentpay,1000
+credrentpay,cred-rentpay,900
+housing com rent,housing-com-rent,1000
+housingcomrent,housing-com-rent,900
+housing,housing-com-rent,600
+magicbricks pay,magicbricks-pay,1000
+magicbrickspay,magicbricks-pay,900
+magicbricks,magicbricks-pay,600
+landlord transfer,landlord-transfer,1000
+landlordtransfer,landlord-transfer,900
+mygate,mygate,1000
+nobrokerhood,nobrokerhood,1000
+apnacomplex,apnacomplex,1000
+adda,adda,1000
+urban company,urban-company,1000
+urbancompany,urban-company,900
+urban,urban-company,600
+lakme salon,lakme-salon,1000
+lakmesalon,lakme-salon,900
+lakme,lakme-salon,600
+naturals,naturals,1000
+toni and guy,toni-and-guy,1000
+toniandguy,toni-and-guy,900
+green trends,green-trends,1000
+greentrends,green-trends,900
+green,green-trends,600
+jawed habib,jawed-habib,1000
+jawedhabib,jawed-habib,900
+jawed,jawed-habib,600
+enrich salon,enrich-salon,1000
+enrichsalon,enrich-salon,900
+enrich,enrich-salon,600
+ylg salon,ylg-salon,1000
+ylgsalon,ylg-salon,900
+bodycraft,bodycraft,1000
+ketto,ketto,1000
+milaap,milaap,1000
+giveindia,giveindia,1000
+akshaya patra,akshaya-patra,1000
+akshayapatra,akshaya-patra,900
+akshaya,akshaya-patra,600
+cry,cry,1000
+ferns n petals,ferns-n-petals,1000
+fernsnpetals,ferns-n-petals,900
+ferns,ferns-n-petals,600
+igp gifts,igp-gifts,1000
+igpgifts,igp-gifts,900
+archies,archies,1000

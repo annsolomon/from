@@ -9,7 +9,8 @@
       "mavenVersion": "3.9.11"
     },
     "ghcr.io/devcontainers/features/docker-in-docker:2": {},
-    "ghcr.io/devcontainers/features/python:1": { "version": "os-provided", "installTools": false }
+    "ghcr.io/devcontainers/features/python:1": { "version": "os-provided", "installTools": false },
+    "ghcr.io/devcontainers/features/node:1": { "version": "22" }
   },
   "hostRequirements": { "cpus": 4, "memory": "16gb" },
   "containerEnv": {

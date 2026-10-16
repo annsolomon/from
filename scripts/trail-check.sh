@@ -6,7 +6,7 @@ set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
 source scripts/lib/services.sh
-PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html})
+PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html})
 BASE=http://127.0.0.1:8099
 fail=0
 
@@ -47,6 +47,16 @@ c2=$(curl -s -D - -o /dev/null --max-time 10 -H "Authorization: Bearer $tok" -H 
   -H 'Content-Type: application/json' -d '{"title":"trail-check","amountPaise":1}' "$P2/notes" | grep -ci '^idempotent-replayed: true')
 if [[ $c1 == 201 && $c2 == 1 ]]; then printf 'PASS  %-10s %s\n' p02-idem "201 + replay"
 else printf 'FAIL  %-10s %s\n' p02-idem "first=$c1 replayed=$c2"; fail=1; fi
+
+# P03: the seed fixtures that Mock mode serves are reachable through the trail nginx and are the generated ones
+for f in personas expenses categories merchants catalog-cards user-cards seed-info; do
+  code=$(curl -s -o /tmp/trail-fx.json -w '%{http_code}' --max-time 5 "$BASE/fixtures/seed/$f.json")
+  if [[ $code == 200 ]] && cmp -s /tmp/trail-fx.json "test-ui/fixtures/seed/$f.json"; then printf 'PASS  %-10s %s\n' "fx-$f" 200
+  else printf 'FAIL  %-10s http=%s\n' "fx-$f" "$code"; fail=1; fi
+done
+js=$(curl -s --max-time 5 "$BASE/trail.js")
+if [[ $js == *'class Pager'* && $js == *'mountIdempotencyTester'* ]]; then printf 'PASS  %-10s %s\n' trail-kit 200
+else printf 'FAIL  %-10s %s\n' trail-kit "trail.js served without the P03 kit"; fail=1; fi
 
 echo "trail-check: $([[ $fail -eq 0 ]] && echo PASS || echo FAIL)"
 exit $fail

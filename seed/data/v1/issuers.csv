@@ -1,0 +1,11 @@
+code,name,type
+MOCK_SAFFRON,Saffron Bank (MOCK),bank
+MOCK_INDUS,Indus Valley Bank (MOCK),bank
+MOCK_DECCAN,Deccan Commercial Bank (MOCK),bank
+MOCK_GANGA,Ganga Federal Bank (MOCK),bank
+MOCK_KAVERI,Kaveri Bank (MOCK),bank
+MOCK_NILGIRI,Nilgiri Finance (MOCK),nbfc
+MOCK_ARAVALI,Aravali Bank (MOCK),bank
+MOCK_KONKAN,Konkan Credit (MOCK),nbfc
+MOCK_LOTUS,Lotus Co-brand (MOCK),cobrand
+MOCK_PEACOCK,Peacock Bank (MOCK),bank

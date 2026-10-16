@@ -1,0 +1,7 @@
+{
+  "data": [
+    {"key":"asha","accountId":"01962850-b4e0-7f79-91a8-ae2b66d66de5","email":"asha@demo.in","displayName":"Asha Iyer","role":"USER","tz":"Asia/Kolkata","tier":"PREMIUM","createdAt":"2025-04-12T04:45:00.000Z"},
+    {"key":"ravi","accountId":"0197d068-8440-7e84-ba76-057b995144ba","email":"ravi@demo.in","displayName":"Ravi Kumar","role":"USER","tz":"Asia/Kolkata","tier":"FREE","createdAt":"2025-07-03T13:10:00.000Z"},
+    {"key":"admin","adminId":"01946839-b540-75e5-b9b0-d434591b3088","email":"admin@demo.in","displayName":"Dexter Admin","role":"SUPER_ADMIN","tz":"Asia/Kolkata","tier":null,"createdAt":"2025-01-15T04:30:00.000Z"}
+  ]
+}

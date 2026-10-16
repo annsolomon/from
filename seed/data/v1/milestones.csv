@@ -1,0 +1,11 @@
+card_slug,spend_threshold_paise,period,benefit_type,benefit_value_paise
+mock-saffron-millennia-cashback,10000000,year,voucher,100000
+mock-saffron-regalia-gold,50000000,year,voucher,500000
+mock-indus-magnus-prime,15000000,month,points,250000
+mock-deccan-simplyclick,10000000,year,voucher,200000
+mock-deccan-aurum-black,50000000,year,voucher,500000
+mock-ganga-sapphiro,60000000,year,voucher,350000
+mock-nilgiri-wealth-infinite,120000000,year,voucher,1000000
+mock-konkan-gold,40000000,year,voucher,200000
+mock-lotus-airline-club,30000000,year,miles,300000
+mock-peacock-prestige,15000000,month,points,100000

@@ -38,6 +38,22 @@
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <!-- P03 (A-22, A-26): ArchitectureTest. Only ArchRules + ArchUnit on the test classpath; everything else that
+           dexter-test drags in (Testcontainers, Kafka, Redis, servlet) is excluded so it cannot change the Spring
+           test context. -->
+      <groupId>in.dexter</groupId>
+      <artifactId>dexter-test</artifactId>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.tngtech.archunit</groupId>
+      <artifactId>archunit</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

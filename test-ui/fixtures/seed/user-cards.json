@@ -1,0 +1,9 @@
+{
+  "data": [
+    {"id":"01966797-21c0-70dd-a992-a1a874cf2404","accountId":"01962850-b4e0-7f79-91a8-ae2b66d66de5","cardProductId":"01941f29-7c00-79b6-9690-fe36f7f70c1b","cardProductSlug":"mock-saffron-millennia-cashback","nickname":"Saffron Millennia Cashback","last4":"6755","network":"visa","statementDay":5,"dueOffsetDays":21,"creditLimitPaise":11500000,"openedOn":"2022-05-06","status":"active","version":0},
+    {"id":"01968fbb-ed20-74ca-9c38-9ec170235316","accountId":"01962850-b4e0-7f79-91a8-ae2b66d66de5","cardProductId":"01941f29-7c00-7d6b-9217-5c0a04f19a64","cardProductSlug":"mock-indus-ace-cashback","nickname":"Indus Ace Cashback","last4":"1527","network":"visa","statementDay":21,"dueOffsetDays":21,"creditLimitPaise":17500000,"openedOn":"2019-11-04","status":"active","version":0},
+    {"id":"0196bc53-a300-7f45-983b-6b630deb6e3a","accountId":"01962850-b4e0-7f79-91a8-ae2b66d66de5","cardProductId":"01941f29-7c00-7130-bc3b-f527b36e4fea","cardProductSlug":"mock-lotus-feast","nickname":"Lotus Feast","last4":"7355","network":"mastercard","statementDay":24,"dueOffsetDays":18,"creditLimitPaise":21500000,"openedOn":"2019-07-02","status":"active","version":0},
+    {"id":"01986a81-aca0-746d-82d9-826eb534d49d","accountId":"0197d068-8440-7e84-ba76-057b995144ba","cardProductId":"01941f29-7c00-7f2e-8d02-a03eeab6e252","cardProductSlug":"mock-deccan-fuel-plus","nickname":"Deccan Fuel Plus","last4":"6838","network":"rupay","statementDay":18,"dueOffsetDays":18,"creditLimitPaise":5500000,"openedOn":"2022-11-23","status":"active","version":0},
+    {"id":"019811c6-8680-73e5-938d-e3c9e5e2f096","accountId":"0197d068-8440-7e84-ba76-057b995144ba","cardProductId":"01941f29-7c00-7c7b-a7ad-81de1f8b1f6e","cardProductSlug":"mock-kaveri-cashback-every-day","nickname":"Kaveri Cashback Every Day","last4":"2556","network":"visa","statementDay":23,"dueOffsetDays":20,"creditLimitPaise":11000000,"openedOn":"2020-05-10","status":"active","version":0}
+  ]
+}

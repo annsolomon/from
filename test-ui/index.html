@@ -17,6 +17,7 @@
         <tr><td>P00</td><td><a href="p00-infra.html">p00-infra.html</a></td><td>Every service's /actuator/health, with timings</td></tr>
         <tr><td>P01</td><td><a href="p01-core.html">p01-core.html</a></td><td>Money/bps rounding, ProblemDetail codes, strict JSON, If-Match, signed cursors, 50/25/24 window</td></tr>
         <tr><td>P02</td><td><a href="p02-libs.html">p02-libs.html</a></td><td>JWT playground (defects, rotation), Idempotency-Key replay/422/409/400, outbox → Kafka → projection + DLQ, cache hit/miss/Path A/B/outage/purge</td></tr>
+        <tr><td>P03</td><td><a href="p03-harness.html">p03-harness.html</a></td><td>Seed fixtures, tenant switcher (Asha/Ravi/Admin), 50/25/24 keyset window + debug panel, cursor checks, Idempotency-Key tester, event viewer</td></tr>
       </tbody>
     </table>
   </section>
@@ -24,7 +25,7 @@
 </main>
 <script src="trail.js"></script>
 <script>
-  Trail.mountHeader('Index', 'P02');
+  Trail.mountHeader('Index', 'P03');
   Trail.mountLog(document.getElementById('log'));
 </script>
 </body>

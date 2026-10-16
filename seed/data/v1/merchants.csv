@@ -1,0 +1,358 @@
+slug,canonical_name,default_category
+swiggy,Swiggy,food.delivery
+zomato,Zomato,food.delivery
+swiggy-instamart,Swiggy Instamart,food.delivery
+eatsure,EatSure,food.delivery
+box8,Box8,food.delivery
+faasos,Faasos,food.delivery
+behrouz-biryani,Behrouz Biryani,food.delivery
+oven-story-pizza,Oven Story Pizza,food.delivery
+dominos-pizza,Dominos Pizza,food.delivery
+pizza-hut,Pizza Hut,food.delivery
+freshmenu,FreshMenu,food.delivery
+rebel-foods,Rebel Foods,food.delivery
+licious,Licious,food.delivery
+magicpin,Magicpin,food.delivery
+barbeque-nation,Barbeque Nation,food.dining
+haldirams,Haldirams,food.dining
+saravana-bhavan,Saravana Bhavan,food.dining
+paradise-biryani,Paradise Biryani,food.dining
+mainland-china,Mainland China,food.dining
+social,Social,food.dining
+farzi-cafe,Farzi Cafe,food.dining
+punjab-grill,Punjab Grill,food.dining
+bikanervala,Bikanervala,food.dining
+sagar-ratna,Sagar Ratna,food.dining
+wow-momo,Wow Momo,food.dining
+burger-king,Burger King,food.dining
+mcdonalds,McDonalds,food.dining
+kfc,KFC,food.dining
+subway,Subway,food.dining
+taco-bell,Taco Bell,food.dining
+truffles,Truffles,food.dining
+meghana-foods,Meghana Foods,food.dining
+rameshwaram-cafe,Rameshwaram Cafe,food.dining
+vidyarthi-bhavan,Vidyarthi Bhavan,food.dining
+karims,Karims,food.dining
+bademiya,Bademiya,food.dining
+pind-balluchi,Pind Balluchi,food.dining
+copper-chimney,Copper Chimney,food.dining
+the-bombay-canteen,The Bombay Canteen,food.dining
+theobroma,Theobroma,food.dining
+biryani-by-kilo,Biryani By Kilo,food.dining
+chaayos-kitchen,Chaayos Kitchen,food.dining
+absolute-barbecues,Absolute Barbecues,food.dining
+udupi-grand,Udupi Grand,food.dining
+bigbasket,BigBasket,food.groceries
+blinkit,Blinkit,food.groceries
+zepto,Zepto,food.groceries
+dmart,DMart,food.groceries
+reliance-fresh,Reliance Fresh,food.groceries
+jiomart,JioMart,food.groceries
+more-supermarket,More Supermarket,food.groceries
+spencers,Spencers,food.groceries
+natures-basket,Nature's Basket,food.groceries
+star-bazaar,Star Bazaar,food.groceries
+ratnadeep,Ratnadeep,food.groceries
+big-bazaar,Big Bazaar,food.groceries
+amazon-fresh,Amazon Fresh,food.groceries
+flipkart-minutes,Flipkart Minutes,food.groceries
+country-delight,Country Delight,food.groceries
+milkbasket,Milkbasket,food.groceries
+spar-hypermarket,Spar Hypermarket,food.groceries
+easyday,Easyday,food.groceries
+nilgiris,Nilgiris,food.groceries
+heritage-fresh,Heritage Fresh,food.groceries
+starbucks,Starbucks,food.cafe
+cafe-coffee-day,Cafe Coffee Day,food.cafe
+third-wave-coffee,Third Wave Coffee,food.cafe
+blue-tokai,Blue Tokai,food.cafe
+chaayos,Chaayos,food.cafe
+chai-point,Chai Point,food.cafe
+barista,Barista,food.cafe
+costa-coffee,Costa Coffee,food.cafe
+tim-hortons,Tim Hortons,food.cafe
+dunkin,Dunkin,food.cafe
+chai-sutta-bar,Chai Sutta Bar,food.cafe
+araku-coffee,Araku Coffee,food.cafe
+irctc,IRCTC,travel.rail
+irctc-ewallet,IRCTC eWallet,travel.rail
+mumbai-metro,Mumbai Metro,travel.rail
+delhi-metro,Delhi Metro,travel.rail
+namma-metro,Namma Metro,travel.rail
+chennai-metro,Chennai Metro,travel.rail
+hyderabad-metro,Hyderabad Metro,travel.rail
+kolkata-metro,Kolkata Metro,travel.rail
+confirmtkt,ConfirmTkt,travel.rail
+railyatri,RailYatri,travel.rail
+indigo,IndiGo,travel.air
+air-india,Air India,travel.air
+air-india-express,Air India Express,travel.air
+akasa-air,Akasa Air,travel.air
+spicejet,SpiceJet,travel.air
+vistara,Vistara,travel.air
+makemytrip-flights,MakeMyTrip Flights,travel.air
+cleartrip,Cleartrip,travel.air
+yatra,Yatra,travel.air
+easemytrip,EaseMyTrip,travel.air
+ixigo,Ixigo,travel.air
+uber,Uber,travel.cab
+ola,Ola,travel.cab
+rapido,Rapido,travel.cab
+blusmart,BluSmart,travel.cab
+meru-cabs,Meru Cabs,travel.cab
+namma-yatri,Namma Yatri,travel.cab
+uber-moto,Uber Moto,travel.cab
+ola-auto,Ola Auto,travel.cab
+indrive,InDrive,travel.cab
+quick-ride,Quick Ride,travel.cab
+oyo,OYO,travel.hotel
+taj-hotels,Taj Hotels,travel.hotel
+itc-hotels,ITC Hotels,travel.hotel
+oberoi-hotels,Oberoi Hotels,travel.hotel
+lemon-tree,Lemon Tree,travel.hotel
+treebo,Treebo,travel.hotel
+fabhotels,FabHotels,travel.hotel
+marriott-india,Marriott India,travel.hotel
+radisson-india,Radisson India,travel.hotel
+ginger-hotels,Ginger Hotels,travel.hotel
+airbnb-india,Airbnb India,travel.hotel
+booking-com,Booking.com,travel.hotel
+redbus,redBus,travel.bus
+abhibus,AbhiBus,travel.bus
+ksrtc,KSRTC,travel.bus
+msrtc,MSRTC,travel.bus
+apsrtc,APSRTC,travel.bus
+tsrtc,TSRTC,travel.bus
+zingbus,Zingbus,travel.bus
+intrcity-smartbus,IntrCity SmartBus,travel.bus
+flixbus-india,FlixBus India,travel.bus
+gsrtc,GSRTC,travel.bus
+indian-oil,Indian Oil,fuel.petrol
+bharat-petroleum,Bharat Petroleum,fuel.petrol
+hindustan-petroleum,Hindustan Petroleum,fuel.petrol
+shell-india,Shell India,fuel.petrol
+nayara-energy,Nayara Energy,fuel.petrol
+jio-bp,Jio-bp,fuel.petrol
+indianoil-xtrapower,IndianOil Xtrapower,fuel.petrol
+bpcl-speed,BPCL Speed,fuel.petrol
+hp-pay,HP Pay,fuel.petrol
+reliance-petroleum,Reliance Petroleum,fuel.petrol
+tata-power-ez-charge,Tata Power EZ Charge,fuel.ev
+statiq,Statiq,fuel.ev
+chargezone,ChargeZone,fuel.ev
+ather-grid,Ather Grid,fuel.ev
+jio-bp-pulse,Jio-bp pulse,fuel.ev
+amazon,Amazon,shopping.online
+flipkart,Flipkart,shopping.online
+meesho,Meesho,shopping.online
+nykaa,Nykaa,shopping.online
+tata-cliq,Tata CLiQ,shopping.online
+snapdeal,Snapdeal,shopping.online
+ajio,Ajio,shopping.online
+firstcry,FirstCry,shopping.online
+pepperfry,Pepperfry,shopping.online
+lenskart,Lenskart,shopping.online
+purplle,Purplle,shopping.online
+shopsy,Shopsy,shopping.online
+croma-online,Croma Online,shopping.online
+pharmeasy-store,Pharmeasy Store,shopping.online
+mamaearth,Mamaearth,shopping.online
+boat,boAt,shopping.online
+bewakoof,Bewakoof,shopping.online
+urbanic,Urbanic,shopping.online
+ikea-online,IKEA Online,shopping.online
+amazon-pay,Amazon Pay,shopping.online
+myntra,Myntra,shopping.fashion
+westside,Westside,shopping.fashion
+pantaloons,Pantaloons,shopping.fashion
+lifestyle,Lifestyle,shopping.fashion
+max-fashion,Max Fashion,shopping.fashion
+shoppers-stop,Shoppers Stop,shopping.fashion
+zara-india,Zara India,shopping.fashion
+h-and-m-india,H&M India,shopping.fashion
+fabindia,FabIndia,shopping.fashion
+biba,Biba,shopping.fashion
+manyavar,Manyavar,shopping.fashion
+w-for-woman,W for Woman,shopping.fashion
+tanishq,Tanishq,shopping.fashion
+kalyan-jewellers,Kalyan Jewellers,shopping.fashion
+bata,Bata,shopping.fashion
+metro-shoes,Metro Shoes,shopping.fashion
+raymond,Raymond,shopping.fashion
+peter-england,Peter England,shopping.fashion
+allen-solly,Allen Solly,shopping.fashion
+van-heusen,Van Heusen,shopping.fashion
+levis-india,Levis India,shopping.fashion
+decathlon,Decathlon,shopping.fashion
+croma,Croma,shopping.electronics
+reliance-digital,Reliance Digital,shopping.electronics
+vijay-sales,Vijay Sales,shopping.electronics
+apple-store-india,Apple Store India,shopping.electronics
+samsung-shop,Samsung Shop,shopping.electronics
+mi-store,Mi Store,shopping.electronics
+oneplus-store,OnePlus Store,shopping.electronics
+poorvika,Poorvika,shopping.electronics
+sangeetha-mobiles,Sangeetha Mobiles,shopping.electronics
+bajaj-electronics,Bajaj Electronics,shopping.electronics
+ikea,IKEA,shopping.home
+pepperfry-store,Pepperfry Store,shopping.home
+urban-ladder,Urban Ladder,shopping.home
+homecentre,HomeCentre,shopping.home
+home-town,Home Town,shopping.home
+godrej-interio,Godrej Interio,shopping.home
+wakefit,Wakefit,shopping.home
+sleepwell,Sleepwell,shopping.home
+nilkamal,Nilkamal,shopping.home
+durian,Durian,shopping.home
+bescom,BESCOM,utilities.electricity
+msedcl,MSEDCL,utilities.electricity
+tangedco,TANGEDCO,utilities.electricity
+tata-power,Tata Power,utilities.electricity
+adani-electricity,Adani Electricity,utilities.electricity
+bses-rajdhani,BSES Rajdhani,utilities.electricity
+bses-yamuna,BSES Yamuna,utilities.electricity
+cesc,CESC,utilities.electricity
+tsspdcl,TSSPDCL,utilities.electricity
+apspdcl,APSPDCL,utilities.electricity
+uppcl,UPPCL,utilities.electricity
+kseb,KSEB,utilities.electricity
+torrent-power,Torrent Power,utilities.electricity
+wbsedcl,WBSEDCL,utilities.electricity
+jio-prepaid,Jio Prepaid,utilities.mobile
+jio-postpaid,Jio Postpaid,utilities.mobile
+airtel-prepaid,Airtel Prepaid,utilities.mobile
+airtel-postpaid,Airtel Postpaid,utilities.mobile
+vi-prepaid,Vi Prepaid,utilities.mobile
+vi-postpaid,Vi Postpaid,utilities.mobile
+bsnl-mobile,BSNL Mobile,utilities.mobile
+jiofiber,JioFiber,utilities.broadband
+airtel-xstream-fiber,Airtel Xstream Fiber,utilities.broadband
+act-fibernet,ACT Fibernet,utilities.broadband
+hathway,Hathway,utilities.broadband
+excitel,Excitel,utilities.broadband
+tata-play-fiber,Tata Play Fiber,utilities.broadband
+bsnl-bharat-fibre,BSNL Bharat Fibre,utilities.broadband
+you-broadband,You Broadband,utilities.broadband
+indane-gas,Indane Gas,utilities.gas
+bharatgas,Bharatgas,utilities.gas
+hp-gas,HP Gas,utilities.gas
+mahanagar-gas,Mahanagar Gas,utilities.gas
+indraprastha-gas,Indraprastha Gas,utilities.gas
+gujarat-gas,Gujarat Gas,utilities.gas
+adani-total-gas,Adani Total Gas,utilities.gas
+bwssb,BWSSB,utilities.water
+delhi-jal-board,Delhi Jal Board,utilities.water
+mcgm-water,MCGM Water,utilities.water
+hmwssb,HMWSSB,utilities.water
+cmwssb,CMWSSB,utilities.water
+tata-play,Tata Play,utilities.dth
+airtel-digital-tv,Airtel Digital TV,utilities.dth
+dish-tv,Dish TV,utilities.dth
+sun-direct,Sun Direct,utilities.dth
+d2h,d2h,utilities.dth
+bookmyshow,BookMyShow,entertainment.movies
+pvr-inox,PVR INOX,entertainment.movies
+cinepolis,Cinepolis,entertainment.movies
+miraj-cinemas,Miraj Cinemas,entertainment.movies
+paytm-movies,Paytm Movies,entertainment.movies
+district,District,entertainment.movies
+netflix,Netflix,entertainment.ott
+amazon-prime,Amazon Prime,entertainment.ott
+jiohotstar,JioHotstar,entertainment.ott
+sonyliv,SonyLIV,entertainment.ott
+zee5,ZEE5,entertainment.ott
+spotify,Spotify,entertainment.ott
+youtube-premium,YouTube Premium,entertainment.ott
+apple-services,Apple Services,entertainment.ott
+aha,Aha,entertainment.ott
+gaana,Gaana,entertainment.ott
+jiosaavn,JioSaavn,entertainment.ott
+paytm-insider,Paytm Insider,entertainment.events
+bookmyshow-events,BookMyShow Events,entertainment.events
+skillbox,Skillbox,entertainment.events
+wonderla,Wonderla,entertainment.events
+imagicaa,Imagicaa,entertainment.events
+smaaash,Smaaash,entertainment.events
+apollo-pharmacy,Apollo Pharmacy,health.pharmacy
+pharmeasy,PharmEasy,health.pharmacy
+tata-1mg,Tata 1mg,health.pharmacy
+netmeds,Netmeds,health.pharmacy
+medplus,MedPlus,health.pharmacy
+wellness-forever,Wellness Forever,health.pharmacy
+truemeds,Truemeds,health.pharmacy
+frank-ross,Frank Ross,health.pharmacy
+practo,Practo,health.doctor
+apollo-hospitals,Apollo Hospitals,health.doctor
+fortis-healthcare,Fortis Healthcare,health.doctor
+manipal-hospitals,Manipal Hospitals,health.doctor
+narayana-health,Narayana Health,health.doctor
+dr-lal-pathlabs,Dr Lal PathLabs,health.doctor
+thyrocare,Thyrocare,health.doctor
+metropolis,Metropolis,health.doctor
+max-healthcare,Max Healthcare,health.doctor
+aster-hospitals,Aster Hospitals,health.doctor
+cult-fit,Cult.fit,health.fitness
+golds-gym,Golds Gym,health.fitness
+anytime-fitness,Anytime Fitness,health.fitness
+healthifyme,HealthifyMe,health.fitness
+snap-fitness,Snap Fitness,health.fitness
+fitpass,Fitpass,health.fitness
+delhi-public-school,Delhi Public School,education.fees
+kendriya-vidyalaya,Kendriya Vidyalaya,education.fees
+amity-university,Amity University,education.fees
+manipal-academy,Manipal Academy,education.fees
+vit-university,VIT University,education.fees
+srm-university,SRM University,education.fees
+unacademy,Unacademy,education.courses
+byjus,Byjus,education.courses
+coursera,Coursera,education.courses
+udemy,Udemy,education.courses
+upgrad,upGrad,education.courses
+physics-wallah,Physics Wallah,education.courses
+vedantu,Vedantu,education.courses
+great-learning,Great Learning,education.courses
+lic,LIC,finance.insurance
+hdfc-life,HDFC Life,finance.insurance
+icici-prudential-life,ICICI Prudential Life,finance.insurance
+sbi-life,SBI Life,finance.insurance
+star-health,Star Health,finance.insurance
+niva-bupa,Niva Bupa,finance.insurance
+care-health,Care Health,finance.insurance
+acko,Acko,finance.insurance
+digit-insurance,Digit Insurance,finance.insurance
+policybazaar,PolicyBazaar,finance.insurance
+zerodha,Zerodha,finance.investments
+groww,Groww,finance.investments
+upstox,Upstox,finance.investments
+kuvera,Kuvera,finance.investments
+coin-by-zerodha,Coin by Zerodha,finance.investments
+paytm-money,Paytm Money,finance.investments
+et-money,ET Money,finance.investments
+angel-one,Angel One,finance.investments
+nobroker-rent,NoBroker Rent,housing.rent
+cred-rentpay,CRED RentPay,housing.rent
+housing-com-rent,Housing.com Rent,housing.rent
+magicbricks-pay,MagicBricks Pay,housing.rent
+landlord-transfer,Landlord Transfer,housing.rent
+mygate,MyGate,housing.maintenance
+nobrokerhood,NoBrokerHood,housing.maintenance
+apnacomplex,ApnaComplex,housing.maintenance
+adda,ADDA,housing.maintenance
+urban-company,Urban Company,housing.maintenance
+lakme-salon,Lakme Salon,personal.salon
+naturals,Naturals,personal.salon
+toni-and-guy,Toni and Guy,personal.salon
+green-trends,Green Trends,personal.salon
+jawed-habib,Jawed Habib,personal.salon
+enrich-salon,Enrich Salon,personal.salon
+ylg-salon,YLG Salon,personal.salon
+bodycraft,Bodycraft,personal.salon
+ketto,Ketto,gifts.donations
+milaap,Milaap,gifts.donations
+giveindia,GiveIndia,gifts.donations
+akshaya-patra,Akshaya Patra,gifts.donations
+cry,CRY,gifts.donations
+ferns-n-petals,Ferns N Petals,gifts.donations
+igp-gifts,IGP Gifts,gifts.donations
+archies,Archies,gifts.donations

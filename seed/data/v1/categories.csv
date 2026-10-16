@@ -1,0 +1,49 @@
+path,name,icon
+food,Food,utensils
+food.dining,Dining out,utensils
+food.delivery,Food delivery,bike
+food.groceries,Groceries,basket
+food.cafe,Cafes,coffee
+travel,Travel,plane
+travel.rail,Rail,train
+travel.air,Flights,plane
+travel.cab,Cabs,car
+travel.hotel,Hotels,bed
+travel.bus,Bus,bus
+fuel,Fuel,fuel
+fuel.petrol,Petrol and diesel,fuel
+fuel.ev,EV charging,plug
+shopping,Shopping,bag
+shopping.online,Online shopping,cart
+shopping.fashion,Fashion,shirt
+shopping.electronics,Electronics,laptop
+shopping.home,Home and furniture,sofa
+utilities,Utilities,bolt
+utilities.electricity,Electricity,bolt
+utilities.mobile,Mobile,phone
+utilities.broadband,Broadband,wifi
+utilities.gas,Cooking gas,flame
+utilities.water,Water,droplet
+utilities.dth,DTH and cable,tv
+entertainment,Entertainment,film
+entertainment.movies,Movies,film
+entertainment.ott,Streaming,play
+entertainment.events,Events,ticket
+health,Health,heart
+health.pharmacy,Pharmacy,pill
+health.doctor,Doctors and labs,stethoscope
+health.fitness,Fitness,dumbbell
+education,Education,book
+education.fees,School and college fees,school
+education.courses,Courses,book
+finance,Finance,bank
+finance.insurance,Insurance,shield
+finance.investments,Investments,chart
+housing,Housing,home
+housing.rent,Rent,key
+housing.maintenance,Society maintenance,wrench
+personal,Personal care,sparkles
+personal.salon,Salon and spa,scissors
+gifts,Gifts and donations,gift
+gifts.donations,Donations,hand-heart
+general,General,circle

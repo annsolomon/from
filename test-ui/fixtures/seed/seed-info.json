@@ -1,0 +1,9 @@
+{
+  "generator": "dexter-seed (seed/, MASTER_PLAN 11.1, ADR-0008)",
+  "seed": 42,
+  "dataVersion": "v1",
+  "windowFrom": "2025-10-01",
+  "windowDays": 365,
+  "zone": "Asia/Kolkata",
+  "note": "Demo accounts only (asha, ravi, admin). Regenerate with: ./scripts/seed.sh fixtures"
+}

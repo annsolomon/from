@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # Dexter v2 verification (MASTER_PLAN 10).
-#   ./scripts/verify.sh static   no Maven: forbidden patterns, migration names, RLS gate, skeletons, README
+#   ./scripts/verify.sh static   no Maven: forbidden patterns, migration names, RLS gate, skeletons, README,
+#                                trail kit spec (node --test test-ui/tests/pager.spec.js)
 #   ./scripts/verify.sh unit     static + mvn -DskipITs verify
-#   ./scripts/verify.sh full     static + infra up (core) + mvn verify (ITs) + services + api-smoke + k6 smoke
+#   ./scripts/verify.sh full     static + infra up (core) + mvn verify (ITs) + seed medium (generate + load, < 10 min)
+#                                + seed determinism + services + api-smoke + k6 smoke
 # Always writes verify-report.md at the repo root. Exit code 0 only when every step passes or is skipped.
 set -uo pipefail
 
@@ -134,6 +136,15 @@ check_readme() {
   [[ $miss -eq 0 ]]
 }
 
+check_trail_pager() {
+  # MASTER_PLAN P03: the trail kit's pager/mock router/idempotency spec. Plain node, no npm install.
+  command -v node >/dev/null || { echo "node not installed (devcontainer feature 'node'; apt-get install nodejs)"; return 1; }
+  node --test test-ui/tests/pager.spec.js 2>&1 | tail -n 12
+  local rc=${PIPESTATUS[0]}
+  echo "pager.spec.js (node $(node --version)): $([[ $rc -eq 0 ]] && echo PASS || echo FAIL)"
+  return "$rc"
+}
+
 check_compose_config() { "${COMPOSE[@]}" --profile core --profile obs --profile trail config -q && echo "compose config valid"; }
 
 # ------------------------------------------------------------------ environment
@@ -258,6 +269,10 @@ infra_checks() {
 services_up() { "$ROOT/scripts/run.sh" services; }
 services_down() { "$ROOT/scripts/run.sh" stop >/dev/null 2>&1 || true; }
 api_smoke() { SMOKE_OUT="$VDIR/smoke.txt" "$ROOT/scripts/api-smoke.sh"; }
+# P03 (MASTER_PLAN 11.1): medium seed generated + loaded into the core Postgres within 10 min, then determinism
+# (a second generation must give the identical checksum). Uses the jar mvn verify just built.
+seed_medium() { SEED_MAX_SECONDS=600 "$ROOT/scripts/seed.sh" medium --regen 2>&1 | tail -n 20; return "${PIPESTATUS[0]}"; }
+seed_determinism() { "$ROOT/scripts/seed.sh" check medium 2>&1 | tail -n 5; return "${PIPESTATUS[0]}"; }
 k6_smoke() {
   k6 run --quiet --summary-export "$VDIR/k6-summary.json" "$ROOT/perf/smoke.js" && echo "k6 smoke thresholds met"
 }
@@ -280,6 +295,7 @@ run_step static.skeletons          check_skeletons
 run_step static.poms-wellformed    check_xml_wellformed
 run_step static.shell-syntax       check_shell_syntax
 run_step static.readme             check_readme
+run_step static.trail-pager        check_trail_pager
 if command -v docker >/dev/null 2>&1 && [[ -f .env ]]; then run_step static.compose-config check_compose_config
 else skip static.compose-config "docker or .env not available"; fi
 
@@ -304,6 +320,12 @@ if [[ $MODE == full ]]; then
     else skip full.infra-checks "infra not healthy - see full.infra-up.log"; fi
   else record full.infra-up FAIL "docker not found"; fi
   if command -v mvn >/dev/null; then run_step full.maven mvn_full; else record full.maven FAIL "mvn not found"; fi
+  if grep -q $'full.maven\tPASS' "$VDIR/steps.tsv" && grep -q $'full.infra-up\tPASS' "$VDIR/steps.tsv"; then
+    run_step full.seed-medium seed_medium
+    run_step full.seed-determinism seed_determinism
+  else
+    skip full.seed-medium "maven build or infra failed"; skip full.seed-determinism "maven build or infra failed"
+  fi
   if grep -q $'full.maven\tPASS' "$VDIR/steps.tsv"; then
     trap services_down EXIT
     run_step full.services-up services_up

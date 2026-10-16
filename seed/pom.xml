@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>in.dexter</groupId>
+    <artifactId>dexter-v2-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+  <artifactId>dexter-seed</artifactId>
+  <packaging>jar</packaging>
+  <name>dexter-seed</name>
+  <description>Deterministic mock-data generator (MASTER_PLAN 11.1, ADR-0008): COPY files per service database, a
+    checksummed manifest, trail fixtures, and a loader that writes them as the owner role. Dev/test only; never a
+    dependency of a service.</description>
+
+  <dependencies>
+    <dependency>
+      <!-- COPY FROM STDIN through CopyManager -->
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+    </dependency>
+    <dependency>
+      <!-- Argon2id (the same KDF spring-security-crypto's Argon2PasswordEncoder uses in P04) -->
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk18on</artifactId>
+    </dependency>
+
+    <dependency><groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId><scope>test</scope></dependency>
+    <dependency><groupId>org.assertj</groupId><artifactId>assertj-core</artifactId><scope>test</scope></dependency>
+    <dependency>
+      <!-- proves the precomputed hashes verify with the encoder identity (P04) will use -->
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-crypto</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <!-- commons-logging for the encoder at test runtime -->
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <!-- TestPostgres + ServiceDb for SeedLoadIT -->
+      <groupId>in.dexter</groupId>
+      <artifactId>dexter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <finalName>seed</finalName>
+    <resources>
+      <resource>
+        <!-- the versioned reference data travels inside the jar -->
+        <directory>data</directory>
+        <targetPath>seed-data</targetPath>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+        <!-- executable jar for scripts/seed.sh (java -jar seed/target/seed.jar ...) -->
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <!-- repackage is bound by spring-boot-starter-parent, as in the services -->
+        <configuration>
+          <mainClass>in.dexter.seed.SeedCli</mainClass>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

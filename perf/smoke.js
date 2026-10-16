@@ -1,23 +1,21 @@
-// k6 smoke (MASTER_PLAN 10): 10 VUs for 30s. P00 target: gateway /actuator/health.
-// Later phases add their endpoints to SCENARIO_PATHS.
-import http from 'k6/http';
+// k6 smoke (MASTER_PLAN 10): 10 VUs for 30s, run by `verify.sh full` (full.k6-smoke).
+// Built on the P03 base library (perf/k6/lib/base.js) and thresholds template (perf/k6/thresholds.js).
+// Later phases add their endpoints to SCENARIO_PATHS (reads) or ship a scenario from perf/k6/scenario.template.js.
 import { check } from 'k6';
+import { CLASS, get } from './k6/lib/base.js';
+import { SHAPES, thresholds } from './k6/thresholds.js';
 
-const BASE = __ENV.BASE_URL || 'http://localhost:8080';
 const SCENARIO_PATHS = ['/actuator/health'];
 
 export const options = {
-  vus: 10,
-  duration: '30s',
-  thresholds: {
-    http_req_failed: ['rate<0.01'],
-    http_req_duration: ['p(95)<200'],
-  },
+  ...SHAPES.smoke,
+  thresholds: thresholds('smoke', [CLASS.HEALTH]),
 };
 
 export default function () {
   for (const path of SCENARIO_PATHS) {
-    const res = http.get(`${BASE}${path}`, { headers: { 'X-Request-Id': `k6-${__VU}-${__ITER}` } });
+    const res = get(path, { cls: CLASS.HEALTH });
+    // X-Request-Id echo on the gateway arrives with its filter chain in P06; add the check there.
     check(res, { 'status 200': (r) => r.status === 200 });
   }
 }

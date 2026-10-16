@@ -29,6 +29,7 @@
     <module>libs/dexter-test</module>
     <module>libs/dexter-lab</module>
     <module>libs/portfolio-calc</module>
+    <module>seed</module>
     <module>services/gateway</module>
     <module>services/identity</module>
     <module>services/ledger</module>
@@ -96,6 +97,11 @@
       <dependency>
         <groupId>in.dexter</groupId>
         <artifactId>portfolio-calc</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>in.dexter</groupId>
+        <artifactId>dexter-seed</artifactId>
         <version>${project.version}</version>
       </dependency>
     </dependencies>

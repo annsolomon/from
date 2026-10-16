@@ -1,0 +1,41 @@
+slug,issuer_code,name,network,tier,joining_fee_paise,annual_fee_paise,fee_waiver_spend_paise,apr_bps,forex_markup_bps,fuel_surcharge_waiver_bps,features,status
+mock-saffron-millennia-cashback,MOCK_SAFFRON,MOCK_Saffron Millennia Cashback,visa,entry,100000,100000,10000000,4280,350,100,lounge_domestic=0;lounge_international=0;contactless=true;mock=true,published
+mock-saffron-regalia-gold,MOCK_SAFFRON,MOCK_Saffron Regalia Gold,mastercard,premium,250000,250000,40000000,4280,200,100,lounge_domestic=4;lounge_international=0;contactless=true;mock=true,published
+mock-saffron-infinia-reserve,MOCK_SAFFRON,MOCK_Saffron Infinia Reserve,visa,super_premium,1250000,1250000,100000000,3960,200,100,lounge_domestic=4;lounge_international=8;contactless=true;mock=true,published
+mock-saffron-freedom-rupay,MOCK_SAFFRON,MOCK_Saffron Freedom RuPay,rupay,entry,0,50000,5000000,4280,350,100,lounge_domestic=0;lounge_international=0;contactless=true;mock=true,published
+mock-indus-ace-cashback,MOCK_INDUS,MOCK_Indus Ace Cashback,visa,entry,49900,49900,20000000,4200,350,100,lounge_domestic=0;lounge_international=0;contactless=true;mock=true,published
+mock-indus-magnus-prime,MOCK_INDUS,MOCK_Indus Magnus Prime,mastercard,super_premium,1250000,1250000,250000000,4200,200,100,lounge_domestic=4;lounge_international=8;contactless=true;mock=true,published
+mock-indus-flipside-shopping,MOCK_INDUS,MOCK_Indus Flipside Shopping,visa,mid,50000,50000,35000000,4200,350,100,lounge_domestic=0;lounge_international=0;contactless=true;mock=true,published
+mock-indus-neo-rupay,MOCK_INDUS,MOCK_Indus Neo RuPay,rupay,entry,0,0,0,4200,350,0,lounge_domestic=0;lounge_international=0;contactless=true;mock=true,published
+mock-deccan-simplyclick,MOCK_DECCAN,MOCK_Deccan SimplyCLICK,visa,entry,49900,49900,10000000,4280,350,100,lounge_domestic=0;lounge_international=0;contactless=true;mock=true,published
+mock-deccan-prime-elite,MOCK_DECCAN,MOCK_Deccan Prime Elite,mastercard,premium,300000,300000,40000000,4280,350,100,lounge_domestic=4;lounge_international=0;contactless=true;mock=true,published
+mock-deccan-fuel-plus,MOCK_DECCAN,MOCK_Deccan Fuel Plus,rupay,entry,49900,49900,10000000,4280,350,100,lounge_domestic=0;lounge_international=0;contactless=true;mock=true,published
+mock-deccan-aurum-black,MOCK_DECCAN,MOCK_Deccan Aurum Black,visa,super_premium,1000000,1000000,120000000,4280,199,100,lounge_domestic=4;lounge_international=8;contactless=true;mock=true,published
+mock-ganga-shop-pay,MOCK_GANGA,MOCK_Ganga Shop Pay,visa,entry,0,0,0,4200,350,100,lounge_domestic=0;lounge_international=0;contactless=true;mock=true,published
+mock-ganga-sapphiro,MOCK_GANGA,MOCK_Ganga Sapphiro,mastercard,premium,350000,350000,60000000,4200,350,100,lounge_domestic=4;lounge_international=0;contactless=true;mock=true,published
+mock-ganga-coral-rupay,MOCK_GANGA,MOCK_Ganga Coral RuPay,rupay,entry,50000,50000,15000000,4200,350,100,lounge_domestic=0;lounge_international=0;contactless=true;mock=true,published
+mock-ganga-emeralde-private,MOCK_GANGA,MOCK_Ganga Emeralde Private,visa,super_premium,1200000,1200000,150000000,3960,200,100,lounge_domestic=4;lounge_international=8;contactless=true;mock=true,published
+mock-kaveri-cashback-every-day,MOCK_KAVERI,MOCK_Kaveri Cashback Every Day,visa,entry,0,19900,5000000,4290,350,100,lounge_domestic=0;lounge_international=0;contactless=true;mock=true,published
+mock-kaveri-travel-one,MOCK_KAVERI,MOCK_Kaveri Travel One,mastercard,mid,150000,150000,30000000,4290,0,100,lounge_domestic=0;lounge_international=0;contactless=true;mock=true,published
+mock-kaveri-grocery-saver,MOCK_KAVERI,MOCK_Kaveri Grocery Saver,rupay,entry,29900,29900,7500000,4290,350,100,lounge_domestic=0;lounge_international=0;contactless=true;mock=true,published
+mock-kaveri-zen-signature,MOCK_KAVERI,MOCK_Kaveri Zen Signature,visa,premium,250000,250000,50000000,4290,200,100,lounge_domestic=4;lounge_international=0;contactless=true;mock=true,published
+mock-nilgiri-platinum-edge,MOCK_NILGIRI,MOCK_Nilgiri Platinum Edge,visa,entry,49900,49900,15000000,4560,350,100,lounge_domestic=0;lounge_international=0;contactless=true;mock=true,published
+mock-nilgiri-super-card,MOCK_NILGIRI,MOCK_Nilgiri Super Card,mastercard,mid,99900,99900,20000000,4560,350,100,lounge_domestic=0;lounge_international=0;contactless=true;mock=true,published
+mock-nilgiri-wealth-infinite,MOCK_NILGIRI,MOCK_Nilgiri Wealth Infinite,visa,super_premium,999900,999900,100000000,4200,150,100,lounge_domestic=4;lounge_international=8;contactless=true;mock=true,published
+mock-nilgiri-daily-rupay,MOCK_NILGIRI,MOCK_Nilgiri Daily RuPay,rupay,entry,0,0,0,4560,350,0,lounge_domestic=0;lounge_international=0;contactless=true;mock=true,published
+mock-aravali-select-rewards,MOCK_ARAVALI,MOCK_Aravali Select Rewards,visa,mid,150000,150000,25000000,4560,350,100,lounge_domestic=0;lounge_international=0;contactless=true;mock=true,published
+mock-aravali-wealth-signature,MOCK_ARAVALI,MOCK_Aravali Wealth Signature,mastercard,premium,0,0,0,4560,150,100,lounge_domestic=4;lounge_international=0;contactless=true;mock=true,published
+mock-aravali-fuel-saver-rupay,MOCK_ARAVALI,MOCK_Aravali Fuel Saver RuPay,rupay,entry,50000,50000,10000000,4560,350,100,lounge_domestic=0;lounge_international=0;contactless=true;mock=true,published
+mock-aravali-millennial-spark,MOCK_ARAVALI,MOCK_Aravali Millennial Spark,visa,entry,0,49900,15000000,4560,350,100,lounge_domestic=0;lounge_international=0;contactless=true;mock=true,published
+mock-konkan-coastal-cashback,MOCK_KONKAN,MOCK_Konkan Coastal Cashback,visa,entry,0,29900,10000000,4680,350,100,lounge_domestic=0;lounge_international=0;contactless=true;mock=true,published
+mock-konkan-monsoon-travel,MOCK_KONKAN,MOCK_Konkan Monsoon Travel,mastercard,mid,100000,100000,30000000,4680,150,100,lounge_domestic=0;lounge_international=0;contactless=true;mock=true,published
+mock-konkan-gold,MOCK_KONKAN,MOCK_Konkan Gold,visa,premium,200000,200000,40000000,4680,200,100,lounge_domestic=4;lounge_international=0;contactless=true;mock=true,published
+mock-konkan-shubh-rupay,MOCK_KONKAN,MOCK_Konkan Shubh RuPay,rupay,entry,0,0,0,4680,350,0,lounge_domestic=0;lounge_international=0;contactless=true;mock=true,published
+mock-lotus-feast,MOCK_LOTUS,MOCK_Lotus Feast,mastercard,entry,50000,50000,20000000,4290,350,100,lounge_domestic=0;lounge_international=0;contactless=true;mock=true,published
+mock-lotus-rail-card,MOCK_LOTUS,MOCK_Lotus Rail Card,rupay,entry,50000,50000,10000000,4290,350,100,lounge_domestic=0;lounge_international=0;contactless=true;mock=true,published
+mock-lotus-fuel-card,MOCK_LOTUS,MOCK_Lotus Fuel Card,visa,entry,50000,50000,10000000,4290,350,100,lounge_domestic=0;lounge_international=0;contactless=true;mock=true,published
+mock-lotus-airline-club,MOCK_LOTUS,MOCK_Lotus Airline Club,visa,premium,300000,300000,50000000,4290,200,100,lounge_domestic=4;lounge_international=0;contactless=true;mock=true,published
+mock-peacock-classic,MOCK_PEACOCK,MOCK_Peacock Classic,visa,entry,0,25000,5000000,4400,350,100,lounge_domestic=0;lounge_international=0;contactless=true;mock=true,published
+mock-peacock-feather,MOCK_PEACOCK,MOCK_Peacock Feather,mastercard,mid,75000,75000,20000000,4400,350,100,lounge_domestic=0;lounge_international=0;contactless=true;mock=true,published
+mock-peacock-royale,MOCK_PEACOCK,MOCK_Peacock Royale,diners,super_premium,1000000,1000000,80000000,4400,200,100,lounge_domestic=4;lounge_international=8;contactless=true;mock=true,published
+mock-peacock-prestige,MOCK_PEACOCK,MOCK_Peacock Prestige,amex,premium,450000,450000,45000000,4200,350,0,lounge_domestic=4;lounge_international=0;contactless=true;mock=true,published
