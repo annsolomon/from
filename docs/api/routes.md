@@ -50,6 +50,7 @@ breaker (Resilience4j, per service) and a 10 s response timeout.
 | `/v1/admin/elevations/**` | `DELETE /v1/admin/elevations/current` | identity | token | write | P05 |
 | `/.well-known/jwks.json` | `GET /.well-known/jwks.json` | identity | public | read | P04 |
 | `/v1/expenses` | `GET /v1/expenses?limit=50` | ledger | token | read | P07 |
+| `/v1/expenses/**` | `GET /v1/expenses/daily-totals?from=2026-10-01&to=2026-10-31` | ledger | token | read | P07 |
 | `/v1/expenses/**` | `PATCH /v1/expenses/0192a5a1-0000-7000-8000-0000000000e1` | ledger | token | write | P07 |
 | `/v1/expenses/**` | `POST /v1/expenses/0192a5a1-0000-7000-8000-0000000000e1:restore` | ledger | token | write | P07 |
 | `/v1/expenses/**` | `GET /v1/expenses/search?q=swiggy` | ledger | token | read | P08 |

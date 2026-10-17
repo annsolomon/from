@@ -6,7 +6,7 @@ set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
 source scripts/lib/services.sh
-PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html p05-mfa-admin.html p06-gateway.html})
+PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html p05-mfa-admin.html p06-gateway.html p07-ledger.html})
 BASE=http://127.0.0.1:8099
 fail=0
 
@@ -90,6 +90,17 @@ if [[ $rh == *' 200'* ]] && grep -qi '^ratelimit-policy: "read";q=600;w=60' <<< 
 else printf 'FAIL  %-10s %s\n' p06-me "${rh:0:200}"; fail=1; fi
 js=$(curl -s --max-time 5 "$BASE/trail.js")
 if [[ $js == *'const liveRoutes = [];'* ]]; then printf 'PASS  %-10s %s\n' p06-bridge gone; else printf 'FAIL  %-10s %s\n' p06-bridge "trail.js still bridges to /svc"; fail=1; fi
+
+# P07: the ledger through the trail proxy (what p07-ledger.html Live mode calls): a keyset page with a cursor, daily
+# totals, the categories list
+ex=$(curl -s --max-time 5 -H "Authorization: Bearer $at" "$BASE/api/v1/expenses?limit=50")
+if [[ $ex == *'"hasMore":true'* && $ex == *'"nextCursor":"'* && $ex == *'"merchant":'* ]]; then printf 'PASS  %-10s %s\n' p07-list 200
+else printf 'FAIL  %-10s %s\n' p07-list "${ex:0:200}"; fail=1; fi
+d1=$(TZ=Asia/Kolkata date -d '-60 days' +%F); d2=$(TZ=Asia/Kolkata date +%F)
+dt=$(curl -s --max-time 5 -H "Authorization: Bearer $at" "$BASE/api/v1/expenses/daily-totals?from=$d1&to=$d2")
+if [[ $dt == '{"data":['* ]]; then printf 'PASS  %-10s %s\n' p07-totals 200; else printf 'FAIL  %-10s %s\n' p07-totals "${dt:0:200}"; fail=1; fi
+ct=$(curl -s --max-time 5 -H "Authorization: Bearer $at" "$BASE/api/v1/categories")
+if [[ $ct == *'"path":"food.cafe"'* ]]; then printf 'PASS  %-10s %s\n' p07-cats 200; else printf 'FAIL  %-10s %s\n' p07-cats "${ct:0:200}"; fail=1; fi
 
 echo "trail-check: $([[ $fail -eq 0 ]] && echo PASS || echo FAIL)"
 exit $fail

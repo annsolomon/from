@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import in.dexter.contracts.events.demo.NoteCreatedV1;
 import in.dexter.contracts.events.demo.NoteRenamedV1;
 import in.dexter.contracts.events.gateway.ActivityRecordedV1;
+import in.dexter.contracts.events.ledger.ExpenseChangedV1;
+import in.dexter.contracts.events.ledger.ExpenseStateV1;
 import in.dexter.contracts.events.identity.AccountRegisteredV1;
 import in.dexter.contracts.events.identity.AdminActionV1;
 import in.dexter.contracts.events.identity.AccountVerifiedV1;
@@ -54,6 +56,16 @@ class SchemaContractTest {
         "Production incident INC-42: refund batch stuck", "2026-10-17T11:00:03Z"));
     SAMPLES.put("gateway.activity.recorded.v1.json", new ActivityRecordedV1("01a148e3-d593-7fda-ae19-6f623a15b6ea",
         "ledger", "/v1/expenses/**", "read", "GET", 200, 12, "2026-10-17T12:00:00Z"));
+    UUID expense = UUID.fromString("0192f1e2-0000-7000-8000-0000000000e1");
+    ExpenseStateV1 before = new ExpenseStateV1(45_000, "2026-10-17", "food.dining", "card",
+        UUID.fromString("0192f1e2-0000-7000-8000-0000000000b1"), null, "2026-10-17T08:30:00Z");
+    ExpenseStateV1 after = new ExpenseStateV1(52_000, "2026-10-16", "food.delivery", "upi", null,
+        UUID.fromString("0192f1e2-0000-7000-8000-0000000000f1"), "2026-10-16T19:30:00Z");
+    SAMPLES.put("ledger.expense.created.v1.json", new ExpenseChangedV1(expense, 0, null, after, "2026-10-17T12:00:00Z"));
+    SAMPLES.put("ledger.expense.updated.v1.json", new ExpenseChangedV1(expense, 1, before, after, "2026-10-17T12:00:01Z"));
+    SAMPLES.put("ledger.expense.deleted.v1.json", new ExpenseChangedV1(expense, 2, after, null, "2026-10-17T12:00:02Z"));
+    SAMPLES.put("ledger.expense.restored.v1.json", new ExpenseChangedV1(expense, 3, null, after,
+        "2026-10-17T12:00:03Z"));
   }
 
   static JsonNode schema(String file) throws IOException {
@@ -73,7 +85,7 @@ class SchemaContractTest {
         components.add(c.getName());
         JsonNode prop = schema.get("properties").get(c.getName());
         assertThat(prop).as(e.getKey() + " has property " + c.getName()).isNotNull();
-        assertThat(jsonType(c.getType())).as(e.getKey() + "." + c.getName()).isEqualTo(prop.get("type").stringValue());
+        assertThat(jsonType(c.getType())).as(e.getKey() + "." + c.getName()).isEqualTo(declaredType(prop));
       }
       assertThat(schema.get("properties").propertyNames()).as(e.getKey()).containsExactlyInAnyOrderElementsOf(components);
       Set<String> required = new HashSet<>();
@@ -103,6 +115,19 @@ class SchemaContractTest {
           MAPPER.valueToTree(SAMPLES.get("demo.note.created.v1.json")));
       assertThat(MiniSchema.validate(schema, MAPPER.readTree(codec.encode(e)))).isEmpty();
     }
+  }
+
+  /** The schema type; a nullable field is {@code ["<type>", "null"]}. */
+  static String declaredType(JsonNode prop) {
+    JsonNode t = prop.get("type");
+    if (t.isArray()) {
+      for (JsonNode x : t) {
+        if (!"null".equals(x.stringValue())) {
+          return x.stringValue();
+        }
+      }
+    }
+    return t.stringValue();
   }
 
   static String jsonType(Class<?> t) {

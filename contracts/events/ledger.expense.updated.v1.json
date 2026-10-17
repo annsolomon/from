@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dexter.in/events/ledger.expense.updated.v1.json",
+  "title": "ledger.expense.updated v1 - an expense changed; before and after differ in at least one field (topic dexter.ledger.expense.v1, key = account id). Days are Asia/Kolkata dates.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "expenseId",
+    "version",
+    "before",
+    "after",
+    "changedAt"
+  ],
+  "properties": {
+    "expenseId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "before": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "amountPaise",
+        "day",
+        "categoryPath",
+        "paymentMethod",
+        "userCardId",
+        "merchantId",
+        "occurredAt"
+      ],
+      "properties": {
+        "amountPaise": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "day": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "categoryPath": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*){0,3}$"
+        },
+        "paymentMethod": {
+          "type": "string",
+          "enum": [
+            "card",
+            "upi",
+            "cash",
+            "netbanking",
+            "wallet",
+            "other"
+          ]
+        },
+        "userCardId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid"
+        },
+        "merchantId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid"
+        },
+        "occurredAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "after": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "amountPaise",
+        "day",
+        "categoryPath",
+        "paymentMethod",
+        "userCardId",
+        "merchantId",
+        "occurredAt"
+      ],
+      "properties": {
+        "amountPaise": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "day": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "categoryPath": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*){0,3}$"
+        },
+        "paymentMethod": {
+          "type": "string",
+          "enum": [
+            "card",
+            "upi",
+            "cash",
+            "netbanking",
+            "wallet",
+            "other"
+          ]
+        },
+        "userCardId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid"
+        },
+        "merchantId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid"
+        },
+        "occurredAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "changedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

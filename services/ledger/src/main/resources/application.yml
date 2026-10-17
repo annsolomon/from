@@ -6,6 +6,20 @@ spring:
       enabled: true
   main:
     banner-mode: "off"
+  # P07: runtime pool = ledger_app (RLS-bound, NOBYPASSRLS). Passwords come from the environment (.env in dev).
+  datasource:
+    url: jdbc:postgresql://${DEXTER_PG_HOST:127.0.0.1}:${POSTGRES_PORT:5432}/ledger?ApplicationName=ledger
+    username: ledger_app
+    password: ${PG_PW_LEDGER_APP:${PG_PW_APP:}}
+    hikari:
+      maximum-pool-size: ${LEDGER_DB_POOL:20}
+      connection-timeout: 5000
+  # Migrations run as the schema owner (MASTER_PLAN 3.1); the app role has no DDL rights.
+  flyway:
+    user: ledger_owner
+    password: ${PG_PW_LEDGER_OWNER:${PG_PW_OWNER:}}
+    schemas: ledger
+    clean-disabled: true
 
 server:
   port: ${PORT_LEDGER:8082}
@@ -29,6 +43,27 @@ logging:
   pattern:
     # X-Request-Id on every console line (dexter-web RequestIdFilter puts it in the MDC)
     level: "%5p [%X{requestId:-}]"
+
+dexter:
+  db:
+    schema: ledger
+  # Keyset cursors (MASTER_PLAN 4.2): HMAC keys from the environment.
+  cursor:
+    active-kid: c1
+    keys:
+      c1: ${LEDGER_CURSOR_KEY_C1:}
+  # Every request needs a user token from identity (audience "ledger"); /_dev/** stays public (dev labs).
+  security:
+    jwks-uri: ${IDENTITY_JWKS_URI:http://127.0.0.1:${PORT_IDENTITY:8081}/.well-known/jwks.json}
+    issuer: ${IDENTITY_ISSUER:https://identity.dexter.internal}
+    audience: ledger
+  ledger:
+    relay:
+      enabled: ${LEDGER_RELAY_ENABLED:true}
+      url: jdbc:postgresql://${DEXTER_PG_HOST:127.0.0.1}:${POSTGRES_PORT:5432}/ledger?ApplicationName=ledger-relay
+      username: ledger_relay
+      password: ${PG_PW_LEDGER_RELAY:${PG_PW_RELAY:}}
+      bootstrap-servers: ${KAFKA_BOOTSTRAP:127.0.0.1:${KAFKA_PORT:9092}}
 
 ---
 spring:

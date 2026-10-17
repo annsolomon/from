@@ -1,10 +1,9 @@
 # Dexter v2 — Build README (living handoff)
 
-**Last updated:** 2026-10-17 · **Chat/phase:** P04 DONE (r2) · **Model:** Claude Opus 5.5
-**P04 is DONE (2026-10-17).** `verify.sh full` 21/21 PASS (new: `full.seed-small`; api-smoke P04 block 26/26 +
-outbox → Kafka + topics) + `trail-check.sh` PASS on a GitHub runner (repo `annsolomon/from`, commit `6e6ed9f`,
-run 39003795722; reports on branch `verify-reports`). Next chat: **P05** (Identity B: MFA, lockout, admins, RBAC,
-break-glass). Upload `MASTER_PLAN.md` + this README; the code is in the repo (clone it).
+**Last updated:** 2026-10-17 · **Chat/phase:** P07 in CI · **Model:** Claude Opus 5.5
+**P07 (Ledger A) is written and in CI.** Repo `annsolomon/from` (main); `verify.sh full` + `trail-check.sh` run on a
+GitHub runner for every push to main (reports on branch `verify-reports`). Next chat: **P08** (Ledger B) once P07 is
+DONE. Upload `MASTER_PLAN.md` + this README; the code is in the repo (clone it).
 
 ## 1. Phase status
 
@@ -17,7 +16,7 @@ break-glass). Upload `MASTER_PLAN.md` + this README; the code is in the repo (cl
 | P04 | Identity A | **DONE** 2026-10-17 | `verify.sh full` 21/21 PASS + trail-check PASS (CI run 39003795722, git 6e6ed9f): identity unit 19 + IT 41 (incl. IdempotencyContract 6, PaginationContract 9, RLS proof 7), api-smoke P04 26/26, outbox → Kafka 5 published / 0 pending | DoD all ticked (§3) |
 | P05 | Identity B (MFA/admin/RBAC) | **DONE** 2026-10-17 | `verify.sh full` PASS + trail-check PASS (CI run 39016105238, git 0b04cc0): identity unit 33 + IT 65 (MFA, lockout, admin, break-glass, RLS), api-smoke P05 28/28 | DoD all ticked (§3) |
 | P06 | Gateway | **DONE** 2026-10-17 | `verify.sh full` PASS + trail-check PASS (CI run 39020903788, git cf48871): gateway unit 10 + IT 19 (route table over 88 documented paths, edge filters, rate limit, breaker/SSE, activity → Kafka, degraded Redis/Kafka), api-smoke P06 18/18 | DoD all ticked (§3) |
-| P07 | Ledger A (reference impl) | NOT STARTED | — | |
+| P07 | Ledger A (reference impl) | WRITTEN — in CI | — | |
 | P08 | Ledger B | NOT STARTED | — | |
 | P09 | Catalog A | NOT STARTED | — | |
 | P10 | Catalog B (ingestion) | NOT STARTED | — | |
@@ -33,10 +32,7 @@ break-glass). Upload `MASTER_PLAN.md` + this README; the code is in the repo (cl
 
 ## 2. In progress (exact stopping point)
 
-- **P06 (2026-10-17): complete.** Nothing in progress. Next action: P07 (verify P06 first, then Ledger A).
-  P07 starts from: `/v1/expenses*`, `/v1/categories*` already route to ledger through the gateway (ledger answers
-  its own 404 today); trail pages call `/api/v1/...` (no bridge); ledger must accept audience `ledger` tokens
-  (identity issues them) and the gateway forwards `Authorization` unchanged.
+- **P07 (2026-10-17): written, CI pending.** Next action: drive CI (verify full + trail-check) to green, then mark DONE.
 
 ### History (P06)
 
@@ -252,6 +248,34 @@ Issues found in P01's own code during self-review and fixed:
 4. The web test asserted an exact `Content-Type`; now a compatible-type check (a charset suffix must not fail it).
 
 ## 4. What exists now
+
+**P07 Ledger A (reference service)** — ADR-0012, errors.md ledger section
+
+| Piece | What it does |
+|---|---|
+| Schema | `V202610171200__platform` (rendered templates, `PlatformMigrationTest` drift guard) + `V202610171201__ledger_core`: `categories` (ltree path 1–4 levels, 48 system rows `md5('ledger.category:'‖path)::uuid`, custom rows per account, `UNIQUE NULLS NOT DISTINCT (account_id, path)`), `expenses` (paise `bigint`, `version`, soft delete `deleted_at`, `client_ref`, card only for card payments), `expense_daily_totals` (PK account × IST day × category root, counts ≥ 0), `categorization_rules` (P08). FORCE RLS + owner policies everywhere; `ledger_app` has no DELETE on expenses |
+| `domain` | `CategoryPaths` (validate, root, slug, `general` default), `DailyDelta` (before/after → bucket changes), `LedgerTime` (Asia/Kolkata day), `PaymentMethod`, `LedgerErrors` |
+| `app` | `ExpenseService` (create Mode A idempotent → 201 + Location + ETag; get; keyset list with 8 filters; daily totals ≤ 366 days; merge PATCH with If-Match + `FOR UPDATE`; soft delete; restore; every write = daily delta + outbox event), `CategoryService` (list visible; create under a system root, optional key); ports `ExpenseStore`, `DailyTotalsStore`, `CategoryStore`; `LedgerEvents` |
+| `infra` | `ExpenseRepository` (static keyset query per filter mask, cached; `expenses_client_ref` duplicate → `CLIENT_REF_TAKEN`), `DailyTotalsRepository` (upsert, delete at 0 txns), `CategoryRepository` |
+| `api` | `ExpenseController` (`/v1/expenses`, `/daily-totals`, `/{id}`, `/{id}:restore`), `CategoryController`; `Callers.user` refuses admin tokens |
+| `config` | `LedgerConfiguration`, `LedgerRelayConfiguration` (outbox relay → `dexter.ledger.expense.v1`), `LedgerProperties`; JWT audience `ledger`, cursor key `LEDGER_CURSOR_KEY_C1` |
+| contracts | `ledger.expense.{created,updated,deleted,restored}` v1 (`ExpenseChangedV1` with `ExpenseStateV1` before/after, nullable) + JSON schemas |
+| Tests | unit `LedgerDomainTest` 3, `PlatformMigrationTest` 1, `LedgerArchitectureTest` 1; IT `ExpenseCrudIT` 5, `ExpensePlanIT` 5 (PlanAssert on 1.2M generated rows), `ExpensesPaginationContractIT` + `CreateExpenseIdempotencyContractIT` (dexter-test contracts), `DailyTotalsPropertyIT` (1 000 random ops vs `GROUP BY`), `LedgerRlsIT` 4 (RlsProofKit), `LedgerHealthIT` |
+| Trail / smoke | `test-ui/p07-ledger.html` (window + debug, CRUD with ETag, idempotency tester, daily totals live, isolation, categories); `scripts/lib/p07_smoke.py` (api-smoke P07 block) + ledger outbox → Kafka check; trail-check P07 |
+
+**Query→Index (P07):**
+
+| Query | Index | Plan (1.2M rows, 30k for one account) |
+|---|---|---|
+| list, newest first (+ next page via cursor) | `expenses_list (account_id, occurred_at DESC, id DESC) WHERE deleted_at IS NULL` | Index Scan, no Sort |
+| list `cardId=` | `expenses_card (account_id, user_card_id, occurred_at DESC, id DESC)` | Index Scan, no Sort |
+| list `merchantId=` | `expenses_merchant (account_id, merchant_id, occurred_at DESC, id DESC)` | Index Scan, no Sort |
+| list `category=` (subtree) | `expenses_cat GIST (account_id, category_path)` | Bitmap scan + Sort (bounded by the subtree) |
+| list `from`/`to`/`minPaise`/`maxPaise`/`paymentMethod` | `expenses_list` (range on `occurred_at`; the rest are filters) | Index Scan, no Sort |
+| get/patch/delete by id | `expenses_pkey` | Index Scan |
+| import de-dup `clientRef` | `expenses_client_ref UNIQUE (account_id, client_ref)` | Index |
+| daily totals range | `expense_daily_totals_pkey (account_id, day, category_root)` | Index Scan |
+| categories visible | `categories (account_id, path)` unique + GiST `path` | Seq/Index (≤ a few hundred rows) |
 
 **P06 Gateway (DONE)** — ADR-0011, `docs/api/routes.md`
 
@@ -530,6 +554,7 @@ Issues found in P01's own code during self-review and fixed:
 | 0011 | Gateway: route table as code + doc + test, WebFilter edge chain (404 before 401), Redis Lua token bucket (auth fails closed, rest open), trusted-proxy client IP, breaker per service except SSE, activity via bounded queue without outbox | Accepted: proven by CI run 39020903788 |
 | 0010 | Identity B: RFC 6238 TOTP with step replay guard, keyed recovery codes, Redis Lua throttles failing closed, admins separate from accounts with mandatory MFA, RBAC as data, SUPER_ADMIN only via ≤ 1 h elevation re-checked per request, second `identity_admin` pool | Accepted: proven by CI run 39016105238 |
 | 0009 | Identity: pre-auth SECURITY DEFINER functions + owner policies, synthetic tenants, password-free registration fingerprint, strict refresh-family reuse detection, next/active/retired ES256 keys, envelope encryption, after-commit mail, client-credentials endpoint | Accepted: proven by CI run 39003795722 (identity ITs, api-smoke P04) |
+| 0012 | Ledger as the reference service: layers + ports, static keyset query per filter mask, daily totals maintained in the write transaction (IST day × root), merge PATCH + If-Match, soft delete + `:restore`, outbox event per write, admin tokens refused on user endpoints | Accepted (P07); proof pending CI |
 
 ## 6. Plan amendments (deviations from MASTER_PLAN.md)
 
@@ -578,6 +603,9 @@ Issues found in P01's own code during self-review and fixed:
 | 2026-10-17 | P06 | A-42: route ownership where the plan overlaps — `/v1/calc/**` → portfolio (planning's `POST /v1/calc/emi` is served by portfolio's calc library), `/v1/webhooks/affiliate/**` → commerce before `/v1/webhooks/**` → billing, notifications/privacy/admin audit+activity → audit, the rest of `/v1/admin/*` by owner (routes.md). | One owner per path; the gateway cannot route one path to two services. | P12/P13 implement accordingly. |
 | 2026-10-17 | P06 | A-43: edge rules run as WebFilters (not per-route gateway filters), so unknown paths are 404 problems before any token check; CORS runs before the token check (preflights). Only breaker and timeouts are per route. Rate-limit key = class + verified account, else class + client IP (not both). | MASTER_PLAN P06 "fixes the old 404/401 bugs"; one bucket per caller and class keeps limits predictable. | P19 ZAP baseline. |
 | 2026-10-17 | P06 | A-44: identity adds audience `gateway` to user/admin tokens; identity trusts `X-Forwarded-For` from Tomcat's internal proxies; the trail bridge (`liveRoutes`, A-36) is removed — trail-check's P04/P05 checks go through `/api`. Activity events use a plain producer (no outbox, gateway has no DB), type `gateway.activity.recorded`. | The gateway verifies with the shared verifier; client IP for throttles; one Live path. | P18 consumes activity. |
+| 2026-10-17 | P07 | A-45: the daily-totals day is the IST calendar day (`Asia/Kolkata`), not the account's time zone; list `from`/`to` are IST dates too (`to` inclusive). | One fixed bucket key keeps the aggregate exact without rewriting rows when a profile time zone changes; all demo users are in India. | P13/P14 read daily totals with IST days; a per-account zone would need a rebuild job. |
+| 2026-10-17 | P07 | A-46: PlanAssert runs on 1.2M rows generated inside `ExpensePlanIT` (`generate_series`, one 30k-row account, ANALYZE) instead of the loaded medium seed. | Plans must be proven inside the Maven IT with Testcontainers; the medium seed loads into staging before services exist. | Later PlanAssert ITs generate their own volume the same way. |
+| 2026-10-17 | P07 | A-47: `GET /v1/expenses/daily-totals?from&to` added (≤ 366 days) for the trail and P13; card and merchant indexes end in `id DESC` (no incremental sort); the categories policy needs a tenant context even for system rows. | Daily totals must be observable; plans without Sort; no anonymous reads of tenant tables. | routes.md example; P13 planning reads totals. |
 | 2026-09-22 | P01 | A-12: the P01 trail is backed by a dev-only lab controller in `dexter-web` (`/_dev/p01/*`, `@Profile("dev")`, guard test) instead of database-backed endpoints. | P01 has no service schema yet; the lab runs the real library code. Paging against a real table is P07. | P19 deletes it with the trail; `run.sh` defaults to the dev profile locally. |
 
 ## 7. Known gaps / tech debt (honest, never deleted silently)
@@ -597,6 +625,13 @@ Issues found in P01's own code during self-review and fixed:
   - The breached list holds the ≈ 9.1k NCSC top-100k entries that are ≥ 10 characters; no online HIBP k-anonymity
     check (offline by plan).
   - (P05 resolved: lockout, `mfa_enrolled`/`amr` real.)
+- **P07 ledger:**
+  - Daily totals use the IST day for everyone (A-45); a user abroad sees late-evening expenses on the IST date.
+  - The category filter's plan sorts (GiST cannot return keyset order); bounded by one account's subtree.
+  - `categorization_rules` exists without an API (P08); `categorySource` is `user` or `resolver` with the default
+    `general` until P08's resolver.
+  - `userCardId` is not checked against portfolio's cards (P11 owns cards; a later consumer can validate).
+  - No hard delete or purge of soft-deleted expenses yet (privacy erasure is P18).
 - **P06 gateway:**
   - The gateway's JWT check is early rejection only; it does not check roles/permissions (services do).
   - Rate limits are per account *or* per IP (not both); a NAT'd anonymous crowd shares one `auth` bucket.
@@ -750,6 +785,7 @@ press **Lab status / start**, then **Get a valid token**. (After a manual `run.s
 
 ## 10. Changelog (one line per response)
 
+- 2026-10-17 P07 r1: ledger schema (categories, expenses, daily totals, rules) with FORCE RLS, expense CRUD (idempotent create, keyset list per filter mask, If-Match PATCH, soft delete/restore), daily totals in the write txn, categories, outbox events + contracts, 1.2M-row PlanAssert, ADR-0012, A-45..A-47, errors.md ledger, p07-ledger.html, p07 smoke, trail-check P07.
 - 2026-10-17 P06 r1–r5: gateway (route table + routes.md + tests, edge WebFilters, JWT pre-check, Redis token-bucket limiter, breaker per service, SSE route, security headers, CORS, activity events), identity audience `gateway` + forwarded headers, trail bridge removed, ADR-0011, A-42..A-44, api-smoke P06, p06-gateway.html, trail-check P06. CI run 39020903788: verify full + trail-check PASS → **P06 DONE**.
 
 - 2026-10-17 P05 r1–r3: TOTP MFA + recovery codes + step-up, Redis lockout (Lua, fail closed), admin console (separate principal, mandatory MFA, invite), RBAC as data, break-glass elevations, `identity_admin` pool, alert v2 + admin.action v1, ADR-0010, A-38..A-41, api-smoke P05, p05-mfa-admin.html, trail-check P05. CI run 39016105238: verify full + trail-check PASS → **P05 DONE**.

@@ -84,8 +84,8 @@ def main():
           (s, d))
     check("RateLimit on a read: read class 600/min", h.get("ratelimit-policy") == '"read";q=600;w=60', h)
     s, h, d = call("GET", GW + "/v1/expenses", headers={"Authorization": "Bearer " + tok})
-    check("ledger route with a token reaches ledger (no expenses API before P07: its own 404 problem)",
-          s == 404 and code(d) == "NOT_FOUND" and d.get("instance") == "/v1/expenses", (s, d))
+    check("ledger route with a token reaches ledger (P07: 200 page)",
+          s == 200 and isinstance((d or {}).get("data"), list) and "page" in d, (s, d))
     s, h, d = call("GET", GW + "/v1/admin/admins", headers={"Authorization": "Bearer " + tok})
     check("admin route with a user token: identity answers 403", s == 403, (s, d))
 

@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trail P07 ledger</title>
+  <link rel="stylesheet" href="trail.css">
+</head>
+<body>
+<main>
+  <section class="card">
+    <h2>P07 · ledger: expenses, categories, daily totals</h2>
+    <p class="mono" style="color:var(--muted);margin:0">
+      The reference service. Live calls <code>/api/v1/expenses…</code> and <code>/api/v1/categories</code> through the
+      gateway with the persona's token (log in first). Every write bumps the row version (the ETag), updates
+      <code>expense_daily_totals</code> in the same transaction and appends a <code>ledger.expense.*</code> event to the
+      outbox (relay → Kafka <code>dexter.ledger.expense.v1</code>). Mock mode serves the seed fixtures with the same rules.
+      Testing aid only - deleted in P19.
+    </p>
+  </section>
+
+  <div class="grid2">
+    <section class="card" id="tenant"></section>
+    <section class="card" id="idem"></section>
+  </div>
+
+  <section class="card">
+    <div class="row" style="justify-content:space-between">
+      <h2 style="margin:0">Expenses · keyset window (first 50, then 25, trigger at item 24) · click a row to select it</h2>
+      <div class="row">
+        <select class="in" id="f-cat" aria-label="category"><option value="">all categories</option></select>
+        <select class="in" id="f-pm" aria-label="payment method">
+          <option value="">any payment</option><option>upi</option><option>card</option><option>cash</option>
+          <option>netbanking</option><option>wallet</option>
+        </select>
+        <input class="in" type="date" id="f-from" aria-label="from (IST)">
+        <input class="in" type="date" id="f-to" aria-label="to (IST, inclusive)">
+        <button class="ghost" type="button" id="reload">Reload</button>
+      </div>
+    </div>
+    <div id="pager" style="margin-top:8px"></div>
+  </section>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>Create</h2>
+      <div class="row">
+        <input class="in" id="c-amount" aria-label="amount in rupees" value="349.00" style="width:90px">
+        <input class="in" id="c-merchant" aria-label="merchant" value="Trail Cafe">
+        <select class="in" id="c-cat" aria-label="category"></select>
+        <select class="in" id="c-pm" aria-label="payment method"><option>upi</option><option>cash</option>
+          <option>netbanking</option><option>wallet</option></select>
+        <button class="act" type="button" id="c-create">Create (new key)</button>
+      </div>
+      <pre class="out" id="c-out">—</pre>
+    </section>
+    <section class="card">
+      <h2>Selected expense · ETag / If-Match (MASTER_PLAN 7.3)</h2>
+      <div class="row"><input class="in mono" id="s-id" aria-label="expense id" placeholder="expense id" style="flex:1;min-width:280px"></div>
+      <div class="row">
+        <button class="ghost" type="button" id="s-get">GET</button>
+        <button class="act" type="button" id="s-patch">PATCH +₹1 (current ETag)</button>
+        <button class="ghost" type="button" id="s-stale">PATCH stale ETag → 412</button>
+        <button class="ghost" type="button" id="s-noif">PATCH no If-Match → 428</button>
+        <button class="ghost" type="button" id="s-del">DELETE</button>
+        <button class="ghost" type="button" id="s-restore">:restore</button>
+      </div>
+      <pre class="out" id="s-out">—</pre>
+    </section>
+  </div>
+
+  <div class="grid2">
+    <section class="card">
+      <div class="row" style="justify-content:space-between">
+        <h2 style="margin:0">Daily totals (IST day × category root) · live after every write</h2>
+        <button class="ghost" type="button" id="d-refresh">Refresh</button>
+      </div>
+      <div class="row" style="margin-top:6px">
+        <input class="in" type="date" id="d-from" aria-label="totals from">
+        <input class="in" type="date" id="d-to" aria-label="totals to (inclusive)">
+      </div>
+      <pre class="out" id="d-sum">—</pre>
+      <div class="list" id="d-list" style="max-height:220px"></div>
+    </section>
+    <section class="card">
+      <h2>Tenant isolation (RLS) + categories</h2>
+      <div class="row">
+        <button class="ghost" type="button" id="i-cross">Ravi's expense id as Asha → 404</button>
+        <button class="ghost" type="button" id="i-list">Asha's list has no Ravi ids</button>
+        <button class="ghost" type="button" id="k-list">GET categories</button>
+        <button class="ghost" type="button" id="k-create">Create custom category</button>
+      </div>
+      <pre class="out" id="i-out">—</pre>
+    </section>
+  </div>
+
+  <div class="grid2">
+    <section class="card" id="events"></section>
+    <section class="card" id="log"></section>
+  </div>
+</main>
+<script src="trail.js"></script>
+<script>
+(async () => {
+  Trail.mountHeader('Ledger', 'P07');
+  Trail.mountLog(document.getElementById('log'));
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const rupees = p => '₹' + (p / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const istDay = iso => new Date(Date.parse(iso) + 330 * 60000).toISOString().slice(0, 10);
+  const show = (id, r, extra = '') => { $(id).textContent = `${r.status} ${r.data && r.data.code || ''}${extra}\n${r.data ? JSON.stringify(r.data, null, 2) : ''}`; };
+
+  // ---------------------------------------------------------------- mock: the P07 routes the seed kit lacks
+  let seed = null; let categories = [];
+  try {
+    seed = await Trail.loadSeed();
+    categories = seed.categories; // shared with the GET /api/v1/categories mock
+  } catch (e) { $('c-out').textContent = 'fixtures missing: ' + e.message + ' - run ./scripts/seed.sh fixtures'; }
+  const deleted = new Map();
+  const hdr = (h, n) => { for (const k of Object.keys(h || {})) if (k.toLowerCase() === n.toLowerCase()) return h[k]; return undefined; };
+  const need = req => (req.tenant ? null : Trail.problem(401, 'UNAUTHENTICATED', 'log in as a persona first'));
+  const emit = (type, row, before, req) => Trail.events.emit(type, row.id,
+    { expenseId: row.id, version: row.version, before, after: row && !deleted.has(row.id) ? row : null }, req.tenant.accountId);
+  const view = r => ({ ...r, merchant: r.merchant || r.merchantDisplay });
+  if (seed) {
+    const rows = seed.expenses.rows();
+    const mine = (id, req) => seed.expenses.find(id, req.tenant.accountId);
+    const PATCHABLE = ['occurredAt', 'amountPaise', 'merchant', 'categoryPath', 'paymentMethod', 'userCardId', 'note', 'tags'];
+    Trail.mock('PATCH', /^\/api\/v1\/expenses\/([0-9a-f-]{36})$/, (m, req) => need(req) || (() => {
+      const row = mine(m[1], req);
+      if (!row) return Trail.problem(404, 'NOT_FOUND', 'expense not found');
+      const im = hdr(req.headers, 'If-Match');
+      if (!im) return Trail.problem(428, 'IF_MATCH_REQUIRED', 'If-Match header is required');
+      if (!/^"\d+"$/.test(im)) return Trail.problem(400, 'BAD_REQUEST', 'If-Match must be a strong ETag');
+      if (Number(im.slice(1, -1)) !== row.version) return Trail.problem(412, 'VERSION_CONFLICT', 'Resource version conflict');
+      const b = req.body || {};
+      const bad = Object.keys(b).find(k => !PATCHABLE.includes(k));
+      if (bad) return Trail.problem(400, 'UNKNOWN_FIELD', `Field '${bad}' cannot be changed`);
+      if ('amountPaise' in b && (!Number.isInteger(b.amountPaise) || b.amountPaise <= 0)) {
+        return Trail.problem(400, 'VALIDATION_FAILED', 'Request validation failed', { errors: [{ field: 'amountPaise', code: 'POSITIVE', message: 'must be a positive integer (paise)' }] });
+      }
+      const before = { ...row };
+      for (const k of Object.keys(b)) {
+        if (k === 'merchant') { row.merchantDisplay = b.merchant; row.merchant = b.merchant; } else row[k] = b[k];
+      }
+      if (JSON.stringify(before) === JSON.stringify(row)) return Trail.reply(200, view(row), { etag: `"${row.version}"` }); // no-op
+      row.version++; row.updatedAt = new Date().toISOString();
+      if ('categoryPath' in b) { row.categorySource = 'user'; row.resolutionConfidence = 1000; }
+      emit('ledger.expense.updated', row, before, req);
+      return Trail.reply(200, view(row), { etag: `"${row.version}"` });
+    })());
+    Trail.mock('DELETE', /^\/api\/v1\/expenses\/([0-9a-f-]{36})$/, (m, req) => need(req) || (() => {
+      const row = mine(m[1], req);
+      if (!row) return deleted.has(m[1]) && deleted.get(m[1]).accountId === req.tenant.accountId
+        ? Trail.reply(204, null) : Trail.problem(404, 'NOT_FOUND', 'expense not found'); // delete is idempotent
+      const before = { ...row };
+      rows.splice(rows.indexOf(row), 1);
+      row.version++; row.deletedAt = new Date().toISOString();
+      deleted.set(row.id, row);
+      emit('ledger.expense.deleted', row, before, req);
+      return Trail.reply(204, null);
+    })());
+    Trail.mock('POST', /^\/api\/v1\/expenses\/([0-9a-f-]{36}):restore$/, (m, req) => need(req) || (() => {
+      const live = mine(m[1], req);
+      if (live) return Trail.reply(200, view(live), { etag: `"${live.version}"` });
+      const row = deleted.get(m[1]);
+      if (!row || row.accountId !== req.tenant.accountId) return Trail.problem(404, 'NOT_FOUND', 'expense not found');
+      deleted.delete(row.id); delete row.deletedAt; row.version++;
+      rows.push(row);
+      emit('ledger.expense.restored', row, null, req);
+      return Trail.reply(200, view(row), { etag: `"${row.version}"` });
+    })());
+    Trail.mock('GET', /^\/api\/v1\/expenses\/daily-totals$/, (m, req) => need(req) || (() => {
+      const { from, to } = req.query;
+      if (!from || !to || to < from) return Trail.problem(400, 'VALIDATION_FAILED', 'Request validation failed',
+        { errors: [{ field: 'to', code: 'INVALID_RANGE', message: 'from and to are required, to >= from, at most 366 days' }] });
+      const acc = new Map();
+      for (const r of rows) {
+        if (r.accountId !== req.tenant.accountId) continue;
+        const day = istDay(r.occurredAt);
+        if (day < from || day > to) continue;
+        const k = day + '|' + r.categoryPath.split('.')[0];
+        const t = acc.get(k) || { day, categoryRoot: r.categoryPath.split('.')[0], totalPaise: 0, txnCount: 0 };
+        t.totalPaise += r.amountPaise; t.txnCount++; acc.set(k, t);
+      }
+      return { data: [...acc.values()].sort((a, b) => (a.day + a.categoryRoot).localeCompare(b.day + b.categoryRoot)) };
+    })());
+    Trail.mock('POST', /^\/api\/v1\/categories$/, (m, req) => need(req) || (() => {
+      const b = req.body || {};
+      const parent = categories.find(c => c.path === b.parentPath);
+      if (!parent || !b.name) return Trail.problem(400, 'VALIDATION_FAILED', 'parentPath (a visible category) and name are required');
+      const path = b.parentPath + '.' + String(b.name).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+      if (categories.some(c => c.path === path && (!c.accountId || c.accountId === req.tenant.accountId))) {
+        return Trail.problem(409, 'CATEGORY_EXISTS', 'category already exists');
+      }
+      const c = { id: Trail.uuidv4(), path, name: b.name, icon: b.icon || null, system: false, accountId: req.tenant.accountId };
+      categories.push(c);
+      return Trail.reply(201, c);
+    })());
+  }
+
+  // ---------------------------------------------------------------- category selects
+  const fillCats = list => {
+    const f = $('f-cat'); const c = $('c-cat');
+    f.length = 1; c.length = 0;
+    for (const k of list) {
+      f.appendChild(Object.assign(document.createElement('option'), { value: k.path, textContent: k.path }));
+      c.appendChild(Object.assign(document.createElement('option'), { value: k.path, textContent: k.path }));
+    }
+    c.value = list.some(k => k.path === 'food.cafe') ? 'food.cafe' : (list[0] && list[0].path) || '';
+  };
+  fillCats(categories);
+
+  // ---------------------------------------------------------------- list window
+  const filters = () => {
+    const q = {};
+    if ($('f-cat').value) q.category = $('f-cat').value;
+    if ($('f-pm').value) q.paymentMethod = $('f-pm').value;
+    if ($('f-from').value) q.from = Trail.mode === 'mock' ? new Date($('f-from').value + 'T00:00:00+05:30').toISOString() : $('f-from').value;
+    if ($('f-to').value) q.to = Trail.mode === 'mock' ? new Date(Date.parse($('f-to').value + 'T00:00:00+05:30') + 86400000).toISOString() : $('f-to').value;
+    return q;
+  };
+  const pager = Trail.mountPager($('pager'), {
+    path: '/api/v1/expenses', query: filters,
+    render: r => `<a href="#" data-id="${esc(r.id)}">${esc(r.occurredAt.slice(0, 16).replace('T', ' '))}</a> <strong>${rupees(r.amountPaise)}</strong> ${esc(r.merchant || r.merchantDisplay)} <span style="color:var(--muted)">${esc(r.categoryPath)} · ${esc(r.paymentMethod)} · v${r.version}</span>`,
+  });
+  $('pager').addEventListener('click', e => {
+    const a = e.target.closest('[data-id]'); if (!a) return;
+    e.preventDefault(); $('s-id').value = a.dataset.id; get();
+  });
+  const reload = () => pager.reload();
+  ['f-cat', 'f-pm', 'f-from', 'f-to'].forEach(id => $(id).addEventListener('change', reload));
+  $('reload').addEventListener('click', reload);
+
+  // ---------------------------------------------------------------- daily totals
+  const today = istDay(new Date().toISOString());
+  $('d-to').value = today;
+  $('d-from').value = istDay(new Date(Date.now() - 30 * 86400000).toISOString());
+  let lastTotals = null;
+  const totals = async (why) => {
+    const r = await Trail.api('GET', `/api/v1/expenses/daily-totals?from=${$('d-from').value}&to=${$('d-to').value}`);
+    if (r.status !== 200) { $('d-sum').textContent = `${r.status} ${r.data && r.data.code || ''}`; $('d-list').innerHTML = ''; return null; }
+    const rows = r.data.data;
+    const sum = rows.reduce((s, t) => s + t.totalPaise, 0); const n = rows.reduce((s, t) => s + t.txnCount, 0);
+    const delta = lastTotals ? ` · Δ ${rupees(sum - lastTotals.sum)}, Δ txns ${n - lastTotals.n}` : '';
+    $('d-sum').textContent = `${rows.length} day×root rows · total ${rupees(sum)} · ${n} txns${delta}${why ? ' (after ' + why + ')' : ''}`;
+    $('d-list').innerHTML = rows.slice().reverse().map(t => `<div>${esc(t.day)} <strong>${esc(t.categoryRoot)}</strong> ${rupees(t.totalPaise)} · ${t.txnCount} txn</div>`).join('') || '<div class="skel">no totals in range</div>';
+    lastTotals = { sum, n };
+    return { sum, n };
+  };
+  $('d-refresh').addEventListener('click', () => { lastTotals = null; totals(); });
+  ['d-from', 'd-to'].forEach(id => $(id).addEventListener('change', () => { lastTotals = null; totals(); }));
+  const afterWrite = why => { reload(); totals(why); };
+
+  // ---------------------------------------------------------------- create / select / patch / delete / restore
+  $('c-create').addEventListener('click', async () => {
+    const body = { amountPaise: Math.round(Number($('c-amount').value) * 100), occurredAt: new Date().toISOString(),
+      merchant: $('c-merchant').value, categoryPath: $('c-cat').value, paymentMethod: $('c-pm').value };
+    const r = await Trail.api('POST', '/api/v1/expenses', { body, headers: { 'Idempotency-Key': Trail.uuidv4() } });
+    show('c-out', r, r.headers.location ? ` · Location ${r.headers.location} · ETag ${r.headers.etag}` : '');
+    if (r.status === 201) { $('s-id').value = r.data.id; afterWrite('create'); }
+  });
+  let etag = null;
+  const sel = () => $('s-id').value.trim();
+  const get = async () => {
+    if (!sel()) { $('s-out').textContent = 'select a row or create one first'; return null; }
+    const r = await Trail.api('GET', '/api/v1/expenses/' + sel());
+    etag = r.status === 200 ? r.headers.etag : null;
+    show('s-out', r, etag ? ` · ETag ${etag}` : '');
+    return r;
+  };
+  const patch = async (ifMatch) => Trail.api('PATCH', '/api/v1/expenses/' + sel(), {
+    body: { amountPaise: (await currentAmount()) + 100 },
+    headers: { 'Content-Type': 'application/merge-patch+json', ...(ifMatch ? { 'If-Match': ifMatch } : {}) } });
+  let current = null;
+  const currentAmount = async () => { if (!current || current.id !== sel()) { const r = await get(); current = r && r.data; } return current ? current.amountPaise : 0; };
+  $('s-get').addEventListener('click', async () => { const r = await get(); current = r && r.status === 200 ? r.data : null; });
+  $('s-patch').addEventListener('click', async () => {
+    const g = await get(); if (!g || g.status !== 200) return; current = g.data;
+    const r = await patch(g.headers.etag);
+    show('s-out', r, ` · sent If-Match ${g.headers.etag} → ETag ${r.headers.etag || '—'}`);
+    if (r.status === 200) { current = r.data; afterWrite('patch'); }
+  });
+  $('s-stale').addEventListener('click', async () => {
+    const g = await get(); if (!g || g.status !== 200) return; current = g.data;
+    const r = await patch(`"${g.data.version + 1}"`);
+    show('s-out', r, ` · sent stale If-Match (current ${g.headers.etag})`);
+  });
+  $('s-noif').addEventListener('click', async () => { if (!sel()) return; current = null; const r = await patch(null); show('s-out', r, ' · no If-Match'); });
+  $('s-del').addEventListener('click', async () => {
+    if (!sel()) return;
+    const r1 = await Trail.api('DELETE', '/api/v1/expenses/' + sel());
+    const r2 = await Trail.api('DELETE', '/api/v1/expenses/' + sel());
+    const g = await Trail.api('GET', '/api/v1/expenses/' + sel());
+    $('s-out').textContent = `DELETE → ${r1.status} · again → ${r2.status} (idempotent) · GET → ${g.status} ${g.data && g.data.code || ''}`;
+    current = null; afterWrite('delete');
+  });
+  $('s-restore').addEventListener('click', async () => {
+    if (!sel()) return;
+    const r = await Trail.api('POST', '/api/v1/expenses/' + sel() + ':restore');
+    show('s-out', r, r.headers.etag ? ` · ETag ${r.headers.etag}` : '');
+    current = null; if (r.status === 200) afterWrite('restore');
+  });
+
+  // ---------------------------------------------------------------- isolation + categories
+  const as = async (key, fn) => { const me = Trail.persona && Trail.persona.key; Trail.usePersona(key); try { return await fn(); } finally { Trail.usePersona(me); } };
+  $('i-cross').addEventListener('click', async () => {
+    const rv = await as('ravi', () => Trail.api('GET', '/api/v1/expenses?limit=5'));
+    const id = rv.status === 200 && rv.data.data[0] && rv.data.data[0].id;
+    if (!id) { $('i-out').textContent = `need Ravi's first page (Live: log in as Ravi too): ${rv.status} ${rv.data && rv.data.code || ''}`; return; }
+    const [g, p, d] = await as('asha', () => Promise.all([
+      Trail.api('GET', '/api/v1/expenses/' + id),
+      Trail.api('PATCH', '/api/v1/expenses/' + id, { body: { note: 'x' }, headers: { 'Content-Type': 'application/merge-patch+json', 'If-Match': '"0"' } }),
+      Trail.api('DELETE', '/api/v1/expenses/' + id)]));
+    $('i-out').textContent = `Ravi's expense ${id} as Asha:\nGET → ${g.status} ${g.data && g.data.code || ''}\nPATCH → ${p.status} ${p.data && p.data.code || ''}\nDELETE → ${d.status} ${d.data && d.data.code || ''}\n(expected 404 each: RLS hides the row, the API never says "forbidden")`;
+  });
+  $('i-list').addEventListener('click', async () => {
+    const rv = await as('ravi', () => Trail.api('GET', '/api/v1/expenses?limit=100'));
+    const ah = await as('asha', () => Trail.api('GET', '/api/v1/expenses?limit=100'));
+    if (rv.status !== 200 || ah.status !== 200) { $('i-out').textContent = `ravi ${rv.status} · asha ${ah.status} (Live: log in as both)`; return; }
+    const rids = new Set(rv.data.data.map(x => x.id));
+    const overlap = ah.data.data.filter(x => rids.has(x.id)).length;
+    $('i-out').textContent = `Ravi page: ${rv.data.data.length} rows · Asha page: ${ah.data.data.length} rows · overlap: ${overlap} (expected 0)`;
+  });
+  $('k-list').addEventListener('click', async () => {
+    const r = await Trail.api('GET', '/api/v1/categories');
+    if (r.status !== 200) { show('i-out', r); return; }
+    const own = r.data.data.filter(c => c.accountId || c.system === false);
+    $('i-out').textContent = `200 · ${r.data.data.length} categories (${own.length} custom)\n` + r.data.data.slice(-8).map(c => c.path).join('\n');
+    fillCats(r.data.data);
+  });
+  $('k-create').addEventListener('click', async () => {
+    const body = { parentPath: 'food', name: 'Trail ' + Math.random().toString(36).slice(2, 6) };
+    const key = Trail.uuidv4();
+    const r1 = await Trail.api('POST', '/api/v1/categories', { body, headers: { 'Idempotency-Key': key } });
+    const r2 = await Trail.api('POST', '/api/v1/categories', { body });
+    $('i-out').textContent = `create → ${r1.status} ${r1.data && (r1.data.path || r1.data.code)}\nsame name again (no key) → ${r2.status} ${r2.data && r2.data.code || ''} (expected 409 CATEGORY_EXISTS)`;
+  });
+
+  // ---------------------------------------------------------------- shared widgets
+  Trail.mountTenantSwitcher($('tenant'), { onSwitch: () => { reload(); lastTotals = null; totals(); } });
+  if (!Trail.persona) Trail.usePersona('asha');
+  Trail.mountIdempotencyTester($('idem'), {
+    method: 'POST', path: '/api/v1/expenses',
+    body: () => ({ amountPaise: 25000 + Math.floor(Math.random() * 1000) * 100, occurredAt: new Date().toISOString(),
+      merchant: 'Trail idempotency test', categoryPath: 'food.cafe', paymentMethod: 'upi' }),
+    after: () => afterWrite('idempotency test'),
+  });
+  Trail.mountEvents($('events'));
+  document.addEventListener('trail:mode', () => { reload(); lastTotals = null; totals(); });
+  await Promise.all([pager.init(), totals()]);
+})();
+</script>
+</body>
+</html>

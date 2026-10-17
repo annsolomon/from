@@ -12,6 +12,8 @@
 #        throttle; seeded admin first sign-in (TOTP setup), audited lookup, break-glass, invite -> accept, end.
 #   P06: gateway (scripts/lib/p06_smoke.py): routes to live identity, request-id, 401/404, 413, security headers,
 #        auth rate limit 429, dev route; then gateway activity events on Kafka.
+#   P07: ledger through the gateway (scripts/lib/p07_smoke.py): paging, create + replay, ETag/If-Match 412/428,
+#        daily totals, delete/restore, cross-tenant 404, categories; then ledger outbox -> dexter.ledger.expense.v1.
 # Later phases append their checks below the P00 block. Output also goes to $SMOKE_OUT if set.
 set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -121,6 +123,11 @@ log "# P06 gateway (:8080)"
 p06=$(python3 "$ROOT/scripts/lib/p06_smoke.py" "http://localhost:8080" 2>&1); p06rc=$?
 while IFS= read -r line; do log "$line"; done <<< "$p06"
 [[ $p06rc -eq 0 ]] || fail=1
+# ------------------------------------------------------------------ P07: ledger through the gateway
+log "# P07 ledger via gateway (:8080)"
+p07=$(python3 "$ROOT/scripts/lib/p07_smoke.py" "http://localhost:8080" 2>&1); p07rc=$?
+while IFS= read -r line; do log "$line"; done <<< "$p07"
+[[ $p07rc -eq 0 ]] || fail=1
 # Outbox -> Kafka (MASTER_PLAN 6.3): every identity event written above is published by the relay within 30 s.
 COMPOSE=(docker compose --env-file "$ROOT/.env" -f "$ROOT/infra/compose/docker-compose.yml")
 outbox() { "${COMPOSE[@]}" exec -T postgres psql -U "${POSTGRES_USER:-postgres}" -d identity -tA -c "$1" 2>/dev/null | tr -d '[:space:]'; }
@@ -137,6 +144,21 @@ topics=$("${COMPOSE[@]}" exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstra
 if [[ $topics == *dexter.identity.account.v1* && $topics == *dexter.identity.session.v1* && $topics == *dexter.identity.security.v1* && $topics == *dexter.identity.admin.v1* ]]; then
   log "PASS  identity topics exist (account, session, security, admin)"
 else log "FAIL  identity topics missing: $(tr '\n' ' ' <<< "$topics")"; fail=1; fi
+
+# P07: the ledger events written above are published (relay) to dexter.ledger.expense.v1
+lp=x; lpub=0
+for _ in $(seq 1 30); do
+  lp=$("${COMPOSE[@]}" exec -T postgres psql -U "${POSTGRES_USER:-postgres}" -d ledger -tA -c "SELECT count(*) FROM ledger.outbox WHERE published_at IS NULL" 2>/dev/null | tr -d '[:space:]')
+  lpub=$("${COMPOSE[@]}" exec -T postgres psql -U "${POSTGRES_USER:-postgres}" -d ledger -tA -c "SELECT count(*) FROM ledger.outbox WHERE published_at IS NOT NULL AND event_type LIKE 'ledger.expense.%'" 2>/dev/null | tr -d '[:space:]')
+  [[ $lp == 0 && ${lpub:-0} -gt 0 ]] && break
+  sleep 1
+done
+if [[ $lp == 0 && ${lpub:-0} -gt 0 ]]; then log "PASS  ledger outbox -> Kafka: $lpub expense events published, 0 pending"
+else log "FAIL  ledger outbox -> Kafka: pending=$lp published=$lpub"; fail=1; fi
+lk=$("${COMPOSE[@]}" exec -T kafka /opt/kafka/bin/kafka-get-offsets.sh --bootstrap-server localhost:9092 \
+  --topic dexter.ledger.expense.v1 2>/dev/null | awk -F: '{s+=$3} END {print s+0}')
+if [[ ${lk:-0} -gt 0 ]]; then log "PASS  dexter.ledger.expense.v1: $lk events"
+else log "FAIL  dexter.ledger.expense.v1: no events"; fail=1; fi
 
 # P06: gateway activity events reach Kafka (sampled 100 % in the dev profile)
 act=0

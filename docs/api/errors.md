@@ -135,3 +135,21 @@ when a cache bump/purge cannot reach Redis. Validation codes in `errors[]`: `UNK
 
 Errors a service returns pass through the gateway unchanged (same body, same `X-Request-Id`).
 
+### ledger (P07, `LedgerErrors` + core codes)
+
+| Code | Status | When |
+|---|---|---|
+| `CLIENT_REF_TAKEN` | 409 | `clientRef` already used by another expense of the account (import de-duplication, unique index `expenses_client_ref`). |
+| `CATEGORY_EXISTS` | 409 | `POST /v1/categories`: the derived path (`parentPath.slug(name)`) is already visible (system or the account's own). |
+| `USER_TOKEN_REQUIRED` | 403 | An admin-console token (`scope=admin`) on an end-user ledger endpoint. |
+| `VALIDATION_FAILED` | 400 | Field errors: `amountPaise` POSITIVE, `occurredAt` REQUIRED, `categoryPath`/`category` INVALID, `paymentMethod` REQUIRED/INVALID, `userCardId` NOT_A_CARD_PAYMENT, `tags` INVALID/TOO_MANY, `minPaise`/`maxPaise` INVALID/BELOW_MIN, `to` BEFORE_FROM, daily totals `to` INVALID_RANGE (> 366 days), `parentPath` REQUIRED/INVALID/UNKNOWN_CATEGORY/TOO_DEEP/NOT_UNDER_SYSTEM_ROOT, `name`/`icon` INVALID. |
+| `UNKNOWN_FIELD` | 400 | PATCH body names a field that cannot be changed (only `occurredAt`, `amountPaise`, `merchant`, `categoryPath`, `paymentMethod`, `userCardId`, `note`, `tags`). |
+| `IF_MATCH_REQUIRED` | 428 | PATCH without `If-Match`. |
+| `VERSION_CONFLICT` | 412 | PATCH `If-Match` is not the current version (re-GET, re-apply). |
+| `NOT_FOUND` | 404 | Unknown id, a deleted expense (GET/PATCH), another account's expense (RLS: never 403), unknown `:action`. |
+| `INVALID_ID` | 400 | `POST /v1/expenses/{id}:restore` with a malformed id. |
+| `IDEMPOTENCY_KEY_REQUIRED` / `IDEMPOTENCY_KEY_REUSED` / `IDEMPOTENCY_IN_PROGRESS` | 400 / 422 / 409 | `POST /v1/expenses` (key required); `POST /v1/categories` (key optional). |
+| `CURSOR_INVALID` / `CURSOR_FILTER_MISMATCH` / `LIMIT_INVALID` | 400 | `GET /v1/expenses` keyset paging (MASTER_PLAN 4.5). |
+
+`DELETE /v1/expenses/{id}` is idempotent: deleting a deleted expense is 204 again; `:restore` of a live expense
+returns it unchanged.
