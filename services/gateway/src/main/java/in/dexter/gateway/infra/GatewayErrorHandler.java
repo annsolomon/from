@@ -41,7 +41,7 @@ public final class GatewayErrorHandler implements WebExceptionHandler, Ordered {
       log.error("GATEWAY_UNHANDLED path={}", exchange.getRequest().getPath().value(), ex);
     } else if (code instanceof GatewayErrors) {
       RouteMatcher.Match m = exchange.getAttribute(GatewayAttributes.ROUTE);
-      log.warn("GATEWAY_UPSTREAM_{} route={} cause={}", code.code(), m == null ? "-" : m.route().id(), root(ex));
+      log.warn("GATEWAY_{} route={} cause={}", code.code(), m == null ? "-" : m.route().id(), root(ex));
     }
     if (code == GatewayErrors.UPSTREAM_UNAVAILABLE) {
       exchange.getResponse().getHeaders().set("Retry-After", "5");
@@ -55,7 +55,8 @@ public final class GatewayErrorHandler implements WebExceptionHandler, Ordered {
       if (t instanceof TimeoutException || n.endsWith("ReadTimeoutException")) {
         return GatewayErrors.UPSTREAM_TIMEOUT;
       }
-      if (t instanceof ConnectException || n.endsWith("CallNotPermittedException")
+      // connection refused/reset, premature close, open breaker: the service is (for now) not there
+      if (t instanceof ConnectException || t instanceof java.io.IOException || n.endsWith("CallNotPermittedException")
           || n.endsWith("PrematureCloseException") || n.endsWith("ConnectTimeoutException")
           || n.endsWith("AbortedException")) {
         return GatewayErrors.UPSTREAM_UNAVAILABLE;
