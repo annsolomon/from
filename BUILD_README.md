@@ -1,9 +1,9 @@
 # Dexter v2 — Build README (living handoff)
 
-**Last updated:** 2026-10-17 · **Chat/phase:** P07 DONE · **Model:** Claude Opus 5.5
-**P07 is DONE (2026-10-17).** `verify.sh full` PASS + `trail-check.sh` PASS on a GitHub runner (repo `annsolomon/from`,
-commit `4101870`, run 39023459091; reports on branch `verify-reports`). Next chat: **P08** (Ledger B: search, bulk
-import, merchants, rules). Upload `MASTER_PLAN.md` + this README; the code is in the repo (clone it).
+**Last updated:** 2026-10-17 · **Chat/phase:** P08 DONE · **Model:** Claude Opus 5.5
+**P08 is DONE (2026-10-17).** `verify.sh full` PASS + `trail-check.sh` PASS on a GitHub runner (repo `annsolomon/from`,
+commit `960e916`, run 39042585515; reports on branch `verify-reports`). Next chat: **P09** (Catalog A). Upload `MASTER_PLAN.md`
++ this README; the code is in the repo (clone it).
 
 ## 1. Phase status
 
@@ -17,7 +17,7 @@ import, merchants, rules). Upload `MASTER_PLAN.md` + this README; the code is in
 | P05 | Identity B (MFA/admin/RBAC) | **DONE** 2026-10-17 | `verify.sh full` PASS + trail-check PASS (CI run 39016105238, git 0b04cc0): identity unit 33 + IT 65 (MFA, lockout, admin, break-glass, RLS), api-smoke P05 28/28 | DoD all ticked (§3) |
 | P06 | Gateway | **DONE** 2026-10-17 | `verify.sh full` PASS + trail-check PASS (CI run 39020903788, git cf48871): gateway unit 10 + IT 19 (route table over 88 documented paths, edge filters, rate limit, breaker/SSE, activity → Kafka, degraded Redis/Kafka), api-smoke P06 18/18 | DoD all ticked (§3) |
 | P07 | Ledger A (reference impl) | **DONE** 2026-10-17 | `verify.sh full` PASS + trail-check PASS (CI run 39023459091, git 4101870): ledger unit 5 + IT 31 (CRUD, PlanAssert on 1.2M rows, pagination + idempotency contracts, 1 000-op daily-totals property, RLS proof), api-smoke P07 30/30, ledger outbox → Kafka 4 published / 0 pending | DoD all ticked (§3) |
-| P08 | Ledger B | NOT STARTED | — | |
+| P08 | Ledger B | **DONE** 2026-10-17 | `verify.sh full` PASS + trail-check PASS (CI run 39042585515, git 960e916): resolver 500/500 seed, 492/500 distorted, 42/42 payees unmatched; autocomplete p95 11 ms (p50 7 ms); 10k-row import 2.2 s + idempotent re-import; api-smoke P08 24/24 + import topic |  DoD all ticked (§3) |
 | P09 | Catalog A | NOT STARTED | — | |
 | P10 | Catalog B (ingestion) | NOT STARTED | — | |
 | P11 | Portfolio A | NOT STARTED | — | |
@@ -32,10 +32,17 @@ import, merchants, rules). Upload `MASTER_PLAN.md` + this README; the code is in
 
 ## 2. In progress (exact stopping point)
 
-- **P07 (2026-10-17): complete.** Nothing in progress. Next action: P08 (verify P07 first, then Ledger B).
-  P08 starts from: `categorization_rules` table exists without an API; `merchants`/`merchant_aliases` are seed-staged
-  (Tables P08); `expenses_client_ref` unique index is ready for bulk import de-dup (`CLIENT_REF_TAKEN`);
-  `/v1/expenses:bulk`, `/v1/expenses/search`, `/v1/merchants/**`, `/v1/rules/**` already route to ledger.
+- **P08 (2026-10-17): complete.** Nothing in progress. Next action: P09 (verify P08 first, then Catalog A).
+  P09 starts from: `/v1/catalog/**` routes to catalog; the seed stages catalog tables (issuers, card_products,
+  versions, reward_rules, milestones) in `seed_stage` until catalog's migrations exist; the trail kit has
+  `/api/v1/catalog/cards` mocks (P03). Copy ledger's patterns (ADR-0012/0013).
+
+### History (P08)
+
+- r1 (`3899b7e`, docs `dd8ec91`): compiled; 2 IT failures: `MerchantApiIT` loaded the seed merchants in a static
+  `@BeforeAll` before Flyway had run (first class in the JVM); search's typo check needed word similarity 0.5 (the
+  pg_trgm default 0.6 rejects one wrong letter in a 6-letter word). r2 (`960e916`): merchants loaded per test after
+  the context; search sets `pg_trgm.word_similarity_threshold = 0.5` per transaction. All green (run 39042585515).
 
 ### History (P07)
 
@@ -131,6 +138,19 @@ import, merchants, rules). Upload `MASTER_PLAN.md` + this README; the code is in
 - **P02b scope (A-13):** `dexter-security` (resource server, JWKS cache + unknown-kid refetch, `AuthContext`, audience check, `@RequiresStepUp`, `@RequiresPermission`, service-token client, test JWKS/JWT factory; pins nimbus + bouncycastle, verified on Maven Central), `dexter-cache` (ADR-0004, generation keys, Redis ACLs, cache contract), `ArchRules` (pins archunit), demo module switched from the `X-Demo-Account` test header to `AuthContext`, `p02-*.html` trail page + lab endpoints (idempotency replay/409/422, outbox → Kafka → projection, DLQ).
 
 ## 3. Verification of previous phase
+
+### P08 against its DoD (CI run 39042585515, git 960e916, 2026-10-17)
+
+| DoD / requirement | Result | Evidence |
+|---|---|---|
+| IT-GREEN | PASS | `full.maven`: ledger unit + IT green (resolver, merchant API, search, bulk, import, insights, RLS for import tables, search PlanAssert) |
+| Resolver accuracy report | PASS | `ResolverAccuracyIT` (below in §4): 500/500 seed descriptors, 492/500 distorted names, 42/42 local payees left unmatched |
+| Autocomplete latency on the medium seed's merchant table | PASS | `MerchantApiIT.autocompleteP95IsWithinFiftyMilliseconds` (200 cold queries over HTTP: p50 7 ms, p95 11 ms, max 27 ms) |
+| 10k-row import idempotent | PASS | `ImportIT` (10,000 rows in 2.2 s: 9,997 created + 3 row errors; same file again → 9,997 duplicates, 0 new rows, 0 new events); api-smoke import through SeaweedFS presigned PUT + re-import |
+| Bulk partial failure semantics | PASS | `BulkExpensesIT` (created / duplicate / invalid per item, replay, 500 max); api-smoke bulk |
+| Search: tenant + date btree then trigram recheck (PlanAssert) | PASS | `ExpensePlanIT.searchUsesTheTenantDateBtreeThenRechecksTheText` (expenses_list, no seq scan, 1.2M rows) |
+| Events | PASS | `ledger.import.completed` on `dexter.ledger.import.v1` (api-smoke offsets); bulk/import expense events via one batched outbox insert |
+| Trail page exercised | PASS | trail-check p08 (autocomplete, calendar, summary, search via `/api`); Mock flow in jsdom, 0 errors |
 
 ### P07 against its DoD (CI run 39023459091, git 4101870, 2026-10-17)
 
@@ -272,6 +292,46 @@ Issues found in P01's own code during self-review and fixed:
 4. The web test asserted an exact `Content-Type`; now a compatible-type check (a charset suffix must not fail it).
 
 ## 4. What exists now
+
+**P08 Ledger B (DONE)** — ADR-0013, errors.md ledger P08 section
+
+| Piece | What it does |
+|---|---|
+| Schema `V202610171300__ledger_merchants_imports` | `merchants` (global, app reads active rows only, no write grant), `merchant_aliases` (+ generated `alias_compact`; GIN trigram on normalized and compact, text_pattern_ops prefix), `import_jobs` / `import_errors` (RLS), `import_claim_next(stale, max_attempts)` SECURITY DEFINER (SKIP LOCKED), `GRANT TEMPORARY` to `ledger_app` (COPY staging) |
+| `domain` | `MerchantText` (descriptor normalisation, variants, compact forms, truncation), `EditDistance` (OSA), `ImportRow` (CSV row parsing, derived client refs), `DailyDelta.sum`, new `LedgerErrors` (`IMPORT_NOT_STARTABLE`, `RULE_LIMIT_REACHED`) |
+| `app` | `MerchantResolver` (prefetch through Redis outside transactions, sessions with rules), `MerchantService` (autocomplete, resolve), `ExpenseService.search` + resolver on create/PATCH, `BulkExpenseService`, `ImportService` + `ImportProcessor`, `InsightService` (calendar, summary), `RuleService`; ports `MerchantStore`, `RuleStore`, `ImportStore`, `ImportFiles`, `ReferenceCache`, `LiabilitySource` (NONE until P11/P13) |
+| `infra` | `MerchantRepository`, `RuleRepository`, `ImportRepository` (COPY via pgjdbc CopyManager into a temp table), `RedisReferenceCache` (dexter-cache global scopes `merchant-alias` 1 h, `merchant-ac` 10 min), `ExpenseRepository` search / multi-row insert / groups, `objectstore/SigV4` + `S3ImportFiles` |
+| `api` | `MerchantController`, `BulkController` (`/v1/expenses:bulk`), `ImportController` (`/v1/imports`, `/{id}:start`, `/{id}`), `InsightController` (`/v1/calendar`, `/v1/summary`), `RuleController`, `GET /v1/expenses/search` |
+| `config` | `ImportWorker` (poll 1 s, drain), Redis on ACL user `ledger` (health indicator off), `dexter.ledger.imports.*` (endpoint, public endpoint, bucket, keys, 10 MB, 50k rows, stale 10 min, 3 attempts) |
+| Libraries / contracts | `OutboxWriter.appendAll` (multi-row outbox insert, 500 per statement); `ledger.import.completed` v1 (`ImportCompletedV1`) |
+| Tests | unit `MerchantTextTest` 5, `SigV4Test` 2 (AWS documentation vector); IT `ResolverAccuracyIT` 2, `MerchantApiIT` 5, `ExpenseSearchIT` 2, `BulkExpensesIT` 2, `ImportIT` 2, `InsightIT` 2, `LedgerRlsIT` +3, `ExpensePlanIT` +1 |
+| Trail / smoke | `test-ui/p08-ledger-plus.html`; `scripts/lib/p08_smoke.py` (api-smoke P08 + `dexter.ledger.import.v1` offsets); trail-check P08 |
+
+**Resolver accuracy (ResolverAccuracyIT, CI run 39042585515):**
+
+| Set | Top-1 | Rate |
+|---|---|---|
+| seed descriptors (500: UPI, card ×3 shapes, net banking, wallet, cash) | 500 / 500 | 100.0 % |
+| distorted names (500: dropped letter, swap, "store/online/app", 12-char cut) | 492 / 500 | 98.4 % |
+| local payees → no merchant (42) | 42 / 42 | 100.0 % |
+
+Distorted set by stage: exact 129/131, compact 138/138, trigram 175/177, typo (OSA) 50/52, none 0/2. Misses are
+genuinely ambiguous ("APPLESTORE" vs Apple Store India, "IKAONLINE" vs Ikea Online, "CROMAONLINE" exact alias of
+Croma Online vs label Croma).
+
+**Query→Index (P08):**
+
+| Query | Index | Plan |
+|---|---|---|
+| search (q + 12-month window) | `expenses_list` (tenant + date), text recheck (ILIKE, word similarity) | Index/bitmap on expenses_list, never a seq scan (sort allowed, bounded by the range) |
+| resolver exact / compact alias | `merchant_aliases_key` / `merchant_aliases_compact` | Index |
+| resolver truncated prefix | `merchant_aliases_compact` (text_pattern_ops) | Index |
+| resolver trigram / typo candidates | `merchant_aliases_compact_trgm` (GIN, `%`) | Bitmap |
+| autocomplete | `merchant_aliases_trgm` (GIN) for `%`/LIKE | Bitmap (635 aliases) |
+| bulk/import client_ref dedupe | `expenses_client_ref` (ON CONFLICT … DO NOTHING) | Index |
+| import job by id / claim | pkey / `import_jobs_claim` (partial on queued/running) | Index |
+| calendar, summary by day/category | `expense_daily_totals_pkey` | Index |
+| summary by merchant / payment method | `expenses_list` range | Index |
 
 **P07 Ledger A (DONE)** — ADR-0012, errors.md ledger section
 
@@ -580,6 +640,7 @@ Issues found in P01's own code during self-review and fixed:
 | 0010 | Identity B: RFC 6238 TOTP with step replay guard, keyed recovery codes, Redis Lua throttles failing closed, admins separate from accounts with mandatory MFA, RBAC as data, SUPER_ADMIN only via ≤ 1 h elevation re-checked per request, second `identity_admin` pool | Accepted: proven by CI run 39016105238 |
 | 0009 | Identity: pre-auth SECURITY DEFINER functions + owner policies, synthetic tenants, password-free registration fingerprint, strict refresh-family reuse detection, next/active/retired ES256 keys, envelope encryption, after-commit mail, client-credentials endpoint | Accepted: proven by CI run 39003795722 (identity ITs, api-smoke P04) |
 | 0012 | Ledger as the reference service: layers + ports, static keyset query per filter mask, daily totals maintained in the write transaction (IST day × root), merge PATCH + If-Match, soft delete + `:restore`, outbox event per write, admin tokens refused on user endpoints | Accepted: proven by CI run 39023459091 |
+| 0013 | Ledger B: global merchants read-only for the app, resolver (variants → exact/compact/prefix → trigram 0.45 → typo; rules after), Redis alias cache outside transactions, bounded search without a trigram index on expenses, bulk with per-item outcome, CSV import via presigned upload + COPY into a temp table + derived client refs | Accepted: proven by CI run 39042585515 |
 
 ## 6. Plan amendments (deviations from MASTER_PLAN.md)
 
@@ -631,6 +692,10 @@ Issues found in P01's own code during self-review and fixed:
 | 2026-10-17 | P07 | A-45: the daily-totals day is the IST calendar day (`Asia/Kolkata`), not the account's time zone; list `from`/`to` are IST dates too (`to` inclusive). | One fixed bucket key keeps the aggregate exact without rewriting rows when a profile time zone changes; all demo users are in India. | P13/P14 read daily totals with IST days; a per-account zone would need a rebuild job. |
 | 2026-10-17 | P07 | A-46: PlanAssert runs on 1.2M rows generated inside `ExpensePlanIT` (`generate_series`, one 30k-row account, ANALYZE) instead of the loaded medium seed. | Plans must be proven inside the Maven IT with Testcontainers; the medium seed loads into staging before services exist. | Later PlanAssert ITs generate their own volume the same way. |
 | 2026-10-17 | P07 | A-47: `GET /v1/expenses/daily-totals?from&to` added (≤ 366 days) for the trail and P13; card and merchant indexes end in `id DESC` (no incremental sort); category and date-range plans may sort (bounded); the categories policy needs a tenant context even for system rows. | Daily totals must be observable; plans without Sort; no anonymous reads of tenant tables. | routes.md example; P13 planning reads totals. |
+| 2026-10-17 | P08 | A-48: no trigram index on `expenses.merchant_display`: search is bounded by the tenant + date btree (default 12 months, ≤ 366 days) and rechecks the text (ILIKE on display/raw merchant and note, word similarity ≥ 0.5). | A global GIN index covers every tenant's rows; the per-tenant range is what bounds the scan; PlanAssert proves expenses_list. | P19 may add a per-tenant search index if heavy accounts need it. |
+| 2026-10-17 | P08 | A-49: the calendar's "upcoming liabilities" come through a `LiabilitySource` port that is empty until portfolio (P11, card bills/EMIs) and planning (P13) publish them; the response already has `upcoming` per day. | Those facts are owned by later services. | P11/P13 provide the source (event projection). |
+| 2026-10-17 | P08 | A-50: import flow = `POST /v1/imports` (job + presigned PUT) → upload → `POST /v1/imports/{id}:start` → worker; jobs carry `duplicates`, `error_code/detail`, `attempts`, status `awaiting_upload/queued/running/completed/failed`; COPY goes into a transaction-scoped temp table (COPY FROM is refused on RLS tables; `ledger_app` gets TEMPORARY), then a second transaction merges; rows without `client_ref` get a content hash + occurrence number; fixed CSV header (`HEADER MATCH`); 10 MB / 50k rows; stale running jobs re-claimed after 10 min, 3 attempts. | The plan names the steps, not the protocol; re-import idempotency needs a natural key per row. | P12 statement parsing can reuse the job + staging pattern. |
+| 2026-10-17 | P08 | A-51: "LRU cache of resolved aliases in Redis" = dexter-cache global scopes with TTL (1 h aliases, 10 min autocomplete), read before any transaction (`prefetch`); Redis' eviction policy is an ops setting (P19; the dev instance also holds throttle keys, so no allkeys-lru there). The resolver adds compact/prefix and a typo (edit distance) stage to the plan's pipeline, and rules run after the merchant is known (merchant-id rules need it). `OutboxWriter.appendAll` added for batched events; the S3 SigV4 signer lives in ledger until a second service needs it. | Measured accuracy (98.4 % on distorted names vs ~80 % with exact + trigram only); dexter-cache contract. | P10 bumps the merchant cache scopes; P12 moves SigV4 to a library. |
 | 2026-09-22 | P01 | A-12: the P01 trail is backed by a dev-only lab controller in `dexter-web` (`/_dev/p01/*`, `@Profile("dev")`, guard test) instead of database-backed endpoints. | P01 has no service schema yet; the lab runs the real library code. Paging against a real table is P07. | P19 deletes it with the trail; `run.sh` defaults to the dev profile locally. |
 
 ## 7. Known gaps / tech debt (honest, never deleted silently)
@@ -650,6 +715,15 @@ Issues found in P01's own code during self-review and fixed:
   - The breached list holds the ≈ 9.1k NCSC top-100k entries that are ≥ 10 characters; no online HIBP k-anonymity
     check (offline by plan).
   - (P05 resolved: lockout, `mfa_enrolled`/`amr` real.)
+- **P08 ledger B:**
+  - Search has no index on text: a very heavy account searching a full year scans its rows of that year (bounded).
+  - Calendar liabilities are empty until P11/P13 (A-49).
+  - Merchant cache entries live up to 1 h after a merchant data change unless the writer bumps the scope (no writer
+    exists before P10; a re-seed is visible after the TTL).
+  - Dev SeaweedFS is anonymous: presigned URLs are signed but not verified until P12 configures S3 identities. The
+    browser upload in Live mode needs the object store reachable from the browser (`OBJECTSTORE_PUBLIC_URL`).
+  - Import rows are validated in Java after COPY (10k rows ≈ seconds); files are capped at 10 MB / 50k rows.
+  - Rules apply to new expenses only (no re-categorisation of existing rows).
 - **P07 ledger:**
   - Daily totals use the IST day for everyone (A-45); a user abroad sees late-evening expenses on the IST date.
   - The category filter's plan sorts (GiST cannot return keyset order); bounded by one account's subtree. A date
@@ -813,6 +887,7 @@ press **Lab status / start**, then **Get a valid token**. (After a manual `run.s
 
 ## 10. Changelog (one line per response)
 
+- 2026-10-17 P08 r1–r2: merchants/aliases, resolver + rules, search, bulk, CSV import (presigned S3 + COPY + worker), calendar, summary, OutboxWriter.appendAll, ADR-0013, A-48..A-51, p08 page/smoke/trail-check. CI run 39042585515: verify full + trail-check PASS → **P08 DONE**.
 - 2026-10-17 P07 r2: daily-totals negative deltas via UPDATE, date-range plan test allows a bounded sort. CI run 39023459091: verify full + trail-check PASS → **P07 DONE**.
 - 2026-10-17 P07 r1: ledger schema (categories, expenses, daily totals, rules) with FORCE RLS, expense CRUD (idempotent create, keyset list per filter mask, If-Match PATCH, soft delete/restore), daily totals in the write txn, categories, outbox events + contracts, 1.2M-row PlanAssert, ADR-0012, A-45..A-47, errors.md ledger, p07-ledger.html, p07 smoke, trail-check P07.
 - 2026-10-17 P06 r1–r5: gateway (route table + routes.md + tests, edge WebFilters, JWT pre-check, Redis token-bucket limiter, breaker per service, SSE route, security headers, CORS, activity events), identity audience `gateway` + forwarded headers, trail bridge removed, ADR-0011, A-42..A-44, api-smoke P06, p06-gateway.html, trail-check P06. CI run 39020903788: verify full + trail-check PASS → **P06 DONE**.
