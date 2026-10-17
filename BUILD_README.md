@@ -15,7 +15,7 @@ break-glass). Upload `MASTER_PLAN.md` + this README; the code is in the repo (cl
 | P02 | Core libs B (idempotency/events/security/test) | **DONE** 2026-10-16 — verify full 17/17 + trail-check PASS (CI run 38913491961) |
 | P03 | Harness, seed, trail kit | **DONE** 2026-10-16 | `verify.sh full` 19/19 PASS + trail-check PASS (CI run 38922523673, git 4dc9033): seed 25 unit + `SeedLoadIT` 4, 11 ArchitectureTests, pager.spec.js 18/18, medium seed generate+load 16 s, determinism checksum `a67ed5cf…` (identical in the sandbox and on CI) | DoD all ticked (§3) |
 | P04 | Identity A | **DONE** 2026-10-17 | `verify.sh full` 21/21 PASS + trail-check PASS (CI run 39003795722, git 6e6ed9f): identity unit 19 + IT 41 (incl. IdempotencyContract 6, PaginationContract 9, RLS proof 7), api-smoke P04 26/26, outbox → Kafka 5 published / 0 pending | DoD all ticked (§3) |
-| P05 | Identity B (MFA/admin/RBAC) | NOT STARTED | — | |
+| P05 | Identity B (MFA/admin/RBAC) | **DONE** 2026-10-17 | `verify.sh full` PASS + trail-check PASS (CI run 39016105238, git 0b04cc0): identity unit 33 + IT 65 (MFA, lockout, admin, break-glass, RLS), api-smoke P05 28/28 | DoD all ticked (§3) |
 | P06 | Gateway | NOT STARTED | — | |
 | P07 | Ledger A (reference impl) | NOT STARTED | — | |
 | P08 | Ledger B | NOT STARTED | — | |
@@ -32,6 +32,18 @@ break-glass). Upload `MASTER_PLAN.md` + this README; the code is in the repo (cl
 | P19 | Hardening & release | NOT STARTED | — | |
 
 ## 2. In progress (exact stopping point)
+
+- **P05 (2026-10-17): complete.** Nothing in progress. Next action: P06 (verify P05 first, then the gateway).
+  P06 starts from: identity's Live trail calls (incl. `/api/v1/admin/*`) go through `Trail.liveRoutes`; per-IP
+  throttling sees the socket address until the gateway forwards a trusted client IP; admin tokens carry `scope=admin`
+  (the gateway can route `/api/v1/admin/*` and must keep `Authorization` intact).
+
+### History (P05)
+
+- r1 (`b293e8b`): compiled first time; context failed: keyset base SQL contained `ORDER BY` (inside `ARRAY(...)`).
+- r2 (`c286445`): 60/65 ITs green; LockoutIT's own context had a different random KEK than the shared DB's signing
+  keys (AES-GCM open failed), `identity_admin` lacked SELECT on `admin_mfa_totp`, health IT counted 2 migrations.
+- r3 (`0b04cc0`): keys shared per JVM, column grants for `identity_admin` (no secrets/hashes), count 3.
 
 - **P04 r2 (2026-10-17): complete.** Nothing in progress. Next action: P05 (verify P04 first, then Identity B).
   P05 starts from: `auth_find_login` returns `mfa_enabled=false` (replace it), `admin@demo.in` is still in
@@ -100,6 +112,20 @@ break-glass). Upload `MASTER_PLAN.md` + this README; the code is in the repo (cl
 - **P02b scope (A-13):** `dexter-security` (resource server, JWKS cache + unknown-kid refetch, `AuthContext`, audience check, `@RequiresStepUp`, `@RequiresPermission`, service-token client, test JWKS/JWT factory; pins nimbus + bouncycastle, verified on Maven Central), `dexter-cache` (ADR-0004, generation keys, Redis ACLs, cache contract), `ArchRules` (pins archunit), demo module switched from the `X-Demo-Account` test header to `AuthContext`, `p02-*.html` trail page + lab endpoints (idempotency replay/409/422, outbox → Kafka → projection, DLQ).
 
 ## 3. Verification of previous phase
+
+### P05 against its DoD (CI run 39016105238, git 0b04cc0, 2026-10-17)
+
+| DoD / requirement | Result | Evidence |
+|---|---|---|
+| IT-GREEN | PASS | `full.maven`: identity unit 33 + IT 65, 0 failures; other modules unchanged and green |
+| RFC 6238 vectors | PASS | `TotpTest` (all six SHA1 vectors, 8 and 6 digits, window, Base32 RFC 4648) |
+| TOTP step replay rejected | PASS | `MfaFlowIT` (code used to confirm is refused at sign-in; same code on a new challenge refused); api-smoke "replayed TOTP step: 401" |
+| Recovery codes single-use | PASS | `MfaFlowIT` (second use 401, regeneration kills old codes), `RecoveryCodesTest`; api-smoke |
+| Lockout thresholds | PASS | `RedisLoginThrottleIT` (free → 2 s → 4 s → lock at the limit, cap, reset, per-IP) as the ACL-restricted Redis user; `LockoutIT` (lock refuses the right password, unknown emails alike, success resets, step-up throttled, `ACCOUNT_LOCKED` once); api-smoke 429 |
+| Permission matrix | PASS | `AdminIT` (SUPPORT/FINANCE/CATALOG_EDITOR tokens → perms; 403 `missingPermissions`; user ↔ admin token separation); `AdminRlsIT` (actor-role reads, definer functions) |
+| Break-glass expiry | PASS | `AdminIT.breakGlassExpires` (elevation moved past its hour → SUPER_ADMIN refused, refresh drops the role), `breakGlassManagesAdminsAndEndsAtOnce` (token exp ≤ elevation end, ended early → 403 at once); DB refuses ineligible elevations |
+| Admin endpoints unreachable without MFA + permission | PASS | admin tokens only after TOTP (setup forced at first sign-in), `AdminGuard` (scope admin + amr mfa), `@RequiresPermission`, `identity_admin` policies; api-smoke + trail-check `p05-anon` 401 |
+| Trail page exercised | PASS | trail-check p05 page + admin challenge + anon 401 + `/v1/me/mfa` + bridge; Mock flow in jsdom (enrol → MFA login → replay refused → recovery → admin setup → lookup → 403 → break-glass → invite → end → old token 403 → throttle 429, 0 errors) |
 
 ### P04 against its DoD (CI run 39003795722, git 6e6ed9f, 2026-10-17)
 
@@ -198,6 +224,59 @@ Issues found in P01's own code during self-review and fixed:
 4. The web test asserted an exact `Content-Type`; now a compatible-type check (a charset suffix must not fail it).
 
 ## 4. What exists now
+
+**P05 Identity B (DONE)** — ADR-0010
+
+| Piece | What it does |
+|---|---|
+| Schema `V202610171000__identity_mfa_admin` | `mfa_totp` (DEK-encrypted secret, `last_used_step`), `recovery_codes` (keyed hash, `used_at`), RBAC catalogue `roles`/`permissions`/`role_permissions` (data; SUPER_ADMIN non-standing), `admins` (+ `break_glass_eligible`, MFA CHECK), `admin_roles`, `admin_mfa_totp` (KEK-wrapped), `elevations` (reason 20–500, ≤ 1 h CHECK, RLS refuses ineligible), `admin_sessions`, `admin_refresh_tokens`, `admin_invites`, `admin_audit` (append-only). FORCE RLS everywhere; `identity_admin` reads by actor role with column grants; definer functions `auth_find_admin_login`, `auth_find_admin_refresh`, `admin_accept_invite` (app) and audited `admin_create` / `admin_update` (admin, `DX4xx` SQLSTATEs); `auth_find_login` reports MFA |
+| `domain` | `Totp` (RFC 6238/4226, Base32, otpauth URI), `RecoveryCodes`, `ThrottlePolicy`, `AdminPermissions`, new `IdentityErrors` |
+| `app` | `MfaService` (enrol/confirm/disable/regenerate), `UserSecondFactor`, `AuthService` (two-step login, `verifyMfa`, `stepUp`, lockout alerts), `Throttles` + `LoginThrottle` port, `MfaChallenges` port, `AdminAuthService` (login → setup/verify → admin tokens, refresh rotation + reuse, logout, invite accept), `ElevationService` (break-glass start/end + server-side re-check), `AdminDirectoryService` (list/get/invite/update/lookup, audited), `AdminGuard`, `SecretSealer`, `SecuritySettings` |
+| `infra` | `RedisLoginThrottle` + `RedisMfaChallenges` (Lua, `identity:*` keys, fail closed via `RedisCalls`), `MfaRepository`, `AdminRepository` (app pool), `AdminDirectoryRepository` (admin pool, keyset, SQLSTATE mapping), `KekSecretSealer` |
+| `api` / `config` | `MfaController`, `AdminAuthController`, `AdminController`, `AuthController` (+ `/mfa/verify`, `/step-up`); `IdentitySecurityConfiguration` (`identity_admin` Hikari pool held in `AdminPool`, not a DataSource bean), `dexter.identity.security.*` / `admin.*` properties, Redis (`spring.data.redis`, ACL user `identity`) |
+| contracts | `identity.security.alert` v2 (A-38), `identity.admin.action` v1 |
+| Tests | unit `TotpTest`, `RecoveryCodesTest`, `ThrottlePolicyTest`; IT `RedisLoginThrottleIT`, `MfaFlowIT`, `LockoutIT` (own context via `IdentityBase`), `AdminIT`, `AdminRlsIT`, `IdentityRlsIT` + mfa tables |
+| Trail / smoke | `test-ui/p05-mfa-admin.html` (built-in WebCrypto authenticator, Mock emulates the rules), `liveRoutes` `/api/v1/admin/`, `scripts/lib/p05_smoke.py`, trail-check P05, `admin` topic check |
+
+**Endpoints added in P05 (identity :8081)**
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| POST | `/v1/auth/login` | public | MFA enrolled → `{mfaRequired, mfaToken, expiresIn}`; throttled (429) |
+| POST | `/v1/auth/mfa/verify` | public (mfaToken) | `code` or `recoveryCode` → tokens; 5 wrong codes burn the challenge |
+| POST | `/v1/auth/step-up` | user | password (+ second factor) → fresh access token |
+| GET | `/v1/me/mfa` | user | status, pending, recovery codes left |
+| POST | `/v1/me/mfa/totp/enroll` | user + step-up | pending secret + otpauth URI (no-store) |
+| POST | `/v1/me/mfa/totp/confirm` | user | first code → 10 recovery codes (once) |
+| DELETE | `/v1/me/mfa/totp` | user + step-up + amr mfa | 204 |
+| POST | `/v1/me/mfa/recovery-codes` | user + step-up + amr mfa | new 10 codes |
+| POST | `/v1/admin/auth/login` | public | always a challenge (`setup` on first sign-in) |
+| POST | `/v1/admin/auth/mfa/setup`, `/mfa/verify` | public (mfaToken) | secret / admin tokens |
+| POST | `/v1/admin/auth/token/refresh`, `/logout`, `/invite/accept` | refresh / admin / invite token | rotation + reuse; single-use invite |
+| GET | `/v1/admin/me` | admin | roles, permissions, elevated |
+| POST / DELETE | `/v1/admin/elevations`, `/v1/admin/elevations/current` | admin (eligible) | break-glass ≤ 1 h, reason + fresh code |
+| GET | `/v1/admin/admins` (keyset), `/v1/admin/admins/{id}` (ETag) | `admins:read` + elevation | |
+| POST / PATCH | `/v1/admin/admins`, `/v1/admin/admins/{id}` (If-Match) | `admins:write` + elevation | invite mail; disable/roles/resetMfa; never self |
+| GET | `/v1/admin/accounts?email=` | `accounts:read` | audited (also when not found) |
+
+**Events added:** `dexter.identity.security.v1` now carries `identity.security.alert` **v2** (+ `ACCOUNT_LOCKED`,
+`MFA_ENABLED`, `MFA_DISABLED`, `RECOVERY_CODE_USED`, `RECOVERY_CODES_REGENERATED`); `dexter.identity.admin.v1`:
+`identity.admin.action` v1 (key = affected account, else the acting admin) → audit (P18).
+
+**Query→Index (P05)** (also in the migration header)
+
+| Where | SQL shape | Index | Proof |
+|---|---|---|---|
+| MFA state / verify / replay guard | `mfa_totp WHERE account_id = :a` (+ `last_used_step < :s`) | `mfa_totp_pkey` | `MfaFlowIT` |
+| recovery code use | `WHERE account_id = :a AND code_hash = :h AND used_at IS NULL` | `recovery_codes_account_id_code_hash_key` | `MfaFlowIT` |
+| codes left | `WHERE account_id = :a AND used_at IS NULL` | `recovery_codes_unused` (partial) | `MfaFlowIT` |
+| admin login | `auth_find_admin_login(email)` | `admins_email_key` | `AdminIT` |
+| roles → permissions | `admin_roles WHERE admin_id`; `role_permissions WHERE role = ANY(:r)` | pkeys | `AdminIT` |
+| active elevation | `WHERE admin_id = :a AND revoked_at IS NULL AND expires_at > now` | `elevations_active` (partial) | `AdminIT` |
+| admin refresh lookup / rotate / reuse | as P04 on `admin_refresh_tokens` | `_token_hash_key`, pkey, `_family`, `_session` | `AdminIT.adminRefreshRotatesAndDetectsReuse` |
+| GET /v1/admin/admins | `ORDER BY created_at DESC, id DESC LIMIT n+1` | `admins_list` | `AdminIT` (tiny table; no PlanAssert) |
+| account lookup | `accounts WHERE email = :e` | `accounts_email_key` | `AdminIT` |
+| throttles / challenges | Redis keys `identity:thr:<key>:{n,t,l}`, `identity:mfa:<sha256>` | — | `RedisLoginThrottleIT` |
 
 **P04 Identity A (DONE)**
 
@@ -406,6 +485,7 @@ Issues found in P01's own code during self-review and fixed:
 | 0006 | Events on plain kafka-clients; per-consumer retry/DLQ topics `<topic>.<consumer>.retry-1m`/`retry-10m`/`dlq` | Accepted: proven by the P02a r4 run (`OutboxRelayIT`, `ConsumerIT`, 2026-09-27) |
 | 0007 | Request authentication: Nimbus ES256 verifier + JWKS cache + MVC `SecurityInterceptor` (default deny), no Spring Security filter chain | Accepted: proven by the 2026-10-04 run (`JwtVerifierTest`, `SecurityInterceptorTest`, `ServiceTokenClientTest`, `DemoAuthIT`) |
 | 0008 | Seed data: deterministic generator, `seed_stage` before migrations, owner-role COPY with FORCE off in-tx, passwords hashed once | Accepted: proven by CI run 38922523673 (`SeedLoadIT`, `GeneratorTest`, `full.seed-medium`, `full.seed-determinism`) |
+| 0010 | Identity B: RFC 6238 TOTP with step replay guard, keyed recovery codes, Redis Lua throttles failing closed, admins separate from accounts with mandatory MFA, RBAC as data, SUPER_ADMIN only via ≤ 1 h elevation re-checked per request, second `identity_admin` pool | Accepted: proven by CI run 39016105238 |
 | 0009 | Identity: pre-auth SECURITY DEFINER functions + owner policies, synthetic tenants, password-free registration fingerprint, strict refresh-family reuse detection, next/active/retired ES256 keys, envelope encryption, after-commit mail, client-credentials endpoint | Accepted: proven by CI run 39003795722 (identity ITs, api-smoke P04) |
 
 ## 6. Plan amendments (deviations from MASTER_PLAN.md)
@@ -448,6 +528,10 @@ Issues found in P01's own code during self-review and fixed:
 | 2026-10-17 | P04 | A-35: verify.sh full gains `full.seed-small` after `full.services-up` (the small seed then lands in the real `identity.accounts`), and `run.sh` appends keys that later phases add to `.env.example` to an existing `.env`. | The medium seed runs before services exist (staging); the demo login needs real rows. | P05/P07/P09/P11 rely on the same step for their tables. |
 | 2026-10-17 | P04 | A-36: trail Live calls to `/api/v1/auth/*`, `/api/v1/me*`, `/api/.well-known/*`, `/api/_dev/p04/*` are rewritten to `/svc/identity/...` (`Trail.liveRoutes`). | The gateway routes `/api/*` only in P06. | P06 empties `liveRoutes`. |
 | 2026-10-17 | P04 | A-37: security email (verify, reset, already-registered, password-changed) is sent after commit, asynchronously and bounded, without a durable queue; flows are user-retryable (≤ 5 links per account and hour). | A durable notification queue is P18. | P18 may move these emails to the notification service. |
+| 2026-10-17 | P05 | A-38: `identity.security.alert` moves to v2 (same topic) with lockout and MFA kinds; identity produces only v2 (there were no v1 consumers). | New kinds are a contract change (6.4). | P18 consumes v2. |
+| 2026-10-17 | P05 | A-39: admins are a separate principal (`identity.admins`, own sessions/refresh tokens/client `dexter-admin`, `scope=admin`), not accounts with roles; user and admin tokens are refused on each other's endpoints. The admin sign-in always returns a challenge; a first sign-in includes TOTP setup. Admin invitations (email link, `POST /v1/admin/admins`) replace seeding further admins. | MFA mandatory for admins without a half-authenticated token state; no account data reachable by admin principals except through `identity_admin`. | P06 routes `/api/v1/admin/*`; P18 audit. |
+| 2026-10-17 | P05 | A-40: SUPER_ADMIN is never a standing role: only `elevations` (eligible admin, reason, fresh TOTP, ≤ 1 h) grant it, the token is capped at the elevation end and SUPER_ADMIN use-cases re-read the row. The seeded `admin@demo.in` holds SUPPORT, CATALOG_EDITOR, FINANCE and is break-glass eligible. | MASTER_PLAN 7.2 time-boxed break-glass; ending early must be immediate. | Demo docs (§9) updated. |
+| 2026-10-17 | P05 | A-41: login throttling lives in Redis (Lua, time as argument) and fails closed (503) when Redis is down; keys are an email hash, the principal id and the IP. Admin endpoints acting on others use a second pool as `identity_admin` with column grants. | 7.1 lockout must survive restarts and be shared across instances; 3.1 role separation. | P06 adds edge rate limits and trusted client IP. |
 | 2026-09-22 | P01 | A-12: the P01 trail is backed by a dev-only lab controller in `dexter-web` (`/_dev/p01/*`, `@Profile("dev")`, guard test) instead of database-backed endpoints. | P01 has no service schema yet; the lab runs the real library code. Paging against a real table is P07. | P19 deletes it with the trail; `run.sh` defaults to the dev profile locally. |
 
 ## 7. Known gaps / tech debt (honest, never deleted silently)
@@ -466,6 +550,14 @@ Issues found in P01's own code during self-review and fixed:
   - No durable mail queue (A-37); a mail-server outage loses those emails (logged `MAIL_FAILED`).
   - The breached list holds the ≈ 9.1k NCSC top-100k entries that are ≥ 10 characters; no online HIBP k-anonymity
     check (offline by plan).
+  - (P05 resolved: lockout, `mfa_enrolled`/`amr` real.)
+- **P05 identity B:**
+  - An admin or user access token stays valid ≤ 10 min after disable/logout; only SUPER_ADMIN is re-checked per
+    request (sessions and refresh tokens are revoked at once).
+  - Per-IP throttle sees the socket address until P06 forwards a trusted client IP.
+  - Break-glass has no two-person approval (`approved_by` reserved); no admin UI beyond the trail page.
+  - `GET /v1/admin/admins` has no PlanAssert (tiny table); audit read endpoints are P18.
+  - Admin TOTP secrets are KEK-wrapped (no per-admin DEK); KEK rotation re-wrap not automated (as P04).
   - KEK, pepper, cursor key and client secrets are env values (dev values in `.env.example`); Vault Transit is P19.
     KEK rotation re-wrapping of existing DEKs/keys is not automated (new material uses the active KEK id).
   - The login timing test allows max(40 ms, 50 %) between medians on a shared CI runner; it proves the absence of the
@@ -596,13 +688,17 @@ press **Lab status / start**, then **Get a valid token**. (After a manual `run.s
 ## 9. Demo accounts (dev only)
 
 - `asha@demo.in` (PREMIUM, 3 cards, 500 expenses), `ravi@demo.in` (FREE, 2 cards, 500 expenses) in `identity.accounts`;
-  `admin@demo.in` (SUPER_ADMIN) in `identity.admins`. Passwords: `DEMO_PASSWORD_*` in `.env.example`.
+  `admin@demo.in` in `identity.admins`: SUPPORT + CATALOG_EDITOR + FINANCE, break-glass eligible (SUPER_ADMIN only
+  via `POST /v1/admin/elevations`); the first console sign-in sets up TOTP (p05 trail page has an authenticator).
+  Passwords: `DEMO_PASSWORD_*` in `.env.example`.
 - Bulk seed users `u0000001@seed.test` … (medium: 9,998, large: 99,998), password `SEED_BULK_PASSWORD`.
 - From P04 the users live in the real `identity.accounts` once `seed.sh small` ran after identity started (`verify.sh
-  full` does it as `full.seed-small`); `admin@demo.in` stays in `identity.seed_stage.admins` until P05.
+  full` does it as `full.seed-small`); from P05 `admin@demo.in` is in the real `identity.admins`.
 - Service clients (P04): every service name, secret `SERVICE_CLIENT_SECRET` from `.env`, via `POST /oauth2/token`.
 
 ## 10. Changelog (one line per response)
+
+- 2026-10-17 P05 r1–r3: TOTP MFA + recovery codes + step-up, Redis lockout (Lua, fail closed), admin console (separate principal, mandatory MFA, invite), RBAC as data, break-glass elevations, `identity_admin` pool, alert v2 + admin.action v1, ADR-0010, A-38..A-41, api-smoke P05, p05-mfa-admin.html, trail-check P05. CI run 39016105238: verify full + trail-check PASS → **P05 DONE**.
 
 - 2026-10-17 P04 r1+r2: identity service (Flyway schema with RLS + definer pre-auth functions, register/verify/login/refresh with family reuse detection/logout/password flows, /me with ETag + encrypted phone, keyset sessions, JWKS next/active/retired, /oauth2/token), 4 identity events, ADR-0009, A-30..A-37, dexter-test `flywayDb` + RlsProofKit tenant column, api-smoke P04, `full.seed-small`, p04-identity.html + trail bridge. CI run 39003795722: 21/21 + trail-check PASS → **P04 DONE**.
 - 2026-10-16 P03 r1: seed generator `seed/` (ADR-0008, A-24/A-25), reference data v1 (40 MOCK_ cards, 357 merchants), `seed.sh`, generated trail fixtures; complete `trail.js` + `p03-harness.html` + `pager.spec.js` (A-27, A-29); `perf/k6` base + thresholds; ArchitectureTest in all 10 services (A-26); verify `static.trail-pager`, `full.seed-medium`, `full.seed-determinism`; trail-check P03. CI run 38922523673: 19/19 + trail-check PASS → **P03 DONE**.
