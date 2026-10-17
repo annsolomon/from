@@ -54,11 +54,21 @@ public abstract class LedgerIT {
   @Value("${local.server.port}")
   protected int port;
 
+  /** CSV uploads land here instead of the object store (the S3 adapter is proven by SigV4Test + api-smoke). */
+  public static final MemoryImportFiles FILES = new MemoryImportFiles();
+  static final String REDIS_PW = "ledger-redis-test-pw";
+
   @TestConfiguration(proxyBeanMethods = false)
   public static class TestIdp {
     @Bean
     JwtVerifier testJwtVerifier() {
       return IDP.verifier("ledger", Clock.systemUTC());
+    }
+
+    @Bean
+    @org.springframework.context.annotation.Primary
+    in.dexter.ledger.app.ImportFiles testImportFiles() {
+      return FILES;
     }
   }
 
@@ -69,6 +79,14 @@ public abstract class LedgerIT {
     r.add("spring.flyway.password", () -> ServiceDb.PW);
     r.add("dexter.cursor.keys.c1", () -> CURSOR_KEY);
     r.add("dexter.ledger.relay.enabled", () -> "false");
+    // P08: Redis as the restricted service user `ledger` (infra/redis/acl.tmpl); the import worker polls fast
+    in.dexter.testkit.containers.TestRedis.applyServiceAcl("ledger", REDIS_PW);
+    r.add("spring.data.redis.host", in.dexter.testkit.containers.TestRedis::host);
+    r.add("spring.data.redis.port", in.dexter.testkit.containers.TestRedis::port);
+    r.add("spring.data.redis.username", () -> "ledger");
+    r.add("spring.data.redis.password", () -> REDIS_PW);
+    r.add("spring.data.redis.timeout", () -> "2s");
+    r.add("dexter.ledger.imports.poll-interval", () -> "200ms");
   }
 
   public static String token(UUID account) {

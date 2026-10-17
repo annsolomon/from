@@ -448,7 +448,7 @@
       return { accessToken: 'mock.' + p.key, tokenType: 'Bearer', expiresIn: 600 };
     });
     mock('GET', /^\/api\/_dev\/outbox\/recent$/, () => ({ data: events.recent() }));
-    return { expenses, catalog, userCards, categories: seed.categories };
+    return { expenses, catalog, userCards, categories: seed.categories, merchants: seed.merchants };
   }
   /** Browser: fetch the seed fixtures and register the routes. */
   async function loadSeed() {

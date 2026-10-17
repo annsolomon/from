@@ -27,6 +27,18 @@ class GuardsTest {
   }
 
   @Test
+  void batchedOutboxWritesNeedATransactionToo() {
+    OutboxWriter w = new OutboxWriter(jdbc, new EnvelopeCodec(JsonMapper.builder().build()), "demo", "demo",
+        Clock.systemUTC(), () -> null);
+    EventType<Data> t = EventType.of("demo", "note", "created", 1, Data.class);
+    org.assertj.core.api.Assertions.assertThat(w.appendAll(t, java.util.List.of())).isEmpty();
+    assertThatThrownBy(() -> w.appendAll(t, java.util.List.of(
+        new OutboxWriter.Pending<>(UUID.randomUUID(), UUID.randomUUID(), 1, new Data("x")))))
+        .isInstanceOf(IllegalStateException.class).hasMessageContaining("active transaction");
+    Mockito.verifyNoInteractions(jdbc);
+  }
+
+  @Test
   void inboxGuardNeedsATransaction() {
     InboxGuard g = new InboxGuard(jdbc, "demo");
     assertThatThrownBy(() -> g.firstDelivery("stats", UUID.randomUUID())).isInstanceOf(IllegalStateException.class);

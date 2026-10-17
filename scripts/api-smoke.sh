@@ -14,6 +14,8 @@
 #        auth rate limit 429, dev route; then gateway activity events on Kafka.
 #   P07: ledger through the gateway (scripts/lib/p07_smoke.py): paging, create + replay, ETag/If-Match 412/428,
 #        daily totals, delete/restore, cross-tenant 404, categories; then ledger outbox -> dexter.ledger.expense.v1.
+#   P08: ledger B (scripts/lib/p08_smoke.py): autocomplete, resolver + rules, search, bulk, CSV import through the
+#        object store (presigned PUT) incl. re-import, calendar, summary; then dexter.ledger.import.v1 on Kafka.
 # Later phases append their checks below the P00 block. Output also goes to $SMOKE_OUT if set.
 set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -128,6 +130,11 @@ log "# P07 ledger via gateway (:8080)"
 p07=$(python3 "$ROOT/scripts/lib/p07_smoke.py" "http://localhost:8080" 2>&1); p07rc=$?
 while IFS= read -r line; do log "$line"; done <<< "$p07"
 [[ $p07rc -eq 0 ]] || fail=1
+# ------------------------------------------------------------------ P08: ledger B through the gateway
+log "# P08 ledger B via gateway (:8080)"
+p08=$(python3 "$ROOT/scripts/lib/p08_smoke.py" "http://localhost:8080" 2>&1); p08rc=$?
+while IFS= read -r line; do log "$line"; done <<< "$p08"
+[[ $p08rc -eq 0 ]] || fail=1
 # Outbox -> Kafka (MASTER_PLAN 6.3): every identity event written above is published by the relay within 30 s.
 COMPOSE=(docker compose --env-file "$ROOT/.env" -f "$ROOT/infra/compose/docker-compose.yml")
 outbox() { "${COMPOSE[@]}" exec -T postgres psql -U "${POSTGRES_USER:-postgres}" -d identity -tA -c "$1" 2>/dev/null | tr -d '[:space:]'; }
@@ -159,6 +166,17 @@ lk=$("${COMPOSE[@]}" exec -T kafka /opt/kafka/bin/kafka-get-offsets.sh --bootstr
   --topic dexter.ledger.expense.v1 2>/dev/null | awk -F: '{s+=$3} END {print s+0}')
 if [[ ${lk:-0} -gt 0 ]]; then log "PASS  dexter.ledger.expense.v1: $lk events"
 else log "FAIL  dexter.ledger.expense.v1: no events"; fail=1; fi
+
+# P08: import jobs publish ledger.import.completed on dexter.ledger.import.v1
+li=0
+for _ in $(seq 1 30); do
+  li=$("${COMPOSE[@]}" exec -T kafka /opt/kafka/bin/kafka-get-offsets.sh --bootstrap-server localhost:9092 \
+    --topic dexter.ledger.import.v1 2>/dev/null | awk -F: '{s+=$3} END {print s+0}')
+  [[ ${li:-0} -gt 0 ]] && break
+  sleep 1
+done
+if [[ ${li:-0} -gt 0 ]]; then log "PASS  dexter.ledger.import.v1: $li events"
+else log "FAIL  dexter.ledger.import.v1: no events"; fail=1; fi
 
 # P06: gateway activity events reach Kafka (sampled 100 % in the dev profile)
 act=0

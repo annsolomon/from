@@ -6,7 +6,7 @@ set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
 source scripts/lib/services.sh
-PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html p05-mfa-admin.html p06-gateway.html p07-ledger.html})
+PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html p05-mfa-admin.html p06-gateway.html p07-ledger.html p08-ledger-plus.html})
 BASE=http://127.0.0.1:8099
 fail=0
 
@@ -101,6 +101,16 @@ dt=$(curl -s --max-time 5 -H "Authorization: Bearer $at" "$BASE/api/v1/expenses/
 if [[ $dt == '{"data":['* ]]; then printf 'PASS  %-10s %s\n' p07-totals 200; else printf 'FAIL  %-10s %s\n' p07-totals "${dt:0:200}"; fail=1; fi
 ct=$(curl -s --max-time 5 -H "Authorization: Bearer $at" "$BASE/api/v1/categories")
 if [[ $ct == *'"path":"food.cafe"'* ]]; then printf 'PASS  %-10s %s\n' p07-cats 200; else printf 'FAIL  %-10s %s\n' p07-cats "${ct:0:200}"; fail=1; fi
+
+# P08: what p08-ledger-plus.html Live mode calls: autocomplete, calendar, summary, search
+ac=$(curl -s --max-time 5 -H "Authorization: Bearer $at" "$BASE/api/v1/merchants/autocomplete?q=swi")
+if [[ $ac == *'"merchant":"Swiggy'* ]]; then printf 'PASS  %-10s %s\n' p08-ac 200; else printf 'FAIL  %-10s %s\n' p08-ac "${ac:0:200}"; fail=1; fi
+cm=$(curl -s --max-time 5 -H "Authorization: Bearer $at" "$BASE/api/v1/calendar?month=$(TZ=Asia/Kolkata date +%Y-%m)")
+if [[ $cm == *'"days":['* ]]; then printf 'PASS  %-10s %s\n' p08-cal 200; else printf 'FAIL  %-10s %s\n' p08-cal "${cm:0:200}"; fail=1; fi
+sm=$(curl -s --max-time 5 -H "Authorization: Bearer $at" "$BASE/api/v1/summary?from=$d1&to=$d2&groupBy=category")
+if [[ $sm == *'"groups":['* ]]; then printf 'PASS  %-10s %s\n' p08-sum 200; else printf 'FAIL  %-10s %s\n' p08-sum "${sm:0:200}"; fail=1; fi
+se=$(curl -s --max-time 5 -H "Authorization: Bearer $at" "$BASE/api/v1/expenses/search?q=swiggy")
+if [[ $se == *'"page":'* ]]; then printf 'PASS  %-10s %s\n' p08-search 200; else printf 'FAIL  %-10s %s\n' p08-search "${se:0:200}"; fail=1; fi
 
 echo "trail-check: $([[ $fail -eq 0 ]] && echo PASS || echo FAIL)"
 exit $fail

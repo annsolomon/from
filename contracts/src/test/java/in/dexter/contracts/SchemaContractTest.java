@@ -7,6 +7,7 @@ import in.dexter.contracts.events.demo.NoteRenamedV1;
 import in.dexter.contracts.events.gateway.ActivityRecordedV1;
 import in.dexter.contracts.events.ledger.ExpenseChangedV1;
 import in.dexter.contracts.events.ledger.ExpenseStateV1;
+import in.dexter.contracts.events.ledger.ImportCompletedV1;
 import in.dexter.contracts.events.identity.AccountRegisteredV1;
 import in.dexter.contracts.events.identity.AdminActionV1;
 import in.dexter.contracts.events.identity.AccountVerifiedV1;
@@ -66,6 +67,9 @@ class SchemaContractTest {
     SAMPLES.put("ledger.expense.deleted.v1.json", new ExpenseChangedV1(expense, 2, after, null, "2026-10-17T12:00:02Z"));
     SAMPLES.put("ledger.expense.restored.v1.json", new ExpenseChangedV1(expense, 3, null, after,
         "2026-10-17T12:00:03Z"));
+    SAMPLES.put("ledger.import.completed.v1.json", new ImportCompletedV1(
+        UUID.fromString("0192f1e2-0000-7000-8000-0000000000f2"), "completed", 120, 118, 20, 2, null,
+        "2026-10-17T12:05:00Z"));
   }
 
   static JsonNode schema(String file) throws IOException {

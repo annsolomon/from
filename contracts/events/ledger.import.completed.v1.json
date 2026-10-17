@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dexter.in/events/ledger.import.completed.v1.json",
+  "title": "ledger.import.completed v1 - a CSV import job finished (topic dexter.ledger.import.v1, key = account id). ok includes duplicates (rows already present, skipped); failed = invalid rows.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "jobId",
+    "status",
+    "total",
+    "ok",
+    "duplicates",
+    "failed",
+    "errorCode",
+    "finishedAt"
+  ],
+  "properties": {
+    "jobId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "failed"
+      ]
+    },
+    "total": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "ok": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "duplicates": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "failed": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "errorCode": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "finishedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

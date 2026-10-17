@@ -41,4 +41,18 @@ public final class DailyDelta {
     });
     return out;
   }
+
+  /** Many expenses entering their buckets at once (bulk create, import): one change per bucket, all positive. */
+  public static List<Change> sum(List<Counted> entering) {
+    record Key(LocalDate day, String root) {}
+    Map<Key, long[]> m = new LinkedHashMap<>();
+    for (Counted c : entering) {
+      long[] v = m.computeIfAbsent(new Key(c.day(), c.categoryRoot()), k -> new long[2]);
+      v[0] += c.amountPaise();
+      v[1] += 1;
+    }
+    List<Change> out = new ArrayList<>(m.size());
+    m.forEach((k, v) -> out.add(new Change(k.day(), k.root(), v[0], (int) v[1])));
+    return out;
+  }
 }

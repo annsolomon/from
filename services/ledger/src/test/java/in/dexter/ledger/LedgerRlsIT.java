@@ -37,6 +37,40 @@ class LedgerRlsIT extends LedgerIT {
         "UPDATE ledger.categorization_rules SET account_id = ?").proveAll();
   }
 
+  @Test
+  void importJobs() throws Exception {
+    new RlsProofKit(TestPostgres.flywayDb("ledger"), "import_jobs",
+        "INSERT INTO ledger.import_jobs (id, account_id, status, file_key) VALUES (gen_random_uuid(), ?, 'queued', 'k')",
+        "UPDATE ledger.import_jobs SET account_id = ?").proveAll();
+  }
+
+  @Test
+  void importErrors() throws Exception {
+    new RlsProofKit(TestPostgres.flywayDb("ledger"), "import_errors",
+        "WITH j AS (INSERT INTO ledger.import_jobs (id, account_id, status, file_key)"
+            + " VALUES (gen_random_uuid(), ?, 'running', 'k') RETURNING id, account_id)"
+            + " INSERT INTO ledger.import_errors (job_id, account_id, row_no, code) SELECT id, account_id, 1, 'X' FROM j",
+        null).proveAll();
+  }
+
+  /** Merchants are global reference data: every tenant reads them, no tenant can write them. */
+  @Test
+  void merchantsAreReadOnlyForTheApp() throws Exception {
+    var db = TestPostgres.flywayDb("ledger");
+    try (Connection c = db.conn("app")) {
+      c.setAutoCommit(false);
+      try (Statement s = c.createStatement()) {
+        s.execute("SELECT set_config('app.account_id', gen_random_uuid()::text, true)");
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> s.execute(
+                "INSERT INTO ledger.merchants (id, canonical_name, normalized_name, default_category)"
+                    + " VALUES (gen_random_uuid(), 'Evil', 'evil', 'food')"))
+            .hasMessageContaining("permission denied");
+      } finally {
+        c.rollback();
+      }
+    }
+  }
+
   /** Custom categories are private; the system tree is shared but never writable, and invisible without a tenant. */
   @Test
   void categories() throws Exception {

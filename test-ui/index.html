@@ -22,6 +22,7 @@
         <tr><td>P05</td><td><a href="p05-mfa-admin.html">p05-mfa-admin.html</a></td><td>TOTP enrol (built-in authenticator) → MFA sign-in, step replay refused, recovery codes, step-up, lockout 429; admin console with mandatory MFA, permissions, audited lookup, break-glass, invite → accept</td></tr>
         <tr><td>P06</td><td><a href="p06-gateway.html">p06-gateway.html</a></td><td>Gateway: route table → service, unknown path 404, token 401, spoofed headers stripped, request-id, 413, rate-limit headers + 429; all Live pages now go through the gateway</td></tr>
         <tr><td>P07</td><td><a href="p07-ledger.html">p07-ledger.html</a></td><td>Ledger: expenses keyset window with filters, create with Idempotency-Key, GET ETag → PATCH If-Match (412 stale, 428 missing), soft delete + :restore, daily totals (IST day × category root) live after every write, cross-tenant 404, custom categories</td></tr>
+        <tr><td>P08</td><td><a href="p08-ledger-plus.html">p08-ledger-plus.html</a></td><td>Ledger plus: merchant autocomplete (latency), resolver stages + rules, search with keyset paging, bulk create (partial failure, clientRef duplicates, replay), CSV import via presigned upload with progress and re-import idempotency, calendar grid, summary by category/merchant/payment/day</td></tr>
       </tbody>
     </table>
   </section>

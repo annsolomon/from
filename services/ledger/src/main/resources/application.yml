@@ -14,6 +14,15 @@ spring:
     hikari:
       maximum-pool-size: ${LEDGER_DB_POOL:20}
       connection-timeout: 5000
+  # P08: alias + autocomplete cache (dexter-cache). Per-service ACL user (infra/redis/acl.tmpl: keys ledger:*).
+  data:
+    redis:
+      host: ${DEXTER_REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      username: ledger
+      password: ${REDIS_PW_LEDGER:${REDIS_PW_SERVICE:}}
+      timeout: 200ms
+      connect-timeout: 1s
   # Migrations run as the schema owner (MASTER_PLAN 3.1); the app role has no DDL rights.
   flyway:
     user: ledger_owner
@@ -35,6 +44,10 @@ management:
       probes:
         enabled: true
       show-details: never
+  health:
+    # Redis only caches merchant lookups (the cache bypasses to Postgres when it is down): not a readiness concern.
+    redis:
+      enabled: false
   metrics:
     tags:
       service: ledger
@@ -64,6 +77,13 @@ dexter:
       username: ledger_relay
       password: ${PG_PW_LEDGER_RELAY:${PG_PW_RELAY:}}
       bootstrap-servers: ${KAFKA_BOOTSTRAP:127.0.0.1:${KAFKA_PORT:9092}}
+    # P08 CSV imports: S3-compatible object store (ADR-0003; dev SeaweedFS has no S3 identities yet, P12 adds them)
+    imports:
+      endpoint: http://127.0.0.1:${OBJECTSTORE_PORT:8333}
+      public-endpoint: ${OBJECTSTORE_PUBLIC_URL:http://localhost:${OBJECTSTORE_PORT:8333}}
+      bucket: ${LEDGER_IMPORT_BUCKET:dexter-imports}
+      access-key: ${OBJECTSTORE_ACCESS_KEY:dexter-dev}
+      secret-key: ${OBJECTSTORE_SECRET_KEY:}
 
 ---
 spring:

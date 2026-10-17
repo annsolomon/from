@@ -40,9 +40,8 @@ import tools.jackson.databind.ObjectMapper;
  */
 public final class ExpenseService {
   public static final String PATH = "/v1/expenses";
-  static final int MAX_TAGS = 10;
-  static final int MAX_TAG_LENGTH = 30;
-  static final long MAX_AMOUNT = 100_000_000_000L;
+  /** Search defaults to the last 12 months and never spans more than 366 days (MASTER_PLAN P08). */
+  static final int SEARCH_MAX_DAYS = 366;
 
   /** A write's answer: the view and whether anything changed (an event was written). */
   public record Written(ExpenseView view, boolean changed) {}
@@ -53,18 +52,20 @@ public final class ExpenseService {
   private final DailyTotalsStore daily;
   private final CategoryStore categories;
   private final OutboxWriter outbox;
+  private final MerchantResolver resolver;
   private final ObjectMapper mapper;
   private final Clock clock;
   private final AtomicBoolean failNext = new AtomicBoolean();
 
   public ExpenseService(TenantTx tx, IdempotencyEngine idempotency, ExpenseStore expenses, DailyTotalsStore daily,
-      CategoryStore categories, OutboxWriter outbox, ObjectMapper mapper, Clock clock) {
+      CategoryStore categories, OutboxWriter outbox, MerchantResolver resolver, ObjectMapper mapper, Clock clock) {
     this.tx = tx;
     this.idempotency = idempotency;
     this.expenses = expenses;
     this.daily = daily;
     this.categories = categories;
     this.outbox = outbox;
+    this.resolver = resolver;
     this.mapper = mapper;
     this.clock = clock;
   }
@@ -78,35 +79,19 @@ public final class ExpenseService {
 
   public IdempotentResponse create(Tenant tenant, UUID key, NewExpense cmd) {
     List<FieldError> errors = new ArrayList<>();
-    if (cmd.occurredAt() == null) {
-      errors.add(new FieldError("occurredAt", "REQUIRED", "When did it happen (ISO-8601 instant)"));
-    }
-    long amount = amount("amountPaise", cmd.amountPaise(), true, errors);
-    String category = cmd.categoryPath() == null ? CategoryPaths.DEFAULT : cmd.categoryPath();
-    if (!CategoryPaths.isValid(category)) {
-      errors.add(new FieldError("categoryPath", "INVALID", "Not a category path"));
-    }
-    PaymentMethod method = PaymentMethod.parse(cmd.paymentMethod());
-    if (method == null) {
-      errors.add(new FieldError("paymentMethod", cmd.paymentMethod() == null ? "REQUIRED" : "INVALID",
-          "One of card, upi, cash, netbanking, wallet, other"));
-    } else if (cmd.userCardId() != null && method != PaymentMethod.CARD) {
-      errors.add(new FieldError("userCardId", "NOT_A_CARD_PAYMENT", "Only card payments carry a card"));
-    }
-    String merchant = text("merchant", cmd.merchant(), 120, errors);
-    String note = text("note", cmd.note(), 500, errors);
-    List<String> tags = tags(cmd.tags(), errors);
-    String clientRef = text("clientRef", cmd.clientRef(), 100, errors);
-    if (!errors.isEmpty()) {
+    ExpenseInput.Valid v = ExpenseInput.validate(cmd, "", errors);
+    if (v == null) {
       throw new ValidationException(errors);
     }
     IdempotentRequest fingerprint = IdempotentRequest.of("POST", PATH, cmd, mapper);
+    Map<String, MerchantResolver.AliasMatch> aliases = resolver.prefetch(tenant,
+        v.merchant() == null ? List.of() : List.of(v.merchant()));
     return tx.write(tenant, () -> idempotency.execute(tenant, key, fingerprint, () -> {
-      requireCategory(category, "categoryPath");
+      if (v.category() != null) {
+        requireCategory(v.category(), "categoryPath");
+      }
       Instant now = now();
-      ExpenseRow row = new ExpenseRow(Ids.newId(), tenant.accountId(), cmd.occurredAt().truncatedTo(ChronoUnit.MICROS),
-          amount, "INR", merchant, merchant, null, category, "user", 1000, method.db(), cmd.userCardId(), note, tags,
-          clientRef, "manual", now, now, 0, null);
+      ExpenseRow row = newRow(tenant.accountId(), v, resolver.session(aliases), "manual", "user", now);
       expenses.insert(row);
       daily.apply(tenant.accountId(), DailyDelta.between(null, counted(row)));
       event(LedgerEvents.EXPENSE_CREATED, row, null, row, now);
@@ -116,6 +101,36 @@ public final class ExpenseService {
       return new ApiResponse(201, Map.of("Location", PATH + "/" + row.id(), "ETag", etag(row.version())),
           ExpenseView.of(row));
     }));
+  }
+
+  /**
+   * A new row from validated input: the merchant is resolved when one is given; a category from the caller wins
+   * ({@code providedSource}, confidence 1000), otherwise the resolution (rule / merchant default / general) decides.
+   */
+  static ExpenseRow newRow(UUID accountId, ExpenseInput.Valid v, MerchantResolver.Session resolver, String source,
+      String providedSource, Instant now) {
+    MerchantResolver.Resolution r = v.merchant() == null ? null : resolver.resolve(v.merchant());
+    UUID merchantId = r == null ? null : r.merchantId();
+    String display = merchantId != null ? r.merchant() : v.merchant();
+    String category;
+    String categorySource;
+    int confidence;
+    if (v.category() != null) {
+      category = v.category();
+      categorySource = providedSource;
+      confidence = 1000;
+    } else if (r != null) {
+      category = r.categoryPath();
+      categorySource = r.categorySource();
+      confidence = r.confidence();
+    } else {
+      category = CategoryPaths.DEFAULT;
+      categorySource = "resolver";
+      confidence = 0;
+    }
+    return new ExpenseRow(Ids.newId(), accountId, v.occurredAt(), v.amountPaise(), "INR", v.merchant(), display,
+        merchantId, category, categorySource, confidence, v.method().db(), v.userCardId(), v.note(), v.tags(),
+        v.clientRef(), source, now, now, 0, null);
   }
 
   // ------------------------------------------------------------------------------------------- reads
@@ -150,6 +165,32 @@ public final class ExpenseService {
     return tx.read(tenant, () -> expenses.list(page, f, from, to)).map(ExpenseView::of);
   }
 
+  /**
+   * {@code GET /v1/expenses/search?q=}: merchant (display or raw) or note containing the text, or a merchant name
+   * close to it (word similarity), newest first, keyset-paged, within {@code from..to} (IST dates, inclusive; default
+   * the last 12 months, at most {@value #SEARCH_MAX_DAYS} days).
+   */
+  public Page<ExpenseView> search(Tenant tenant, PageRequest page, String q, LocalDate from, LocalDate to) {
+    String text = q == null ? "" : q.strip();
+    List<FieldError> errors = new ArrayList<>();
+    if (text.length() < 2 || text.length() > 60) {
+      errors.add(new FieldError("q", "INVALID", "2-60 characters"));
+    }
+    LocalDate t = to != null ? to : LedgerTime.day(clock.instant());
+    LocalDate f = from != null ? from : t.minusMonths(12).plusDays(1);
+    if (t.isBefore(f) || f.plusDays(SEARCH_MAX_DAYS - 1).isBefore(t)) {
+      errors.add(new FieldError("to", "INVALID_RANGE", "to >= from, at most " + SEARCH_MAX_DAYS + " days"));
+    }
+    if (!errors.isEmpty()) {
+      throw new ValidationException(errors);
+    }
+    Instant fromAt = f.atStartOfDay(LedgerTime.ZONE).toInstant();
+    Instant toAt = t.plusDays(1).atStartOfDay(LedgerTime.ZONE).toInstant();
+    String folded = text.toLowerCase(java.util.Locale.ROOT);
+    return tx.read(tenant, () -> expenses.search(page, folded, fromAt, toAt,
+        Map.of("q", folded, "from", f.toString(), "to", t.toString()))).map(ExpenseView::of);
+  }
+
   public List<DailyTotalsStore.DayTotal> dailyTotals(Tenant tenant, LocalDate from, LocalDate to) {
     if (from == null || to == null || to.isBefore(from) || from.plusDays(366).isBefore(to)) {
       throw new ValidationException(List.of(new FieldError("to", "INVALID_RANGE",
@@ -162,6 +203,8 @@ public final class ExpenseService {
 
   /** Merge patch with optimistic locking ({@code expectedVersion} from If-Match). */
   public ExpenseView patch(Tenant tenant, UUID id, long expectedVersion, ExpensePatch p) {
+    Map<String, MerchantResolver.AliasMatch> aliases = p.merchant().present() && p.merchant().value() != null
+        ? resolver.prefetch(tenant, List.of(p.merchant().value().strip())) : Map.of();
     return tx.write(tenant, () -> {
       ExpenseRow before = expenses.lock(id).filter(r -> !r.deleted())
           .orElseThrow(() -> new NotFoundException("expense"));
@@ -169,6 +212,9 @@ public final class ExpenseService {
         throw new VersionConflictException("expense", expectedVersion);
       }
       ExpenseRow after = apply(before, p);
+      if (p.merchant().present() && !java.util.Objects.equals(before.merchantRaw(), after.merchantRaw())) {
+        after = reresolve(after, !p.categoryPath().present(), resolver.session(aliases));
+      }
       if (sameContent(before, after)) {
         return ExpenseView.of(before);
       }
@@ -230,12 +276,12 @@ public final class ExpenseService {
     }
     long amount = r.amountPaise();
     if (p.amountPaise().present()) {
-      amount = amount("amountPaise", p.amountPaise().value(), true, errors);
+      amount = ExpenseInput.amount("amountPaise", p.amountPaise().value(), true, errors);
     }
     String merchant = r.merchantDisplay();
     String merchantRaw = r.merchantRaw();
     if (p.merchant().present()) {
-      merchant = text("merchant", p.merchant().value(), 120, errors);
+      merchant = ExpenseInput.text("merchant", p.merchant().value(), 120, errors);
       merchantRaw = merchant;
     }
     String category = r.categoryPath();
@@ -272,11 +318,11 @@ public final class ExpenseService {
     }
     String note = r.note();
     if (p.note().present()) {
-      note = text("note", p.note().value(), 500, errors);
+      note = ExpenseInput.text("note", p.note().value(), 500, errors);
     }
     List<String> tags = r.tags();
     if (p.tags().present()) {
-      tags = tags(p.tags().value(), errors);
+      tags = ExpenseInput.tags("tags", p.tags().value(), errors);
     }
     if (!errors.isEmpty()) {
       throw new ValidationException(errors);
@@ -286,9 +332,28 @@ public final class ExpenseService {
         r.updatedAt(), r.version(), r.deletedAt());
   }
 
+  /** A changed merchant text: new merchant id/display, and a new category unless a person or rule chose it. */
+  private static ExpenseRow reresolve(ExpenseRow r, boolean mayRecategorize, MerchantResolver.Session session) {
+    MerchantResolver.Resolution res = r.merchantRaw() == null ? null : session.resolve(r.merchantRaw());
+    UUID merchantId = res == null ? null : res.merchantId();
+    String display = merchantId != null ? res.merchant() : r.merchantRaw();
+    String category = r.categoryPath();
+    String source = r.categorySource();
+    Integer confidence = r.resolutionConfidence();
+    if (mayRecategorize && "resolver".equals(source)) {
+      category = res == null ? CategoryPaths.DEFAULT : res.categoryPath();
+      source = res == null ? "resolver" : res.categorySource();
+      confidence = res == null ? 0 : res.confidence();
+    }
+    return new ExpenseRow(r.id(), r.accountId(), r.occurredAt(), r.amountPaise(), r.currency(), r.merchantRaw(),
+        display, merchantId, category, source, confidence, r.paymentMethod(), r.userCardId(), r.note(), r.tags(),
+        r.clientRef(), r.source(), r.createdAt(), r.updatedAt(), r.version(), r.deletedAt());
+  }
+
   static boolean sameContent(ExpenseRow a, ExpenseRow b) {
     return a.occurredAt().equals(b.occurredAt()) && a.amountPaise() == b.amountPaise()
         && Objects.equals(a.merchantDisplay(), b.merchantDisplay()) && Objects.equals(a.merchantRaw(), b.merchantRaw())
+        && Objects.equals(a.merchantId(), b.merchantId())
         && a.categoryPath().equals(b.categoryPath()) && a.paymentMethod().equals(b.paymentMethod())
         && Objects.equals(a.userCardId(), b.userCardId()) && Objects.equals(a.note(), b.note())
         && a.tags().equals(b.tags());
@@ -317,7 +382,7 @@ public final class ExpenseService {
         new ExpenseChangedV1(row.id(), row.version(), state(before), state(after), now.toString()));
   }
 
-  private void requireCategory(String path, String field) {
+  void requireCategory(String path, String field) {
     if (categories.findVisible(path).isEmpty()) {
       throw new ValidationException(List.of(new FieldError(field, "UNKNOWN_CATEGORY",
           "No such category (GET /v1/categories)")));
@@ -330,53 +395,5 @@ public final class ExpenseService {
 
   static String etag(long version) {
     return "\"" + version + "\"";
-  }
-
-  private static long amount(String field, Long v, boolean required, List<FieldError> errors) {
-    if (v == null) {
-      if (required) {
-        errors.add(new FieldError(field, "REQUIRED", "Amount in paise (integer)"));
-      }
-      return 0;
-    }
-    if (v < 1 || v > MAX_AMOUNT) {
-      errors.add(new FieldError(field, "OUT_OF_RANGE", "Between 1 and " + MAX_AMOUNT + " paise"));
-    }
-    return v;
-  }
-
-  private static String text(String field, String v, int max, List<FieldError> errors) {
-    if (v == null) {
-      return null;
-    }
-    String s = v.strip();
-    if (s.isEmpty()) {
-      return null;
-    }
-    if (s.codePointCount(0, s.length()) > max) {
-      errors.add(new FieldError(field, "TOO_LONG", "At most " + max + " characters"));
-    }
-    return s;
-  }
-
-  private static List<String> tags(List<String> raw, List<FieldError> errors) {
-    if (raw == null) {
-      return List.of();
-    }
-    List<String> out = new ArrayList<>();
-    for (String t : raw) {
-      String s = t == null ? "" : t.strip().toLowerCase(java.util.Locale.ROOT);
-      if (s.isEmpty() || s.length() > MAX_TAG_LENGTH) {
-        errors.add(new FieldError("tags", "INVALID", "Tags are 1-" + MAX_TAG_LENGTH + " characters"));
-        return List.of();
-      }
-      if (!out.contains(s)) {
-        out.add(s);
-      }
-    }
-    if (out.size() > MAX_TAGS) {
-      errors.add(new FieldError("tags", "TOO_MANY", "At most " + MAX_TAGS + " tags"));
-    }
-    return out;
   }
 }

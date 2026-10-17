@@ -79,6 +79,20 @@ public class ExpenseController {
     return PageResponse.from(expenses.list(Callers.user(caller), page, f));
   }
 
+  /** Text search within a date window (default: the last 12 months), newest first, keyset-paged (P08). */
+  @GetMapping("/search")
+  public PageResponse<ExpenseView> search(AuthContext caller, PageRequest page, @RequestParam("q") String q,
+      @RequestParam(value = "from", required = false) String from,
+      @RequestParam(value = "to", required = false) String to) {
+    List<FieldError> errors = new ArrayList<>();
+    LocalDate f = date("from", from, errors);
+    LocalDate t = date("to", to, errors);
+    if (!errors.isEmpty()) {
+      throw new ValidationException(errors);
+    }
+    return PageResponse.from(expenses.search(Callers.user(caller), page, q, f, t));
+  }
+
   /** Daily totals per category root (the trail's live panel; P08's /v1/summary builds on the same table). */
   @GetMapping("/daily-totals")
   public Map<String, List<DayTotal>> dailyTotals(AuthContext caller, @RequestParam("from") String from,

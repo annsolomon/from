@@ -14,10 +14,13 @@ import in.dexter.ledger.app.ExpenseRow;
 import in.dexter.ledger.app.ExpenseStore;
 import in.dexter.ledger.domain.LedgerErrors;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.dao.DuplicateKeyException;
@@ -54,6 +57,26 @@ public final class ExpenseRepository implements ExpenseStore {
       " AND merchant_id = :merchantId",
       " AND amount_paise >= :minPaise",
       " AND amount_paise <= :maxPaise");
+
+  /**
+   * Search (MASTER_PLAN P08): the tenant + date btree ({@code expenses_list}) bounds the scan, then each row is
+   * rechecked against the text (substring on merchant/note, pg_trgm word similarity on the merchant). No trigram
+   * index on {@code expenses}: it would cover every tenant's rows and the predicate is per tenant (A-48).
+   */
+  public static final String SEARCH = BASE + " AND occurred_at >= :from AND occurred_at < :to"
+      + " AND (merchant_display ILIKE :pat OR merchant_raw ILIKE :pat OR note ILIKE :pat"
+      + " OR :q OPERATOR(public.<%) lower(coalesce(merchant_display, '')))";
+  public static final KeysetQuery<ExpenseRow> SEARCH_QUERY = KeysetQuery.<ExpenseRow>builder("occurred_desc")
+      .key("occurred_at", KeyType.TIMESTAMPTZ)
+      .key("id", KeyType.UUID)
+      .sql(SEARCH)
+      .mapper(ROW)
+      .keysOf(r -> List.of(r.occurredAt(), r.id()))
+      .build();
+  static final String INSERT_COLS = "(id, account_id, occurred_at, amount_paise, currency, merchant_raw,"
+      + " merchant_display, merchant_id, category_path, category_source, resolution_confidence, payment_method,"
+      + " user_card_id, note, tags, client_ref, source, created_at, updated_at, version, deleted_at)";
+  static final int INSERT_BATCH = 500;
 
   private final JdbcClient jdbc;
   private final KeysetPager pager;
@@ -110,6 +133,101 @@ public final class ExpenseRepository implements ExpenseStore {
     put(params, "minPaise", f.minPaise());
     put(params, "maxPaise", f.maxPaise());
     return pager.page(jdbc, queries.computeIfAbsent(mask, ExpenseRepository::listQuery), page, params, f.asMap());
+  }
+
+  @Override
+  public Page<ExpenseRow> search(PageRequest page, String q, Instant from, Instant to, Map<String, ?> filters) {
+    TenantScope.require();
+    Map<String, Object> params = new HashMap<>();
+    params.put("from", Sql.ts(from));
+    params.put("to", Sql.ts(to));
+    params.put("q", q);
+    params.put("pat", "%" + likeEscape(q) + "%");
+    return pager.page(jdbc, SEARCH_QUERY, page, params, filters);
+  }
+
+  /** LIKE metacharacters taken literally (the default escape character is the backslash). */
+  public static String likeEscape(String s) {
+    return s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+  }
+
+  @Override
+  public Set<UUID> insertAll(List<ExpenseRow> rows) {
+    TenantScope.require();
+    Set<UUID> inserted = new HashSet<>();
+    for (int from = 0; from < rows.size(); from += INSERT_BATCH) {
+      List<ExpenseRow> chunk = rows.subList(from, Math.min(rows.size(), from + INSERT_BATCH));
+      StringBuilder sql = new StringBuilder("INSERT INTO ledger.expenses ").append(INSERT_COLS).append(" VALUES ");
+      Map<String, Object> p = new HashMap<>();
+      for (int i = 0; i < chunk.size(); i++) {
+        ExpenseRow r = chunk.get(i);
+        if (i > 0) {
+          sql.append(", ");
+        }
+        String n = "_" + i;
+        sql.append("(:id").append(n).append(", :a").append(n).append(", :at").append(n).append(", :amt").append(n)
+            .append(", :cur").append(n).append(", :mr").append(n).append(", :md").append(n).append(", :mid").append(n)
+            .append(", CAST(:cp").append(n).append(" AS public.ltree), :cs").append(n).append(", :rc").append(n)
+            .append(", :pm").append(n).append(", :card").append(n).append(", :note").append(n).append(", :tags")
+            .append(n).append(", :cref").append(n).append(", :src").append(n).append(", :c").append(n).append(", :u")
+            .append(n).append(", :v").append(n).append(", NULL)");
+        p.put("id" + n, r.id());
+        p.put("a" + n, r.accountId());
+        p.put("at" + n, Sql.ts(r.occurredAt()));
+        p.put("amt" + n, r.amountPaise());
+        p.put("cur" + n, r.currency());
+        p.put("mr" + n, r.merchantRaw());
+        p.put("md" + n, r.merchantDisplay());
+        p.put("mid" + n, r.merchantId());
+        p.put("cp" + n, r.categoryPath());
+        p.put("cs" + n, r.categorySource());
+        p.put("rc" + n, r.resolutionConfidence());
+        p.put("pm" + n, r.paymentMethod());
+        p.put("card" + n, r.userCardId());
+        p.put("note" + n, r.note());
+        p.put("tags" + n, r.tags().isEmpty() ? null : Sql.texts(r.tags()));
+        p.put("cref" + n, r.clientRef());
+        p.put("src" + n, r.source());
+        p.put("c" + n, Sql.ts(r.createdAt()));
+        p.put("u" + n, Sql.ts(r.updatedAt()));
+        p.put("v" + n, r.version());
+      }
+      sql.append(" ON CONFLICT (account_id, client_ref) WHERE client_ref IS NOT NULL DO NOTHING RETURNING id");
+      inserted.addAll(jdbc.sql(sql.toString()).params(p).query((rs, i) -> Rows.uuid(rs, "id")).list());
+    }
+    return inserted;
+  }
+
+  @Override
+  public Map<String, UUID> idsByClientRef(Collection<String> refs) {
+    TenantScope.require();
+    Map<String, UUID> out = new HashMap<>();
+    if (refs.isEmpty()) {
+      return out;
+    }
+    jdbc.sql("SELECT id, client_ref FROM ledger.expenses WHERE account_id = (SELECT ledger.app_account())"
+            + " AND client_ref = ANY(:refs)")
+        .param("refs", Sql.texts(refs))
+        .query((rs, i) -> out.put(rs.getString("client_ref"), Rows.uuid(rs, "id")))
+        .list();
+    return out;
+  }
+
+  @Override
+  public List<Group> groups(String by, Instant from, Instant to, int limit) {
+    TenantScope.require();
+    String key = switch (by) {
+      case "merchant" -> "coalesce(merchant_id::text, 'text:' || lower(coalesce(merchant_display, '')))";
+      case "paymentMethod" -> "payment_method";
+      default -> throw new IllegalArgumentException("group by " + by);
+    };
+    String label = by.equals("merchant") ? "min(coalesce(merchant_display, '(no merchant)'))" : "min(payment_method)";
+    return jdbc.sql("SELECT " + key + " AS k, " + label + " AS label, sum(amount_paise) AS total, count(1) AS n"
+            + " FROM ledger.expenses WHERE account_id = (SELECT ledger.app_account()) AND deleted_at IS NULL"
+            + " AND occurred_at >= :from AND occurred_at < :to GROUP BY 1 ORDER BY total DESC, k LIMIT :limit")
+        .param("from", Sql.ts(from)).param("to", Sql.ts(to)).param("limit", limit)
+        .query((rs, i) -> new Group(rs.getString("k"), rs.getString("label"), rs.getLong("total"), rs.getInt("n")))
+        .list();
   }
 
   @Override

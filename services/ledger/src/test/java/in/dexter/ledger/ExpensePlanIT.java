@@ -49,6 +49,11 @@ class ExpensePlanIT extends LedgerIT {
   }
 
   void plan(UUID account, int mask, Map<String, Object> params, boolean next, String requiredIndex, boolean noSort) {
+    plan(account, sql(mask, next), params, next, requiredIndex, noSort);
+  }
+
+  void plan(UUID account, String sql, Map<String, Object> params, boolean next, String requiredIndex,
+      boolean noSort) {
     Map<String, Object> p = new HashMap<>(params);
     p.put("__limit", next ? 26 : 51);
     if (next) {
@@ -56,7 +61,7 @@ class ExpensePlanIT extends LedgerIT {
       p.put("__k1", LAST_ID);
     }
     tx.read(Tenant.user(account), () -> {
-      PlanAssert a = PlanAssert.query(jdbc, sql(mask, next), p).forbidSeqScanOn("expenses");
+      PlanAssert a = PlanAssert.query(jdbc, sql, p).forbidSeqScanOn("expenses");
       if (noSort) {
         a.forbidSort();
       }
@@ -100,5 +105,21 @@ class ExpensePlanIT extends LedgerIT {
   void categorySubtreeNeverScansTheTable() {
     int mask = ExpenseRepository.mask(new ExpenseFilter(null, null, "food", null, null, null, null, null), null, null);
     plan(BulkData.HEAVY, mask, Map.of("category", "food"), false, null, false);
+  }
+
+  /**
+   * P08 search: the tenant + date btree first, the text as a recheck (MASTER_PLAN P08 "PlanAssert validates this"):
+   * {@code expenses_list} is used and the table is never scanned, for a selective and a non-matching term.
+   */
+  @Test
+  void searchUsesTheTenantDateBtreeThenRechecksTheText() {
+    var q = ExpenseRepository.SEARCH_QUERY;
+    for (String term : new String[] {"bulk", "zzzz"}) {
+      Map<String, Object> p = Map.of("from", Sql.ts(Instant.parse("2025-10-17T00:00:00Z")),
+          "to", Sql.ts(Instant.parse("2026-10-17T00:00:00Z")), "q", term,
+          "pat", "%" + ExpenseRepository.likeEscape(term) + "%");
+      plan(BulkData.HEAVY, q.firstPageSql(), p, false, "expenses_list", false);
+      plan(BulkData.HEAVY, q.nextPageSql(), p, true, "expenses_list", false);
+    }
   }
 }
