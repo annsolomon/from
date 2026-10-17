@@ -7,3 +7,89 @@ GET http://localhost:8081/actuator/health/liveness
 
 ### identity prometheus
 GET http://localhost:8081/actuator/prometheus
+
+### P04 JWKS (public; next + active + retired keys)
+GET http://localhost:8081/.well-known/jwks.json
+
+### P04 register (Idempotency-Key required; always 202). The verification email lands in Mailpit (localhost:8025).
+POST http://localhost:8081/v1/auth/register
+Content-Type: application/json
+Idempotency-Key: 0192f1e2-0000-4000-8000-000000000001
+X-Request-Id: manual-register
+
+{"email": "manual@demo.test", "password": "Correct-Horse-Battery-9", "displayName": "Manual"}
+
+### P04 verify email (token from the Mailpit link: ...#verify=<token>)
+POST http://localhost:8081/v1/auth/verify-email
+Content-Type: application/json
+
+{"token": "<token from the email>"}
+
+### P04 login (seeded demo account; password DEMO_PASSWORD_ASHA in .env)
+# @name login
+POST http://localhost:8081/v1/auth/login
+Content-Type: application/json
+
+{"email": "asha@demo.in", "password": "Asha-Demo-2026!", "clientId": "dexter-app", "deviceLabel": "http client"}
+
+### P04 me (ETag)
+GET http://localhost:8081/v1/me
+Authorization: Bearer {{login.response.body.accessToken}}
+
+### P04 patch me (JSON Merge Patch, If-Match = the ETag)
+PATCH http://localhost:8081/v1/me
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/merge-patch+json
+If-Match: "1"
+
+{"displayName": "Asha K", "phone": "98765 43210"}
+
+### P04 sessions (keyset: limit, cursor)
+GET http://localhost:8081/v1/me/sessions?limit=25
+Authorization: Bearer {{login.response.body.accessToken}}
+
+### P04 refresh (rotates; presenting the old token again revokes the session)
+POST http://localhost:8081/v1/auth/token/refresh
+Content-Type: application/json
+
+{"refreshToken": "{{login.response.body.refreshToken}}"}
+
+### P04 logout (this session)
+POST http://localhost:8081/v1/auth/logout
+Authorization: Bearer {{login.response.body.accessToken}}
+
+### P04 logout everywhere (step-up: login within 10 min)
+POST http://localhost:8081/v1/auth/logout-all
+Authorization: Bearer {{login.response.body.accessToken}}
+
+### P04 forgot password (always 202)
+POST http://localhost:8081/v1/auth/password/forgot
+Content-Type: application/json
+
+{"email": "asha@demo.in"}
+
+### P04 reset password (token from the Mailpit link: ...#reset=<token>)
+POST http://localhost:8081/v1/auth/password/reset
+Content-Type: application/json
+
+{"token": "<token from the email>", "newPassword": "Brand-New-Secret-42"}
+
+### P04 change password (step-up)
+POST http://localhost:8081/v1/auth/password/change
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{"currentPassword": "Asha-Demo-2026!", "newPassword": "Another-Long-Secret-7"}
+
+### P04 service token (client credentials; Basic = ledger:SERVICE_CLIENT_SECRET from .env)
+POST http://localhost:8081/oauth2/token
+Authorization: Basic ledger <SERVICE_CLIENT_SECRET>
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials&audience=catalog
+
+### P04 DEV: signing keys + forced rotation (dev profile only)
+GET http://localhost:8081/_dev/p04/keys
+
+###
+POST http://localhost:8081/_dev/p04/keys/rotate

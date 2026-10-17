@@ -47,10 +47,15 @@ public class IdentityRelayConfiguration {
     Producer<String, byte[]> producer = KafkaClients.idempotentProducer(r.bootstrapServers(), SCHEMA + "-relay");
     TopicRegistry topics = new TopicRegistry(r.partitions(), r.replication());
     IdentityEvents.AGGREGATES.forEach(a -> topics.main(SCHEMA, a));
-    OutboxRelay relay = new OutboxRelay(ds, producer, OutboxRelay.Settings.defaults(SCHEMA), OutboxRelay.Hooks.NONE,
-        List.of(new EnsureTopics(topics, r.bootstrapServers()), new InboxPurgeJob(relayJdbc, relayTx, SCHEMA, 200),
+    EnsureTopics ensureTopics = new EnsureTopics(topics, r.bootstrapServers());
+    OutboxRelay.Settings d = OutboxRelay.Settings.defaults(SCHEMA);
+    // Library defaults, but maintenance every 10 min (default 1 h) so a failed topic creation is retried soon.
+    OutboxRelay.Settings settings = new OutboxRelay.Settings(d.schema(), d.batchSize(), d.pollInterval(),
+        d.standbyRetry(), d.partitionsAhead(), d.retention(), Duration.ofMinutes(10), d.sendTimeout());
+    OutboxRelay relay = new OutboxRelay(ds, producer, settings, OutboxRelay.Hooks.NONE,
+        List.of(ensureTopics, new InboxPurgeJob(relayJdbc, relayTx, SCHEMA, 200),
             new IdempotencyPurgeJob(relayJdbc, relayTx, SCHEMA, 200)));
-    return new Lifecycle(relay, producer);
+    return new Lifecycle(relay, producer, ensureTopics);
   }
 
   /** Creates identity's topics once (idempotent; retried on the next maintenance run until it succeeds). */
@@ -85,14 +90,18 @@ public class IdentityRelayConfiguration {
   static final class Lifecycle implements SmartLifecycle {
     private final OutboxRelay relay;
     private final Producer<String, byte[]> producer;
+    private final Runnable ensureTopics;
 
-    Lifecycle(OutboxRelay relay, Producer<String, byte[]> producer) {
+    Lifecycle(OutboxRelay relay, Producer<String, byte[]> producer, Runnable ensureTopics) {
       this.relay = relay;
       this.producer = producer;
+      this.ensureTopics = ensureTopics;
     }
 
+    /** Topics first (best effort, ~10 s max), so the first publish never waits on a missing topic. */
     @Override
     public void start() {
+      ensureTopics.run();
       relay.start();
     }
 

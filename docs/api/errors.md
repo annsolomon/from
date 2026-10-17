@@ -40,6 +40,30 @@ Spring MVC exceptions are mapped by `ProblemDetailsAdvice`: unknown JSON field â
 
 Each service appends its own table here in its phase.
 
+### identity (P04, `IdentityErrors`)
+
+| Code | HTTP | Meaning |
+|---|---|---|
+| `INVALID_CREDENTIALS` | 401 | Unknown email **or** wrong password â€” deliberately the same status, body and timing (one Argon2 verification either way, a dummy hash for unknown emails). |
+| `EMAIL_NOT_VERIFIED` | 403 | Right password, email not verified yet. Only reachable with the correct password. |
+| `ACCOUNT_UNAVAILABLE` | 403 | Right password, but the account is locked, disabled or being deleted. |
+| `INVALID_REFRESH_TOKEN` | 401 | Refresh token unknown, expired (30-day idle / 90-day absolute), revoked, or its session was signed out. Sign in again. |
+| `REFRESH_TOKEN_REUSED` | 401 | An already-rotated refresh token was presented: the whole family (session) was revoked and `identity.security.alert` raised (MASTER_PLAN 7.1). |
+| `INVALID_TOKEN` | 400 | Email-verification or password-reset token unknown, already used, superseded or expired. |
+| `CURRENT_PASSWORD_INVALID` | 403 | Password change with a wrong current password. |
+| `UNKNOWN_CLIENT` | 400 | `clientId` is not one of the public clients (`dexter-app`, `dexter-web`, `dexter-trail`). |
+| `INVALID_CLIENT` | 401 | `/oauth2/token`: missing, malformed or wrong HTTP Basic client credentials, or a disabled client. |
+| `UNSUPPORTED_GRANT_TYPE` | 400 | `/oauth2/token`: only `client_credentials`. |
+| `INVALID_AUDIENCE` | 400 | `/oauth2/token`: the client may not request a token for that `audience`. |
+| `PHONE_TAKEN` | 409 | `PATCH /v1/me`: the phone number belongs to another account (unique keyed hash). |
+
+Shared codes identity uses: `VALIDATION_FAILED` with `errors[].code` = `INVALID_EMAIL`, `REQUIRED`, `TOO_SHORT`,
+`TOO_LONG`, `BREACHED`, `CONTAINS_EMAIL` (passwords), `INVALID_TZ`, `INVALID_LENGTH`, `INVALID_CHARACTERS`,
+`INVALID_PHONE`; `UNKNOWN_FIELD` for a merge-patch member that cannot be changed; `IF_MATCH_REQUIRED` /
+`IF_MATCH_INVALID` / `VERSION_CONFLICT` on `PATCH /v1/me`; `IDEMPOTENCY_*` on registration; `STEP_UP_REQUIRED` on
+`logout-all` and `password/change`; `SERVICE_UNAVAILABLE` + `Retry-After: 1` when the Argon2 bulkhead is full.
+Registration and forgot-password never fail on the email's existence: always `202 {"status":"accepted"}`.
+
 
 ## Retry-After (P02)
 

@@ -273,6 +273,9 @@ api_smoke() { SMOKE_OUT="$VDIR/smoke.txt" "$ROOT/scripts/api-smoke.sh"; }
 # (a second generation must give the identical checksum). Uses the jar mvn verify just built.
 seed_medium() { SEED_MAX_SECONDS=600 "$ROOT/scripts/seed.sh" medium --regen 2>&1 | tail -n 20; return "${PIPESTATUS[0]}"; }
 seed_determinism() { "$ROOT/scripts/seed.sh" check medium 2>&1 | tail -n 5; return "${PIPESTATUS[0]}"; }
+# P04 (ADR-0008 step owed by P04): once the services ran their Flyway migrations, the small seed loads into the real
+# tables (identity.accounts), so the demo accounts can sign in (api-smoke, trail-check).
+seed_small_real() { "$ROOT/scripts/seed.sh" small 2>&1 | tail -n 8; return "${PIPESTATUS[0]}"; }
 k6_smoke() {
   k6 run --quiet --summary-export "$VDIR/k6-summary.json" "$ROOT/perf/smoke.js" && echo "k6 smoke thresholds met"
 }
@@ -329,6 +332,7 @@ if [[ $MODE == full ]]; then
   if grep -q $'full.maven\tPASS' "$VDIR/steps.tsv"; then
     trap services_down EXIT
     run_step full.services-up services_up
+    run_step full.seed-small seed_small_real
     run_step full.api-smoke api_smoke
     if command -v k6 >/dev/null; then run_step full.k6-smoke k6_smoke; else record full.k6-smoke FAIL "k6 not installed and auto-install failed - see target/verify/k6-install.log"; fi
     services_down

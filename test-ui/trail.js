@@ -2,6 +2,7 @@
 //
 // P00: Mock/Live toggle, Trail.api(), request log with timings.
 // P01: mock handlers may return Trail.reply(status, body, headers); api() accepts {raw} bodies.
+// P04: Live identity calls are bridged to /svc/identity until the gateway routes /api/* (liveRoutes, P06).
 // P03: the complete kit -
 //   * personas + tenant switcher (Asha / Ravi / Admin from the seed fixtures); Live mode logs in through
 //     /api/v1/auth/login (identity, P04) and sends the bearer token; Mock mode scopes data to the persona (RLS).
@@ -269,6 +270,21 @@
     return { pathOnly: i >= 0 ? path.slice(0, i) : path, query: q };
   }
 
+  /**
+   * P04 bridge: until the gateway routes /api/* (P06), Live calls to identity go straight to the service through
+   * the trail proxy (/svc/identity/...). P06 empties this list.
+   */
+  const liveRoutes = [
+    ['/api/v1/auth/', '/svc/identity/v1/auth/'],
+    ['/api/v1/me', '/svc/identity/v1/me'],
+    ['/api/.well-known/', '/svc/identity/.well-known/'],
+    ['/api/_dev/p04/', '/svc/identity/_dev/p04/'],
+  ];
+  function livePath(path) {
+    for (const [from, to] of liveRoutes) if (path.startsWith(from)) return to + path.slice(from.length);
+    return path;
+  }
+
   async function api(method, path, { body, raw, headers = {} } = {}) {
     const requestId = headers['X-Request-Id'] || newRequestId();
     const started = performance.now();
@@ -291,7 +307,7 @@
         }
       } else {
         const token = auth.current && auth.tokens[auth.current.key];
-        const res = await fetch(path, {
+        const res = await fetch(livePath(path), {
           method,
           headers: { 'Accept': 'application/json', 'X-Request-Id': requestId,
                      ...(token ? { 'Authorization': 'Bearer ' + token } : {}),
@@ -659,7 +675,7 @@
     settings, cursor, collection, mockList, idempotent, events, Pager, pager,
     personas: () => auth.personas, get persona() { return auth.current; }, setPersonas, usePersona, login,
     useSeed, loadSeed, mountTenantSwitcher, mountPager, mountIdempotencyTester, mountEvents,
-    uuidv4, uuidv7, _reset() { mocks.length = 0; idemStore.clear(); events.clear(); auth.current = null; auth.tokens = {}; },
+    uuidv4, uuidv7, liveRoutes, livePath, b64urlDecode, _reset() { mocks.length = 0; idemStore.clear(); events.clear(); auth.current = null; auth.tokens = {}; },
   };
   global.Trail = Trail;
   if (typeof module !== 'undefined' && module.exports) module.exports = Trail;

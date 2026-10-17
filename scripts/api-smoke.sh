@@ -5,6 +5,9 @@
 #        replay/422/409/400, outbox -> Kafka -> projection + DLQ, cache hit/miss/Path A/outage/purge.
 #   P01: X-Request-Id echo/generation + coded 404 ProblemDetail on the 9 servlet services, and the
 #        dev-only /_dev/p01 lab on ledger (money rounding, strict JSON, If-Match, keyset cursor).
+#   P04: identity (scripts/lib/p04_smoke.py): register -> Mailpit verification email -> verify -> login -> /me PATCH
+#        (If-Match) -> refresh rotation + reuse detection -> sessions -> logout; enumeration-safe answers; seeded demo
+#        login; client-credentials tokens; dev key rotation. Then: identity's outbox rows are published to Kafka.
 # Later phases append their checks below the P00 block. Output also goes to $SMOKE_OUT if set.
 set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -97,6 +100,29 @@ log "# P02 lab (ledger /_dev/p02)"
 p02=$(python3 "$ROOT/scripts/lib/p02_smoke.py" "http://localhost:8082/_dev/p02" 2>&1); p02rc=$?
 while IFS= read -r line; do log "$line"; done <<< "$p02"
 [[ $p02rc -eq 0 ]] || fail=1
+
+# ------------------------------------------------------------------ P04: identity
+log "# P04 identity (:8081, Mailpit :8025)"
+if [[ -f "$ROOT/.env" ]]; then set -a; source "$ROOT/.env"; set +a; fi
+p04=$(python3 "$ROOT/scripts/lib/p04_smoke.py" "http://localhost:8081" "http://127.0.0.1:8025" 2>&1); p04rc=$?
+while IFS= read -r line; do log "$line"; done <<< "$p04"
+[[ $p04rc -eq 0 ]] || fail=1
+# Outbox -> Kafka (MASTER_PLAN 6.3): every identity event written above is published by the relay within 30 s.
+COMPOSE=(docker compose --env-file "$ROOT/.env" -f "$ROOT/infra/compose/docker-compose.yml")
+outbox() { "${COMPOSE[@]}" exec -T postgres psql -U "${POSTGRES_USER:-postgres}" -d identity -tA -c "$1" 2>/dev/null | tr -d '[:space:]'; }
+pending=x; published=0
+for _ in $(seq 1 30); do
+  pending=$(outbox "SELECT count(*) FROM identity.outbox WHERE published_at IS NULL")
+  published=$(outbox "SELECT count(*) FROM identity.outbox WHERE published_at IS NOT NULL")
+  [[ $pending == 0 && ${published:-0} -gt 0 ]] && break
+  sleep 1
+done
+if [[ $pending == 0 && ${published:-0} -gt 0 ]]; then log "PASS  identity outbox -> Kafka: $published published, 0 pending"
+else log "FAIL  identity outbox -> Kafka: pending=$pending published=$published"; fail=1; fi
+topics=$("${COMPOSE[@]}" exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list 2>/dev/null)
+if [[ $topics == *dexter.identity.account.v1* && $topics == *dexter.identity.session.v1* && $topics == *dexter.identity.security.v1* ]]; then
+  log "PASS  identity topics exist (account, session, security)"
+else log "FAIL  identity topics missing: $(tr '\n' ' ' <<< "$topics")"; fail=1; fi
 
 log "# summary: $([[ $fail -eq 0 ]] && echo PASS || echo FAIL)"
 exit $fail

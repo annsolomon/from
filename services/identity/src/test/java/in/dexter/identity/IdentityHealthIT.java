@@ -19,7 +19,7 @@ class IdentityHealthIT extends IdentityIT {
     assertThat(nf.status()).as("unknown path without token: default-deny or 404").isIn(401, 404);
     assertThat(nf.body()).contains("\"requestId\":");
 
-    assertThat(ADMIN.sql("SELECT count(1) FROM identity.flyway_schema_history WHERE success")
+    assertThat(ADMIN.sql("SELECT count(1) FROM identity.flyway_schema_history WHERE success AND type = 'SQL'")
         .query(Long.class).single()).isEqualTo(2);
     assertThat(ADMIN.sql("SELECT tableowner FROM pg_tables WHERE schemaname = 'identity' AND tablename = 'accounts'")
         .query(String.class).single()).isEqualTo("identity_owner");

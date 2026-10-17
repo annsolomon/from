@@ -6,7 +6,7 @@ set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
 source scripts/lib/services.sh
-PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html})
+PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html})
 BASE=http://127.0.0.1:8099
 fail=0
 
@@ -57,6 +57,19 @@ done
 js=$(curl -s --max-time 5 "$BASE/trail.js")
 if [[ $js == *'class Pager'* && $js == *'mountIdempotencyTester'* ]]; then printf 'PASS  %-10s %s\n' trail-kit 200
 else printf 'FAIL  %-10s %s\n' trail-kit "trail.js served without the P03 kit"; fail=1; fi
+
+# P04: identity through the proxy (what p04-identity.html Live mode calls): JWKS, seeded demo login, /v1/me
+set -a; source .env; set +a
+jw=$(curl -s --max-time 5 "$BASE/svc/identity/.well-known/jwks.json")
+if [[ $jw == *'"kty":"EC"'* && $jw != *'"d":'* ]]; then printf 'PASS  %-10s %s\n' p04-jwks 200; else printf 'FAIL  %-10s %s\n' p04-jwks "${jw:0:120}"; fail=1; fi
+lg=$(curl -s --max-time 10 -H 'Content-Type: application/json' \
+  -d "{\"email\":\"asha@demo.in\",\"password\":\"${DEMO_PASSWORD_ASHA}\",\"clientId\":\"dexter-trail\"}" "$BASE/svc/identity/v1/auth/login")
+at=$(sed -nE 's/.*"accessToken":"([^"]+)".*/\1/p' <<< "$lg")
+if [[ -n $at ]]; then printf 'PASS  %-10s %s\n' p04-login 200; else printf 'FAIL  %-10s %s\n' p04-login "${lg:0:160}"; fail=1; fi
+me=$(curl -s --max-time 5 -H "Authorization: Bearer $at" "$BASE/svc/identity/v1/me")
+if [[ $me == *'"email":"asha@demo.in"'* ]]; then printf 'PASS  %-10s %s\n' p04-me 200; else printf 'FAIL  %-10s %s\n' p04-me "${me:0:160}"; fail=1; fi
+js=$(curl -s --max-time 5 "$BASE/trail.js")
+if [[ $js == *"'/svc/identity/v1/auth/'"* ]]; then printf 'PASS  %-10s %s\n' p04-bridge 200; else printf 'FAIL  %-10s %s\n' p04-bridge "trail.js without the /svc/identity bridge"; fail=1; fi
 
 echo "trail-check: $([[ $fail -eq 0 ]] && echo PASS || echo FAIL)"
 exit $fail

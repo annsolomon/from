@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trail P04 identity</title>
+  <link rel="stylesheet" href="trail.css">
+</head>
+<body>
+<main>
+  <section class="card">
+    <h2>P04 · identity: register → verify → login → refresh (reuse detection) → logout</h2>
+    <p class="mono" style="color:var(--muted);margin:0">
+      Live calls identity through the trail proxy (<code>/svc/identity</code>, until the gateway routes <code>/api</code>
+      in P06); verification and reset emails land in Mailpit (<a href="http://localhost:8025" target="_blank"
+      rel="noopener">localhost:8025</a>) and their links open this page with the token filled in. Mock mode runs the
+      same rules in the browser (mail appears below). Testing aid only - deleted in P19.
+    </p>
+  </section>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>1 · Register (Idempotency-Key, always 202)</h2>
+      <div class="row"><input class="in" id="r-email" placeholder="email" size="26">
+        <input class="in" id="r-pw" placeholder="password (10+ chars)" size="22" value="Correct-Horse-Battery-9"></div>
+      <div class="row" style="margin-top:6px"><input class="in" id="r-name" placeholder="display name" value="Trail User">
+        <span class="mono">key <span id="r-key"></span></span></div>
+      <div class="row" style="margin-top:6px">
+        <button class="act" type="button" id="r-send">Register</button>
+        <button class="ghost" type="button" id="r-again">Same key again (replay)</button>
+        <button class="ghost" type="button" id="r-new">New key</button>
+        <button class="ghost" type="button" id="r-weak">Breached password</button>
+      </div>
+      <pre class="out" id="r-out">—</pre>
+    </section>
+    <section class="card">
+      <h2>2 · Verify email / reset password</h2>
+      <div class="row"><input class="in" id="v-token" placeholder="token from the email link" size="48"></div>
+      <div class="row" style="margin-top:6px">
+        <button class="act" type="button" id="v-send">Verify email</button>
+        <button class="ghost" type="button" id="f-send">Forgot password (email above)</button>
+      </div>
+      <div class="row" style="margin-top:6px"><input class="in" id="x-pw" placeholder="new password" size="22"
+        value="Brand-New-Secret-42"><button class="ghost" type="button" id="x-send">Reset with token</button></div>
+      <pre class="out" id="v-out">—</pre>
+      <div id="mailbox" class="mono" style="margin-top:8px"></div>
+    </section>
+  </div>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>3 · Login + tokens</h2>
+      <div class="row"><input class="in" id="l-email" placeholder="email" size="26">
+        <input class="in" id="l-pw" placeholder="password" size="22" value="Correct-Horse-Battery-9">
+        <button class="act" type="button" id="l-send">Login</button></div>
+      <div class="row" style="margin-top:6px">
+        <button class="ghost" type="button" id="l-asha">Demo: asha@demo.in</button>
+        <button class="ghost" type="button" id="l-unknown">Unknown email</button>
+        <button class="ghost" type="button" id="l-wrong">Wrong password</button>
+      </div>
+      <pre class="out" id="l-out">—</pre>
+    </section>
+    <section class="card">
+      <h2>4 · Refresh rotation + reuse detection (MASTER_PLAN 7.1)</h2>
+      <div class="kv" id="t-state"></div>
+      <div class="row" style="margin-top:6px">
+        <button class="act" type="button" id="t-refresh">Refresh (rotate)</button>
+        <button class="ghost" type="button" id="t-replay">Replay the previous refresh token</button>
+        <button class="ghost" type="button" id="t-newest">Use the newest token</button>
+      </div>
+      <pre class="out" id="t-out">—</pre>
+    </section>
+  </div>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>5 · /v1/me (ETag + If-Match merge patch; phone encrypted at rest)</h2>
+      <div class="row"><button class="ghost" type="button" id="m-get">GET /v1/me</button>
+        <input class="in" id="m-name" placeholder="displayName" size="14"><input class="in" id="m-tz" placeholder="tz"
+        size="14" value="Asia/Kolkata"><input class="in" id="m-phone" placeholder="phone" size="14" value="98765 43210"></div>
+      <div class="row" style="margin-top:6px"><button class="act" type="button" id="m-patch">PATCH with current ETag</button>
+        <button class="ghost" type="button" id="m-stale">PATCH with a stale ETag</button>
+        <button class="ghost" type="button" id="m-nomatch">PATCH without If-Match</button></div>
+      <pre class="out" id="m-out">—</pre>
+    </section>
+    <section class="card">
+      <h2>6 · Sessions (keyset) · logout</h2>
+      <div class="row"><button class="ghost" type="button" id="s-list">List sessions</button>
+        <button class="ghost" type="button" id="s-logout">Logout (this session)</button>
+        <button class="ghost" type="button" id="s-all">Logout everywhere (step-up)</button></div>
+      <div class="list" id="s-items" style="max-height:220px"></div>
+      <pre class="out" id="s-out">—</pre>
+    </section>
+  </div>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>7 · JWKS + key rotation (next → active → retired)</h2>
+      <div class="row"><button class="ghost" type="button" id="k-jwks">GET /.well-known/jwks.json</button>
+        <button class="act" type="button" id="k-rotate">Rotate now (dev)</button>
+        <button class="ghost" type="button" id="k-old">Call /v1/me with the pre-rotation token</button></div>
+      <pre class="out" id="k-out">—</pre>
+    </section>
+    <section class="card" id="events"></section>
+  </div>
+
+  <section class="card" id="log"></section>
+</main>
+<script src="trail.js"></script>
+<script>
+(() => {
+  Trail.mountHeader('Identity', 'P04');
+  Trail.mountLog(document.getElementById('log'));
+  Trail.mountEvents(document.getElementById('events'));
+  const $ = id => document.getElementById(id);
+  const show = (id, r, extra) => { $(id).textContent = `${r.status} ${r.requestId || ''}\n` +
+    (r.headers && r.headers['idempotent-replayed'] ? 'Idempotent-Replayed: true\n' : '') +
+    (r.headers && r.headers.etag ? 'ETag: ' + r.headers.etag + '\n' : '') +
+    JSON.stringify(r.data, null, 2) + (extra ? '\n' + extra : ''); };
+  const decode = jwt => { try { const [h, p] = jwt.split('.'); return { header: JSON.parse(Trail.b64urlDecode(h)), claims: JSON.parse(Trail.b64urlDecode(p)) }; } catch { return null; } };
+  const st = { access: null, refreshHistory: [], etag: null, preRotation: null };
+  const auth = (more = {}) => st.access ? { Authorization: 'Bearer ' + st.access, ...more } : more;
+  const paint = () => {
+    const d = st.access ? decode(st.access) : null;
+    $('t-state').innerHTML = [['access kid', d ? d.header.kid : '—'], ['sub', d ? d.claims.sub : '—'],
+      ['sid', d ? d.claims.sid : '—'], ['auth_time', d ? new Date(d.claims.auth_time * 1000).toISOString() : '—'],
+      ['refresh tokens', st.refreshHistory.map((t, i) => (i === st.refreshHistory.length - 1 ? 'newest ' : 'old ') + t.slice(0, 8) + '…').join(', ') || '—']]
+      .map(([k, v]) => `<span>${k}</span><span>${String(v).replace(/</g, '&lt;')}</span>`).join('');
+  };
+  let regKey = Trail.uuidv4();
+  $('r-key').textContent = regKey.slice(0, 8) + '…';
+  $('r-email').value = 'trail-' + Math.random().toString(36).slice(2, 8) + '@demo.test';
+  $('l-email').value = $('r-email').value;
+
+  // ------------------------------------------------------------- email link → token field
+  const fromHash = () => {
+    const m = /#(verify|reset)=([A-Za-z0-9_-]{43})/.exec(location.hash);
+    if (m) { $('v-token').value = m[2]; $('v-out').textContent = `token from the ${m[1]} link - press ${m[1] === 'verify' ? 'Verify email' : 'Reset with token'}`; }
+  };
+  fromHash(); window.addEventListener('hashchange', fromHash);
+
+  // ------------------------------------------------------------- actions
+  const register = (body, key) => Trail.api('POST', '/api/v1/auth/register', { body, headers: key ? { 'Idempotency-Key': key } : {} });
+  const regBody = (pw) => ({ email: $('r-email').value, password: pw || $('r-pw').value, displayName: $('r-name').value });
+  $('r-send').onclick = async () => { const r = await register(regBody(), regKey); $('l-email').value = $('r-email').value; show('r-out', r); };
+  $('r-again').onclick = async () => show('r-out', await register(regBody(), regKey));
+  $('r-new').onclick = () => { regKey = Trail.uuidv4(); $('r-key').textContent = regKey.slice(0, 8) + '…'; };
+  $('r-weak').onclick = async () => show('r-out', await register(regBody('password123'), Trail.uuidv4()));
+  $('v-send').onclick = async () => show('v-out', await Trail.api('POST', '/api/v1/auth/verify-email', { body: { token: $('v-token').value } }));
+  $('f-send').onclick = async () => show('v-out', await Trail.api('POST', '/api/v1/auth/password/forgot', { body: { email: $('r-email').value } }));
+  $('x-send').onclick = async () => show('v-out', await Trail.api('POST', '/api/v1/auth/password/reset', { body: { token: $('v-token').value, newPassword: $('x-pw').value } }));
+
+  const login = async (email, password) => {
+    const r = await Trail.api('POST', '/api/v1/auth/login', { body: { email, password, clientId: 'dexter-trail', deviceLabel: 'trail page' } });
+    if (r.status === 200) { st.access = r.data.accessToken; st.refreshHistory = [r.data.refreshToken]; paint(); }
+    show('l-out', r, r.status === 200 ? 'decoded access token:\n' + JSON.stringify(decode(r.data.accessToken), null, 2) : '');
+  };
+  $('l-send').onclick = () => login($('l-email').value, $('l-pw').value);
+  $('l-asha').onclick = () => login('asha@demo.in', 'Asha-Demo-2026!');
+  $('l-unknown').onclick = () => login('nobody-' + Date.now() + '@demo.test', 'Whatever-Password-1');
+  $('l-wrong').onclick = () => login($('l-email').value, 'Wrong-Password-123');
+
+  const refresh = async token => {
+    const r = await Trail.api('POST', '/api/v1/auth/token/refresh', { body: { refreshToken: token } });
+    if (r.status === 200) { st.access = r.data.accessToken; st.refreshHistory.push(r.data.refreshToken); paint(); }
+    show('t-out', r); return r;
+  };
+  $('t-refresh').onclick = () => st.refreshHistory.length ? refresh(st.refreshHistory[st.refreshHistory.length - 1]) : ($('t-out').textContent = 'login first');
+  $('t-replay').onclick = () => st.refreshHistory.length > 1 ? refresh(st.refreshHistory[st.refreshHistory.length - 2]) : ($('t-out').textContent = 'refresh once first, then replay the old token');
+  $('t-newest').onclick = () => st.refreshHistory.length ? refresh(st.refreshHistory[st.refreshHistory.length - 1]) : ($('t-out').textContent = 'login first');
+
+  $('m-get').onclick = async () => { const r = await Trail.api('GET', '/api/v1/me', { headers: auth() }); if (r.headers.etag) st.etag = r.headers.etag; show('m-out', r); };
+  const patch = async ifMatch => {
+    const body = {}; if ($('m-name').value) body.displayName = $('m-name').value; if ($('m-tz').value) body.tz = $('m-tz').value;
+    if ($('m-phone').value) body.phone = $('m-phone').value;
+    const r = await Trail.api('PATCH', '/api/v1/me', { raw: JSON.stringify(body),
+      headers: auth({ 'Content-Type': 'application/merge-patch+json', ...(ifMatch ? { 'If-Match': ifMatch } : {}) }) });
+    if (r.status === 200 && r.headers.etag) st.etag = r.headers.etag;
+    show('m-out', r);
+  };
+  $('m-patch').onclick = () => patch(st.etag || '"1"');
+  $('m-stale').onclick = () => patch('"0"');
+  $('m-nomatch').onclick = () => patch(null);
+
+  $('s-list').onclick = async () => {
+    const r = await Trail.api('GET', '/api/v1/me/sessions?limit=25', { headers: auth() });
+    const box = $('s-items'); box.innerHTML = '';
+    for (const s of (r.data && r.data.data) || []) {
+      const row = document.createElement('div');
+      row.innerHTML = `<span class="mono">${s.id.slice(0, 8)}… ${s.clientId} ${s.deviceLabel || ''} ${s.current ? '<b>(current)</b>' : ''}</span> `;
+      const b = document.createElement('button'); b.className = 'ghost'; b.textContent = 'revoke';
+      b.onclick = async () => { show('s-out', await Trail.api('DELETE', '/api/v1/me/sessions/' + s.id, { headers: auth() })); $('s-list').click(); };
+      row.appendChild(b); box.appendChild(row);
+    }
+    show('s-out', r);
+  };
+  $('s-logout').onclick = async () => show('s-out', await Trail.api('POST', '/api/v1/auth/logout', { headers: auth() }));
+  $('s-all').onclick = async () => show('s-out', await Trail.api('POST', '/api/v1/auth/logout-all', { headers: auth() }));
+
+  $('k-jwks').onclick = async () => show('k-out', await Trail.api('GET', '/api/.well-known/jwks.json'));
+  $('k-rotate').onclick = async () => { st.preRotation = st.access; show('k-out', await Trail.api('POST', '/api/_dev/p04/keys/rotate'), 'now refresh (section 4) to get a token from the new key'); };
+  $('k-old').onclick = async () => show('k-out', await Trail.api('GET', '/api/v1/me', { headers: st.preRotation ? { Authorization: 'Bearer ' + st.preRotation } : {} }));
+  paint();
+
+  // ------------------------------------------------------------- Mock mode: identity's rules in the browser
+  const M = { accounts: new Map(), byId: new Map(), verify: new Map(), reset: new Map(), sessions: new Map(), refresh: new Map(),
+    keys: [{ kid: 'mock-k1', status: 'active' }, { kid: 'mock-k2', status: 'next' }], mail: [] };
+  const P = Trail.problem;
+  const tok = () => Array.from(crypto.getRandomValues(new Uint8Array(43)), b => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'[b & 63]).join('').slice(0, 43);
+  const b64 = o => btoa(JSON.stringify(o)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const activeKid = () => M.keys.find(k => k.status === 'active').kid;
+  const mail = (to, subject, text) => { M.mail.unshift({ to, subject, text }); paintMail(); };
+  const paintMail = () => { $('mailbox').innerHTML = Trail.mode === 'mock' ? '<b>mock mailbox</b><br>' + M.mail.slice(0, 4).map(m =>
+    `${m.to} · ${m.subject}<br><span style="color:var(--muted)">${m.text.replace(/</g, '&lt;')}</span>`).join('<hr>') : ''; };
+  document.addEventListener('trail:mode', paintMail);
+  const breached = new Set(['password123', 'qwertyuiop', '1234567890', 'password1234']);
+  const accessFor = (a, s) => {
+    const now = Math.floor(Date.now() / 1000);
+    return b64({ alg: 'ES256', typ: 'at+jwt', kid: activeKid() }) + '.' + b64({ iss: 'https://identity.dexter.internal', sub: a.id,
+      aud: ['identity', 'ledger', 'catalog'], iat: now, exp: now + 600, jti: Trail.uuidv4(), client_id: s.clientId, sid: s.id,
+      scope: 'user', roles: ['USER'], amr: ['pwd'], auth_time: s.authTime, mfa_enrolled: false, tz: a.tz, tier: 'FREE' }) + '.mock-signature';
+  };
+  const caller = req => {
+    const h = Object.entries(req.headers || {}).find(([k]) => k.toLowerCase() === 'authorization');
+    const d = h && /^Bearer (.+)$/.exec(h[1]) ? decode(/^Bearer (.+)$/.exec(h[1])[1]) : null;
+    if (!d || d.claims.exp * 1000 < Date.now() || !M.keys.some(k => k.kid === d.header.kid)) return null;
+    return { account: M.byId.get(d.claims.sub), sid: d.claims.sid, authTime: d.claims.auth_time };
+  };
+  const unauth = () => P(401, 'UNAUTHENTICATED', 'A Bearer access token is required');
+  const revoke = (s, reason) => { if (!s.revoked) { s.revoked = reason; for (const r of M.refresh.values()) if (r.sid === s.id) r.revoked = true;
+    Trail.events.emit('identity.session.revoked', s.id, { sessionId: s.id, reason, revokedAt: new Date().toISOString() }, s.accountId); return true; } return false; };
+  const view = a => ({ accountId: a.id, email: a.email, displayName: a.displayName, phone: a.phone, tz: a.tz, tier: 'FREE', status: a.status,
+    emailVerified: a.status === 'active', mfaEnrolled: false, createdAt: a.createdAt, version: a.version });
+  const issue = (a, clientId, deviceLabel) => {
+    const s = { id: Trail.uuidv7(), accountId: a.id, clientId, deviceLabel, createdAt: new Date().toISOString(), lastSeenAt: new Date().toISOString(),
+      authTime: Math.floor(Date.now() / 1000), revoked: null };
+    M.sessions.set(s.id, s);
+    const rt = tok(); M.refresh.set(rt, { sid: s.id, rotated: false, revoked: false });
+    return { accessToken: accessFor(a, s), tokenType: 'Bearer', expiresIn: 600, refreshToken: rt, refreshExpiresAt: new Date(Date.now() + 30 * 864e5).toISOString(), sessionId: s.id };
+  };
+  const demo = { id: '0192a5a1-0000-7000-8000-000000000001', email: 'asha@demo.in', pw: 'Asha-Demo-2026!', status: 'active', displayName: 'Asha',
+    phone: null, tz: 'Asia/Kolkata', createdAt: '2025-06-01T00:00:00Z', version: 1 };
+  M.accounts.set(demo.email, demo); M.byId.set(demo.id, demo);
+
+  Trail.mock('POST', /^\/api\/v1\/auth\/register$/, Trail.idempotent((m, req) => {
+    const b = req.body || {}; const email = String(b.email || '').trim().toLowerCase(); const pw = String(b.password || '');
+    const errors = [];
+    if (!/^[^@\s]+@[^@\s.]+(\.[^@\s.]+)+$/.test(email)) errors.push({ field: 'email', code: 'INVALID_EMAIL', message: 'Enter a valid email address' });
+    if ([...pw].length < 10) errors.push({ field: 'password', code: 'TOO_SHORT', message: 'Use at least 10 characters' });
+    else if (breached.has(pw.toLowerCase())) errors.push({ field: 'password', code: 'BREACHED', message: 'This password appears in known data breaches' });
+    if (errors.length) return P(400, 'VALIDATION_FAILED', 'One or more fields are invalid', { errors });
+    let a = M.accounts.get(email);
+    if (!a) {
+      a = { id: Trail.uuidv7(), email, pw, status: 'pending_verification', displayName: b.displayName || null, phone: null, tz: b.tz || 'Asia/Kolkata', createdAt: new Date().toISOString(), version: 0 };
+      M.accounts.set(email, a); M.byId.set(a.id, a);
+      Trail.events.emit('identity.account.registered', a.id, { accountId: a.id, tz: a.tz, registeredAt: a.createdAt }, a.id);
+    }
+    if (a.status === 'pending_verification') { const t = tok(); M.verify.set(t, a.id); mail(email, 'Verify your Dexter email address', location.pathname + '#verify=' + t); }
+    else mail(email, 'You already have a Dexter account', 'Sign in or reset your password.');
+    return Trail.reply(202, { status: 'accepted' });
+  }));
+  Trail.mock('POST', /^\/api\/v1\/auth\/verify-email$/, (m, req) => {
+    const id = M.verify.get((req.body || {}).token); if (!id) return P(400, 'INVALID_TOKEN', 'The link is invalid or has expired');
+    M.verify.delete(req.body.token); const a = M.byId.get(id);
+    if (a.status === 'pending_verification') { a.status = 'active'; a.version++; Trail.events.emit('identity.account.verified', a.id, { accountId: a.id, verifiedAt: new Date().toISOString() }, a.id); return { status: 'verified' }; }
+    return { status: 'already_verified' };
+  });
+  Trail.mock('POST', /^\/api\/v1\/auth\/login$/, (m, req) => {
+    const b = req.body || {}; const a = M.accounts.get(String(b.email || '').trim().toLowerCase());
+    if (!a || a.pw !== b.password) return P(401, 'INVALID_CREDENTIALS', 'The email or password is incorrect');
+    if (a.status === 'pending_verification') return P(403, 'EMAIL_NOT_VERIFIED', 'Verify your email address first; check your inbox');
+    return Trail.reply(200, issue(a, b.clientId || 'dexter-app', b.deviceLabel), { 'cache-control': 'no-store' });
+  });
+  Trail.mock('POST', /^\/api\/v1\/auth\/token\/refresh$/, (m, req) => {
+    const t = (req.body || {}).refreshToken; const r = M.refresh.get(t);
+    if (!r) return P(401, 'INVALID_REFRESH_TOKEN', 'Sign in again');
+    const s = M.sessions.get(r.sid);
+    if (r.revoked || s.revoked) return P(401, 'INVALID_REFRESH_TOKEN', 'Sign in again');
+    if (r.rotated) {
+      revoke(s, 'refresh_reuse');
+      Trail.events.emit('identity.security.alert', s.accountId, { kind: 'REFRESH_TOKEN_REUSE', refId: s.id, occurredAt: new Date().toISOString() }, s.accountId);
+      return P(401, 'REFRESH_TOKEN_REUSED', 'This refresh token was already used; the session has been signed out for safety');
+    }
+    r.rotated = true; const next = tok(); M.refresh.set(next, { sid: s.id, rotated: false, revoked: false }); s.lastSeenAt = new Date().toISOString();
+    const a = M.byId.get(s.accountId);
+    return Trail.reply(200, { accessToken: accessFor(a, s), tokenType: 'Bearer', expiresIn: 600, refreshToken: next, refreshExpiresAt: new Date(Date.now() + 30 * 864e5).toISOString(), sessionId: s.id }, { 'cache-control': 'no-store' });
+  });
+  Trail.mock('POST', /^\/api\/v1\/auth\/logout$/, (m, req) => { const c = caller(req); if (!c) return unauth(); revoke(M.sessions.get(c.sid), 'logout'); return Trail.reply(204, null); });
+  Trail.mock('POST', /^\/api\/v1\/auth\/logout-all$/, (m, req) => {
+    const c = caller(req); if (!c) return unauth();
+    if (Date.now() / 1000 - c.authTime > 600) return P(401, 'STEP_UP_REQUIRED', 'Sign in again to continue');
+    let n = 0; for (const s of M.sessions.values()) if (s.accountId === c.account.id && revoke(s, 'logout_all')) n++;
+    return { sessionsRevoked: n };
+  });
+  Trail.mock('POST', /^\/api\/v1\/auth\/password\/forgot$/, (m, req) => {
+    const a = M.accounts.get(String((req.body || {}).email || '').trim().toLowerCase());
+    if (a) { const t = tok(); M.reset.set(t, a.id); mail(a.email, 'Reset your Dexter password', location.pathname + '#reset=' + t); }
+    return Trail.reply(202, { status: 'accepted' });
+  });
+  Trail.mock('POST', /^\/api\/v1\/auth\/password\/reset$/, (m, req) => {
+    const b = req.body || {}; const id = M.reset.get(b.token); if (!id) return P(400, 'INVALID_TOKEN', 'The link is invalid or has expired');
+    if ([...String(b.newPassword || '')].length < 10) return P(400, 'VALIDATION_FAILED', 'One or more fields are invalid', { errors: [{ field: 'newPassword', code: 'TOO_SHORT' }] });
+    M.reset.delete(b.token); const a = M.byId.get(id); a.pw = b.newPassword; a.version++;
+    for (const s of M.sessions.values()) if (s.accountId === id) revoke(s, 'password_reset');
+    return { status: 'password_reset' };
+  });
+  Trail.mock('GET', /^\/api\/v1\/me$/, (m, req) => { const c = caller(req); if (!c) return unauth(); return Trail.reply(200, view(c.account), { etag: '"' + c.account.version + '"' }); });
+  Trail.mock('PATCH', /^\/api\/v1\/me$/, (m, req) => {
+    const c = caller(req); if (!c) return unauth();
+    const im = Object.entries(req.headers).find(([k]) => k.toLowerCase() === 'if-match');
+    if (!im) return P(428, 'IF_MATCH_REQUIRED', 'If-Match header with the current ETag is required');
+    if (im[1] !== '"' + c.account.version + '"') return P(412, 'VERSION_CONFLICT', 'Resource version conflict', { currentVersion: c.account.version });
+    const b = JSON.parse(req.raw || '{}'); const a = c.account;
+    if ('displayName' in b) a.displayName = b.displayName;
+    if ('tz' in b) a.tz = b.tz;
+    if ('phone' in b) { const p = b.phone && String(b.phone).replace(/[\s().-]/g, ''); a.phone = p ? (/^[6-9]\d{9}$/.test(p) ? '+91' + p : p) : null; }
+    a.version++;
+    return Trail.reply(200, view(a), { etag: '"' + a.version + '"' });
+  });
+  Trail.mock('GET', /^\/api\/v1\/me\/sessions$/, (m, req) => {
+    const c = caller(req); if (!c) return unauth();
+    const data = [...M.sessions.values()].filter(s => s.accountId === c.account.id && !s.revoked).reverse()
+      .map(s => ({ id: s.id, clientId: s.clientId, deviceLabel: s.deviceLabel, ipFirst: '127.0.0.1', createdAt: s.createdAt, lastSeenAt: s.lastSeenAt, current: s.id === c.sid }));
+    return { data, page: { limit: 25, hasMore: false, nextCursor: null } };
+  });
+  Trail.mock('DELETE', /^\/api\/v1\/me\/sessions\/([0-9a-f-]{36})$/, (m, req) => {
+    const c = caller(req); if (!c) return unauth(); const s = M.sessions.get(m[1]);
+    if (!s || s.accountId !== c.account.id) return P(404, 'NOT_FOUND', 'session not found');
+    revoke(s, 'user_revoked'); return Trail.reply(204, null);
+  });
+  Trail.mock('GET', /^\/api\/\.well-known\/jwks\.json$/, () => ({ keys: M.keys.map(k => ({ kty: 'EC', crv: 'P-256', kid: k.kid, use: 'sig', alg: 'ES256', x: '…', y: '…' })) }));
+  Trail.mock('POST', /^\/api\/_dev\/p04\/keys\/rotate$/, () => {
+    const a = M.keys.find(k => k.status === 'active'); const n = M.keys.find(k => k.status === 'next');
+    a.status = 'retired'; n.status = 'active'; M.keys.push({ kid: 'mock-k' + (M.keys.length + 1), status: 'next' });
+    return { activeKid: n.kid, keys: M.keys.slice().reverse() };
+  });
+  paintMail();
+})();
+</script>
+</body>
+</html>
