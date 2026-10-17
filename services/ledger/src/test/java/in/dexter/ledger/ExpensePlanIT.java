@@ -76,12 +76,14 @@ class ExpensePlanIT extends LedgerIT {
   }
 
   @Test
-  void dateRangeUsesExpensesListWithoutASort() {
+  void dateRangeUsesExpensesListAndNeverScans() {
+    // The per-account row estimate is the table average (the account comes from app_account()), so the planner may
+    // bitmap-scan the range and sort it; the sort is bounded by the account's rows in the range (A-47).
     int mask = ExpenseRepository.mask(ExpenseFilter.NONE, Instant.EPOCH, Instant.EPOCH);
     Map<String, Object> p = Map.of("from", Sql.ts(Instant.parse("2026-01-01T00:00:00Z")),
         "to", Sql.ts(Instant.parse("2026-04-01T00:00:00Z")));
-    plan(BulkData.HEAVY, mask, p, false, "expenses_list", true);
-    plan(BulkData.HEAVY, mask, p, true, "expenses_list", true);
+    plan(BulkData.HEAVY, mask, p, false, "expenses_list", false);
+    plan(BulkData.HEAVY, mask, p, true, "expenses_list", false);
   }
 
   @Test

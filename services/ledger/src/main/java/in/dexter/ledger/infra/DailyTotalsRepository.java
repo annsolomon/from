@@ -25,14 +25,29 @@ public final class DailyTotalsRepository implements DailyTotalsStore {
   public void apply(UUID accountId, List<DailyDelta.Change> changes) {
     TenantScope.require();
     for (DailyDelta.Change c : changes) {
-      jdbc.sql("INSERT INTO ledger.expense_daily_totals (account_id, day, category_root, total_paise, txn_count)"
-              + " VALUES (:a, :d, CAST(:r AS public.ltree), :amt, :n)"
-              + " ON CONFLICT (account_id, day, category_root) DO UPDATE"
-              + " SET total_paise = ledger.expense_daily_totals.total_paise + EXCLUDED.total_paise,"
-              + " txn_count = ledger.expense_daily_totals.txn_count + EXCLUDED.txn_count")
+      if (c.count() > 0) {
+        // An expense enters the bucket (positive amount): insert or add. Postgres checks CHECK constraints on the
+        // proposed row before ON CONFLICT resolves, so only non-negative deltas may take this path.
+        jdbc.sql("INSERT INTO ledger.expense_daily_totals (account_id, day, category_root, total_paise, txn_count)"
+                + " VALUES (:a, :d, CAST(:r AS public.ltree), :amt, :n)"
+                + " ON CONFLICT (account_id, day, category_root) DO UPDATE"
+                + " SET total_paise = ledger.expense_daily_totals.total_paise + EXCLUDED.total_paise,"
+                + " txn_count = ledger.expense_daily_totals.txn_count + EXCLUDED.txn_count")
+            .param("a", accountId).param("d", c.day()).param("r", c.categoryRoot()).param("amt", c.amountPaise())
+            .param("n", c.count())
+            .update();
+        continue;
+      }
+      // An expense leaves the bucket or changes its amount in place: the bucket must already exist.
+      int updated = jdbc.sql("UPDATE ledger.expense_daily_totals SET total_paise = total_paise + :amt,"
+              + " txn_count = txn_count + :n WHERE account_id = :a AND day = :d"
+              + " AND category_root = CAST(:r AS public.ltree)")
           .param("a", accountId).param("d", c.day()).param("r", c.categoryRoot()).param("amt", c.amountPaise())
           .param("n", c.count())
           .update();
+      if (updated != 1) {
+        throw new IllegalStateException("daily totals bucket missing for " + c.day() + "/" + c.categoryRoot());
+      }
       if (c.count() < 0) {
         jdbc.sql("DELETE FROM ledger.expense_daily_totals WHERE account_id = :a AND day = :d"
                 + " AND category_root = CAST(:r AS public.ltree) AND txn_count = 0")

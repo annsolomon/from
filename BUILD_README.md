@@ -271,7 +271,8 @@ Issues found in P01's own code during self-review and fixed:
 | list `cardId=` | `expenses_card (account_id, user_card_id, occurred_at DESC, id DESC)` | Index Scan, no Sort |
 | list `merchantId=` | `expenses_merchant (account_id, merchant_id, occurred_at DESC, id DESC)` | Index Scan, no Sort |
 | list `category=` (subtree) | `expenses_cat GIST (account_id, category_path)` | Bitmap scan + Sort (bounded by the subtree) |
-| list `from`/`to`/`minPaise`/`maxPaise`/`paymentMethod` | `expenses_list` (range on `occurred_at`; the rest are filters) | Index Scan, no Sort |
+| list `from`/`to` | `expenses_list` (range on `occurred_at`) | Bitmap Index Scan + Sort of the account's rows in the range (planner uses the average rows per account) |
+| list `minPaise`/`maxPaise`/`paymentMethod` | `expenses_list` (filters on the ordered scan) | Index Scan, no Sort |
 | get/patch/delete by id | `expenses_pkey` | Index Scan |
 | import de-dup `clientRef` | `expenses_client_ref UNIQUE (account_id, client_ref)` | Index |
 | daily totals range | `expense_daily_totals_pkey (account_id, day, category_root)` | Index Scan |
@@ -605,7 +606,7 @@ Issues found in P01's own code during self-review and fixed:
 | 2026-10-17 | P06 | A-44: identity adds audience `gateway` to user/admin tokens; identity trusts `X-Forwarded-For` from Tomcat's internal proxies; the trail bridge (`liveRoutes`, A-36) is removed — trail-check's P04/P05 checks go through `/api`. Activity events use a plain producer (no outbox, gateway has no DB), type `gateway.activity.recorded`. | The gateway verifies with the shared verifier; client IP for throttles; one Live path. | P18 consumes activity. |
 | 2026-10-17 | P07 | A-45: the daily-totals day is the IST calendar day (`Asia/Kolkata`), not the account's time zone; list `from`/`to` are IST dates too (`to` inclusive). | One fixed bucket key keeps the aggregate exact without rewriting rows when a profile time zone changes; all demo users are in India. | P13/P14 read daily totals with IST days; a per-account zone would need a rebuild job. |
 | 2026-10-17 | P07 | A-46: PlanAssert runs on 1.2M rows generated inside `ExpensePlanIT` (`generate_series`, one 30k-row account, ANALYZE) instead of the loaded medium seed. | Plans must be proven inside the Maven IT with Testcontainers; the medium seed loads into staging before services exist. | Later PlanAssert ITs generate their own volume the same way. |
-| 2026-10-17 | P07 | A-47: `GET /v1/expenses/daily-totals?from&to` added (≤ 366 days) for the trail and P13; card and merchant indexes end in `id DESC` (no incremental sort); the categories policy needs a tenant context even for system rows. | Daily totals must be observable; plans without Sort; no anonymous reads of tenant tables. | routes.md example; P13 planning reads totals. |
+| 2026-10-17 | P07 | A-47: `GET /v1/expenses/daily-totals?from&to` added (≤ 366 days) for the trail and P13; card and merchant indexes end in `id DESC` (no incremental sort); category and date-range plans may sort (bounded); the categories policy needs a tenant context even for system rows. | Daily totals must be observable; plans without Sort; no anonymous reads of tenant tables. | routes.md example; P13 planning reads totals. |
 | 2026-09-22 | P01 | A-12: the P01 trail is backed by a dev-only lab controller in `dexter-web` (`/_dev/p01/*`, `@Profile("dev")`, guard test) instead of database-backed endpoints. | P01 has no service schema yet; the lab runs the real library code. Paging against a real table is P07. | P19 deletes it with the trail; `run.sh` defaults to the dev profile locally. |
 
 ## 7. Known gaps / tech debt (honest, never deleted silently)
@@ -627,7 +628,10 @@ Issues found in P01's own code during self-review and fixed:
   - (P05 resolved: lockout, `mfa_enrolled`/`amr` real.)
 - **P07 ledger:**
   - Daily totals use the IST day for everyone (A-45); a user abroad sees late-evening expenses on the IST date.
-  - The category filter's plan sorts (GiST cannot return keyset order); bounded by one account's subtree.
+  - The category filter's plan sorts (GiST cannot return keyset order); bounded by one account's subtree. A date
+    range may also sort (bitmap scan of the range): the account comes from `app_account()`, so the planner estimates
+    the table's average rows per account. Bounded by the range; revisit with per-account statistics if a heavy user
+    pages a long range.
   - `categorization_rules` exists without an API (P08); `categorySource` is `user` or `resolver` with the default
     `general` until P08's resolver.
   - `userCardId` is not checked against portfolio's cards (P11 owns cards; a later consumer can validate).
