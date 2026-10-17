@@ -1,8 +1,8 @@
 # Dexter v2 — Build README (living handoff)
 
-**Last updated:** 2026-10-17 · **Chat/phase:** P08 DONE · **Model:** Claude Opus 5.5
-**P08 is DONE (2026-10-17).** `verify.sh full` PASS + `trail-check.sh` PASS on a GitHub runner (repo `annsolomon/from`,
-commit `960e916`, run 39042585515; reports on branch `verify-reports`). Next chat: **P09** (Catalog A). Upload `MASTER_PLAN.md`
+**Last updated:** 2026-10-17 · **Chat/phase:** P09 DONE · **Model:** Claude Opus 5.5
+**P09 is DONE (2026-10-17).** `verify.sh full` PASS + `trail-check.sh` PASS on a GitHub runner (repo `annsolomon/from`,
+commit `1135b29`, run 39046289166; reports on branch `verify-reports`). Next chat: **P10** (Catalog B, ingestion). Upload `MASTER_PLAN.md`
 + this README; the code is in the repo (clone it).
 
 ## 1. Phase status
@@ -18,7 +18,7 @@ commit `960e916`, run 39042585515; reports on branch `verify-reports`). Next cha
 | P06 | Gateway | **DONE** 2026-10-17 | `verify.sh full` PASS + trail-check PASS (CI run 39020903788, git cf48871): gateway unit 10 + IT 19 (route table over 88 documented paths, edge filters, rate limit, breaker/SSE, activity → Kafka, degraded Redis/Kafka), api-smoke P06 18/18 | DoD all ticked (§3) |
 | P07 | Ledger A (reference impl) | **DONE** 2026-10-17 | `verify.sh full` PASS + trail-check PASS (CI run 39023459091, git 4101870): ledger unit 5 + IT 31 (CRUD, PlanAssert on 1.2M rows, pagination + idempotency contracts, 1 000-op daily-totals property, RLS proof), api-smoke P07 30/30, ledger outbox → Kafka 4 published / 0 pending | DoD all ticked (§3) |
 | P08 | Ledger B | **DONE** 2026-10-17 | `verify.sh full` PASS + trail-check PASS (CI run 39042585515, git 960e916): resolver 500/500 seed, 492/500 distorted, 42/42 payees unmatched; autocomplete p95 11 ms (p50 7 ms); 10k-row import 2.2 s + idempotent re-import; api-smoke P08 24/24 + import topic |  DoD all ticked (§3) |
-| P09 | Catalog A | NOT STARTED | — | |
+| P09 | Catalog A | **DONE** 2026-10-17 | `verify.sh full` PASS + trail-check PASS (CI run 39046289166, git 1135b29): catalog unit 6 + IT 15 (admin draft→publish→version, public keyset/filters/search/potential, RLS 4, projection from the compacted topic = stored snapshot, PlanAssert on 50k cards incl. search inside the owner function), api-smoke P09 15/15 | DoD all ticked (§3) |
 | P10 | Catalog B (ingestion) | NOT STARTED | — | |
 | P11 | Portfolio A | NOT STARTED | — | |
 | P12 | Portfolio B (calc + parser) | NOT STARTED | — | |
@@ -32,10 +32,19 @@ commit `960e916`, run 39042585515; reports on branch `verify-reports`). Next cha
 
 ## 2. In progress (exact stopping point)
 
-- **P08 (2026-10-17): complete.** Nothing in progress. Next action: P09 (verify P08 first, then Catalog A).
-  P09 starts from: `/v1/catalog/**` routes to catalog; the seed stages catalog tables (issuers, card_products,
-  versions, reward_rules, milestones) in `seed_stage` until catalog's migrations exist; the trail kit has
-  `/api/v1/catalog/cards` mocks (P03). Copy ledger's patterns (ADR-0012/0013).
+- **P09 (2026-10-17): complete.** Nothing in progress. Next action: P10 (verify P09 first, then Catalog B ingestion).
+  P10 starts from: drafts + `CatalogAdminService.saveDraft/publish` (the review queue approves a draft and publishes),
+  `catalog.card.published/retired` on the compacted `dexter.catalog.card.v1`, `catalog.offer.changed` on
+  `dexter.catalog.offer.v1`, editor permissions `catalog:read/write/publish` (ADR-0014). Ledger's merchant cache
+  scopes need a bump when P10 changes merchant data (A-51).
+
+### History (P09)
+
+- r1 (`523a63e`): compiled; 2 IT failures: search seq-scanned 50k cards — under catalog_app's RLS policy the
+  planner may not use the trigram index for LIKE/`%` (not leakproof), and the bulk insert left the GIN pending list
+  full; the list test's custom card 3 had a base rule without the fuel exclusion. r2 (`1135b29`): search through
+  the owner's SECURITY DEFINER `catalog.search_published_cards` (proved with auto_explain), VACUUM after the bulk
+  load, test card fixed. All green (run 39046289166).
 
 ### History (P08)
 
@@ -138,6 +147,19 @@ commit `960e916`, run 39042585515; reports on branch `verify-reports`). Next cha
 - **P02b scope (A-13):** `dexter-security` (resource server, JWKS cache + unknown-kid refetch, `AuthContext`, audience check, `@RequiresStepUp`, `@RequiresPermission`, service-token client, test JWKS/JWT factory; pins nimbus + bouncycastle, verified on Maven Central), `dexter-cache` (ADR-0004, generation keys, Redis ACLs, cache contract), `ArchRules` (pins archunit), demo module switched from the `X-Demo-Account` test header to `AuthContext`, `p02-*.html` trail page + lab endpoints (idempotency replay/409/422, outbox → Kafka → projection, DLQ).
 
 ## 3. Verification of previous phase
+
+### P09 against its DoD (CI run 39046289166, git 1135b29, 2026-10-17)
+
+| DoD / requirement | Result | Evidence |
+|---|---|---|
+| IT-GREEN | PASS | `full.maven`: catalog unit 6 (`CardDocumentsTest` 4, `PlatformMigrationTest`, ArchRules) + IT 15 (`CatalogAdminIT` 4, `CatalogPublicIT` 2, `CatalogRlsIT` 4, `CatalogPlanIT` 3, `CatalogProjectionIT`, `CatalogHealthIT`) |
+| Publish creates an immutable version, closes the previous one | PASS | `CatalogAdminIT` (v1 → edit draft → v2: v1 `effective_to` = v2 `effective_from`, rules of v1 closed, unchanged draft → `changed: false`); versions trigger refuses UPDATE/DELETE (`DX409`) even for the owner |
+| No overlapping reward rules | PASS | exclusion constraint (card, category, merchant, `valid &&`) refuses an overlapping insert (`CatalogRlsIT`/`CatalogAdminIT`) |
+| Event-driven projection equals the source | PASS | `CatalogProjectionIT`: consumer on `dexter.catalog.card.v1` rebuilds each card; equals the stored snapshot and the public detail |
+| Public reads need no token, show published only | PASS | `CatalogPublicIT` (keyset by name, filters, draft hidden in list and search), api-smoke P09 (40 seeded cards, 3 pages, filters, ETag, search, potential, offers) |
+| Admin is editor-only | PASS | `CatalogRlsIT` (catalog_admin without the editor role sees/writes nothing; catalog_app writes nothing), api-smoke (401 anonymous, 403 user token) |
+| Search plan / list plans | PASS | `CatalogPlanIT` on 50,000 cards: list and next page walk `card_products_public` without Sort, network filter on `card_products_network`, search inner plan uses `card_products_name_trgm` (auto_explain), no seq scan |
+| Trail page exercised | PASS | trail-check p09 (cards, detail, potential via `/api`); Mock flow in jsdom, 0 errors |
 
 ### P08 against its DoD (CI run 39042585515, git 960e916, 2026-10-17)
 
@@ -292,6 +314,33 @@ Issues found in P01's own code during self-review and fixed:
 4. The web test asserted an exact `Content-Type`; now a compatible-type check (a charset suffix must not fail it).
 
 ## 4. What exists now
+
+**P09 Catalog A (DONE)** — ADR-0014, errors.md catalog section
+
+| Piece | What it does |
+|---|---|
+| Schema `V202610171500__platform` + `V202610171501__catalog_core` | `issuers`; `card_products` (published face + status draft/published/retired, `current_version`, `content_hash`); `card_product_drafts` (editor only); `card_product_versions` (snapshot jsonb, validity, immutable by trigger `DX409`, one open version); `reward_rules` (per version, ltree category, merchant, exclusions, caps, EXCLUDE gist on overlap); `milestones`; `offers` (active/withdrawn). FORCE RLS: catalog_app reads published only, catalog_admin needs actor role CATALOG_EDITOR/SUPER_ADMIN (`catalog.is_editor()`); `catalog.search_published_cards` SECURITY DEFINER |
+| `domain` | `CardDocument` (+ Rule, Milestone), `CardDocuments` (validation, normalisation, canonical form), `CardSnapshots` (seed-shaped snapshot), `CatalogErrors` |
+| `app` | `CatalogQueryService` (sentinel PUBLIC tenant; list/detail/search/potential/offers), `CatalogAdminService` (issuers, cards, draft If-Match, publish no-op by hash, retire, offers), ports `CatalogStore`, `AdminCatalogStore`, `CardFilter`, `CatalogEvents` |
+| `infra` | `CatalogRepository` (static keyset query per filter mask on (name, id), category-rate filter with NOT EXISTS, potential via DISTINCT ON), `AdminCatalogRepository` |
+| `api` | `CatalogController` (`@PublicEndpoint`: `/v1/catalog/cards`, `/cards/search`, `/cards/{slug}` + ETag, `/offers`, `/categories/potential`), `AdminCatalogController` (`/v1/admin/catalog/**`, `catalog:read/write/publish`: issuers, cards, draft GET/PUT, versions, `:publish`, `:retire`, offers, `:withdraw`) |
+| `config` | `CatalogConfiguration` (second pool as catalog_admin), `CatalogRelayConfiguration` (outbox relay; compacted `dexter.catalog.card.v1`, `dexter.catalog.offer.v1`) |
+| Contracts | `catalog.card.published` v1, `catalog.card.retired` v1 (`CardPublishedV1`), `catalog.offer.changed` v1 (`OfferChangedV1`) |
+| Tests | unit `CardDocumentsTest` 4, `PlatformMigrationTest`, ArchRules; IT `CatalogAdminIT` 4, `CatalogPublicIT` 2, `CatalogRlsIT` 4, `CatalogPlanIT` 3, `CatalogProjectionIT` 1, `CatalogHealthIT` 1 |
+| Trail / smoke | `test-ui/p09-catalog.html` (trail.js: ascending collections, query-aware filters); `scripts/lib/p09_smoke.py` (api-smoke P09); trail-check P09 |
+
+**Query→Index (P09):**
+
+| Query | Index | Plan |
+|---|---|---|
+| public list (name, id) | `card_products_public` (partial published) | Index scan in order, no Sort (PlanAssert) |
+| list by network / issuer | `card_products_network` / `card_products_issuer` | Index scan in order |
+| category ≥ X bps | `reward_rules` by (card, version) + EXISTS/NOT EXISTS | Nested loop per card |
+| detail by slug | `card_products_slug_key` + `card_product_versions_current` | Index |
+| search | `card_products_name_trgm` (GIN, partial) inside `search_published_cards` | Bitmap (auto_explain) |
+| categories/potential | reward_rules of current versions, DISTINCT ON card | Bounded (published cards) |
+| admin list | `card_products_admin` (name, id) | Index |
+| active offers | offers by status/validity | Small table |
 
 **P08 Ledger B (DONE)** — ADR-0013, errors.md ledger P08 section
 
@@ -641,6 +690,7 @@ Croma Online vs label Croma).
 | 0009 | Identity: pre-auth SECURITY DEFINER functions + owner policies, synthetic tenants, password-free registration fingerprint, strict refresh-family reuse detection, next/active/retired ES256 keys, envelope encryption, after-commit mail, client-credentials endpoint | Accepted: proven by CI run 39003795722 (identity ITs, api-smoke P04) |
 | 0012 | Ledger as the reference service: layers + ports, static keyset query per filter mask, daily totals maintained in the write transaction (IST day × root), merge PATCH + If-Match, soft delete + `:restore`, outbox event per write, admin tokens refused on user endpoints | Accepted: proven by CI run 39023459091 |
 | 0013 | Ledger B: global merchants read-only for the app, resolver (variants → exact/compact/prefix → trigram 0.45 → typo; rules after), Redis alias cache outside transactions, bounded search without a trigram index on expenses, bulk with per-item outcome, CSV import via presigned upload + COPY into a temp table + derived client refs | Accepted: proven by CI run 39042585515 |
+| 0014 | Catalog: published face + editor drafts + immutable versions (trigger), publish in one transaction (no-op by content hash), rule overlap impossible (EXCLUDE gist), snapshot = API = compacted event, public reads with a sentinel tenant, editor-only admin pool, search through an owner SECURITY DEFINER function | Accepted: proven by CI run 39046289166 |
 
 ## 6. Plan amendments (deviations from MASTER_PLAN.md)
 
@@ -697,6 +747,11 @@ Croma Online vs label Croma).
 | 2026-10-17 | P08 | A-50: import flow = `POST /v1/imports` (job + presigned PUT) → upload → `POST /v1/imports/{id}:start` → worker; jobs carry `duplicates`, `error_code/detail`, `attempts`, status `awaiting_upload/queued/running/completed/failed`; COPY goes into a transaction-scoped temp table (COPY FROM is refused on RLS tables; `ledger_app` gets TEMPORARY), then a second transaction merges; rows without `client_ref` get a content hash + occurrence number; fixed CSV header (`HEADER MATCH`); 10 MB / 50k rows; stale running jobs re-claimed after 10 min, 3 attempts. | The plan names the steps, not the protocol; re-import idempotency needs a natural key per row. | P12 statement parsing can reuse the job + staging pattern. |
 | 2026-10-17 | P08 | A-51: "LRU cache of resolved aliases in Redis" = dexter-cache global scopes with TTL (1 h aliases, 10 min autocomplete), read before any transaction (`prefetch`); Redis' eviction policy is an ops setting (P19; the dev instance also holds throttle keys, so no allkeys-lru there). The resolver adds compact/prefix and a typo (edit distance) stage to the plan's pipeline, and rules run after the merchant is known (merchant-id rules need it). `OutboxWriter.appendAll` added for batched events; the S3 SigV4 signer lives in ledger until a second service needs it. | Measured accuracy (98.4 % on distorted names vs ~80 % with exact + trigram only); dexter-cache contract. | P10 bumps the merchant cache scopes; P12 moves SigV4 to a library. |
 | 2026-09-22 | P01 | A-12: the P01 trail is backed by a dev-only lab controller in `dexter-web` (`/_dev/p01/*`, `@Profile("dev")`, guard test) instead of database-backed endpoints. | P01 has no service schema yet; the lab runs the real library code. Paging against a real table is P07. | P19 deletes it with the trail; `run.sh` defaults to the dev profile locally. |
+| 2026-10-17 | P09 | A-52: a card has a draft table beside its published face; editor changes never touch what the public reads until publish; a new card is a draft until its first publish. Publish with an unchanged canonical document is a no-op (`changed: false`). | MASTER_PLAN names drafts and publish but not where a draft lives; idempotent publish avoids empty versions. | P10's review queue writes drafts and calls publish. |
+| 2026-10-17 | P09 | A-53: extra event `catalog.card.retired` (last snapshot, status retired) on the same compacted topic, and `catalog.offer.changed` for offer create/withdraw (no edit endpoint yet). | Projections must learn about retirement; the plan lists only publish. | P11/P14 consume both. |
+| 2026-10-17 | P09 | A-54: the reward-rule exclusion constraint also includes the merchant (NULLs coalesced), so a merchant rule and a category rule may coexist; versions are immutable by trigger (`DX409`), not only by grants. | Merchant-specific rates are in the seed; the owner bypasses grants. | — |
+| 2026-10-17 | P09 | A-55: public reads run in a sentinel `PUBLIC` tenant on catalog_app (policies ignore the account); search runs through the owner's SECURITY DEFINER `catalog.search_published_cards`, because RLS stops the planner from using the trigram index for non-leakproof LIKE/`%`. | RLS is FORCE on every table; a seq scan per search does not scale. | Other services with trigram search under RLS reuse the pattern (ADR-0014 §6). |
+| 2026-10-17 | P09 | A-56: the admin flow is proven in ITs (editor tokens from TestJwt); api-smoke covers only 401/403 for admin, since a real admin token needs the MFA login of P05. | Smoke has no TOTP device. | P19 may add an admin smoke with a scripted TOTP. |
 
 ## 7. Known gaps / tech debt (honest, never deleted silently)
 
@@ -715,6 +770,13 @@ Croma Online vs label Croma).
   - The breached list holds the ≈ 9.1k NCSC top-100k entries that are ≥ 10 characters; no online HIBP k-anonymity
     check (offline by plan).
   - (P05 resolved: lockout, `mfa_enrolled`/`amr` real.)
+- **P09 catalog A:**
+  - Offers have create/withdraw only; no edit and no per-user eligibility (P10/P17).
+  - Search is not paged (top 20) and ranks by name similarity only.
+  - `categories/potential` ranks by the rule rate, ignoring caps and point values (reco does the real math, P14).
+  - No catalog cache yet: reads go to Postgres (fast on the published partial indexes); a Redis scope comes when a
+    hot path needs it.
+  - The admin flow has no browser page beyond the trail (the admin console is later).
 - **P08 ledger B:**
   - Search has no index on text: a very heavy account searching a full year scans its rows of that year (bounded).
   - Calendar liabilities are empty until P11/P13 (A-49).
@@ -777,7 +839,7 @@ Croma Online vs label Croma).
   - Live mode has nothing to call yet (login P04, expenses P07, catalog P09, cards P11), so it shows 404/401 and
     says so.
   - The mock cursor signature is FNV-1a, not HMAC. It is a mock only; the real codec is `KeysetCursorCodec`.
-  - The mock collection sorts only DESC; the catalog mock is "name DESC" to reuse it.
+  - (P09 resolved: the mock collection sorts ASC too; the catalog mock is "name ASC" with filters.)
   - The pager spec does not cover the DOM (`mountPager` paint/IntersectionObserver). The jsdom render was a manual
     sandbox check, not a CI step.
 - **P03 k6:** `walkList`/`idempotentPost`/`login` are not exercised until P04/P07 endpoints exist (smoke still
@@ -887,6 +949,7 @@ press **Lab status / start**, then **Get a valid token**. (After a manual `run.s
 
 ## 10. Changelog (one line per response)
 
+- 2026-10-17 P09 r1–r2: catalog schema (issuers, cards, drafts, immutable versions, rules with EXCLUDE, milestones, offers) with FORCE RLS, public reads (keyset, filters, detail ETag, search via owner function, potential, offers), editor admin (drafts, publish/retire, offers), outbox relay + catalog events/contracts, projection IT, 50k PlanAssert, ADR-0014, A-52..A-56, p09 page/smoke/trail-check. CI run 39046289166: verify full + trail-check PASS → **P09 DONE**.
 - 2026-10-17 P08 r1–r2: merchants/aliases, resolver + rules, search, bulk, CSV import (presigned S3 + COPY + worker), calendar, summary, OutboxWriter.appendAll, ADR-0013, A-48..A-51, p08 page/smoke/trail-check. CI run 39042585515: verify full + trail-check PASS → **P08 DONE**.
 - 2026-10-17 P07 r2: daily-totals negative deltas via UPDATE, date-range plan test allows a bounded sort. CI run 39023459091: verify full + trail-check PASS → **P07 DONE**.
 - 2026-10-17 P07 r1: ledger schema (categories, expenses, daily totals, rules) with FORCE RLS, expense CRUD (idempotent create, keyset list per filter mask, If-Match PATCH, soft delete/restore), daily totals in the write txn, categories, outbox events + contracts, 1.2M-row PlanAssert, ADR-0012, A-45..A-47, errors.md ledger, p07-ledger.html, p07 smoke, trail-check P07.
