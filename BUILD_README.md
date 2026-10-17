@@ -137,7 +137,7 @@ import, merchants, rules). Upload `MASTER_PLAN.md` + this README; the code is in
 | DoD / requirement | Result | Evidence |
 |---|---|---|
 | IT-GREEN | PASS | `full.maven`: ledger unit 5 + IT 31, 0 failures |
-| RLS (FORCE, proof kit) | PASS | `LedgerRlsIT` (cross-tenant read/write/delete invisible; no context = no rows; owner bypass only for the owner role); static rls-gate; api-smoke cross-tenant 404 ×3 |
+| RLS (FORCE, proof kit) | PASS | `LedgerRlsIT`: RlsProofKit on `expenses`, `expense_daily_totals`, `categorization_rules`, `categories` (FORCE RLS, tenant isolation); static rls-gate; api-smoke cross-tenant GET/PATCH/DELETE 404 |
 | PlanAssert on large data | PASS | `ExpensePlanIT` on 1.2M generated rows (A-46): list/next page/card/merchant without Sort, date range + category bounded, never a seq scan |
 | Pagination contract | PASS | `ExpensesPaginationContractIT` (window, tamper, filter mismatch, limit bounds, no duplicates/gaps) |
 | Idempotency contract | PASS | `CreateExpenseIdempotencyContractIT` (replay, 422 reuse, parallel, failure leaves no key); api-smoke replay/422/400 |
