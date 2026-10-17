@@ -43,6 +43,13 @@ public abstract class IdentityBase {
   static final ServiceDb DB = TestPostgres.flywayDb("identity");
   static final SecureRandom RANDOM = new SecureRandom();
   public static final String REDIS_PW = "identity-it-pw";
+  /**
+   * One set of keys per JVM: every test context (IdentityIT's and LockoutIT's) shares the database, so the signing
+   * keys and DEKs one context wrapped must open in the other.
+   */
+  static final String KEK = randomKey();
+  static final String PEPPER = randomKey();
+  static final String CURSOR_KEY = randomKey();
   /** Superuser: assertions and bulk seeding only (bypasses RLS). */
   public static final JdbcClient ADMIN = JdbcClient.create(
       new SimpleDriverDataSource(new org.postgresql.Driver(), DB.url(), "postgres", "postgres"));
@@ -60,10 +67,10 @@ public abstract class IdentityBase {
     r.add("spring.datasource.password", () -> ServiceDb.PW);
     r.add("spring.datasource.hikari.maximum-pool-size", () -> "30");
     r.add("spring.flyway.password", () -> ServiceDb.PW);
-    r.add("dexter.cursor.keys.c1", IdentityBase::randomKey);
+    r.add("dexter.cursor.keys.c1", () -> CURSOR_KEY);
     r.add("dexter.identity.issuer", () -> ISSUER);
-    r.add("dexter.identity.kek.keys.k1", IdentityBase::randomKey);
-    r.add("dexter.identity.phone-pepper", IdentityBase::randomKey);
+    r.add("dexter.identity.kek.keys.k1", () -> KEK);
+    r.add("dexter.identity.phone-pepper", () -> PEPPER);
     r.add("dexter.identity.mail.mode", () -> "memory");
     r.add("dexter.identity.relay.enabled", () -> "false");
     r.add("dexter.identity.service-clients.ledger.secret", () -> "ledger-test-secret");

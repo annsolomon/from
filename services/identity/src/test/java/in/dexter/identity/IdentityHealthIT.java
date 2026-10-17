@@ -20,7 +20,7 @@ class IdentityHealthIT extends IdentityIT {
     assertThat(nf.body()).contains("\"requestId\":");
 
     assertThat(ADMIN.sql("SELECT count(1) FROM identity.flyway_schema_history WHERE success AND type = 'SQL'")
-        .query(Long.class).single()).isEqualTo(2);
+        .query(Long.class).single()).isEqualTo(3);
     assertThat(ADMIN.sql("SELECT tableowner FROM pg_tables WHERE schemaname = 'identity' AND tablename = 'accounts'")
         .query(String.class).single()).isEqualTo("identity_owner");
   }

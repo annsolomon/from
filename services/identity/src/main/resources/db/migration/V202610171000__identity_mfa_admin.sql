@@ -41,7 +41,8 @@ CREATE POLICY mfa_totp_admin_read ON identity.mfa_totp FOR SELECT TO identity_ad
   USING ((SELECT identity.app_actor_role()) IN ('SUPPORT', 'FINANCE', 'SUPER_ADMIN'));
 CREATE POLICY mfa_totp_owner ON identity.mfa_totp FOR ALL TO identity_owner USING (true) WITH CHECK (true);
 GRANT SELECT, INSERT, UPDATE, DELETE ON identity.mfa_totp TO identity_app;
-GRANT SELECT ON identity.mfa_totp TO identity_admin;
+-- Only whether MFA is on, never the secret (column grant).
+GRANT SELECT (account_id, confirmed_at) ON identity.mfa_totp TO identity_admin;
 
 -- code_hash = HMAC-SHA256(pepper, 'recovery:' || normalised code); each code works once.
 CREATE TABLE identity.recovery_codes (
@@ -77,7 +78,9 @@ $$;
 -- Support lookup (GET /v1/admin/accounts?email=, audited): identity_admin may read accounts for these actor roles.
 CREATE POLICY accounts_admin_read ON identity.accounts FOR SELECT TO identity_admin
   USING ((SELECT identity.app_actor_role()) IN ('SUPPORT', 'FINANCE', 'SUPER_ADMIN'));
-GRANT SELECT ON identity.accounts TO identity_admin;
+-- Column grant: no password hash, encrypted phone or blind index for support staff.
+GRANT SELECT (id, email, status, email_verified_at, tz, tier_cache, created_at, updated_at)
+  ON identity.accounts TO identity_admin;
 
 -- ---------------------------------------------------------------- RBAC catalogue (MASTER_PLAN 7.2)
 -- Global reference data, managed only by migrations. SUPER_ADMIN is never a standing assignment: it is held only
@@ -200,6 +203,10 @@ CREATE POLICY admin_mfa_totp_self ON identity.admin_mfa_totp FOR ALL TO identity
   WITH CHECK (admin_id = (SELECT identity.app_account()));
 CREATE POLICY admin_mfa_totp_owner ON identity.admin_mfa_totp FOR ALL TO identity_owner USING (true) WITH CHECK (true);
 GRANT SELECT, INSERT, UPDATE, DELETE ON identity.admin_mfa_totp TO identity_app;
+-- SUPER_ADMIN sees whether another admin has MFA (admin list), never the secret (column grant).
+CREATE POLICY admin_mfa_totp_admin_read ON identity.admin_mfa_totp FOR SELECT TO identity_admin
+  USING ((SELECT identity.app_actor_role()) = 'SUPER_ADMIN');
+GRANT SELECT (admin_id, confirmed_at) ON identity.admin_mfa_totp TO identity_admin;
 
 -- Break-glass (MASTER_PLAN 7.2): an eligible admin holds SUPER_ADMIN for at most one hour, with a reason, after a
 -- fresh MFA sign-in. approved_by stays NULL until a two-person rule is introduced.
