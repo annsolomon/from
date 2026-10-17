@@ -174,3 +174,20 @@ the file line), `FILE_TOO_LARGE` (> 10 MB), `TOO_MANY_ROWS` (> 50,000), `FILE_MI
 `IMPORT_FAILED` / `IMPORT_ABANDONED` (worker gave up after 3 attempts). Row errors (`errors[]`, row 1 = first data
 row): `DATE_INVALID`, `AMOUNT_INVALID`, `MERCHANT_TOO_LONG`, `CATEGORY_INVALID`, `CATEGORY_UNKNOWN`,
 `PAYMENT_METHOD_INVALID`, `NOTE_TOO_LONG`, `CLIENT_REF_TOO_LONG`.
+
+### catalog (P09, `CatalogErrors` + core codes)
+
+| Code | Status | When |
+|---|---|---|
+| `SLUG_TAKEN` | 409 | `POST /v1/admin/catalog/cards` with a slug another card uses. |
+| `ISSUER_EXISTS` | 409 | `POST /v1/admin/catalog/issuers` with an existing code. |
+| `CARD_RETIRED` | 409 | Editing, publishing or retiring a retired card (or retiring a draft). |
+| `OFFER_WITHDRAWN` | 409 | Withdrawing an offer twice. |
+| `ADMIN_TOKEN_REQUIRED` | 403 | A user or service token on `/v1/admin/catalog/*` (the gateway already answers 401 without a token). |
+| `FORBIDDEN` | 403 | Missing `catalog:read` / `catalog:write` / `catalog:publish`, or no CATALOG_EDITOR / SUPER_ADMIN role. |
+| `VALIDATION_FAILED` | 400 | Card document fields (`slug`, `name`, `issuerCode` UNKNOWN_ISSUER, `network`, `tier`, fees NEGATIVE, rates OUT_OF_RANGE, `features.<key>`, `rules[i].*` incl. DUPLICATE_SCOPE / CAP_SHAPE, `milestone.*`), `slug` IMMUTABLE on draft save; list filters (`network`, `maxAnnualFee`, `category`, `minRateBps` without `category`); search `q` 2–60; offer fields. |
+| `IF_MATCH_REQUIRED` / `VERSION_CONFLICT` | 428 / 412 | `PUT /v1/admin/catalog/cards/{id}/draft` without / with a stale draft ETag. |
+| `NOT_FOUND` | 404 | Unknown or unpublished slug on the public API (drafts are invisible), unknown card/offer id, unknown `:action`. |
+| `CURSOR_INVALID` / `CURSOR_FILTER_MISMATCH` / `LIMIT_INVALID` | 400 | `GET /v1/catalog/cards` keyset paging. |
+
+A publish of an unchanged draft is not an error: it answers the current version with `changed: false`.

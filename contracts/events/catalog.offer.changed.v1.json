@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dexter.in/events/catalog.offer.changed.v1.json",
+  "title": "catalog.offer.changed v1 - an offer was created or withdrawn; the whole offer (topic dexter.catalog.offer.v1, key = offer id).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "offerId",
+    "status",
+    "issuerId",
+    "cardProductId",
+    "merchantId",
+    "categoryPath",
+    "title",
+    "kind",
+    "valueBps",
+    "valuePaise",
+    "maxDiscountPaise",
+    "minSpendPaise",
+    "validFrom",
+    "validTo",
+    "stackable",
+    "version",
+    "changedAt"
+  ],
+  "properties": {
+    "offerId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "withdrawn"
+      ]
+    },
+    "issuerId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "cardProductId": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    },
+    "merchantId": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    },
+    "categoryPath": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "title": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "pct",
+        "flat",
+        "cashback"
+      ]
+    },
+    "valueBps": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1
+    },
+    "valuePaise": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1
+    },
+    "maxDiscountPaise": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1
+    },
+    "minSpendPaise": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "validFrom": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "validTo": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "stackable": {
+      "type": "boolean"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "changedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

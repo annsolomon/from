@@ -6,6 +6,20 @@ spring:
       enabled: true
   main:
     banner-mode: "off"
+  # P09: runtime pool = catalog_app (public reads, RLS shows published data only). Passwords from the environment.
+  datasource:
+    url: jdbc:postgresql://${DEXTER_PG_HOST:127.0.0.1}:${POSTGRES_PORT:5432}/catalog?ApplicationName=catalog
+    username: catalog_app
+    password: ${PG_PW_CATALOG_APP:${PG_PW_APP:}}
+    hikari:
+      maximum-pool-size: ${CATALOG_DB_POOL:20}
+      connection-timeout: 5000
+  # Migrations run as the schema owner (MASTER_PLAN 3.1); the app roles have no DDL rights.
+  flyway:
+    user: catalog_owner
+    password: ${PG_PW_CATALOG_OWNER:${PG_PW_OWNER:}}
+    schemas: catalog
+    clean-disabled: true
 
 server:
   port: ${PORT_CATALOG:8083}
@@ -29,6 +43,34 @@ logging:
   pattern:
     # X-Request-Id on every console line (dexter-web RequestIdFilter puts it in the MDC)
     level: "%5p [%X{requestId:-}]"
+
+dexter:
+  db:
+    schema: catalog
+  # Keyset cursors (MASTER_PLAN 4.2): HMAC keys from the environment.
+  cursor:
+    active-kid: c1
+    keys:
+      c1: ${CATALOG_CURSOR_KEY_C1:}
+  # Public catalog reads need no token (@PublicEndpoint); admin endpoints need an admin token (audience "catalog")
+  # with catalog:* permissions.
+  security:
+    jwks-uri: ${IDENTITY_JWKS_URI:http://127.0.0.1:${PORT_IDENTITY:8081}/.well-known/jwks.json}
+    issuer: ${IDENTITY_ISSUER:https://identity.dexter.internal}
+    audience: catalog
+  catalog:
+    # Admin endpoints run on a second pool as catalog_admin (RLS: editor roles only).
+    admin:
+      db-url: ""
+      db-username: catalog_admin
+      db-password: ${PG_PW_CATALOG_ADMIN:${PG_PW_ADMIN:}}
+      db-pool-size: 5
+    relay:
+      enabled: ${CATALOG_RELAY_ENABLED:true}
+      url: jdbc:postgresql://${DEXTER_PG_HOST:127.0.0.1}:${POSTGRES_PORT:5432}/catalog?ApplicationName=catalog-relay
+      username: catalog_relay
+      password: ${PG_PW_CATALOG_RELAY:${PG_PW_RELAY:}}
+      bootstrap-servers: ${KAFKA_BOOTSTRAP:127.0.0.1:${KAFKA_PORT:9092}}
 
 ---
 spring:

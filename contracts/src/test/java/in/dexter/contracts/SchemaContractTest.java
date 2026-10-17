@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import in.dexter.contracts.events.demo.NoteCreatedV1;
 import in.dexter.contracts.events.demo.NoteRenamedV1;
 import in.dexter.contracts.events.gateway.ActivityRecordedV1;
+import in.dexter.contracts.events.catalog.CardPublishedV1;
+import in.dexter.contracts.events.catalog.OfferChangedV1;
 import in.dexter.contracts.events.ledger.ExpenseChangedV1;
 import in.dexter.contracts.events.ledger.ExpenseStateV1;
 import in.dexter.contracts.events.ledger.ImportCompletedV1;
@@ -67,6 +69,17 @@ class SchemaContractTest {
     SAMPLES.put("ledger.expense.deleted.v1.json", new ExpenseChangedV1(expense, 2, after, null, "2026-10-17T12:00:02Z"));
     SAMPLES.put("ledger.expense.restored.v1.json", new ExpenseChangedV1(expense, 3, null, after,
         "2026-10-17T12:00:03Z"));
+    UUID card = UUID.fromString("01941f29-7c00-79b6-9690-fe36f7f70c1b");
+    java.util.Map<String, Object> snap = java.util.Map.of("id", card.toString(), "slug", "mock-saffron-millennia",
+        "rules", java.util.List.of());
+    SAMPLES.put("catalog.card.published.v1.json", new CardPublishedV1(card, "mock-saffron-millennia", "published", 2,
+        "2026-10-17T12:00:00Z", null, snap));
+    SAMPLES.put("catalog.card.retired.v1.json", new CardPublishedV1(card, "mock-saffron-millennia", "retired", 2,
+        "2026-10-17T12:00:00Z", "2026-10-18T12:00:00Z", snap));
+    SAMPLES.put("catalog.offer.changed.v1.json", new OfferChangedV1(
+        UUID.fromString("0192f1e2-0000-7000-8000-0000000000a3"), "active",
+        UUID.fromString("01941f29-7c00-7000-8000-0000000000a1"), card, null, "food.delivery", "10% off food",
+        "pct", 1000, null, 15_000L, 50_000, "2026-10-01T00:00:00Z", null, true, 0, "2026-10-17T12:00:00Z"));
     SAMPLES.put("ledger.import.completed.v1.json", new ImportCompletedV1(
         UUID.fromString("0192f1e2-0000-7000-8000-0000000000f2"), "completed", 120, 118, 20, 2, null,
         "2026-10-17T12:05:00Z"));

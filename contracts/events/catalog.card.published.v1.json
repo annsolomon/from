@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dexter.in/events/catalog.card.published.v1.json",
+  "title": "catalog.card.published v1 - the full published snapshot of a card product (rules, milestone) on the compacted topic dexter.catalog.card.v1, key = card id.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "cardId",
+    "slug",
+    "status",
+    "version",
+    "effectiveFrom",
+    "effectiveTo",
+    "snapshot"
+  ],
+  "properties": {
+    "cardId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "published",
+        "retired"
+      ]
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "effectiveFrom": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "effectiveTo": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "snapshot": {
+      "type": "object"
+    }
+  }
+}

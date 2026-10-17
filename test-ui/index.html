@@ -23,6 +23,7 @@
         <tr><td>P06</td><td><a href="p06-gateway.html">p06-gateway.html</a></td><td>Gateway: route table → service, unknown path 404, token 401, spoofed headers stripped, request-id, 413, rate-limit headers + 429; all Live pages now go through the gateway</td></tr>
         <tr><td>P07</td><td><a href="p07-ledger.html">p07-ledger.html</a></td><td>Ledger: expenses keyset window with filters, create with Idempotency-Key, GET ETag → PATCH If-Match (412 stale, 428 missing), soft delete + :restore, daily totals (IST day × category root) live after every write, cross-tenant 404, custom categories</td></tr>
         <tr><td>P08</td><td><a href="p08-ledger-plus.html">p08-ledger-plus.html</a></td><td>Ledger plus: merchant autocomplete (latency), resolver stages + rules, search with keyset paging, bulk create (partial failure, clientRef duplicates, replay), CSV import via presigned upload with progress and re-import idempotency, calendar grid, summary by category/merchant/payment/day</td></tr>
+        <tr><td>P09</td><td><a href="p09-catalog.html">p09-catalog.html</a></td><td>Catalog: public cards without a token (name keyset, network/issuer/fee/category-earning filters), detail with ETag = version, trigram search, category potential, offers; editor flow draft → If-Match save → publish v1/v2 → versions → retire; drafts stay invisible; admin endpoints 401/403</td></tr>
       </tbody>
     </table>
   </section>

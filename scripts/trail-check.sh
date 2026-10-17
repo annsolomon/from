@@ -6,7 +6,7 @@ set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
 source scripts/lib/services.sh
-PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html p05-mfa-admin.html p06-gateway.html p07-ledger.html p08-ledger-plus.html})
+PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html p05-mfa-admin.html p06-gateway.html p07-ledger.html p08-ledger-plus.html p09-catalog.html})
 BASE=http://127.0.0.1:8099
 fail=0
 
@@ -111,6 +111,15 @@ sm=$(curl -s --max-time 5 -H "Authorization: Bearer $at" "$BASE/api/v1/summary?f
 if [[ $sm == *'"groups":['* ]]; then printf 'PASS  %-10s %s\n' p08-sum 200; else printf 'FAIL  %-10s %s\n' p08-sum "${sm:0:200}"; fail=1; fi
 se=$(curl -s --max-time 5 -H "Authorization: Bearer $at" "$BASE/api/v1/expenses/search?q=swiggy")
 if [[ $se == *'"page":'* ]]; then printf 'PASS  %-10s %s\n' p08-search 200; else printf 'FAIL  %-10s %s\n' p08-search "${se:0:200}"; fail=1; fi
+
+# P09: the public catalog through the trail proxy without a token (what p09-catalog.html Live mode calls)
+cc=$(curl -s --max-time 5 "$BASE/api/v1/catalog/cards?limit=24")
+if [[ $cc == *'"slug":"mock-'* && $cc == *'"nextCursor":"'* ]]; then printf 'PASS  %-10s %s\n' p09-cards 200; else printf 'FAIL  %-10s %s\n' p09-cards "${cc:0:200}"; fail=1; fi
+cd1=$(curl -s -D - -o /tmp/trail-p09.json --max-time 5 "$BASE/api/v1/catalog/cards/mock-saffron-millennia-cashback")
+if [[ $cd1 == *' 200'* ]] && grep -qi '^etag: "' <<< "$cd1" && grep -q '"rules":\[' /tmp/trail-p09.json; then printf 'PASS  %-10s %s\n' p09-detail 200
+else printf 'FAIL  %-10s %s\n' p09-detail "${cd1:0:200}"; fail=1; fi
+cp=$(curl -s --max-time 5 "$BASE/api/v1/catalog/categories/potential?category=food.delivery")
+if [[ $cp == *'"rateBps":'* ]]; then printf 'PASS  %-10s %s\n' p09-potent 200; else printf 'FAIL  %-10s %s\n' p09-potent "${cp:0:200}"; fail=1; fi
 
 echo "trail-check: $([[ $fail -eq 0 ]] && echo PASS || echo FAIL)"
 exit $fail

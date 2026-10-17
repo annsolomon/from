@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trail P09 catalog</title>
+  <link rel="stylesheet" href="trail.css">
+  <style>
+    textarea.in { width: 100%; min-height: 220px; font: 12px var(--mono); box-sizing: border-box; }
+    .list div.pick { cursor: pointer; }
+  </style>
+</head>
+<body>
+<main>
+  <section class="card">
+    <h2>P09 · catalog: versioned card products, public reads, editor publishing</h2>
+    <p class="mono" style="color:var(--muted);margin:0">
+      Public endpoints need no token: <code>/api/v1/catalog/cards</code> (keyset by name, filters), <code>/cards/{slug}</code>
+      (ETag = version), <code>/cards/search</code> (trigram), <code>/categories/potential</code>, <code>/offers</code>.
+      Admin endpoints (<code>/api/v1/admin/catalog/*</code>) need an admin token with catalog permissions: in Live mode
+      sign in as the admin on <a href="p05-mfa-admin.html">p05-mfa-admin.html</a> (MFA) and paste the access token
+      below. Mock mode serves the seed's 40 MOCK_ cards and the editor flow. Testing aid only - deleted in P19.
+    </p>
+  </section>
+
+  <section class="card">
+    <div class="row" style="justify-content:space-between">
+      <h2 style="margin:0">Public catalog (name order · 24 first, then 12) · click a card for the detail</h2>
+      <div class="row">
+        <select class="in" id="f-net" aria-label="network"><option value="">any network</option><option>visa</option>
+          <option>mastercard</option><option>rupay</option><option>amex</option><option>diners</option></select>
+        <input class="in" id="f-issuer" placeholder="issuer code" style="width:120px">
+        <input class="in" id="f-fee" placeholder="max annual fee ₹" style="width:120px">
+        <input class="in" id="f-cat" placeholder="category" style="width:120px">
+        <input class="in" id="f-rate" placeholder="min bps" style="width:70px">
+        <button class="ghost" type="button" id="f-go">Apply</button>
+      </div>
+    </div>
+    <div id="pager" style="margin-top:8px"></div>
+  </section>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>Card detail (GET /v1/catalog/cards/{slug})</h2>
+      <pre class="out" id="d-out" style="max-height:360px">click a card</pre>
+    </section>
+    <section class="card">
+      <h2>Search (trigram) · category potential · offers</h2>
+      <div class="row"><input class="in" id="s-q" placeholder="search: millenia, regalia…" style="flex:1"></div>
+      <div class="list pickable" id="s-list" style="max-height:140px;margin-top:6px"></div>
+      <div class="row" style="margin-top:8px">
+        <input class="in" id="p-cat" value="food.delivery" style="width:160px">
+        <button class="ghost" type="button" id="p-go">Best rate for category</button>
+        <button class="ghost" type="button" id="o-go">Active offers for category</button>
+      </div>
+      <pre class="out" id="p-out">—</pre>
+    </section>
+  </div>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>Editor: draft → publish (admin token, catalog:read/write/publish)</h2>
+      <div class="row">
+        <input class="in mono" id="a-token" placeholder="Live: paste an admin access token" style="flex:1">
+        <button class="ghost" type="button" id="a-use">Use token</button>
+      </div>
+      <div class="row">
+        <button class="ghost" type="button" id="a-new">New card (template)</button>
+        <button class="ghost" type="button" id="a-edit">Edit selected card</button>
+        <button class="act" type="button" id="a-save">Save draft (If-Match)</button>
+        <button class="act" type="button" id="a-pub">:publish</button>
+        <button class="ghost" type="button" id="a-retire">:retire</button>
+        <button class="ghost" type="button" id="a-versions">Versions</button>
+      </div>
+      <p class="mono" style="color:var(--muted);margin:4px 0" id="a-state">no card selected</p>
+      <textarea class="in" id="a-doc" spellcheck="false"></textarea>
+      <pre class="out" id="a-out">—</pre>
+    </section>
+    <section class="card">
+      <h2>Rules of the selected version + permission checks</h2>
+      <div class="list" id="r-list" style="max-height:220px"></div>
+      <div class="row" style="margin-top:8px">
+        <button class="ghost" type="button" id="c-anon">Admin list without a token</button>
+        <button class="ghost" type="button" id="c-user">… with a user token</button>
+        <button class="ghost" type="button" id="c-draft">Draft slug publicly</button>
+      </div>
+      <pre class="out" id="c-out">—</pre>
+    </section>
+  </div>
+
+  <div class="grid2">
+    <section class="card" id="tenant"></section>
+    <section class="card" id="events"></section>
+  </div>
+  <section class="card" id="log"></section>
+</main>
+<script src="trail.js"></script>
+<script>
+(async () => {
+  Trail.mountHeader('Catalog', 'P09');
+  Trail.mountLog(document.getElementById('log'));
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const rupees = p => '₹' + (p / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+
+  // ---------------------------------------------------------------- mock: detail/search/potential/offers + editor
+  let seed = null;
+  try { seed = await Trail.loadSeed(); } catch (e) { $('d-out').textContent = 'fixtures missing: ' + e.message; }
+  const cards = seed ? seed.catalog.rows() : [];
+  const drafts = new Map(); const versions = new Map(); const offers = [];
+  const isEditor = req => req.tenant && req.tenant.role !== 'USER';
+  const adminGate = req => !req.tenant ? Trail.problem(401, 'UNAUTHENTICATED', 'admin token required')
+    : !isEditor(req) ? Trail.problem(403, 'FORBIDDEN', 'catalog permissions required') : null;
+  const snap = c => { const { sortName, version, status, ...s } = c; return s; };
+  const docOf = c => { const s = snap(c); delete s.id; delete s.issuerName;
+    s.rules = s.rules.map(({ id, ...r }) => r); return s; };
+  if (seed) {
+    cards.forEach(c => { c.status = c.status || 'published'; versions.set(c.id, [{ version: 1, effectiveFrom: '2025-01-01T00:00:00Z', effectiveTo: null, snapshot: snap(c) }]); });
+    // the P03 list mock keeps serving the list; it must hide drafts and retired cards
+    const visible = () => cards.filter(c => c.status === 'published');
+    Trail.mock('GET', /^\/api\/v1\/catalog\/cards\/search$/, (m, req) => {
+      const q = String(req.query.q || '').toLowerCase().trim();
+      if (q.length < 2) return Trail.problem(400, 'VALIDATION_FAILED', 'q: 2-60 characters');
+      const words = q.split(/\s+/);
+      return { data: visible().map(c => ({ c, score: words.filter(w => c.name.toLowerCase().includes(w.slice(0, Math.max(3, w.length - 2)))).length }))
+        .filter(x => x.score).sort((a, b) => b.score - a.score || a.c.name.localeCompare(b.c.name)).slice(0, 20)
+        .map(x => ({ id: x.c.id, slug: x.c.slug, name: x.c.name, network: x.c.network, tier: x.c.tier, annualFeePaise: x.c.annualFeePaise, similarity: x.score / words.length })) };
+    });
+    Trail.mock('GET', /^\/api\/v1\/catalog\/cards\/([a-z0-9-]+)$/, m => {
+      const c = visible().find(x => x.slug === m[1]);
+      return c ? Trail.reply(200, { ...snap(c), version: c.version }, { etag: `"${c.version}"` }) : Trail.problem(404, 'NOT_FOUND', 'card not found');
+    });
+    Trail.mock('GET', /^\/api\/v1\/catalog\/categories\/potential$/, (m, req) => {
+      const cat = req.query.category || '';
+      if (!/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*){0,3}$/.test(cat)) return Trail.problem(400, 'VALIDATION_FAILED', 'category');
+      return { category: cat, cards: visible().map(c => ({ c, rate: seed.rateFor(c, cat) })).filter(x => x.rate !== null)
+        .sort((a, b) => b.rate - a.rate || a.c.name.localeCompare(b.c.name)).slice(0, 10)
+        .map(x => ({ cardId: x.c.id, slug: x.c.slug, name: x.c.name, rateBps: x.rate })) };
+    });
+    Trail.mock('GET', /^\/api\/v1\/catalog\/offers$/, (m, req) => ({ data: offers.filter(o => o.status === 'active'
+      && (!req.query.category || (o.categoryPath && (req.query.category === o.categoryPath || req.query.category.startsWith(o.categoryPath + '.'))))) }));
+    // editor
+    Trail.mock('GET', /^\/api\/v1\/admin\/catalog\/cards$/, (m, req) => adminGate(req) || ({ data: cards.map(c => ({ id: c.id, slug: c.slug, name: c.name, status: c.status, currentVersion: c.status === 'draft' ? null : c.version })), page: { limit: 100, hasMore: false, nextCursor: null } }));
+    const view = c => { const d = drafts.get(c.id); return { cardId: c.id, status: c.status, currentVersion: c.status === 'draft' ? null : c.version,
+      draftVersion: d.version, unpublishedChanges: JSON.stringify(d.document) !== JSON.stringify(docOf(c)) || c.status === 'draft', document: d.document }; };
+    const ensure = c => { if (!drafts.has(c.id)) drafts.set(c.id, { version: 0, document: docOf(c) }); return drafts.get(c.id); };
+    Trail.mock('POST', /^\/api\/v1\/admin\/catalog\/cards$/, (m, req) => adminGate(req) || (() => {
+      const d = req.body || {};
+      if (!/^[a-z0-9][a-z0-9-]{1,79}$/.test(d.slug || '') || !d.name) return Trail.problem(400, 'VALIDATION_FAILED', 'slug and name required');
+      if (cards.some(c => c.slug === d.slug)) return Trail.problem(409, 'SLUG_TAKEN', 'slug taken');
+      const c = { id: Trail.uuidv7(), ...d, issuerName: d.issuerCode, rules: (d.rules || []).map(r => ({ id: Trail.uuidv7(), ...r })), status: 'draft', version: 0, name: d.name };
+      cards.push(c); drafts.set(c.id, { version: 0, document: d });
+      return Trail.reply(201, view(c), { etag: '"0"' });
+    })());
+    Trail.mock('GET', /^\/api\/v1\/admin\/catalog\/cards\/([0-9a-f-]{36})\/draft$/, (m, req) => adminGate(req) || (() => {
+      const c = cards.find(x => x.id === m[1]); if (!c) return Trail.problem(404, 'NOT_FOUND', 'card not found');
+      const d = ensure(c); return Trail.reply(200, view(c), { etag: `"${d.version}"` });
+    })());
+    Trail.mock('PUT', /^\/api\/v1\/admin\/catalog\/cards\/([0-9a-f-]{36})\/draft$/, (m, req) => adminGate(req) || (() => {
+      const c = cards.find(x => x.id === m[1]); if (!c) return Trail.problem(404, 'NOT_FOUND', 'card not found');
+      const d = ensure(c); const im = Object.entries(req.headers).find(([k]) => k.toLowerCase() === 'if-match');
+      if (!im) return Trail.problem(428, 'IF_MATCH_REQUIRED', 'If-Match required');
+      if (im[1] !== `"${d.version}"`) return Trail.problem(412, 'VERSION_CONFLICT', 'draft changed');
+      if ((req.body || {}).slug !== c.slug) return Trail.problem(400, 'VALIDATION_FAILED', 'slug is fixed');
+      d.version++; d.document = req.body; return Trail.reply(200, view(c), { etag: `"${d.version}"` });
+    })());
+    Trail.mock('GET', /^\/api\/v1\/admin\/catalog\/cards\/([0-9a-f-]{36})\/versions$/, (m, req) => adminGate(req) || ({ data: [...(versions.get(m[1]) || [])].reverse() }));
+    Trail.mock('POST', /^\/api\/v1\/admin\/catalog\/cards\/([0-9a-f-]{36}):(publish|retire)$/, (m, req) => adminGate(req) || (() => {
+      const c = cards.find(x => x.id === m[1]); if (!c) return Trail.problem(404, 'NOT_FOUND', 'card not found');
+      if (c.status === 'retired') return Trail.problem(409, 'CARD_RETIRED', 'retired');
+      const now = new Date().toISOString(); const vs = versions.get(c.id) || []; versions.set(c.id, vs);
+      if (m[2] === 'retire') {
+        if (c.status !== 'published') return Trail.problem(409, 'CARD_RETIRED', 'only published cards retire');
+        vs[vs.length - 1].effectiveTo = now; c.status = 'retired';
+        Trail.events.emit('catalog.card.retired', c.id, { cardId: c.id, slug: c.slug, status: 'retired', version: c.version }, null);
+        return { cardId: c.id, slug: c.slug, status: 'retired', version: c.version, effectiveTo: now, changed: true };
+      }
+      const d = ensure(c);
+      if (c.status === 'published' && JSON.stringify(d.document) === JSON.stringify(docOf(c))) {
+        return { cardId: c.id, slug: c.slug, status: c.status, version: c.version, effectiveFrom: vs[vs.length - 1].effectiveFrom, changed: false };
+      }
+      if (vs.length) vs[vs.length - 1].effectiveTo = now;
+      Object.assign(c, d.document, { rules: (d.document.rules || []).map(r => ({ id: Trail.uuidv7(), ...r })), status: 'published', version: (c.version || 0) + 1 });
+      vs.push({ version: c.version, effectiveFrom: now, effectiveTo: null, snapshot: snap(c) });
+      drafts.set(c.id, { version: d.version, document: docOf(c) });
+      Trail.events.emit('catalog.card.published', c.id, { cardId: c.id, slug: c.slug, status: 'published', version: c.version, snapshot: snap(c) }, null);
+      return { cardId: c.id, slug: c.slug, status: 'published', version: c.version, effectiveFrom: now, changed: true };
+    })());
+  }
+
+  // ---------------------------------------------------------------- public list + detail
+  const filters = () => {
+    const q = {};
+    if ($('f-net').value) q.network = $('f-net').value;
+    if ($('f-issuer').value.trim()) q.issuer = $('f-issuer').value.trim();
+    if ($('f-fee').value.trim()) q.maxAnnualFee = String(Math.round(Number($('f-fee').value) * 100));
+    if ($('f-cat').value.trim()) q.category = $('f-cat').value.trim();
+    if ($('f-rate').value.trim()) q.minRateBps = $('f-rate').value.trim();
+    return q;
+  };
+  const pager = Trail.mountPager($('pager'), {
+    path: '/api/v1/catalog/cards', query: filters, first: 24, page: 12,
+    render: c => `<a href="#" data-slug="${esc(c.slug)}"><strong>${esc(c.name)}</strong></a> <span style="color:var(--muted)">${esc(c.network)} · ${esc(c.tier)} · annual ${rupees(c.annualFeePaise)} · ${c.rules.length} rules · v${c.version}</span>`,
+  });
+  let selected = null;
+  const detail = async slug => {
+    const r = await Trail.api('GET', '/api/v1/catalog/cards/' + encodeURIComponent(slug));
+    selected = r.status === 200 ? r.data : selected;
+    $('d-out').textContent = `${r.status} ${r.data && r.data.code || ''} · ETag ${r.headers.etag || '—'}\n${JSON.stringify(r.data, null, 2)}`;
+    $('r-list').innerHTML = r.status === 200 ? r.data.rules.map(x => `<div>${esc(x.categoryPath || '(base)')}${x.merchantSlug ? ' @' + esc(x.merchantSlug) : ''} <strong>${x.rateBps} bps</strong> ${esc(x.rewardType)}${x.capPaise ? ' · cap ' + rupees(x.capPaise) + '/' + esc(x.capPeriod) : ''}${(x.excludedPaths || []).length ? ' · excl ' + esc(x.excludedPaths.join(',')) : ''}</div>`).join('') : '';
+    if (selected) $('a-state').textContent = `selected ${selected.slug} (${selected.id})`;
+  };
+  $('pager').addEventListener('click', e => { const a = e.target.closest('[data-slug]'); if (a) { e.preventDefault(); detail(a.dataset.slug); } });
+  $('f-go').addEventListener('click', () => pager.reload());
+
+  // ---------------------------------------------------------------- search, potential, offers
+  let sTimer = null;
+  $('s-q').addEventListener('input', () => { clearTimeout(sTimer); sTimer = setTimeout(async () => {
+    if ($('s-q').value.trim().length < 2) { $('s-list').innerHTML = ''; return; }
+    const r = await Trail.api('GET', '/api/v1/catalog/cards/search?q=' + encodeURIComponent($('s-q').value));
+    $('s-list').innerHTML = r.status === 200 ? r.data.data.map(h => `<div class="pick" data-slug="${esc(h.slug)}">${esc(h.name)} <span style="color:var(--muted)">sim ${Number(h.similarity).toFixed(2)}</span></div>`).join('') || '<div class="skel">no match</div>' : `<div class="skel">${r.status}</div>`;
+  }, 150); });
+  $('s-list').addEventListener('click', e => { const d = e.target.closest('[data-slug]'); if (d) detail(d.dataset.slug); });
+  $('p-go').addEventListener('click', async () => {
+    const r = await Trail.api('GET', '/api/v1/catalog/categories/potential?category=' + encodeURIComponent($('p-cat').value));
+    $('p-out').textContent = r.status === 200 ? `best published rate for ${r.data.category}:\n` + r.data.cards.map(c => `  ${String(c.rateBps).padStart(5)} bps  ${c.name}${c.rulePath !== undefined ? '  (rule ' + (c.rulePath || 'base') + ')' : ''}`).join('\n')
+      : `${r.status} ${r.data && r.data.code}`;
+  });
+  $('o-go').addEventListener('click', async () => {
+    const r = await Trail.api('GET', '/api/v1/catalog/offers?category=' + encodeURIComponent($('p-cat').value));
+    $('p-out').textContent = `${r.status} · ${r.status === 200 ? r.data.data.length + ' active offers\n' + JSON.stringify(r.data.data, null, 2) : r.data && r.data.code}`;
+  });
+
+  // ---------------------------------------------------------------- editor
+  let editing = null; let etag = null;
+  $('a-use').addEventListener('click', () => {
+    const t = $('a-token').value.trim(); if (!t) return;
+    Trail.usePersona('admin'); Trail.setToken('admin', t); $('a-out').textContent = 'admin token set for Live calls';
+  });
+  const showDraft = r => {
+    $('a-out').textContent = `${r.status} ${r.data && r.data.code || ''}${r.headers.etag ? ' · ETag ' + r.headers.etag : ''}`;
+    if (r.status === 200 || r.status === 201) {
+      editing = r.data.cardId; etag = r.headers.etag;
+      $('a-doc').value = JSON.stringify(r.data.document, null, 2);
+      $('a-state').textContent = `card ${editing} · ${r.data.status} · published v${r.data.currentVersion ?? '—'} · draft ${etag}${r.data.unpublishedChanges ? ' · unpublished changes' : ''}`;
+    } else if (r.data) $('a-out').textContent += '\n' + JSON.stringify(r.data, null, 2);
+  };
+  $('a-new').addEventListener('click', async () => {
+    const slug = 'trail-card-' + Date.now().toString(36);
+    const doc = { slug, name: 'Trail Card ' + slug.slice(-5), issuerCode: (selected && selected.issuerCode) || 'MOCK_SAFFRON', network: 'rupay', tier: 'entry',
+      joiningFeePaise: 0, annualFeePaise: 49900, feeWaiverSpendPaise: 5000000, aprBps: 4200, forexMarkupBps: 350, fuelSurchargeWaiverBps: 100,
+      features: { contactless: true }, rules: [{ categoryPath: null, rewardType: 'cashback', rateBps: 100, excludedPaths: ['fuel'] },
+        { categoryPath: 'food.delivery', rewardType: 'cashback', rateBps: 700, capPaise: 50000, capPeriod: 'statement' }], milestone: null };
+    showDraft(await Trail.api('POST', '/api/v1/admin/catalog/cards', { body: doc }));
+  });
+  $('a-edit').addEventListener('click', async () => {
+    if (!selected) { $('a-out').textContent = 'click a card first'; return; }
+    showDraft(await Trail.api('GET', `/api/v1/admin/catalog/cards/${selected.id}/draft`));
+  });
+  $('a-save').addEventListener('click', async () => {
+    if (!editing) return; let body;
+    try { body = JSON.parse($('a-doc').value); } catch (e) { $('a-out').textContent = 'not JSON: ' + e.message; return; }
+    showDraft(await Trail.api('PUT', `/api/v1/admin/catalog/cards/${editing}/draft`, { body, headers: { 'If-Match': etag || '"0"' } }));
+  });
+  const action = async name => {
+    if (!editing) return;
+    const r = await Trail.api('POST', `/api/v1/admin/catalog/cards/${editing}:${name}`);
+    $('a-out').textContent = `${name} → ${r.status}\n${JSON.stringify(r.data, null, 2)}`;
+    if (r.status === 200) { pager.reload(); if (r.data.slug) detail(r.data.slug); }
+  };
+  $('a-pub').addEventListener('click', () => action('publish'));
+  $('a-retire').addEventListener('click', () => action('retire'));
+  $('a-versions').addEventListener('click', async () => {
+    if (!editing) return;
+    const r = await Trail.api('GET', `/api/v1/admin/catalog/cards/${editing}/versions`);
+    $('a-out').textContent = `${r.status}\n` + (r.status === 200 ? r.data.data.map(v => `v${v.version}  ${v.effectiveFrom} → ${v.effectiveTo || 'open'}`).join('\n') : JSON.stringify(r.data));
+  });
+
+  // ---------------------------------------------------------------- permission checks
+  const as = async (key, fn) => { const me = Trail.persona && Trail.persona.key; Trail.usePersona(key); try { return await fn(); } finally { Trail.usePersona(me); } };
+  $('c-anon').addEventListener('click', async () => { const r = await as(null, () => Trail.api('GET', '/api/v1/admin/catalog/cards')); $('c-out').textContent = `no token → ${r.status} ${r.data && r.data.code || ''} (expected 401)`; });
+  $('c-user').addEventListener('click', async () => { const r = await as('asha', () => Trail.api('GET', '/api/v1/admin/catalog/cards')); $('c-out').textContent = `user token → ${r.status} ${r.data && r.data.code || ''} (expected 403)`; });
+  $('c-draft').addEventListener('click', async () => {
+    if (!editing) { $('c-out').textContent = 'create a new card first'; return; }
+    const slug = JSON.parse($('a-doc').value).slug;
+    const r = await as(null, () => Trail.api('GET', '/api/v1/catalog/cards/' + slug));
+    $('c-out').textContent = `public GET ${slug} → ${r.status} ${r.data && r.data.code || ''} (404 while it is only a draft)`;
+  });
+
+  Trail.mountTenantSwitcher($('tenant'), { onSwitch: () => {} });
+  if (!Trail.persona) Trail.usePersona('admin');
+  Trail.mountEvents($('events'));
+  document.addEventListener('trail:mode', () => pager.reload());
+  await pager.init();
+})();
+</script>
+</body>
+</html>

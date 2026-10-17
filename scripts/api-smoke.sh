@@ -16,6 +16,8 @@
 #        daily totals, delete/restore, cross-tenant 404, categories; then ledger outbox -> dexter.ledger.expense.v1.
 #   P08: ledger B (scripts/lib/p08_smoke.py): autocomplete, resolver + rules, search, bulk, CSV import through the
 #        object store (presigned PUT) incl. re-import, calendar, summary; then dexter.ledger.import.v1 on Kafka.
+#   P09: public catalog via the gateway (scripts/lib/p09_smoke.py): seeded cards paged without a token, filters,
+#        detail + ETag, search, potential, offers; admin catalog refuses anonymous/user callers.
 # Later phases append their checks below the P00 block. Output also goes to $SMOKE_OUT if set.
 set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -135,6 +137,11 @@ log "# P08 ledger B via gateway (:8080)"
 p08=$(python3 "$ROOT/scripts/lib/p08_smoke.py" "http://localhost:8080" 2>&1); p08rc=$?
 while IFS= read -r line; do log "$line"; done <<< "$p08"
 [[ $p08rc -eq 0 ]] || fail=1
+# ------------------------------------------------------------------ P09: public catalog through the gateway
+log "# P09 catalog via gateway (:8080)"
+p09=$(python3 "$ROOT/scripts/lib/p09_smoke.py" "http://localhost:8080" 2>&1); p09rc=$?
+while IFS= read -r line; do log "$line"; done <<< "$p09"
+[[ $p09rc -eq 0 ]] || fail=1
 # Outbox -> Kafka (MASTER_PLAN 6.3): every identity event written above is published by the relay within 30 s.
 COMPOSE=(docker compose --env-file "$ROOT/.env" -f "$ROOT/infra/compose/docker-compose.yml")
 outbox() { "${COMPOSE[@]}" exec -T postgres psql -U "${POSTGRES_USER:-postgres}" -d identity -tA -c "$1" 2>/dev/null | tr -d '[:space:]'; }

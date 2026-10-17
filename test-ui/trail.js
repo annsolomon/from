@@ -121,8 +121,10 @@
     const tenantKey = opts.tenantKey === undefined ? 'accountId' : opts.tenantKey;
     let rows = typeof opts.rows === 'function' ? null : (opts.rows || []).slice();
     const all = () => (rows || opts.rows());
-    const cmp = (a, b) => (a[sortKey] < b[sortKey] ? 1 : a[sortKey] > b[sortKey] ? -1 : (a.id < b.id ? 1 : a.id > b.id ? -1 : 0));
-    const before = (row, k) => row[sortKey] < k[0] || (row[sortKey] === k[0] && row.id < k[1]);
+    const sign = opts.asc ? -1 : 1; // DESC by default (newest first); asc: true for name-ordered lists (P09 catalog)
+    const cmp = (a, b) => sign * (a[sortKey] < b[sortKey] ? 1 : a[sortKey] > b[sortKey] ? -1 : (a.id < b.id ? 1 : a.id > b.id ? -1 : 0));
+    const before = (row, k) => opts.asc ? row[sortKey] > k[0] || (row[sortKey] === k[0] && row.id > k[1])
+      : row[sortKey] < k[0] || (row[sortKey] === k[0] && row.id < k[1]);
     return {
       add(row) { if (rows) rows.push(row); return row; },
       rows: all,
@@ -150,8 +152,8 @@
           if (payload.f !== f) return problem(400, 'CURSOR_FILTER_MISMATCH', 'cursor was issued for other filters');
           after = payload.k;
         }
-        const matches = all().filter(r => (tenantKey === null || r[tenantKey] === tenant)
-          && Object.keys(q).every(k => opts.filters[k](r, q[k]))
+        const matches = all().filter(r => (tenantKey === null || r[tenantKey] === tenant) && (!opts.where || opts.where(r))
+          && Object.keys(q).every(k => opts.filters[k](r, q[k], q))
           && (after === null || before(r, after)));
         matches.sort(cmp);
         const page = matches.slice(0, limit + 1); // limit + 1: the extra row only says "there is more"
@@ -411,8 +413,19 @@
         maxPaise: (r, v) => r.amountPaise <= Number(v),
       },
     });
-    const catalog = collection({ rows: seed.catalogCards.map(c => ({ ...c, sortName: c.name })), sortKey: 'sortName',
-      sortName: 'name_desc', tenantKey: null, filters: { network: (r, v) => r.network === v, tier: (r, v) => r.tier === v } });
+    // P09: the public catalog API - name order (A to Z), filters network / issuer / maxAnnualFee / category earning
+    const rateFor = (card, cat) => {
+      const ok = card.rules.filter(r => !r.merchantSlug && (!r.categoryPath || cat === r.categoryPath || cat.startsWith(r.categoryPath + '.'))
+        && !(r.excludedPaths || []).some(x => cat === x || cat.startsWith(x + '.')));
+      ok.sort((a, b) => (b.categoryPath || '').split('.').filter(Boolean).length - (a.categoryPath || '').split('.').filter(Boolean).length);
+      return ok.length ? ok[0].rateBps : null;
+    };
+    const catalog = collection({ rows: seed.catalogCards.map(c => ({ ...c, version: 1 })), sortKey: 'name', asc: true,
+      sortName: 'name_asc', tenantKey: null, where: r => !r.status || r.status === 'published', filters: {
+        network: (r, v) => r.network === v, issuer: (r, v) => r.issuerCode === v,
+        maxAnnualFee: (r, v) => r.annualFeePaise <= Number(v),
+        category: (r, v, q) => { const rate = rateFor(r, v); return rate !== null && rate >= Number(q.minRateBps || 0); },
+        minRateBps: () => true } });
     const userCards = collection({ rows: seed.userCards.map(c => ({ ...c, sortName: c.nickname })), sortKey: 'sortName',
       sortName: 'nickname_desc', filters: {} });
 
@@ -448,7 +461,7 @@
       return { accessToken: 'mock.' + p.key, tokenType: 'Bearer', expiresIn: 600 };
     });
     mock('GET', /^\/api\/_dev\/outbox\/recent$/, () => ({ data: events.recent() }));
-    return { expenses, catalog, userCards, categories: seed.categories, merchants: seed.merchants };
+    return { expenses, catalog, userCards, categories: seed.categories, merchants: seed.merchants, rateFor };
   }
   /** Browser: fetch the seed fixtures and register the routes. */
   async function loadSeed() {
@@ -670,6 +683,8 @@
     get mode() { return mode; }, setMode(m) { mode = m; },
     settings, cursor, collection, mockList, idempotent, events, Pager, pager,
     personas: () => auth.personas, get persona() { return auth.current; }, setPersonas, usePersona, login,
+    /** Live: use an access token obtained elsewhere (e.g. an admin token from p05-mfa-admin.html after MFA). */
+    setToken(key, token) { auth.tokens[key] = token; personaListeners.forEach(fn => fn(auth.current)); },
     useSeed, loadSeed, mountTenantSwitcher, mountPager, mountIdempotencyTester, mountEvents,
     uuidv4, uuidv7, liveRoutes, livePath, b64urlDecode, _reset() { mocks.length = 0; idemStore.clear(); events.clear(); auth.current = null; auth.tokens = {}; },
   };
