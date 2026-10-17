@@ -40,8 +40,9 @@ class ResolverAccuracyIT extends LedgerIT {
   @Autowired
   TenantTx tx;
 
-  @BeforeAll
-  static void merchants() {
+  /** After the context (Flyway) is up: a static @BeforeAll can run before the first test class migrates. */
+  @org.junit.jupiter.api.BeforeEach
+  void merchants() {
     SeedMerchants.ensureLoaded(ADMIN);
   }
 

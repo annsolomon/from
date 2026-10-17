@@ -25,8 +25,9 @@ class ImportIT extends LedgerIT {
   static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(ImportIT.class);
   static final String HEADER = "date,amount,merchant,category,payment_method,note,client_ref\n";
 
-  @BeforeAll
-  static void merchants() {
+  /** After the context (Flyway) is up: a static @BeforeAll can run before the first test class migrates. */
+  @org.junit.jupiter.api.BeforeEach
+  void merchants() {
     SeedMerchants.ensureLoaded(ADMIN);
   }
 

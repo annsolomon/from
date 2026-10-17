@@ -60,7 +60,7 @@ public final class ExpenseRepository implements ExpenseStore {
 
   /**
    * Search (MASTER_PLAN P08): the tenant + date btree ({@code expenses_list}) bounds the scan, then each row is
-   * rechecked against the text (substring on merchant/note, pg_trgm word similarity on the merchant). No trigram
+   * rechecked against the text (substring on merchant/note, pg_trgm word similarity ≥ 0.5 on the merchant). No trigram
    * index on {@code expenses}: it would cover every tenant's rows and the predicate is per tenant (A-48).
    */
   public static final String SEARCH = BASE + " AND occurred_at >= :from AND occurred_at < :to"
@@ -77,6 +77,8 @@ public final class ExpenseRepository implements ExpenseStore {
       + " merchant_display, merchant_id, category_path, category_source, resolution_confidence, payment_method,"
       + " user_card_id, note, tags, client_ref, source, created_at, updated_at, version, deleted_at)";
   static final int INSERT_BATCH = 500;
+  /** pg_trgm word similarity accepted by search (transaction-local setting). */
+  static final String WORD_SIMILARITY = "0.5";
 
   private final JdbcClient jdbc;
   private final KeysetPager pager;
@@ -143,6 +145,9 @@ public final class ExpenseRepository implements ExpenseStore {
     params.put("to", Sql.ts(to));
     params.put("q", q);
     params.put("pat", "%" + likeEscape(q) + "%");
+    // one typo in a short word ("bakry" vs "bakery" = 0.5) passes; the default 0.6 needs two correct trigrams more
+    jdbc.sql("SELECT set_config('pg_trgm.word_similarity_threshold', '" + WORD_SIMILARITY + "', true)").query()
+        .singleRow();
     return pager.page(jdbc, SEARCH_QUERY, page, params, filters);
   }
 

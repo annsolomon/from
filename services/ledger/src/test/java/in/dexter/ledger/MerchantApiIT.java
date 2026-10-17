@@ -22,8 +22,9 @@ import tools.jackson.databind.JsonNode;
 class MerchantApiIT extends LedgerIT {
   static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(MerchantApiIT.class);
 
-  @BeforeAll
-  static void merchants() {
+  /** After the context (Flyway) is up: a static @BeforeAll can run before the first test class migrates. */
+  @org.junit.jupiter.api.BeforeEach
+  void merchants() {
     SeedMerchants.ensureLoaded(ADMIN);
   }
 
