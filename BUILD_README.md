@@ -1,9 +1,9 @@
 # Dexter v2 — Build README (living handoff)
 
-**Last updated:** 2026-10-17 · **Chat/phase:** P07 in CI · **Model:** Claude Opus 5.5
-**P07 (Ledger A) is written and in CI.** Repo `annsolomon/from` (main); `verify.sh full` + `trail-check.sh` run on a
-GitHub runner for every push to main (reports on branch `verify-reports`). Next chat: **P08** (Ledger B) once P07 is
-DONE. Upload `MASTER_PLAN.md` + this README; the code is in the repo (clone it).
+**Last updated:** 2026-10-17 · **Chat/phase:** P07 DONE · **Model:** Claude Opus 5.5
+**P07 is DONE (2026-10-17).** `verify.sh full` PASS + `trail-check.sh` PASS on a GitHub runner (repo `annsolomon/from`,
+commit `4101870`, run 39023459091; reports on branch `verify-reports`). Next chat: **P08** (Ledger B: search, bulk
+import, merchants, rules). Upload `MASTER_PLAN.md` + this README; the code is in the repo (clone it).
 
 ## 1. Phase status
 
@@ -16,7 +16,7 @@ DONE. Upload `MASTER_PLAN.md` + this README; the code is in the repo (clone it).
 | P04 | Identity A | **DONE** 2026-10-17 | `verify.sh full` 21/21 PASS + trail-check PASS (CI run 39003795722, git 6e6ed9f): identity unit 19 + IT 41 (incl. IdempotencyContract 6, PaginationContract 9, RLS proof 7), api-smoke P04 26/26, outbox → Kafka 5 published / 0 pending | DoD all ticked (§3) |
 | P05 | Identity B (MFA/admin/RBAC) | **DONE** 2026-10-17 | `verify.sh full` PASS + trail-check PASS (CI run 39016105238, git 0b04cc0): identity unit 33 + IT 65 (MFA, lockout, admin, break-glass, RLS), api-smoke P05 28/28 | DoD all ticked (§3) |
 | P06 | Gateway | **DONE** 2026-10-17 | `verify.sh full` PASS + trail-check PASS (CI run 39020903788, git cf48871): gateway unit 10 + IT 19 (route table over 88 documented paths, edge filters, rate limit, breaker/SSE, activity → Kafka, degraded Redis/Kafka), api-smoke P06 18/18 | DoD all ticked (§3) |
-| P07 | Ledger A (reference impl) | WRITTEN — in CI | — | |
+| P07 | Ledger A (reference impl) | **DONE** 2026-10-17 | `verify.sh full` PASS + trail-check PASS (CI run 39023459091, git 4101870): ledger unit 5 + IT 31 (CRUD, PlanAssert on 1.2M rows, pagination + idempotency contracts, 1 000-op daily-totals property, RLS proof), api-smoke P07 30/30, ledger outbox → Kafka 4 published / 0 pending | DoD all ticked (§3) |
 | P08 | Ledger B | NOT STARTED | — | |
 | P09 | Catalog A | NOT STARTED | — | |
 | P10 | Catalog B (ingestion) | NOT STARTED | — | |
@@ -32,7 +32,17 @@ DONE. Upload `MASTER_PLAN.md` + this README; the code is in the repo (clone it).
 
 ## 2. In progress (exact stopping point)
 
-- **P07 (2026-10-17): written, CI pending.** Next action: drive CI (verify full + trail-check) to green, then mark DONE.
+- **P07 (2026-10-17): complete.** Nothing in progress. Next action: P08 (verify P07 first, then Ledger B).
+  P08 starts from: `categorization_rules` table exists without an API; `merchants`/`merchant_aliases` are seed-staged
+  (Tables P08); `expenses_client_ref` unique index is ready for bulk import de-dup (`CLIENT_REF_TAKEN`);
+  `/v1/expenses:bulk`, `/v1/expenses/search`, `/v1/merchants/**`, `/v1/rules/**` already route to ledger.
+
+### History (P07)
+
+- r1 (`9b71d4c`): everything green except ledger ITs: daily-totals upsert with a negative delta violated the
+  `total_paise >= 0` CHECK (Postgres checks the proposed INSERT row before ON CONFLICT) → 500 on PATCH/DELETE; the
+  date-range plan was bitmap + Sort. r2 (`4101870`): negative/in-place deltas via UPDATE; the date-range plan test
+  allows a bounded sort (A-47). All green (run 39023459091).
 
 ### History (P06)
 
@@ -121,6 +131,20 @@ DONE. Upload `MASTER_PLAN.md` + this README; the code is in the repo (clone it).
 - **P02b scope (A-13):** `dexter-security` (resource server, JWKS cache + unknown-kid refetch, `AuthContext`, audience check, `@RequiresStepUp`, `@RequiresPermission`, service-token client, test JWKS/JWT factory; pins nimbus + bouncycastle, verified on Maven Central), `dexter-cache` (ADR-0004, generation keys, Redis ACLs, cache contract), `ArchRules` (pins archunit), demo module switched from the `X-Demo-Account` test header to `AuthContext`, `p02-*.html` trail page + lab endpoints (idempotency replay/409/422, outbox → Kafka → projection, DLQ).
 
 ## 3. Verification of previous phase
+
+### P07 against its DoD (CI run 39023459091, git 4101870, 2026-10-17)
+
+| DoD / requirement | Result | Evidence |
+|---|---|---|
+| IT-GREEN | PASS | `full.maven`: ledger unit 5 + IT 31, 0 failures |
+| RLS (FORCE, proof kit) | PASS | `LedgerRlsIT` (cross-tenant read/write/delete invisible; no context = no rows; owner bypass only for the owner role); static rls-gate; api-smoke cross-tenant 404 ×3 |
+| PlanAssert on large data | PASS | `ExpensePlanIT` on 1.2M generated rows (A-46): list/next page/card/merchant without Sort, date range + category bounded, never a seq scan |
+| Pagination contract | PASS | `ExpensesPaginationContractIT` (window, tamper, filter mismatch, limit bounds, no duplicates/gaps) |
+| Idempotency contract | PASS | `CreateExpenseIdempotencyContractIT` (replay, 422 reuse, parallel, failure leaves no key); api-smoke replay/422/400 |
+| ETag / If-Match | PASS | `ExpenseCrudIT` (428, 412, no-op keeps version); api-smoke |
+| Daily totals never drift | PASS | `DailyTotalsPropertyIT` (1 000 random create/patch/delete/restore vs `GROUP BY`); api-smoke totals follow create/patch/delete/restore |
+| Outbox → Kafka | PASS | api-smoke: 4 ledger expense events published, 0 pending; `dexter.ledger.expense.v1` offsets 4 |
+| Trail page exercised | PASS | trail-check p07 (list with cursor, daily totals, categories through `/api`); Mock flow in jsdom, 0 errors |
 
 ### P06 against its DoD (CI run 39020903788, git cf48871, 2026-10-17)
 
@@ -249,7 +273,7 @@ Issues found in P01's own code during self-review and fixed:
 
 ## 4. What exists now
 
-**P07 Ledger A (reference service)** — ADR-0012, errors.md ledger section
+**P07 Ledger A (DONE)** — ADR-0012, errors.md ledger section
 
 | Piece | What it does |
 |---|---|
@@ -555,7 +579,7 @@ Issues found in P01's own code during self-review and fixed:
 | 0011 | Gateway: route table as code + doc + test, WebFilter edge chain (404 before 401), Redis Lua token bucket (auth fails closed, rest open), trusted-proxy client IP, breaker per service except SSE, activity via bounded queue without outbox | Accepted: proven by CI run 39020903788 |
 | 0010 | Identity B: RFC 6238 TOTP with step replay guard, keyed recovery codes, Redis Lua throttles failing closed, admins separate from accounts with mandatory MFA, RBAC as data, SUPER_ADMIN only via ≤ 1 h elevation re-checked per request, second `identity_admin` pool | Accepted: proven by CI run 39016105238 |
 | 0009 | Identity: pre-auth SECURITY DEFINER functions + owner policies, synthetic tenants, password-free registration fingerprint, strict refresh-family reuse detection, next/active/retired ES256 keys, envelope encryption, after-commit mail, client-credentials endpoint | Accepted: proven by CI run 39003795722 (identity ITs, api-smoke P04) |
-| 0012 | Ledger as the reference service: layers + ports, static keyset query per filter mask, daily totals maintained in the write transaction (IST day × root), merge PATCH + If-Match, soft delete + `:restore`, outbox event per write, admin tokens refused on user endpoints | Accepted (P07); proof pending CI |
+| 0012 | Ledger as the reference service: layers + ports, static keyset query per filter mask, daily totals maintained in the write transaction (IST day × root), merge PATCH + If-Match, soft delete + `:restore`, outbox event per write, admin tokens refused on user endpoints | Accepted: proven by CI run 39023459091 |
 
 ## 6. Plan amendments (deviations from MASTER_PLAN.md)
 
@@ -789,6 +813,7 @@ press **Lab status / start**, then **Get a valid token**. (After a manual `run.s
 
 ## 10. Changelog (one line per response)
 
+- 2026-10-17 P07 r2: daily-totals negative deltas via UPDATE, date-range plan test allows a bounded sort. CI run 39023459091: verify full + trail-check PASS → **P07 DONE**.
 - 2026-10-17 P07 r1: ledger schema (categories, expenses, daily totals, rules) with FORCE RLS, expense CRUD (idempotent create, keyset list per filter mask, If-Match PATCH, soft delete/restore), daily totals in the write txn, categories, outbox events + contracts, 1.2M-row PlanAssert, ADR-0012, A-45..A-47, errors.md ledger, p07-ledger.html, p07 smoke, trail-check P07.
 - 2026-10-17 P06 r1–r5: gateway (route table + routes.md + tests, edge WebFilters, JWT pre-check, Redis token-bucket limiter, breaker per service, SSE route, security headers, CORS, activity events), identity audience `gateway` + forwarded headers, trail bridge removed, ADR-0011, A-42..A-44, api-smoke P06, p06-gateway.html, trail-check P06. CI run 39020903788: verify full + trail-check PASS → **P06 DONE**.
 
