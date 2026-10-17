@@ -1,10 +1,10 @@
 # Dexter v2 — Build README (living handoff)
 
-**Last updated:** 2026-10-16 · **Chat/phase:** P03 DONE (r1) · **Model:** Claude Opus 5.5
-**P03 is DONE (2026-10-16).** `verify.sh full` 19/19 PASS (incl. `static.trail-pager`, `full.seed-medium`,
-`full.seed-determinism`) + `trail-check.sh` PASS on a GitHub runner (repo `annsolomon/from`, commit `4dc9033`,
-run 38922523673; `ci` run 38922523543 green; reports on branch `verify-reports`). Next chat: **P04** (Identity A).
-Upload `MASTER_PLAN.md` + this README; the code is in the repo (clone it instead of a zip).
+**Last updated:** 2026-10-17 · **Chat/phase:** P04 DONE (r2) · **Model:** Claude Opus 5.5
+**P04 is DONE (2026-10-17).** `verify.sh full` 21/21 PASS (new: `full.seed-small`; api-smoke P04 block 26/26 +
+outbox → Kafka + topics) + `trail-check.sh` PASS on a GitHub runner (repo `annsolomon/from`, commit `6e6ed9f`,
+run 39003795722; reports on branch `verify-reports`). Next chat: **P05** (Identity B: MFA, lockout, admins, RBAC,
+break-glass). Upload `MASTER_PLAN.md` + this README; the code is in the repo (clone it).
 
 ## 1. Phase status
 
@@ -14,7 +14,7 @@ Upload `MASTER_PLAN.md` + this README; the code is in the repo (clone it instead
 | P01 | Core libs A (core/db/web) | **DONE** | `verify.sh full` 17/17 PASS (2026-09-22; re-run 2026-09-27 git 0fcfed1: core 28 unit, db 20 unit + 30 IT, web 12 unit, 10 service smoke); trail-check 15/15 PASS | IT-GREEN 2026-09-22 |
 | P02 | Core libs B (idempotency/events/security/test) | **DONE** 2026-10-16 — verify full 17/17 + trail-check PASS (CI run 38913491961) |
 | P03 | Harness, seed, trail kit | **DONE** 2026-10-16 | `verify.sh full` 19/19 PASS + trail-check PASS (CI run 38922523673, git 4dc9033): seed 25 unit + `SeedLoadIT` 4, 11 ArchitectureTests, pager.spec.js 18/18, medium seed generate+load 16 s, determinism checksum `a67ed5cf…` (identical in the sandbox and on CI) | DoD all ticked (§3) |
-| P04 | Identity A | NOT STARTED | — | |
+| P04 | Identity A | **DONE** 2026-10-17 | `verify.sh full` 21/21 PASS + trail-check PASS (CI run 39003795722, git 6e6ed9f): identity unit 19 + IT 41 (incl. IdempotencyContract 6, PaginationContract 9, RLS proof 7), api-smoke P04 26/26, outbox → Kafka 5 published / 0 pending | DoD all ticked (§3) |
 | P05 | Identity B (MFA/admin/RBAC) | NOT STARTED | — | |
 | P06 | Gateway | NOT STARTED | — | |
 | P07 | Ledger A (reference impl) | NOT STARTED | — | |
@@ -32,6 +32,19 @@ Upload `MASTER_PLAN.md` + this README; the code is in the repo (clone it instead
 | P19 | Hardening & release | NOT STARTED | — | |
 
 ## 2. In progress (exact stopping point)
+
+- **P04 r2 (2026-10-17): complete.** Nothing in progress. Next action: P05 (verify P04 first, then Identity B).
+  P05 starts from: `auth_find_login` returns `mfa_enabled=false` (replace it), `admin@demo.in` is still in
+  `identity.seed_stage.admins` (P05's migration makes it real; `full.seed-small` then loads it), `security.alert` v1
+  knows only `REFRESH_TOKEN_REUSE` (lockout kinds need v2 or a new type), the trail login for the admin persona calls
+  `/api/v1/admin/auth/login` (add it to `Trail.liveRoutes`).
+
+### History (P04)
+
+- r1 (`1e92d0a`): identity service, tests. CI run 39003284076: everything compiled; 40/41 ITs green — only
+  `IdentityHealthIT` expected 2 Flyway history rows (Flyway also records its schema-creation row, 3). Fixed in r2.
+- r2 (`077d181` code, `6e6ed9f` docs): smoke/trail/docs, relay topics first. Run on `077d181` was cancelled by the
+  docs push; run 39003795722 on `6e6ed9f` (same code) is the evidence.
 
 - **P03 r1 (2026-10-16): complete.** Nothing in progress. Next action: P04 (verify P03 first, then Identity A).
   P04 owes the seed one step (ADR-0008): after `identity.accounts` exists, run `./scripts/seed.sh small` and fix
@@ -87,6 +100,22 @@ Upload `MASTER_PLAN.md` + this README; the code is in the repo (clone it instead
 - **P02b scope (A-13):** `dexter-security` (resource server, JWKS cache + unknown-kid refetch, `AuthContext`, audience check, `@RequiresStepUp`, `@RequiresPermission`, service-token client, test JWKS/JWT factory; pins nimbus + bouncycastle, verified on Maven Central), `dexter-cache` (ADR-0004, generation keys, Redis ACLs, cache contract), `ArchRules` (pins archunit), demo module switched from the `X-Demo-Account` test header to `AuthContext`, `p02-*.html` trail page + lab endpoints (idempotency replay/409/422, outbox → Kafka → projection, DLQ).
 
 ## 3. Verification of previous phase
+
+### P04 against its DoD (CI run 39003795722, git 6e6ed9f, 2026-10-17)
+
+| DoD / requirement | Result | Evidence |
+|---|---|---|
+| IT-GREEN | PASS | `full.maven`: identity unit 19 + IT 41, all 0 failures; every other module unchanged and green |
+| Reuse-detection test passes | PASS | `AuthFlowIT.reusingARotatedRefreshTokenRevokesTheWholeFamily` (family + session revoked, alert + revoked events); api-smoke "replay … 401 REFRESH_TOKEN_REUSED", "family revoked" |
+| No endpoint leaks whether an email exists | PASS | `EnumerationSafetyIT` 4 (identical login/register/forgot answers, timing within tolerance); api-smoke identical-answer + forgot checks |
+| Full auth flow | PASS | `AuthFlowIT` 7; api-smoke register → Mailpit email → verify → login → /me → refresh → logout |
+| JWKS rotation, old-key tokens valid until expiry | PASS | `JwksRotationIT` 2 (verified over HTTP by dexter-security's verifier); api-smoke dev rotation |
+| RLS proof on all tenant tables | PASS | `IdentityRlsIT` 7 (accounts, account_keys, verification_tokens, sessions, refresh_tokens, idempotency_keys + definer EXECUTE grants) |
+| Sessions pagination contract | PASS | `SessionsPaginationContractIT` 9 incl. PlanAssert (index `sessions_active_list`, no Sort) |
+| Idempotency contract (register, Idem REQ) | PASS | `RegistrationIdempotencyContractIT` 6 |
+| Events in the same transaction, relayed | PASS | outbox rows asserted per flow in ITs; api-smoke "identity outbox -> Kafka: 5 published, 0 pending", topics exist |
+| Trail page exercised | PASS | trail-check p04 page + JWKS + demo login + /me + bridge through the proxy; Mock flow run in jsdom (register → replay → verify → login → refresh → reuse → patch/412/428 → sessions → rotate → logout-all, 0 errors) |
+| Seed owed by P03 | PASS | `full.seed-small` loads into the real `identity.accounts`; api-smoke "asha@demo.in signs in" |
 
 ### P03 re-check in the P04 chat (CI run 38924314244, git 85de7f1, 2026-10-16)
 
@@ -170,7 +199,7 @@ Issues found in P01's own code during self-review and fixed:
 
 ## 4. What exists now
 
-**P04 Identity A** (status in §1)
+**P04 Identity A (DONE)**
 
 | Piece | What it does |
 |---|---|
@@ -183,7 +212,7 @@ Issues found in P01's own code during self-review and fixed:
 | Tests | unit: `DomainRulesTest` 5, `RefreshRotationTest` 2, `CryptoTest` 4 (token contract against the real `JwtVerifier`), `Argon2HasherTest` 3, `BundledBreachedListTest` 1, `ClientCredentialsArgumentResolverTest` 2, `PlatformMigrationTest` 1, `IdentityArchitectureTest` 1. ITs (Testcontainers PG17 + Flyway, real HTTP): `AuthFlowIT` 7, `EnumerationSafetyIT` 4, `JwksRotationIT` 2, `ServiceTokenIT` 2, `ProfileIT` 2, `IdentityRlsIT` 7, `IdentityHealthIT` 2, `RegistrationIdempotencyContractIT` 6 (5.5), `SessionsPaginationContractIT` 9 (4.5, PlanAssert on 30k sessions) |
 | dexter-test | `TestPostgres.flywayDb` (roles + extensions, no templates: the service's Flyway owns the schema), `RlsProofKit` with a tenant column (`accounts.id`) |
 | contracts | `identity.account.registered`, `identity.account.verified`, `identity.session.revoked`, `identity.security.alert` v1 (schemas + records + samples) |
-| Trail / smoke | `test-ui/p04-identity.html` (Mock emulates identity incl. reuse detection; Live via `/svc/identity`), `trail.js` `liveRoutes` bridge (until P06), `scripts/lib/p04_smoke.py` (29 checks incl. Mailpit), outbox → Kafka check, trail-check P04 (JWKS, demo login, /me, bridge) |
+| Trail / smoke | `test-ui/p04-identity.html` (Mock emulates identity incl. reuse detection; Live via `/svc/identity`), `trail.js` `liveRoutes` bridge (until P06), `scripts/lib/p04_smoke.py` (26 checks incl. Mailpit), outbox → Kafka check, trail-check P04 (JWKS, demo login, /me, bridge) |
 
 **Endpoints (identity :8081)**
 
@@ -377,7 +406,7 @@ Issues found in P01's own code during self-review and fixed:
 | 0006 | Events on plain kafka-clients; per-consumer retry/DLQ topics `<topic>.<consumer>.retry-1m`/`retry-10m`/`dlq` | Accepted: proven by the P02a r4 run (`OutboxRelayIT`, `ConsumerIT`, 2026-09-27) |
 | 0007 | Request authentication: Nimbus ES256 verifier + JWKS cache + MVC `SecurityInterceptor` (default deny), no Spring Security filter chain | Accepted: proven by the 2026-10-04 run (`JwtVerifierTest`, `SecurityInterceptorTest`, `ServiceTokenClientTest`, `DemoAuthIT`) |
 | 0008 | Seed data: deterministic generator, `seed_stage` before migrations, owner-role COPY with FORCE off in-tx, passwords hashed once | Accepted: proven by CI run 38922523673 (`SeedLoadIT`, `GeneratorTest`, `full.seed-medium`, `full.seed-determinism`) |
-| 0009 | Identity: pre-auth SECURITY DEFINER functions + owner policies, synthetic tenants, password-free registration fingerprint, strict refresh-family reuse detection, next/active/retired ES256 keys, envelope encryption, after-commit mail, client-credentials endpoint | Accepted (P04); proof: identity ITs + api-smoke P04 (§1) |
+| 0009 | Identity: pre-auth SECURITY DEFINER functions + owner policies, synthetic tenants, password-free registration fingerprint, strict refresh-family reuse detection, next/active/retired ES256 keys, envelope encryption, after-commit mail, client-credentials endpoint | Accepted: proven by CI run 39003795722 (identity ITs, api-smoke P04) |
 
 ## 6. Plan amendments (deviations from MASTER_PLAN.md)
 
@@ -575,6 +604,7 @@ press **Lab status / start**, then **Get a valid token**. (After a manual `run.s
 
 ## 10. Changelog (one line per response)
 
+- 2026-10-17 P04 r1+r2: identity service (Flyway schema with RLS + definer pre-auth functions, register/verify/login/refresh with family reuse detection/logout/password flows, /me with ETag + encrypted phone, keyset sessions, JWKS next/active/retired, /oauth2/token), 4 identity events, ADR-0009, A-30..A-37, dexter-test `flywayDb` + RlsProofKit tenant column, api-smoke P04, `full.seed-small`, p04-identity.html + trail bridge. CI run 39003795722: 21/21 + trail-check PASS → **P04 DONE**.
 - 2026-10-16 P03 r1: seed generator `seed/` (ADR-0008, A-24/A-25), reference data v1 (40 MOCK_ cards, 357 merchants), `seed.sh`, generated trail fixtures; complete `trail.js` + `p03-harness.html` + `pager.spec.js` (A-27, A-29); `perf/k6` base + thresholds; ArchitectureTest in all 10 services (A-26); verify `static.trail-pager`, `full.seed-medium`, `full.seed-determinism`; trail-check P03. CI run 38922523673: 19/19 + trail-check PASS → **P03 DONE**.
 
 - 2026-10-16 P02b r11.1: repo `annsolomon/from` (code at root); CI `verify-full.yml` runs `verify.sh full` + `trail-check.sh` on a GitHub runner and force-pushes reports to branch `verify-reports`; gitleaks allowlists the P01 test cursor key. First real run: static/infra/ACL/unit/trail-check PASS; 2 test-code bugs fixed (`DemoCacheContractIT` id regex vs `"id": "` spacing, `RedisAclIT` case of Redis 7.4's "No permissions").
