@@ -4,6 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import in.dexter.contracts.events.demo.NoteCreatedV1;
 import in.dexter.contracts.events.demo.NoteRenamedV1;
+import in.dexter.contracts.events.identity.AccountRegisteredV1;
+import in.dexter.contracts.events.identity.AccountVerifiedV1;
+import in.dexter.contracts.events.identity.SecurityAlertV1;
+import in.dexter.contracts.events.identity.SessionRevokedV1;
 import in.dexter.events.EnvelopeCodec;
 import in.dexter.events.EventEnvelope;
 import java.io.IOException;
@@ -32,6 +36,14 @@ class SchemaContractTest {
         "lunch", 25_000, "2026-09-27T10:00:00Z"));
     SAMPLES.put("demo.note.renamed.v1.json", new NoteRenamedV1(UUID.fromString("0192f1e2-0000-7000-8000-000000000001"),
         "dinner"));
+    UUID account = UUID.fromString("0192f1e2-0000-7000-8000-0000000000a1");
+    UUID session = UUID.fromString("0192f1e2-0000-7000-8000-0000000000c1");
+    SAMPLES.put("identity.account.registered.v1.json", new AccountRegisteredV1(account, "Asia/Kolkata",
+        "2026-10-17T10:00:00Z"));
+    SAMPLES.put("identity.account.verified.v1.json", new AccountVerifiedV1(account, "2026-10-17T10:05:00Z"));
+    SAMPLES.put("identity.session.revoked.v1.json", new SessionRevokedV1(session, "logout", "2026-10-17T11:00:00Z"));
+    SAMPLES.put("identity.security.alert.v1.json", new SecurityAlertV1(SecurityAlertV1.REFRESH_TOKEN_REUSE, session,
+        "2026-10-17T11:00:01Z"));
   }
 
   static JsonNode schema(String file) throws IOException {

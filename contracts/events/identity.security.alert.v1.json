@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dexter.in/events/identity.security.alert.v1.json",
+  "title": "identity.security.alert v1 - a security-relevant event for the account (audit/notifications, P18). refId: the session id for REFRESH_TOKEN_REUSE.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "kind",
+    "refId",
+    "occurredAt"
+  ],
+  "properties": {
+    "kind": {
+      "type": "string",
+      "enum": [
+        "REFRESH_TOKEN_REUSE"
+      ]
+    },
+    "refId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

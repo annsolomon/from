@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dexter.in/events/identity.session.revoked.v1.json",
+  "title": "identity.session.revoked v1 - a session and all its refresh tokens were revoked (envelope accountId = owner).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "sessionId",
+    "reason",
+    "revokedAt"
+  ],
+  "properties": {
+    "sessionId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "logout",
+        "logout_all",
+        "user_revoked",
+        "password_change",
+        "password_reset",
+        "refresh_reuse",
+        "admin"
+      ]
+    },
+    "revokedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

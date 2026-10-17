@@ -6,6 +6,27 @@ spring:
       enabled: true
   main:
     banner-mode: "off"
+  # Runtime pool = identity_app (RLS-bound, NOBYPASSRLS). Passwords come from the environment (.env in dev).
+  datasource:
+    url: jdbc:postgresql://${DEXTER_PG_HOST:127.0.0.1}:${POSTGRES_PORT:5432}/identity?ApplicationName=identity
+    username: identity_app
+    password: ${PG_PW_IDENTITY_APP:${PG_PW_APP:}}
+    hikari:
+      maximum-pool-size: ${IDENTITY_DB_POOL:10}
+      connection-timeout: 5000
+  # Migrations run as the schema owner (MASTER_PLAN 3.1); the app role has no DDL rights.
+  flyway:
+    user: identity_owner
+    password: ${PG_PW_IDENTITY_OWNER:${PG_PW_OWNER:}}
+    schemas: identity
+    clean-disabled: true
+  mail:
+    host: ${MAIL_HOST:127.0.0.1}
+    port: ${MAIL_PORT:1025}
+    properties:
+      mail.smtp.connectiontimeout: 2000
+      mail.smtp.timeout: 3000
+      mail.smtp.writetimeout: 3000
 
 server:
   port: ${PORT_IDENTITY:8081}
@@ -21,6 +42,10 @@ management:
       probes:
         enabled: true
       show-details: never
+  health:
+    # Mail is sent asynchronously after commit; an SMTP outage must not make identity unhealthy.
+    mail:
+      enabled: false
   metrics:
     tags:
       service: identity
@@ -29,6 +54,46 @@ logging:
   pattern:
     # X-Request-Id on every console line (dexter-web RequestIdFilter puts it in the MDC)
     level: "%5p [%X{requestId:-}]"
+
+dexter:
+  db:
+    schema: identity
+  # Keyset cursors (MASTER_PLAN 4.2): HMAC keys from the environment.
+  cursor:
+    active-kid: c1
+    keys:
+      c1: ${IDENTITY_CURSOR_KEY_C1:}
+  identity:
+    issuer: ${IDENTITY_ISSUER:https://identity.dexter.internal}
+    links:
+      verify-email: ${IDENTITY_PUBLIC_URL:http://localhost:8099}/p04-identity.html#verify={token}
+      reset-password: ${IDENTITY_PUBLIC_URL:http://localhost:8099}/p04-identity.html#reset={token}
+      sign-in: ${IDENTITY_PUBLIC_URL:http://localhost:8099}/p04-identity.html
+    kek:
+      active-id: k1
+      keys:
+        k1: ${IDENTITY_KEK_K1:}
+    phone-pepper: ${IDENTITY_PHONE_PEPPER:}
+    mail:
+      mode: ${IDENTITY_MAIL_MODE:smtp}
+    # Client-credentials clients (MASTER_PLAN 7.2). Per-pair audiences are tightened as services start calling each
+    # other (P06+); until then every service may ask for any other. Empty secret = client disabled.
+    service-clients:
+      gateway: { secret: "${SERVICE_CLIENT_SECRET_GATEWAY:${SERVICE_CLIENT_SECRET:}}", audiences: [identity, ledger, catalog, portfolio, planning, reco, billing, commerce, audit] }
+      ledger: { secret: "${SERVICE_CLIENT_SECRET_LEDGER:${SERVICE_CLIENT_SECRET:}}", audiences: [identity, catalog, portfolio, planning, reco, billing, commerce, audit] }
+      catalog: { secret: "${SERVICE_CLIENT_SECRET_CATALOG:${SERVICE_CLIENT_SECRET:}}", audiences: [identity, ledger, portfolio, planning, reco, billing, commerce, audit] }
+      portfolio: { secret: "${SERVICE_CLIENT_SECRET_PORTFOLIO:${SERVICE_CLIENT_SECRET:}}", audiences: [identity, ledger, catalog, planning, reco, billing, commerce, audit] }
+      planning: { secret: "${SERVICE_CLIENT_SECRET_PLANNING:${SERVICE_CLIENT_SECRET:}}", audiences: [identity, ledger, catalog, portfolio, reco, billing, commerce, audit] }
+      reco: { secret: "${SERVICE_CLIENT_SECRET_RECO:${SERVICE_CLIENT_SECRET:}}", audiences: [identity, ledger, catalog, portfolio, planning, billing, commerce, audit] }
+      billing: { secret: "${SERVICE_CLIENT_SECRET_BILLING:${SERVICE_CLIENT_SECRET:}}", audiences: [identity, ledger, catalog, portfolio, planning, reco, commerce, audit] }
+      commerce: { secret: "${SERVICE_CLIENT_SECRET_COMMERCE:${SERVICE_CLIENT_SECRET:}}", audiences: [identity, ledger, catalog, portfolio, planning, reco, billing, audit] }
+      audit: { secret: "${SERVICE_CLIENT_SECRET_AUDIT:${SERVICE_CLIENT_SECRET:}}", audiences: [identity, ledger, catalog, portfolio, planning, reco, billing, commerce] }
+    relay:
+      enabled: ${IDENTITY_RELAY_ENABLED:true}
+      url: jdbc:postgresql://${DEXTER_PG_HOST:127.0.0.1}:${POSTGRES_PORT:5432}/identity?ApplicationName=identity-relay
+      username: identity_relay
+      password: ${PG_PW_IDENTITY_RELAY:${PG_PW_RELAY:}}
+      bootstrap-servers: ${KAFKA_BOOTSTRAP:127.0.0.1:${KAFKA_PORT:9092}}
 
 ---
 spring:

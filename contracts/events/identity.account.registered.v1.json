@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dexter.in/events/identity.account.registered.v1.json",
+  "title": "identity.account.registered v1 - an account was created (status pending_verification). No PII: the email stays in identity.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "accountId",
+    "tz",
+    "registeredAt"
+  ],
+  "properties": {
+    "accountId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "tz": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "registeredAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

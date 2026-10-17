@@ -28,6 +28,7 @@ import java.util.UUID;
 public final class RlsProofKit {
   private final ServiceDb db;
   private final String table;
+  private final String tenantColumn;
   private final String insertOneSql;
   private final String moveToOtherSql;
 
@@ -38,8 +39,17 @@ public final class RlsProofKit {
    *                       when the app role has no UPDATE on the table
    */
   public RlsProofKit(ServiceDb db, String table, String insertOneSql, String moveToOtherSql) {
+    this(db, table, "account_id", insertOneSql, moveToOtherSql);
+  }
+
+  /**
+   * For a table whose tenant key is not {@code account_id} (identity.accounts: {@code id}). {@code moveToOtherSql}
+   * then sets that column.
+   */
+  public RlsProofKit(ServiceDb db, String table, String tenantColumn, String insertOneSql, String moveToOtherSql) {
     this.db = db;
     this.table = db.name() + "." + Sql.ident(table);
+    this.tenantColumn = Sql.ident(tenantColumn);
     this.insertOneSql = insertOneSql;
     this.moveToOtherSql = moveToOtherSql;
   }
@@ -76,10 +86,10 @@ public final class RlsProofKit {
         tenant(c, b);
         insert(c, b);
         tenant(c, a);
-        assertThat(count(c, "account_id <> '" + a + "'")).as(table + ": A sees no foreign rows").isZero();
-        assertThat(count(c, "account_id = '" + a + "'")).as(table + ": A sees its own rows").isPositive();
+        assertThat(count(c, tenantColumn + " <> '" + a + "'")).as(table + ": A sees no foreign rows").isZero();
+        assertThat(count(c, tenantColumn + " = '" + a + "'")).as(table + ": A sees its own rows").isPositive();
         tenant(c, b);
-        assertThat(count(c, "account_id = '" + a + "'")).as(table + ": B cannot read A").isZero();
+        assertThat(count(c, tenantColumn + " = '" + a + "'")).as(table + ": B cannot read A").isZero();
         clearTenant(c);
         assertThat(count(c, "true")).as(table + ": no context → 0 rows").isZero();
       } finally {

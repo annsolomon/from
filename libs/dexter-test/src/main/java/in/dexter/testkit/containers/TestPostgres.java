@@ -29,7 +29,30 @@ public final class TestPostgres {
   /** The database of {@code service} (created and templated on first use). */
   public static ServiceDb db(String service) {
     container();
-    return DBS.computeIfAbsent(service, ServiceDb::create);
+    ServiceDb db = DBS.computeIfAbsent(service, ServiceDb::create);
+    if (!db.templated()) {
+      throw new IllegalStateException(service + " was already created for Flyway (TestPostgres.flywayDb)");
+    }
+    return db;
+  }
+
+  /**
+   * The database of {@code service} with roles, extensions and safety settings but <em>no</em> schema: the service's
+   * own Flyway migrations (run as {@code <svc>_owner}) create it, as in Codespaces/prod. Use this or {@link #db}
+   * for a service, never both.
+   */
+  public static ServiceDb flywayDb(String service) {
+    container();
+    ServiceDb db = DBS.computeIfAbsent(service, s -> ServiceDb.create(s, false));
+    if (db.templated()) {
+      throw new IllegalStateException(service + " was already created with templates (TestPostgres.db)");
+    }
+    return db;
+  }
+
+  /** JDBC URL of a database in the shared container. */
+  public static String jdbcUrl(String db) {
+    return url(db);
   }
 
   static String url(String db) {

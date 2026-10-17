@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dexter.in/events/identity.account.verified.v1.json",
+  "title": "identity.account.verified v1 - the account's email was verified and the account is active.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "accountId",
+    "verifiedAt"
+  ],
+  "properties": {
+    "accountId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "verifiedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

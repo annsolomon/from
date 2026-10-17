@@ -3,7 +3,10 @@ package in.dexter.identity;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-/** Accounts, credentials, sessions, refresh tokens, MFA, JWKS, admins, RBAC. P00 skeleton: health endpoint only. */
+/**
+ * Identity (MASTER_PLAN 2.1, P04): accounts, registration, login, sessions, rotating refresh tokens, JWKS and
+ * service tokens. MFA, admins and RBAC follow in P05.
+ */
 @SpringBootApplication
 public class IdentityApplication {
 

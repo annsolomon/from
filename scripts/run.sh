@@ -16,6 +16,12 @@ COMPOSE=(docker compose --env-file "$ROOT/.env" -f "$ROOT/infra/compose/docker-c
 ALL_PROFILES=(--profile core --profile obs --profile trail)
 
 [[ -f .env ]] || { echo "no .env - run: cp .env.example .env" >&2; exit 1; }
+# Keys that later phases add to .env.example (P04: IDENTITY_*, SERVICE_CLIENT_SECRET) are appended to an existing
+# .env; values already in .env are never changed.
+while IFS= read -r line; do
+  [[ $line =~ ^([A-Z][A-Z0-9_]*)= ]] || continue
+  grep -q "^${BASH_REMATCH[1]}=" .env || { printf '%s\n' "$line" >> .env; echo "run.sh: added ${BASH_REMATCH[1]} to .env"; }
+done < .env.example
 set -a; source .env; set +a
 
 health() { curl -fsS --max-time 2 "http://localhost:$1/actuator/health" 2>/dev/null | grep -q '"status":"UP"'; }

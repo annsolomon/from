@@ -20,12 +20,23 @@ import org.springframework.jdbc.datasource.SimpleDriverDataSource;
 public final class ServiceDb {
   public static final String PW = "test-only-pw";
   private final String svc;
+  private final boolean templated;
 
-  private ServiceDb(String svc) {
+  private ServiceDb(String svc, boolean templated) {
     this.svc = svc;
+    this.templated = templated;
   }
 
   static ServiceDb create(String service) {
+    return create(service, true);
+  }
+
+  /**
+   * @param templates true: apply every SQL template as the owner (library ITs, the demo); false: roles, database
+   *                  and extensions only, for a service whose own Flyway migrations (which contain the rendered
+   *                  templates) run against it — exactly what infra gives a real service.
+   */
+  static ServiceDb create(String service, boolean templates) {
     String s = Sql.ident(service);
     try {
       try (Connection c = TestPostgres.superConn("postgres"); Statement st = c.createStatement()) {
@@ -58,9 +69,11 @@ public final class ServiceDb {
           st.execute("CREATE EXTENSION IF NOT EXISTS " + ext + " WITH SCHEMA public");
         }
       }
-      ServiceDb db = new ServiceDb(s);
-      try (Connection c = db.conn("owner"); Statement st = c.createStatement()) {
-        st.execute(SqlTemplates.renderAll(s));
+      ServiceDb db = new ServiceDb(s, templates);
+      if (templates) {
+        try (Connection c = db.conn("owner"); Statement st = c.createStatement()) {
+          st.execute(SqlTemplates.renderAll(s));
+        }
       }
       return db;
     } catch (SQLException e) {
@@ -70,6 +83,11 @@ public final class ServiceDb {
 
   public String name() {
     return svc;
+  }
+
+  /** True when the SQL templates were applied by the kit (false: the service's Flyway owns the schema). */
+  public boolean templated() {
+    return templated;
   }
 
   /** {@code <svc>_<suffix>}, for example {@code role("app")} → {@code demo_app}. */
