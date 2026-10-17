@@ -153,3 +153,24 @@ Errors a service returns pass through the gateway unchanged (same body, same `X-
 
 `DELETE /v1/expenses/{id}` is idempotent: deleting a deleted expense is 204 again; `:restore` of a live expense
 returns it unchanged.
+
+### ledger P08 (merchants, search, bulk, imports, insights, rules)
+
+| Code | Status | When |
+|---|---|---|
+| `VALIDATION_FAILED` | 400 | `q` TOO_SHORT (autocomplete, < 2 letters/digits) / INVALID (search, 2–60 chars); search or summary `to` INVALID_RANGE (> 366 days); `month` INVALID (`YYYY-MM`); `groupBy` INVALID; bulk `items` REQUIRED/TOO_MANY (1–500); rule `matchType`/`pattern`/`categoryPath`/`priority`; import `fileName`/`sizeBytes`. |
+| `IDEMPOTENCY_KEY_REQUIRED` | 400 | `POST /v1/expenses:bulk` without a key (rules and imports: key optional). |
+| `IMPORT_NOT_STARTABLE` | 409 | `POST /v1/imports/{id}:start` on a completed or failed job (create a new import; already imported rows are skipped). |
+| `RULE_LIMIT_REACHED` | 409 | The account already has 200 categorisation rules. |
+| `NOT_FOUND` | 404 | Unknown/foreign import or rule id; unknown `:action`. |
+
+Bulk items never fail the request: each item is `created`, `duplicate` (its `clientRef` exists — earlier call,
+import, or earlier in the same request; the existing id is returned) or `invalid` (field errors with
+`items[i].` prefixes, `UNKNOWN_CATEGORY`).
+
+Import job failures (`status: failed`, `errorCode`): `CSV_INVALID` (header must be exactly
+`date,amount,merchant,category,payment_method,note,client_ref`; wrong column count; encoding — the detail names
+the file line), `FILE_TOO_LARGE` (> 10 MB), `TOO_MANY_ROWS` (> 50,000), `FILE_MISSING` (nothing uploaded),
+`IMPORT_FAILED` / `IMPORT_ABANDONED` (worker gave up after 3 attempts). Row errors (`errors[]`, row 1 = first data
+row): `DATE_INVALID`, `AMOUNT_INVALID`, `MERCHANT_TOO_LONG`, `CATEGORY_INVALID`, `CATEGORY_UNKNOWN`,
+`PAYMENT_METHOD_INVALID`, `NOTE_TOO_LONG`, `CLIENT_REF_TOO_LONG`.
