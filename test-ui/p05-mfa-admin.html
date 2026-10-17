@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trail P05 MFA and admin</title>
+  <link rel="stylesheet" href="trail.css">
+</head>
+<body>
+<main>
+  <section class="card">
+    <h2>P05 · identity B: TOTP MFA, recovery codes, step-up, lockout, admin console, RBAC, break-glass</h2>
+    <p class="mono" style="color:var(--muted);margin:0">
+      Live calls identity through the trail proxy (<code>/svc/identity</code> until P06). The built-in
+      <b>authenticator</b> below computes RFC 6238 codes from the secret the server returned (testing aid; a real user
+      scans the otpauth URI). Admin invitation emails land in Mailpit and their link opens this page with the token
+      filled in. Mock mode runs the same rules in the browser. Testing aid only - deleted in P19.
+    </p>
+  </section>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>Authenticator (RFC 6238, SHA1, 30 s, 6 digits)</h2>
+      <div class="row"><input class="in" id="a-secret" placeholder="base32 secret" size="40"></div>
+      <div class="kv" id="a-codes" style="margin-top:6px"></div>
+      <p class="mono" style="color:var(--muted)">Each step's code works once: the server stores the last used step.</p>
+    </section>
+    <section class="card">
+      <h2>1 · User: sign up / sign in (password → challenge when MFA is on)</h2>
+      <div class="row"><input class="in" id="u-email" size="26"><input class="in" id="u-pw" size="22"
+        value="Correct-Horse-Battery-9"></div>
+      <div class="row" style="margin-top:6px">
+        <button class="ghost" type="button" id="u-register">Register + verify (Live: via Mailpit link)</button>
+        <button class="act" type="button" id="u-login">Login</button>
+        <button class="ghost" type="button" id="u-wrong">Wrong password ×6 (throttle)</button>
+      </div>
+      <pre class="out" id="u-out">—</pre>
+    </section>
+  </div>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>2 · Enrol TOTP (step-up) → confirm → 10 recovery codes</h2>
+      <div class="row"><button class="act" type="button" id="e-enroll">Enroll</button>
+        <button class="ghost" type="button" id="e-confirm">Confirm with the current code</button>
+        <button class="ghost" type="button" id="e-status">GET /v1/me/mfa</button></div>
+      <div class="row" style="margin-top:6px"><button class="ghost" type="button" id="e-regen">New recovery codes (step-up + MFA)</button>
+        <button class="ghost" type="button" id="e-disable">Disable MFA (step-up + MFA)</button></div>
+      <pre class="out" id="e-out">—</pre>
+    </section>
+    <section class="card">
+      <h2>3 · Second factor: code or recovery code · step-up</h2>
+      <div class="row"><span class="mono">challenge <span id="c-token">—</span></span></div>
+      <div class="row" style="margin-top:6px">
+        <button class="act" type="button" id="c-code">Verify with the current code</button>
+        <button class="ghost" type="button" id="c-replay">Replay the last code used</button>
+        <button class="ghost" type="button" id="c-bad">Wrong code</button>
+      </div>
+      <div class="row" style="margin-top:6px"><input class="in" id="c-recovery" placeholder="recovery code" size="14">
+        <button class="ghost" type="button" id="c-rec">Verify with recovery code</button>
+        <button class="ghost" type="button" id="c-stepup">Step-up (password + recovery code)</button></div>
+      <pre class="out" id="c-out">—</pre>
+    </section>
+  </div>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>4 · Admin console sign-in (MFA mandatory)</h2>
+      <div class="row"><input class="in" id="ad-email" size="26" value="admin@demo.in">
+        <input class="in" id="ad-pw" size="22" value="Admin-Demo-2026!"></div>
+      <div class="row" style="margin-top:6px"><button class="act" type="button" id="ad-login">Login</button>
+        <button class="ghost" type="button" id="ad-setup">Set up authenticator (first sign-in)</button>
+        <button class="ghost" type="button" id="ad-verify">Verify with the current code</button></div>
+      <div class="row" style="margin-top:6px"><button class="ghost" type="button" id="ad-me">GET /v1/admin/me</button>
+        <button class="ghost" type="button" id="ad-refresh">Refresh (rotate)</button>
+        <button class="ghost" type="button" id="ad-user">Admin token on /v1/me</button></div>
+      <pre class="out" id="ad-out">—</pre>
+    </section>
+    <section class="card">
+      <h2>5 · Permissions · audited lookup · break-glass (≤ 1 h)</h2>
+      <div class="row"><input class="in" id="p-email" size="22" value="asha@demo.in">
+        <button class="ghost" type="button" id="p-lookup">GET /v1/admin/accounts?email=</button>
+        <button class="ghost" type="button" id="p-list">GET /v1/admin/admins</button></div>
+      <div class="row" style="margin-top:6px"><input class="in" id="g-reason" size="40"
+        value="Trail test: exercise break-glass end to end"></div>
+      <div class="row" style="margin-top:6px"><button class="act" type="button" id="g-start">Start break-glass (next code)</button>
+        <button class="ghost" type="button" id="g-end">End break-glass</button>
+        <button class="ghost" type="button" id="g-old">List admins with the SUPER_ADMIN token</button></div>
+      <pre class="out" id="p-out">—</pre>
+    </section>
+  </div>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>6 · Manage admins (SUPER_ADMIN): invite → accept → first sign-in</h2>
+      <div class="row"><input class="in" id="i-email" size="26">
+        <select class="in" id="i-role"><option>SUPPORT</option><option>CATALOG_EDITOR</option><option>FINANCE</option>
+          <option>SUPER_ADMIN</option></select>
+        <button class="act" type="button" id="i-send">Invite</button></div>
+      <div class="row" style="margin-top:6px"><input class="in" id="i-token" placeholder="invite token (from the email link)" size="48"></div>
+      <div class="row" style="margin-top:6px"><button class="ghost" type="button" id="i-accept">Accept (password = admin password field)</button>
+        <button class="ghost" type="button" id="i-disable">Disable invitee (If-Match)</button></div>
+      <pre class="out" id="i-out">—</pre>
+      <div id="mailbox" class="mono" style="margin-top:8px"></div>
+    </section>
+    <section class="card" id="events"></section>
+  </div>
+
+  <section class="card" id="log"></section>
+</main>
+<script src="trail.js"></script>
+<script>
+(() => {
+  Trail.mountHeader('MFA + admin', 'P05');
+  Trail.mountLog(document.getElementById('log'));
+  Trail.mountEvents(document.getElementById('events'));
+  const $ = id => document.getElementById(id);
+  const show = (id, r, extra) => { $(id).textContent = `${r.status} ${r.requestId || ''}\n` +
+    (r.headers && r.headers['retry-after'] ? 'Retry-After: ' + r.headers['retry-after'] + '\n' : '') +
+    (r.headers && r.headers.etag ? 'ETag: ' + r.headers.etag + '\n' : '') +
+    JSON.stringify(r.data, null, 2) + (extra ? '\n' + extra : ''); };
+  const decode = jwt => { try { return JSON.parse(Trail.b64urlDecode(jwt.split('.')[1])); } catch { return null; } };
+  const bearer = t => t ? { Authorization: 'Bearer ' + t } : {};
+
+  // ------------------------------------------------------------- authenticator (Web Crypto HMAC-SHA1)
+  const b32 = s => { const A = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'; let bits = 0, val = 0; const out = [];
+    for (const c of s.replace(/=+$/, '').toUpperCase()) { const v = A.indexOf(c); if (v < 0) continue; val = (val << 5) | v; bits += 5;
+      if (bits >= 8) { out.push((val >>> (bits - 8)) & 255); bits -= 8; } } return new Uint8Array(out); };
+  async function totp(secret, offset = 0) {
+    if (!secret) return '';
+    const key = await crypto.subtle.importKey('raw', b32(secret), { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']);
+    const step = Math.floor(Date.now() / 30000) + offset; const msg = new ArrayBuffer(8); const dv = new DataView(msg);
+    dv.setUint32(0, Math.floor(step / 2 ** 32)); dv.setUint32(4, step >>> 0);
+    const h = new Uint8Array(await crypto.subtle.sign('HMAC', key, msg)); const o = h[19] & 15;
+    const bin = ((h[o] & 127) << 24) | (h[o + 1] << 16) | (h[o + 2] << 8) | h[o + 3];
+    return String(bin % 1e6).padStart(6, '0');
+  }
+  const paintCodes = async () => {
+    const s = $('a-secret').value.trim();
+    $('a-codes').innerHTML = s ? [['previous', await totp(s, -1)], ['current', await totp(s, 0)], ['next', await totp(s, 1)],
+      ['seconds left', 30 - Math.floor(Date.now() / 1000) % 30]].map(([k, v]) => `<span>${k}</span><span>${v}</span>`).join('') : '';
+  };
+  setInterval(paintCodes, 1000);
+
+  // ------------------------------------------------------------- user
+  const st = { access: null, challenge: null, lastCode: null, codes: [], admin: null, adminRefresh: null, adminChallenge: null,
+    adminSecret: null, superToken: null, inviteeId: null };
+  $('u-email').value = 'trail5-' + Math.random().toString(36).slice(2, 8) + '@demo.test';
+  $('i-email').value = 'trail-admin-' + Math.random().toString(36).slice(2, 6) + '@demo.test';
+  const fromHash = () => { const m = /#invite=([A-Za-z0-9_-]{43})/.exec(location.hash); if (m) { $('i-token').value = m[1]; $('i-out').textContent = 'invite token from the email link - press Accept'; } };
+  fromHash(); window.addEventListener('hashchange', fromHash);
+
+  $('u-register').onclick = async () => {
+    const r = await Trail.api('POST', '/api/v1/auth/register', { body: { email: $('u-email').value, password: $('u-pw').value, displayName: 'Trail P05' },
+      headers: { 'Idempotency-Key': Trail.uuidv4() } });
+    show('u-out', r, Trail.mode === 'mock' ? '(mock: verified at once)' : 'open the verification link from Mailpit (p04 page), then Login');
+  };
+  const userLogin = async pw => {
+    const r = await Trail.api('POST', '/api/v1/auth/login', { body: { email: $('u-email').value, password: pw, clientId: 'dexter-trail' } });
+    if (r.status === 200 && r.data.accessToken) st.access = r.data.accessToken;
+    if (r.status === 200 && r.data.mfaRequired) { st.challenge = r.data.mfaToken; $('c-token').textContent = st.challenge.slice(0, 10) + '…'; }
+    return r;
+  };
+  $('u-login').onclick = async () => show('u-out', await userLogin($('u-pw').value));
+  $('u-wrong').onclick = async () => { const lines = []; for (let i = 1; i <= 6; i++) { const r = await userLogin('Wrong-Password-' + i + '000');
+    lines.push(`${i}: ${r.status} ${r.data && r.data.code}${r.headers['retry-after'] ? ' Retry-After ' + r.headers['retry-after'] : ''}`); }
+    $('u-out').textContent = lines.join('\n'); };
+
+  $('e-enroll').onclick = async () => { const r = await Trail.api('POST', '/api/v1/me/mfa/totp/enroll', { headers: bearer(st.access) });
+    if (r.status === 200) { $('a-secret').value = r.data.secret; paintCodes(); } show('e-out', r); };
+  $('e-confirm').onclick = async () => { st.lastCode = await totp($('a-secret').value);
+    const r = await Trail.api('POST', '/api/v1/me/mfa/totp/confirm', { body: { code: st.lastCode }, headers: bearer(st.access) });
+    if (r.status === 200) { st.codes = r.data.recoveryCodes; $('c-recovery').value = st.codes[0]; } show('e-out', r); };
+  $('e-status').onclick = async () => show('e-out', await Trail.api('GET', '/api/v1/me/mfa', { headers: bearer(st.access) }));
+  $('e-regen').onclick = async () => { const r = await Trail.api('POST', '/api/v1/me/mfa/recovery-codes', { headers: bearer(st.access) });
+    if (r.status === 200) { st.codes = r.data.recoveryCodes; $('c-recovery').value = st.codes[0]; } show('e-out', r); };
+  $('e-disable').onclick = async () => show('e-out', await Trail.api('DELETE', '/api/v1/me/mfa/totp', { headers: bearer(st.access) }));
+
+  const verify = async body => { const r = await Trail.api('POST', '/api/v1/auth/mfa/verify', { body: { mfaToken: st.challenge, ...body } });
+    if (r.status === 200) st.access = r.data.accessToken;
+    show('c-out', r, r.status === 200 ? 'amr: ' + JSON.stringify(decode(r.data.accessToken).amr) : ''); };
+  $('c-code').onclick = async () => { st.lastCode = await totp($('a-secret').value, 1); verify({ code: st.lastCode }); };
+  $('c-replay').onclick = () => verify({ code: st.lastCode || '000000' });
+  $('c-bad').onclick = () => verify({ code: '000000' });
+  $('c-rec').onclick = () => verify({ recoveryCode: $('c-recovery').value });
+  $('c-stepup').onclick = async () => { const r = await Trail.api('POST', '/api/v1/auth/step-up', { body: { password: $('u-pw').value,
+    recoveryCode: $('c-recovery').value }, headers: bearer(st.access) }); if (r.status === 200) st.access = r.data.accessToken; show('c-out', r); };
+
+  // ------------------------------------------------------------- admin
+  $('ad-login').onclick = async () => { const r = await Trail.api('POST', '/api/v1/admin/auth/login', { body: { email: $('ad-email').value, password: $('ad-pw').value } });
+    if (r.status === 200) st.adminChallenge = r.data.mfaToken; show('ad-out', r, r.status === 200 ? (r.data.setup ? 'first sign-in: set up the authenticator' : 'enter the current code (Verify)') : ''); };
+  $('ad-setup').onclick = async () => { const r = await Trail.api('POST', '/api/v1/admin/auth/mfa/setup', { body: { mfaToken: st.adminChallenge } });
+    if (r.status === 200) { st.adminSecret = r.data.secret; $('a-secret').value = r.data.secret; paintCodes(); } show('ad-out', r); };
+  const adminTokens = r => { if (r.status === 200) { st.admin = r.data.accessToken; st.adminRefresh = r.data.refreshToken; } };
+  $('ad-verify').onclick = async () => { const r = await Trail.api('POST', '/api/v1/admin/auth/mfa/verify', { body: { mfaToken: st.adminChallenge, code: await totp($('a-secret').value) } });
+    adminTokens(r); show('ad-out', r, r.status === 200 ? 'claims: ' + JSON.stringify(decode(r.data.accessToken), null, 2) : ''); };
+  $('ad-me').onclick = async () => show('ad-out', await Trail.api('GET', '/api/v1/admin/me', { headers: bearer(st.admin) }));
+  $('ad-refresh').onclick = async () => { const r = await Trail.api('POST', '/api/v1/admin/auth/token/refresh', { body: { refreshToken: st.adminRefresh } }); adminTokens(r); show('ad-out', r); };
+  $('ad-user').onclick = async () => show('ad-out', await Trail.api('GET', '/api/v1/me', { headers: bearer(st.admin) }));
+  $('p-lookup').onclick = async () => show('p-out', await Trail.api('GET', '/api/v1/admin/accounts?email=' + encodeURIComponent($('p-email').value), { headers: bearer(st.admin) }));
+  $('p-list').onclick = async () => show('p-out', await Trail.api('GET', '/api/v1/admin/admins?limit=10', { headers: bearer(st.admin) }));
+  $('g-start').onclick = async () => { const r = await Trail.api('POST', '/api/v1/admin/elevations', { body: { reason: $('g-reason').value, code: await totp($('a-secret').value, 1) }, headers: bearer(st.admin) });
+    if (r.status === 200) { st.superToken = r.data.accessToken; st.admin = r.data.accessToken; } show('p-out', r, r.status === 200 ? 'token exp: ' + new Date(decode(r.data.accessToken).exp * 1000).toISOString() : ''); };
+  $('g-end').onclick = async () => { const r = await Trail.api('DELETE', '/api/v1/admin/elevations/current', { headers: bearer(st.admin) }); if (r.status === 200) st.admin = r.data.accessToken; show('p-out', r); };
+  $('g-old').onclick = async () => show('p-out', await Trail.api('GET', '/api/v1/admin/admins', { headers: bearer(st.superToken) }));
+  $('i-send').onclick = async () => { const r = await Trail.api('POST', '/api/v1/admin/admins', { body: { email: $('i-email').value, roles: [$('i-role').value] }, headers: bearer(st.admin) });
+    if (r.status === 201) st.inviteeId = r.data.id; show('i-out', r); };
+  $('i-accept').onclick = async () => { const r = await Trail.api('POST', '/api/v1/admin/auth/invite/accept', { body: { token: $('i-token').value, password: $('ad-pw').value } });
+    if (r.status === 200) $('ad-email').value = $('i-email').value; show('i-out', r, r.status === 200 ? 'now Login in section 4 as the invitee' : ''); };
+  $('i-disable').onclick = async () => { const g = await Trail.api('GET', '/api/v1/admin/admins/' + st.inviteeId, { headers: bearer(st.admin) });
+    show('i-out', await Trail.api('PATCH', '/api/v1/admin/admins/' + st.inviteeId, { raw: JSON.stringify({ status: 'disabled' }),
+      headers: { ...bearer(st.admin), 'Content-Type': 'application/json', 'If-Match': (g.headers && g.headers.etag) || '"0"' } })); };
+
+  // ------------------------------------------------------------- Mock mode: the P05 rules in the browser
+  const P = Trail.problem;
+  const rnd = n => Array.from(crypto.getRandomValues(new Uint8Array(n)), b => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'[b & 63]).join('');
+  const secretB32 = () => Array.from(crypto.getRandomValues(new Uint8Array(32)), b => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'[b & 31]).join('');
+  const b64 = o => btoa(JSON.stringify(o)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const M = { users: new Map(), admins: new Map(), challenges: new Map(), fails: new Map(), refresh: new Map(), invites: new Map(), elevations: new Map(), mail: [] };
+  const PERMS = { SUPPORT: ['accounts:read', 'audit:read'], CATALOG_EDITOR: ['catalog:read', 'catalog:write', 'catalog:publish'],
+    FINANCE: ['accounts:read', 'billing:read', 'billing:refund'] };
+  PERMS.SUPER_ADMIN = [...new Set([...Object.values(PERMS).flat(), 'accounts:write', 'admins:read', 'admins:write'])];
+  const jwt = c => b64({ alg: 'ES256', typ: 'at+jwt', kid: 'mock' }) + '.' + b64(c) + '.mock-signature';
+  const now = () => Math.floor(Date.now() / 1000);
+  const claimsOf = req => { const h = Object.entries(req.headers || {}).find(([k]) => k.toLowerCase() === 'authorization');
+    const c = h ? decode(h[1].replace(/^Bearer /, '')) : null; return c && c.exp > now() ? c : null; };
+  const unauth = () => P(401, 'UNAUTHENTICATED', 'A Bearer access token is required');
+  const mail = (to, subject, text) => { M.mail.unshift({ to, subject, text }); $('mailbox').innerHTML = Trail.mode === 'mock' ? '<b>mock mailbox</b><br>' +
+    M.mail.slice(0, 3).map(m => `${m.to} · ${m.subject}<br><span style="color:var(--muted)">${m.text}</span>`).join('<hr>') : ''; };
+  const checkCode = async (rec, code) => { for (const off of [-1, 0, 1]) { const step = Math.floor(Date.now() / 30000) + off;
+    if (code === await totp(rec.secret, off)) { if (step <= rec.lastStep) return false; rec.lastStep = step; return true; } } return false; };
+  const throttle = key => { const f = M.fails.get(key) || 0; return f >= 5 ? P(429, 'RATE_LIMITED', 'Too many attempts; try again later', { retryAfterSeconds: 900 }) : null; };
+  const failed = (key, id) => { const f = (M.fails.get(key) || 0) + 1; M.fails.set(key, f);
+    if (f === 5 && id) Trail.events.emit('identity.security.alert', id, { kind: 'ACCOUNT_LOCKED', refId: id, occurredAt: new Date().toISOString() }, id); };
+  const userToken = (u, amr) => jwt({ sub: u.id, scope: 'user', roles: ['USER'], amr, auth_time: now(), iat: now(), exp: now() + 600, mfa_enrolled: !!(u.totp && u.totp.confirmed), sid: Trail.uuidv7() });
+  const alert = (u, kind) => Trail.events.emit('identity.security.alert', u.id, { kind, refId: u.id, occurredAt: new Date().toISOString() }, u.id);
+  const user = c => c && c.scope === 'user' ? [...M.users.values()].find(u => u.id === c.sub) : null;
+  const stepUpOk = (c, u) => now() - c.auth_time < 300 && (!(u.totp && u.totp.confirmed) || c.amr.includes('mfa'));
+  const stepUpErr = () => P(401, 'STEP_UP_REQUIRED', 'Sign in again with your second factor to continue');
+  const adminSeed = { id: Trail.uuidv7(), email: 'admin@demo.in', pw: 'Admin-Demo-2026!', status: 'active', roles: ['SUPPORT', 'CATALOG_EDITOR', 'FINANCE'], breakGlass: true, totp: null, version: 0 };
+  M.admins.set(adminSeed.email, adminSeed);
+  M.users.set('asha@demo.in', { id: '0192a5a1-0000-7000-8000-000000000001', email: 'asha@demo.in', pw: 'Asha-Demo-2026!', codes: [] });
+  const adminGrant = a => { const el = M.elevations.get(a.id); const active = el && el.until > Date.now();
+    const roles = active ? [...a.roles, 'SUPER_ADMIN'] : a.roles.slice();
+    return { roles, perms: [...new Set(roles.flatMap(r => PERMS[r]))].sort(), until: active ? Math.floor(el.until / 1000) : null }; };
+  const adminToken = a => { const g = adminGrant(a); return jwt({ sub: a.id, scope: 'admin', roles: g.roles, perms: g.perms, amr: ['pwd', 'mfa', 'otp'],
+    auth_time: now(), iat: now(), exp: g.until ? Math.min(g.until, now() + 600) : now() + 600, mfa_enrolled: true, sid: Trail.uuidv7() }); };
+  const adminOf = c => c && c.scope === 'admin' && c.amr.includes('mfa') ? [...M.admins.values()].find(a => a.id === c.sub) : null;
+  const need = (c, perm) => !c.perms || !c.perms.includes(perm) ? P(403, 'FORBIDDEN', 'Missing permission', { missingPermissions: [perm] }) : null;
+  const superOk = a => { const el = M.elevations.get(a.id); return el && el.until > Date.now(); };
+  const issueAdmin = a => { const rt = rnd(43); M.refresh.set(rt, { adminId: a.id, used: false });
+    return { accessToken: adminToken(a), tokenType: 'Bearer', expiresIn: 600, refreshToken: rt, roles: adminGrant(a).roles }; };
+
+  Trail.mock('POST', /^\/api\/v1\/auth\/register$/, (m, req) => { const b = req.body || {};
+    M.users.set(b.email, { id: Trail.uuidv7(), email: b.email, pw: b.password, codes: [] }); return Trail.reply(202, { status: 'accepted' }); });
+  Trail.mock('POST', /^\/api\/v1\/auth\/login$/, (m, req) => { const b = req.body || {}; const key = 'u:' + b.email;
+    const t = throttle(key); if (t) return t; const u = M.users.get(b.email);
+    if (!u || u.pw !== b.password) { failed(key, u && u.id); return P(401, 'INVALID_CREDENTIALS', 'The email or password is incorrect'); }
+    M.fails.delete(key);
+    if (u.totp && u.totp.confirmed) { const mt = rnd(43); M.challenges.set(mt, { kind: 'USER', id: u.email, fails: 0 }); return { mfaRequired: true, mfaToken: mt, expiresIn: 300 }; }
+    return { accessToken: userToken(u, ['pwd']), tokenType: 'Bearer', expiresIn: 600, refreshToken: rnd(43) }; });
+  Trail.mock('POST', /^\/api\/v1\/auth\/mfa\/verify$/, async (m, req) => { const b = req.body || {}; const c = M.challenges.get(b.mfaToken);
+    if (!c || c.kind !== 'USER') return P(401, 'MFA_CHALLENGE_INVALID', 'Sign in again'); const u = M.users.get(c.id);
+    let amr = null;
+    if (b.code && await checkCode(u.totp, b.code)) amr = ['pwd', 'mfa', 'otp'];
+    else if (b.recoveryCode && u.codes.includes(b.recoveryCode.toLowerCase())) { u.codes = u.codes.filter(x => x !== b.recoveryCode.toLowerCase()); amr = ['pwd', 'mfa']; alert(u, 'RECOVERY_CODE_USED'); }
+    if (!amr) { if (++c.fails >= 5) { M.challenges.delete(b.mfaToken); return P(401, 'MFA_CHALLENGE_INVALID', 'Sign in again'); }
+      return P(401, 'INVALID_MFA_CODE', 'The code is not valid (or was already used)'); }
+    M.challenges.delete(b.mfaToken); return { accessToken: userToken(u, amr), tokenType: 'Bearer', expiresIn: 600, refreshToken: rnd(43) }; });
+  Trail.mock('POST', /^\/api\/v1\/auth\/step-up$/, (m, req) => { const c = claimsOf(req); const u = user(c); if (!u) return unauth(); const b = req.body || {};
+    if (b.password !== u.pw) return P(401, 'INVALID_CREDENTIALS', 'The email or password is incorrect');
+    let amr = ['pwd'];
+    if (u.totp && u.totp.confirmed) { if (!b.recoveryCode || !u.codes.includes(b.recoveryCode)) return P(401, 'INVALID_MFA_CODE', 'The verification code is not valid');
+      u.codes = u.codes.filter(x => x !== b.recoveryCode); amr = ['pwd', 'mfa']; }
+    return { accessToken: userToken(u, amr), tokenType: 'Bearer', expiresIn: 600 }; });
+  Trail.mock('GET', /^\/api\/v1\/me\/mfa$/, (m, req) => { const u = user(claimsOf(req)); if (!u) return unauth();
+    return { totpEnrolled: !!(u.totp && u.totp.confirmed), pending: !!(u.totp && !u.totp.confirmed), recoveryCodesLeft: u.codes.length }; });
+  Trail.mock('POST', /^\/api\/v1\/me\/mfa\/totp\/enroll$/, (m, req) => { const c = claimsOf(req); const u = user(c); if (!u) return unauth();
+    if (!stepUpOk(c, u)) return stepUpErr(); if (u.totp && u.totp.confirmed) return P(409, 'MFA_ALREADY_ENROLLED', 'Disable the current authenticator first');
+    u.totp = { secret: secretB32(), confirmed: false, lastStep: 0 };
+    return { secret: u.totp.secret, otpauthUri: `otpauth://totp/Dexter:${encodeURIComponent(u.email)}?secret=${u.totp.secret}&issuer=Dexter`, digits: 6, period: 30 }; });
+  Trail.mock('POST', /^\/api\/v1\/me\/mfa\/totp\/confirm$/, async (m, req) => { const u = user(claimsOf(req)); if (!u) return unauth();
+    if (!u.totp) return P(409, 'MFA_NOT_ENROLLED', 'Start the enrolment first');
+    if (!(await checkCode(u.totp, (req.body || {}).code))) return P(401, 'INVALID_MFA_CODE', 'The code does not match; check the device clock');
+    u.totp.confirmed = true; u.codes = Array.from({ length: 10 }, () => rnd(10).toLowerCase().replace(/[^a-z2-9]/g, 'x').replace(/^(.{5})/, '$1-'));
+    alert(u, 'MFA_ENABLED'); return { recoveryCodes: u.codes.slice() }; });
+  Trail.mock('POST', /^\/api\/v1\/me\/mfa\/recovery-codes$/, (m, req) => { const c = claimsOf(req); const u = user(c); if (!u) return unauth();
+    if (!stepUpOk(c, u) || !c.amr.includes('mfa')) return stepUpErr();
+    u.codes = Array.from({ length: 10 }, () => rnd(10).toLowerCase().replace(/[^a-z2-9]/g, 'x').replace(/^(.{5})/, '$1-')); alert(u, 'RECOVERY_CODES_REGENERATED'); return { recoveryCodes: u.codes.slice() }; });
+  Trail.mock('DELETE', /^\/api\/v1\/me\/mfa\/totp$/, (m, req) => { const c = claimsOf(req); const u = user(c); if (!u) return unauth();
+    if (!stepUpOk(c, u) || (u.totp && u.totp.confirmed && !c.amr.includes('mfa'))) return stepUpErr();
+    u.totp = null; u.codes = []; alert(u, 'MFA_DISABLED'); return Trail.reply(204, null); });
+  Trail.mock('GET', /^\/api\/v1\/me$/, (m, req) => { const c = claimsOf(req); if (!c) return unauth();
+    if (c.scope === 'admin') return P(403, 'FORBIDDEN', 'Admin console tokens cannot be used on user endpoints');
+    const u = user(c); return { accountId: u.id, email: u.email }; });
+
+  Trail.mock('POST', /^\/api\/v1\/admin\/auth\/login$/, (m, req) => { const b = req.body || {}; const key = 'a:' + b.email;
+    const t = throttle(key); if (t) return t; const a = M.admins.get(b.email);
+    if (!a || a.status !== 'active' || a.pw !== b.password) { failed(key); return P(401, 'INVALID_CREDENTIALS', 'The email or password is incorrect'); }
+    const mt = rnd(43); M.challenges.set(mt, { kind: 'ADMIN', id: a.email, fails: 0, setup: !(a.totp && a.totp.confirmed) });
+    return { mfaToken: mt, setup: !(a.totp && a.totp.confirmed), expiresIn: 300 }; });
+  Trail.mock('POST', /^\/api\/v1\/admin\/auth\/mfa\/setup$/, (m, req) => { const c = M.challenges.get((req.body || {}).mfaToken);
+    if (!c || c.kind !== 'ADMIN') return P(401, 'MFA_CHALLENGE_INVALID', 'Sign in again'); const a = M.admins.get(c.id);
+    if (!c.setup) return P(409, 'MFA_ALREADY_ENROLLED', 'This admin already has an authenticator');
+    a.totp = { secret: secretB32(), confirmed: false, lastStep: 0 }; return { secret: a.totp.secret, otpauthUri: 'otpauth://totp/Dexter%20Admin:' + a.email + '?secret=' + a.totp.secret, digits: 6, period: 30 }; });
+  Trail.mock('POST', /^\/api\/v1\/admin\/auth\/mfa\/verify$/, async (m, req) => { const b = req.body || {}; const c = M.challenges.get(b.mfaToken);
+    if (!c || c.kind !== 'ADMIN') return P(401, 'MFA_CHALLENGE_INVALID', 'Sign in again'); const a = M.admins.get(c.id);
+    if (!a.totp || !(await checkCode(a.totp, b.code))) { if (++c.fails >= 5) M.challenges.delete(b.mfaToken); return P(401, 'INVALID_MFA_CODE', 'The code is not valid (or was already used)'); }
+    a.totp.confirmed = true; M.challenges.delete(b.mfaToken); return issueAdmin(a); });
+  Trail.mock('POST', /^\/api\/v1\/admin\/auth\/token\/refresh$/, (m, req) => { const r = M.refresh.get((req.body || {}).refreshToken);
+    if (!r) return P(401, 'INVALID_REFRESH_TOKEN', 'Sign in again');
+    if (r.used) return P(401, 'REFRESH_TOKEN_REUSED', 'This refresh token was already used; the session has been signed out for safety');
+    r.used = true; return issueAdmin([...M.admins.values()].find(a => a.id === r.adminId)); });
+  Trail.mock('GET', /^\/api\/v1\/admin\/me$/, (m, req) => { const c = claimsOf(req); if (!c) return unauth(); if (!adminOf(c)) return P(403, 'FORBIDDEN', 'Admin console token required');
+    return { adminId: c.sub, roles: c.roles, permissions: c.perms, elevated: c.roles.includes('SUPER_ADMIN'), tokenExpiresAt: new Date(c.exp * 1000).toISOString() }; });
+  Trail.mock('GET', /^\/api\/v1\/admin\/accounts$/, (m, req) => { const c = claimsOf(req); if (!c) return unauth(); const a = adminOf(c);
+    if (!a) return P(403, 'FORBIDDEN', 'Admin console token required'); const d = need(c, 'accounts:read'); if (d) return d;
+    const email = req.query.email;
+    const u = M.users.get(email); Trail.events.emit('identity.admin.action', u ? u.id : a.id, { action: 'ACCOUNT_LOOKUP', actorAdminId: a.id, targetType: 'account', targetId: u ? u.id : null }, u ? u.id : null);
+    return u ? { accountId: u.id, email: u.email, status: 'active', mfaEnrolled: !!(u.totp && u.totp.confirmed) } : P(404, 'NOT_FOUND', 'account not found'); });
+  Trail.mock('GET', /^\/api\/v1\/admin\/admins$/, (m, req) => { const c = claimsOf(req); if (!c) return unauth(); const a = adminOf(c);
+    if (!a) return P(403, 'FORBIDDEN', 'Admin console token required'); const d = need(c, 'admins:read'); if (d) return d;
+    if (!superOk(a)) return P(403, 'FORBIDDEN', 'Break-glass elevation required (it may have expired or been ended)');
+    return { data: [...M.admins.values()].map(x => ({ id: x.id, email: x.email, status: x.status, roles: x.roles, version: x.version })), page: { limit: 10, hasMore: false, nextCursor: null } }; });
+  Trail.mock('GET', /^\/api\/v1\/admin\/admins\/([0-9a-f-]{36})$/, (m, req) => { const c = claimsOf(req); const a = adminOf(c); if (!a || !superOk(a)) return P(403, 'FORBIDDEN', 'Break-glass elevation required');
+    const x = [...M.admins.values()].find(y => y.id === m[1]); return x ? Trail.reply(200, { id: x.id, email: x.email, status: x.status, roles: x.roles, version: x.version }, { etag: '"' + x.version + '"' }) : P(404, 'NOT_FOUND', 'admin not found'); });
+  Trail.mock('POST', /^\/api\/v1\/admin\/admins$/, (m, req) => { const c = claimsOf(req); const a = adminOf(c); if (!a) return unauth(); const d = need(c, 'admins:write'); if (d) return d;
+    if (!superOk(a)) return P(403, 'FORBIDDEN', 'Break-glass elevation required'); const b = req.body || {};
+    if ((b.roles || []).includes('SUPER_ADMIN')) return P(400, 'VALIDATION_FAILED', 'SUPER_ADMIN is break-glass only', { errors: [{ field: 'roles', code: 'INVALID' }] });
+    if (M.admins.has(b.email)) return P(409, 'ADMIN_EMAIL_TAKEN', 'An admin with this email already exists');
+    const x = { id: Trail.uuidv7(), email: b.email, pw: null, status: 'invited', roles: b.roles || [], breakGlass: false, totp: null, version: 0 };
+    M.admins.set(x.email, x); const t = rnd(43); M.invites.set(t, x.email); mail(x.email, 'You have been invited to the Dexter admin console', location.pathname + '#invite=' + t);
+    Trail.events.emit('identity.admin.action', a.id, { action: 'ADMIN_CREATED', actorAdminId: a.id, targetType: 'admin', targetId: x.id }, null);
+    return Trail.reply(201, { id: x.id, email: x.email, status: x.status, roles: x.roles, version: 0 }, { etag: '"0"' }); });
+  Trail.mock('PATCH', /^\/api\/v1\/admin\/admins\/([0-9a-f-]{36})$/, (m, req) => { const c = claimsOf(req); const a = adminOf(c); if (!a) return unauth(); const d = need(c, 'admins:write'); if (d) return d;
+    if (!superOk(a)) return P(403, 'FORBIDDEN', 'Break-glass elevation required'); if (m[1] === a.id) return P(403, 'SELF_CHANGE_FORBIDDEN', 'Admins cannot change themselves');
+    const x = [...M.admins.values()].find(y => y.id === m[1]); if (!x) return P(404, 'NOT_FOUND', 'admin not found');
+    const im = Object.entries(req.headers).find(([k]) => k.toLowerCase() === 'if-match'); if (!im) return P(428, 'IF_MATCH_REQUIRED', 'If-Match required');
+    if (im[1] !== '"' + x.version + '"') return P(412, 'VERSION_CONFLICT', 'Resource version conflict');
+    const b = JSON.parse(req.raw || '{}'); if (b.status && x.status !== 'invited') x.status = b.status; x.version++;
+    return Trail.reply(200, { id: x.id, email: x.email, status: x.status, roles: x.roles, version: x.version }, { etag: '"' + x.version + '"' }); });
+  Trail.mock('POST', /^\/api\/v1\/admin\/auth\/invite\/accept$/, (m, req) => { const b = req.body || {}; const e = M.invites.get(b.token);
+    if (!e) return P(400, 'INVALID_TOKEN', 'The link is invalid or has expired'); M.invites.delete(b.token); const x = M.admins.get(e); x.pw = b.password; x.status = 'active'; return { status: 'accepted' }; });
+  Trail.mock('POST', /^\/api\/v1\/admin\/elevations$/, async (m, req) => { const c = claimsOf(req); const a = adminOf(c); if (!a) return P(403, 'FORBIDDEN', 'Admin console token required');
+    const b = req.body || {}; if (String(b.reason || '').trim().length < 20) return P(400, 'VALIDATION_FAILED', 'Explain why (20-500 characters)', { errors: [{ field: 'reason', code: 'LENGTH' }] });
+    if (!a.breakGlass) return P(403, 'NOT_BREAK_GLASS_ELIGIBLE', 'This admin may not use break-glass');
+    if (superOk(a)) return P(409, 'CONFLICT', 'A break-glass elevation is already active; end it first');
+    if (!(await checkCode(a.totp, b.code))) return P(401, 'INVALID_MFA_CODE', 'The code is not valid (or was already used)');
+    const id = Trail.uuidv7(); M.elevations.set(a.id, { id, until: Date.now() + 3600e3 });
+    Trail.events.emit('identity.admin.action', a.id, { action: 'BREAK_GLASS_STARTED', actorAdminId: a.id, targetType: 'elevation', targetId: id, reason: b.reason }, null);
+    return { elevationId: id, expiresAt: new Date(Date.now() + 3600e3).toISOString(), accessToken: adminToken(a), expiresIn: 600 }; });
+  Trail.mock('DELETE', /^\/api\/v1\/admin\/elevations\/current$/, (m, req) => { const c = claimsOf(req); const a = adminOf(c); if (!a) return P(403, 'FORBIDDEN', 'Admin console token required');
+    const ended = superOk(a); M.elevations.delete(a.id);
+    if (ended) Trail.events.emit('identity.admin.action', a.id, { action: 'BREAK_GLASS_ENDED', actorAdminId: a.id, targetType: 'elevation' }, null);
+    return { ended, accessToken: adminToken(a), expiresIn: 600 }; });
+})();
+</script>
+</body>
+</html>

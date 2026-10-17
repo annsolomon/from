@@ -6,7 +6,7 @@ set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
 source scripts/lib/services.sh
-PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html})
+PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html p05-mfa-admin.html})
 BASE=http://127.0.0.1:8099
 fail=0
 
@@ -70,6 +70,17 @@ me=$(curl -s --max-time 5 -H "Authorization: Bearer $at" "$BASE/svc/identity/v1/
 if [[ $me == *'"email":"asha@demo.in"'* ]]; then printf 'PASS  %-10s %s\n' p04-me 200; else printf 'FAIL  %-10s %s\n' p04-me "${me:0:160}"; fail=1; fi
 js=$(curl -s --max-time 5 "$BASE/trail.js")
 if [[ $js == *"'/svc/identity/v1/auth/'"* ]]; then printf 'PASS  %-10s %s\n' p04-bridge 200; else printf 'FAIL  %-10s %s\n' p04-bridge "trail.js without the /svc/identity bridge"; fail=1; fi
+
+# P05: admin console through the proxy (what p05-mfa-admin.html Live mode calls): password -> MFA challenge (never
+# tokens), admin endpoints refuse anonymous callers, the /api/v1/admin bridge is in trail.js
+al=$(curl -s --max-time 10 -H 'Content-Type: application/json' \
+  -d "{\"email\":\"admin@demo.in\",\"password\":\"${DEMO_PASSWORD_ADMIN}\"}" "$BASE/svc/identity/v1/admin/auth/login")
+if [[ $al == *'"mfaToken":"'* && $al != *accessToken* ]]; then printf 'PASS  %-10s %s\n' p05-admin challenge; else printf 'FAIL  %-10s %s\n' p05-admin "${al:0:160}"; fail=1; fi
+an=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$BASE/svc/identity/v1/admin/admins")
+if [[ $an == 401 ]]; then printf 'PASS  %-10s %s\n' p05-anon 401; else printf 'FAIL  %-10s %s\n' p05-anon "$an"; fail=1; fi
+mf=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 -H "Authorization: Bearer $at" "$BASE/svc/identity/v1/me/mfa")
+if [[ $mf == 200 ]]; then printf 'PASS  %-10s %s\n' p05-mfa 200; else printf 'FAIL  %-10s %s\n' p05-mfa "$mf"; fail=1; fi
+if [[ $js == *"'/svc/identity/v1/admin/'"* ]]; then printf 'PASS  %-10s %s\n' p05-bridge 200; else printf 'FAIL  %-10s %s\n' p05-bridge "trail.js without the admin bridge"; fail=1; fi
 
 echo "trail-check: $([[ $fail -eq 0 ]] && echo PASS || echo FAIL)"
 exit $fail

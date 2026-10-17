@@ -56,6 +56,14 @@ Each service appends its own table here in its phase.
 | `UNSUPPORTED_GRANT_TYPE` | 400 | `/oauth2/token`: only `client_credentials`. |
 | `INVALID_AUDIENCE` | 400 | `/oauth2/token`: the client may not request a token for that `audience`. |
 | `PHONE_TAKEN` | 409 | `PATCH /v1/me`: the phone number belongs to another account (unique keyed hash). |
+| `MFA_CHALLENGE_INVALID` | 401 | P05: the `mfaToken` of a sign-in is unknown, expired (5 min), already used, or burnt after 5 wrong codes — sign in again. |
+| `INVALID_MFA_CODE` | 401 | P05: wrong TOTP code, a code whose 30-second step was already used (replay), or an unknown/used recovery code. |
+| `MFA_ALREADY_ENROLLED` | 409 | P05: enrol/setup while a confirmed authenticator exists. |
+| `MFA_NOT_ENROLLED` | 409 | P05: confirm/disable/regenerate without an enrolment. |
+| `ADMIN_MFA_REQUIRED` | 403 | P05: an admin-console token without `amr=mfa` (cannot happen with identity-issued tokens; defense in depth). |
+| `NOT_BREAK_GLASS_ELIGIBLE` | 403 | P05: `POST /v1/admin/elevations` by an admin that is not break-glass eligible (also refused by RLS). |
+| `ADMIN_EMAIL_TAKEN` | 409 | P05: `POST /v1/admin/admins` with an email that already has an admin. |
+| `SELF_CHANGE_FORBIDDEN` | 403 | P05: `PATCH /v1/admin/admins/{own id}` — another SUPER_ADMIN must do it. |
 
 Shared codes identity uses: `VALIDATION_FAILED` with `errors[].code` = `INVALID_EMAIL`, `REQUIRED`, `TOO_SHORT`,
 `TOO_LONG`, `BREACHED`, `CONTAINS_EMAIL` (passwords), `INVALID_TZ`, `INVALID_LENGTH`, `INVALID_CHARACTERS`,
@@ -63,6 +71,14 @@ Shared codes identity uses: `VALIDATION_FAILED` with `errors[].code` = `INVALID_
 `IF_MATCH_INVALID` / `VERSION_CONFLICT` on `PATCH /v1/me`; `IDEMPOTENCY_*` on registration; `STEP_UP_REQUIRED` on
 `logout-all` and `password/change`; `SERVICE_UNAVAILABLE` + `Retry-After: 1` when the Argon2 bulkhead is full.
 Registration and forgot-password never fail on the email's existence: always `202 {"status":"accepted"}`.
+
+P05 additions: `RATE_LIMITED` (429 + `Retry-After`) from the login/MFA/step-up throttles — per email hash (also for
+unknown emails), per account/admin and per IP; progressive delay after 3 failures, 15-minute lock after 10.
+`SERVICE_UNAVAILABLE` (503 + `Retry-After: 2`) when Redis is unreachable: sign-in fails closed. `FORBIDDEN` with
+`missingPermissions` from `@RequiresPermission`; `FORBIDDEN` "Admin console token required" for user tokens on admin
+endpoints and the reverse; `FORBIDDEN` "Break-glass elevation required" when a SUPER_ADMIN token's elevation has
+ended or expired. `STEP_UP_REQUIRED` on MFA enrol/disable/recovery-codes (disable and regenerate also need `amr=mfa`).
+`CONFLICT` when a break-glass elevation is already active; `VERSION_CONFLICT` (412) on stale admin `If-Match`.
 
 
 ## Retry-After (P02)

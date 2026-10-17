@@ -8,6 +8,8 @@
 #   P04: identity (scripts/lib/p04_smoke.py): register -> Mailpit verification email -> verify -> login -> /me PATCH
 #        (If-Match) -> refresh rotation + reuse detection -> sessions -> logout; enumeration-safe answers; seeded demo
 #        login; client-credentials tokens; dev key rotation. Then: identity's outbox rows are published to Kafka.
+#   P05: identity (scripts/lib/p05_smoke.py): TOTP enrol -> MFA sign-in -> recovery code -> step-up -> disable; 429
+#        throttle; seeded admin first sign-in (TOTP setup), audited lookup, break-glass, invite -> accept, end.
 # Later phases append their checks below the P00 block. Output also goes to $SMOKE_OUT if set.
 set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -107,6 +109,11 @@ if [[ -f "$ROOT/.env" ]]; then set -a; source "$ROOT/.env"; set +a; fi
 p04=$(python3 "$ROOT/scripts/lib/p04_smoke.py" "http://localhost:8081" "http://127.0.0.1:8025" 2>&1); p04rc=$?
 while IFS= read -r line; do log "$line"; done <<< "$p04"
 [[ $p04rc -eq 0 ]] || fail=1
+# ------------------------------------------------------------------ P05: MFA, lockout, admin console
+log "# P05 identity MFA + admin (:8081)"
+p05=$(python3 "$ROOT/scripts/lib/p05_smoke.py" "http://localhost:8081" "http://127.0.0.1:8025" 2>&1); p05rc=$?
+while IFS= read -r line; do log "$line"; done <<< "$p05"
+[[ $p05rc -eq 0 ]] || fail=1
 # Outbox -> Kafka (MASTER_PLAN 6.3): every identity event written above is published by the relay within 30 s.
 COMPOSE=(docker compose --env-file "$ROOT/.env" -f "$ROOT/infra/compose/docker-compose.yml")
 outbox() { "${COMPOSE[@]}" exec -T postgres psql -U "${POSTGRES_USER:-postgres}" -d identity -tA -c "$1" 2>/dev/null | tr -d '[:space:]'; }
@@ -120,8 +127,8 @@ done
 if [[ $pending == 0 && ${published:-0} -gt 0 ]]; then log "PASS  identity outbox -> Kafka: $published published, 0 pending"
 else log "FAIL  identity outbox -> Kafka: pending=$pending published=$published"; fail=1; fi
 topics=$("${COMPOSE[@]}" exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list 2>/dev/null)
-if [[ $topics == *dexter.identity.account.v1* && $topics == *dexter.identity.session.v1* && $topics == *dexter.identity.security.v1* ]]; then
-  log "PASS  identity topics exist (account, session, security)"
+if [[ $topics == *dexter.identity.account.v1* && $topics == *dexter.identity.session.v1* && $topics == *dexter.identity.security.v1* && $topics == *dexter.identity.admin.v1* ]]; then
+  log "PASS  identity topics exist (account, session, security, admin)"
 else log "FAIL  identity topics missing: $(tr '\n' ' ' <<< "$topics")"; fail=1; fi
 
 log "# summary: $([[ $fail -eq 0 ]] && echo PASS || echo FAIL)"

@@ -175,7 +175,7 @@ class AdminIT extends IdentityIT {
 
     Res page = get("/v1/admin/admins?limit=2", bearer(superToken));
     assertThat(page.status()).as(page.toString()).isEqualTo(200);
-    assertThat(page.json().get("items").size()).isEqualTo(2);
+    assertThat(page.json().get("data").size()).isEqualTo(2);
 
     // If-Match update: disable the invitee (revokes its sessions), stale version → 412, self-change refused
     Res one = get("/v1/admin/admins/" + inviteeId, bearer(superToken));

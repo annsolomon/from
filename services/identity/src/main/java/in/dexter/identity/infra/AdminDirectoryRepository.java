@@ -37,10 +37,10 @@ public final class AdminDirectoryRepository implements AdminDirectory {
   static final String VIEW_COLS = "a.id, a.email, a.display_name, a.status, a.break_glass_eligible, a.created_at,"
       + " a.version, EXISTS (SELECT 1 FROM identity.admin_mfa_totp m WHERE m.admin_id = a.id"
       + " AND m.confirmed_at IS NOT NULL) AS mfa_confirmed,"
-      + " ARRAY(SELECT r.role FROM identity.admin_roles r WHERE r.admin_id = a.id ORDER BY r.role) AS roles";
+      + " ARRAY(SELECT r.role FROM identity.admin_roles r WHERE r.admin_id = a.id) AS roles";
   static final RowMapper<AdminView> VIEW = (rs, i) -> new AdminView(Rows.uuid(rs, "id"), rs.getString("email"),
       rs.getString("display_name"), rs.getString("status"), rs.getBoolean("break_glass_eligible"),
-      rs.getBoolean("mfa_confirmed"), AdminRepository.texts(rs.getArray("roles")), Rows.instant(rs, "created_at"),
+      rs.getBoolean("mfa_confirmed"), AdminRepository.texts(rs.getArray("roles")).stream().sorted().toList(), Rows.instant(rs, "created_at"),
       rs.getLong("version"));
   /** GET /v1/admin/admins, exposed for PlanAssert. */
   public static final KeysetQuery<AdminView> LIST = KeysetQuery.<AdminView>builder("created_desc")

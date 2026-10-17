@@ -2,7 +2,7 @@
 //
 // P00: Mock/Live toggle, Trail.api(), request log with timings.
 // P01: mock handlers may return Trail.reply(status, body, headers); api() accepts {raw} bodies.
-// P04: Live identity calls are bridged to /svc/identity until the gateway routes /api/* (liveRoutes, P06).
+// P04/P05: Live identity calls (incl. /api/v1/admin/*) are bridged to /svc/identity until the gateway routes /api/* (liveRoutes, P06).
 // P03: the complete kit -
 //   * personas + tenant switcher (Asha / Ravi / Admin from the seed fixtures); Live mode logs in through
 //     /api/v1/auth/login (identity, P04) and sends the bearer token; Mock mode scopes data to the persona (RLS).
@@ -277,6 +277,7 @@
   const liveRoutes = [
     ['/api/v1/auth/', '/svc/identity/v1/auth/'],
     ['/api/v1/me', '/svc/identity/v1/me'],
+    ['/api/v1/admin/', '/svc/identity/v1/admin/'],
     ['/api/.well-known/', '/svc/identity/.well-known/'],
     ['/api/_dev/p04/', '/svc/identity/_dev/p04/'],
   ];
