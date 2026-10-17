@@ -13,6 +13,8 @@ import sys
 import uuid
 
 sys.path.insert(0, os.path.dirname(__file__))
+if len(sys.argv) < 3:
+    sys.argv.append("http://127.0.0.1:8025")  # p04_smoke reads a Mailpit URL at import; P06 sends no mail
 import p04_smoke as p4  # noqa: E402
 
 GW = sys.argv[1].rstrip("/")
