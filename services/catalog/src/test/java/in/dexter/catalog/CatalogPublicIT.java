@@ -28,7 +28,9 @@ class CatalogPublicIT extends CatalogIT {
           i % 2 == 0 ? "rupay" : "amex", 10_000L * i);
       if (i == 3) {
         List<Map<String, Object>> rules = new ArrayList<>();
-        rules.add(Cards.rule(null, 100));
+        Map<String, Object> base = Cards.rule(null, 100);
+        base.put("excludedPaths", List.of("fuel"));
+        rules.add(base);
         rules.add(Cards.rule("food", 300));
         rules.add(Cards.rule("food.delivery", 1000));
         d.put("rules", rules);
@@ -55,6 +57,13 @@ class CatalogPublicIT extends CatalogIT {
     } while (cursor != null);
     assertThat(seen).as("6 published, the draft is hidden").hasSize(6).doesNotContain(ids.get(6).toString());
     assertThat(names).isSorted();
+    // search runs as the owner (SECURITY DEFINER) and must still hide the draft
+    JsonNode found = anon("GET", "/v1/catalog/cards/search?q=" + enc("zz pub " + tag)).json().get("data");
+    List<String> foundIds = new ArrayList<>();
+    found.forEach(c -> foundIds.add(c.get("id").asString()));
+    assertThat(foundIds).as("search: the 6 published, never the draft")
+        .containsAll(ids.subList(0, 6).stream().map(UUID::toString).toList())
+        .doesNotContain(ids.get(6).toString());
 
     assertThat(anon("GET", "/v1/catalog/cards?issuer=" + issuer + "&network=amex").json().get("data").size())
         .isEqualTo(3);

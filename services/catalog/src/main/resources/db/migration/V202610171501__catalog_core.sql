@@ -10,7 +10,7 @@
 --     + issuer                                      (issuer_id, name, id) WHERE published                     card_products_issuer
 --     + maxAnnualFee / category earning ≥ X bps     residual filters on card_products_public (+ rules by card) card_products_public
 --   GET /v1/catalog/cards/{slug}                    UNIQUE (slug)                                              card_products_slug_key
---   GET /v1/catalog/cards/search?q=                 GIN (lower(name) gin_trgm_ops) WHERE published             card_products_name_trgm
+--   GET /v1/catalog/cards/search?q= (owner fn)      GIN (lower(name) gin_trgm_ops) WHERE published             card_products_name_trgm
 --   current rules of a card / of many cards         (card_product_id, version)                                reward_rules_card_version
 --   categories/potential (rules matching a path)    GIST (category_path) + card join                          reward_rules_path
 --   GET /v1/catalog/offers (active, merchant)       (merchant_id) WHERE status = 'active'                     offers_merchant
@@ -82,6 +82,32 @@ CREATE POLICY card_products_editor ON catalog.card_products FOR ALL TO catalog_a
 CREATE POLICY card_products_owner ON catalog.card_products FOR ALL TO catalog_owner USING (true) WITH CHECK (true);
 GRANT SELECT ON catalog.card_products TO catalog_app;
 GRANT SELECT, INSERT, UPDATE ON catalog.card_products TO catalog_admin;
+
+-- Name search. Under RLS the planner may not use an index for a non-leakproof qual (LIKE, pg_trgm's %) ahead of the
+-- policy, so catalog_app's search would scan the table. This SECURITY DEFINER function runs as catalog_owner (policy
+-- USING (true)), states the published filter itself and returns only public columns; dynamic SQL gives every call a
+-- plan for its actual pattern. Most similar first, at most 50 rows.
+CREATE FUNCTION catalog.search_published_cards(p_q text, p_limit integer)
+RETURNS TABLE (id uuid, slug text, name text, network text, tier text, annual_fee_paise bigint, sim real)
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = pg_catalog, pg_temp AS
+$$
+BEGIN
+  IF p_q IS NULL OR length(p_q) < 2 OR length(p_q) > 100 THEN
+    RAISE EXCEPTION 'bad search arguments';
+  END IF;
+  PERFORM set_config('pg_trgm.similarity_threshold', '0.3', true);
+  RETURN QUERY EXECUTE
+    'SELECT c.id, c.slug, c.name, c.network, c.tier, c.annual_fee_paise, public.similarity(lower(c.name), $1)'
+    || ' FROM catalog.card_products c WHERE c.status = ''published'''
+    || ' AND (lower(c.name) LIKE $2 OR lower(c.name) OPERATOR(public.%) $1)'
+    || ' ORDER BY 7 DESC, c.name, c.id LIMIT $3'
+    USING lower(p_q),
+          '%' || replace(replace(replace(lower(p_q), '\', '\\'), '%', '\%'), '_', '\_') || '%',
+          least(greatest(coalesce(p_limit, 20), 1), 50);
+END
+$$;
+REVOKE ALL ON FUNCTION catalog.search_published_cards(text, integer) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION catalog.search_published_cards(text, integer) TO catalog_app, catalog_readonly;
 
 -- ---------------------------------------------------------------- drafts (editor only)
 CREATE TABLE catalog.card_product_drafts (

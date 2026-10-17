@@ -8,7 +8,14 @@ import in.dexter.catalog.infra.CatalogRepository;
 import in.dexter.catalog.support.CatalogIT;
 import in.dexter.db.plan.PlanAssert;
 import in.dexter.db.tenant.TenantTx;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLWarning;
+import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeAll;
@@ -19,7 +26,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 /**
  * PlanAssert (MASTER_PLAN 3.5, P09 "search plan") on 50,000 generated published cards: the list walks
  * {@code card_products_public} in (name, id) order without a Sort, the network filter uses its own index, and search
- * uses the trigram index — never a sequential scan of card_products.
+ * uses the trigram index (inside the owner's search function) — never a sequential scan of card_products.
  */
 class CatalogPlanIT extends CatalogIT {
   static final int CARDS = 50_000;
@@ -53,7 +60,9 @@ class CatalogPlanIT extends CatalogIT {
         SELECT id, 1, jsonb_build_object('id', id, 'slug', slug, 'name', name), now()
         FROM catalog.card_products WHERE issuer_id = CAST(:i AS uuid) AND status = 'published'
         """).param("i", ISSUER).update();
-    ADMIN.sql("ANALYZE catalog.card_products").update();
+    // VACUUM moves the GIN pending list (50k fast-update inserts) into the index; ANALYZE alone leaves it, and
+    // the planner then prices the trigram index as if every pending entry had to be scanned.
+    ADMIN.sql("VACUUM ANALYZE catalog.card_products").update();
     ADMIN.sql("ANALYZE catalog.card_product_versions").update();
   }
 
@@ -82,13 +91,39 @@ class CatalogPlanIT extends CatalogIT {
     plan(q.firstPageSql(), Map.of("__limit", 51, "network", "amex"), "card_products_network", true);
   }
 
+  /**
+   * Search runs inside {@code catalog.search_published_cards} (SECURITY DEFINER, ADR-0014 §6), so EXPLAIN cannot see
+   * its inner query: auto_explain logs the nested plan as a NOTICE on a superuser connection that calls the function
+   * as catalog_app, exactly like the service.
+   */
   @Test
-  void searchUsesTheTrigramIndex() {
-    tx.read(CatalogQueryService.PUBLIC, () -> {
-      jdbc.sql("SELECT set_config('pg_trgm.similarity_threshold', '0.3', true)").query().singleRow();
-      return PlanAssert.query(jdbc, CatalogRepository.SEARCH, Map.of("q", "glacier prime", "pat", "%glacier prime%",
-          "limit", 20)).forbidSeqScanOn("card_products").requireIndex("card_products_name_trgm").verify();
-    });
+  void searchUsesTheTrigramIndex() throws Exception {
+    List<String> plans = new ArrayList<>();
+    try (Connection c = DriverManager.getConnection(DB.url(), "postgres", "postgres");
+         Statement st = c.createStatement()) {
+      st.execute("LOAD 'auto_explain'");
+      st.execute("SET auto_explain.log_min_duration = 0");
+      st.execute("SET auto_explain.log_nested_statements = on");
+      st.execute("SET auto_explain.log_level = notice");
+      st.execute("SET client_min_messages = notice");
+      st.execute("SET ROLE catalog_app");
+      for (String q : List.of("glacier prime", "borealis cashbak", "harbor select 77")) {
+        st.clearWarnings();
+        try (ResultSet rs = st.executeQuery("SELECT count(1) FROM catalog.search_published_cards('" + q + "', 20)")) {
+          rs.next();
+          assertThat(rs.getLong(1)).as(q).isPositive();
+        }
+        StringBuilder all = new StringBuilder();
+        for (SQLWarning w = st.getWarnings(); w != null; w = w.getNextWarning()) {
+          all.append(w.getMessage()).append('\n');
+        }
+        plans.add(all.toString());
+      }
+    }
+    for (String plan : plans) {
+      assertThat(plan).as(plan).contains("FROM catalog.card_products c").contains("card_products_name_trgm")
+          .doesNotContain("Seq Scan on card_products");
+    }
     assertThat(anon("GET", "/v1/catalog/cards/search?q=glacier%20prime").json().get("data").size()).isEqualTo(20);
   }
 }

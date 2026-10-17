@@ -54,11 +54,13 @@ public final class CatalogRepository implements CatalogStore {
       " AND EXISTS (SELECT 1 FROM catalog.reward_rules r WHERE " + applicable("r") + " AND r.rate_bps >= :minRateBps"
           + " AND NOT EXISTS (SELECT 1 FROM catalog.reward_rules r2 WHERE " + applicable("r2") + " AND " + level("r2")
           + " > " + level("r") + "))");
-  /** Search: trigram on the lower-cased name (GIN), substring or similar; most similar first. */
-  public static final String SEARCH = "SELECT c.id, c.slug, c.name, c.network, c.tier, c.annual_fee_paise,"
-      + " public.similarity(lower(c.name), :q) AS sim FROM catalog.card_products c"
-      + " WHERE c.status = 'published' AND (lower(c.name) LIKE :pat OR lower(c.name) OPERATOR(public.%) :q)"
-      + " ORDER BY sim DESC, c.name, c.id LIMIT :limit";
+  /**
+   * Search: trigram on the lower-cased name (GIN), substring or similar, most similar first. Runs through the owner's
+   * SECURITY DEFINER function: under catalog_app's policy the planner may not use the index for LIKE/% (not
+   * leakproof) and would scan the table (ADR-0014 §6).
+   */
+  public static final String SEARCH = "SELECT id, slug, name, network, tier, annual_fee_paise, sim"
+      + " FROM catalog.search_published_cards(:q, :limit)";
 
   private final JdbcClient jdbc;
   private final KeysetPager pager;
@@ -121,9 +123,8 @@ public final class CatalogRepository implements CatalogStore {
   @Override
   public List<SearchHit> search(String q, int limit) {
     TenantScope.require();
-    jdbc.sql("SELECT set_config('pg_trgm.similarity_threshold', '0.3', true)").query().singleRow();
     return jdbc.sql(SEARCH)
-        .param("q", q).param("pat", "%" + likeEscape(q) + "%").param("limit", limit)
+        .param("q", q).param("limit", limit)
         .query((rs, i) -> new SearchHit(Rows.uuid(rs, "id"), rs.getString("slug"), rs.getString("name"),
             rs.getString("network"), rs.getString("tier"), rs.getLong("annual_fee_paise"), rs.getDouble("sim")))
         .list();
@@ -175,10 +176,6 @@ public final class CatalogRepository implements CatalogStore {
             Rows.nullableLong(rs, "max_discount_paise"), rs.getLong("min_spend_paise"), Rows.instant(rs, "valid_from"),
             Rows.instant(rs, "valid_to"), rs.getBoolean("stackable"), rs.getString("terms_url"), rs.getInt("version")))
         .list();
-  }
-
-  static String likeEscape(String s) {
-    return s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
   }
 
   private static void put(Map<String, Object> m, String k, Object v) {
