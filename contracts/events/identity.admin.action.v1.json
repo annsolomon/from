@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dexter.in/events/identity.admin.action.v1.json",
+  "title": "identity.admin.action v1 - an admin did something that must be audited (P18 hash-chains it; BREAK_GLASS_STARTED also alerts). Envelope accountId = the affected user account, if any.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "action",
+    "actorAdminId",
+    "targetType",
+    "targetId",
+    "reason",
+    "occurredAt"
+  ],
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": [
+        "ADMIN_SIGNED_IN",
+        "ACCOUNT_LOOKUP",
+        "ADMIN_CREATED",
+        "ADMIN_UPDATED",
+        "INVITE_ACCEPTED",
+        "BREAK_GLASS_STARTED",
+        "BREAK_GLASS_ENDED",
+        "ADMIN_LOCKED"
+      ]
+    },
+    "actorAdminId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "targetType": {
+      "type": "string",
+      "enum": [
+        "account",
+        "admin",
+        "elevation",
+        "session"
+      ]
+    },
+    "targetId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "reason": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

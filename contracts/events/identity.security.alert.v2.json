@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dexter.in/events/identity.security.alert.v2.json",
+  "title": "identity.security.alert v2 - a security-relevant event for the account (audit/notifications, P18). Adds lockout and MFA kinds to v1. refId: the session for REFRESH_TOKEN_REUSE, the account otherwise.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "kind",
+    "refId",
+    "occurredAt"
+  ],
+  "properties": {
+    "kind": {
+      "type": "string",
+      "enum": [
+        "REFRESH_TOKEN_REUSE",
+        "ACCOUNT_LOCKED",
+        "MFA_ENABLED",
+        "MFA_DISABLED",
+        "RECOVERY_CODES_REGENERATED",
+        "RECOVERY_CODE_USED"
+      ]
+    },
+    "refId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

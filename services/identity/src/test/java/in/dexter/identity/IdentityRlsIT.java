@@ -67,6 +67,21 @@ class IdentityRlsIT extends IdentityIT {
   }
 
   @Test
+  void mfaTotp() throws Exception {
+    new RlsProofKit(TestPostgres.flywayDb("identity"), "mfa_totp",
+        ACCOUNT + " INSERT INTO identity.mfa_totp (account_id, secret_enc) SELECT a.id, '\\x00' FROM a",
+        "UPDATE identity.mfa_totp SET account_id = ?").proveAll();
+  }
+
+  @Test
+  void recoveryCodes() throws Exception {
+    new RlsProofKit(TestPostgres.flywayDb("identity"), "recovery_codes",
+        ACCOUNT + " INSERT INTO identity.recovery_codes (account_id, id, code_hash)"
+            + " SELECT a.id, gen_random_uuid(), sha256(gen_random_uuid()::text::bytea) FROM a",
+        "UPDATE identity.recovery_codes SET account_id = ?").proveAll();
+  }
+
+  @Test
   void preAuthFunctionsAreForTheAppRoleOnly() {
     var db = TestPostgres.flywayDb("identity");
     for (String role : new String[] {"admin", "readonly", "relay"}) {

@@ -36,6 +36,13 @@ final class IdentityMails {
             + "If this was not you, reset your password now with \"Forgot password\".\n");
   }
 
+  static Mail adminInvite(String to, String link, long hours) {
+    return new Mail(to, "You have been invited to the Dexter admin console",
+        "An administrator invited you to the Dexter admin console.\n\nSet your password here:\n\n" + link
+            + "\n\nThe link works once and expires in " + hours + " hours. At your first sign-in you will set up an "
+            + "authenticator app; admin access always needs it.\nIf you did not expect this, ignore this email.\n");
+  }
+
   static String link(String template, String token) {
     return template.replace("{token}", token);
   }

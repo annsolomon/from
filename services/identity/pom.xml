@@ -54,6 +54,11 @@
       <artifactId>bcprov-jdk18on</artifactId>
     </dependency>
     <dependency>
+      <!-- P05: login throttles and MFA challenges (Redis, per-service ACL user `identity`) -->
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-redis</artifactId>
+    </dependency>
+    <dependency>
       <!-- verification / reset emails (Mailpit in dev) -->
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-mail</artifactId>

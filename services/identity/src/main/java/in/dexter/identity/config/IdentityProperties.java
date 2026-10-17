@@ -31,7 +31,9 @@ public record IdentityProperties(
     Map<String, ServiceClient> serviceClients,
     @DefaultValue Mail mail,
     @DefaultValue Hashing hashing,
-    @DefaultValue Relay relay) {
+    @DefaultValue Relay relay,
+    @DefaultValue Security security,
+    @DefaultValue Admin admin) {
 
   public IdentityProperties {
     serviceClients = serviceClients == null ? Map.of() : Map.copyOf(serviceClients);
@@ -69,4 +71,40 @@ public record IdentityProperties(
   /** Outbox relay (MASTER_PLAN 6.3) as identity_relay, plus topic creation and the idempotency-key purge. */
   public record Relay(@DefaultValue("false") boolean enabled, String url, String username, String password,
       String bootstrapServers, @DefaultValue("3") int partitions, @DefaultValue("1") short replication) {}
+
+  /**
+   * P05: second factor and throttling (MASTER_PLAN 7.1). Login: {@code free} failures without delay, then
+   * {@code base·2^n} up to {@code max-delay}, locked {@code lock-for} after {@code lock-after} failures.
+   */
+  public record Security(
+      @DefaultValue("5m") Duration mfaChallengeTtl,
+      @DefaultValue("5") int mfaMaxAttempts,
+      @DefaultValue("1") int totpWindow,
+      @DefaultValue("Dexter") String totpIssuer,
+      @DefaultValue Throttle login,
+      @DefaultValue("5") int mfaFree,
+      @DefaultValue("10") int mfaLockAfter,
+      @DefaultValue("100") int ipFailures,
+      @DefaultValue("15m") Duration ipWindow) {}
+
+  public record Throttle(
+      @DefaultValue("3") int free,
+      @DefaultValue("1s") Duration baseDelay,
+      @DefaultValue("60s") Duration maxDelay,
+      @DefaultValue("10") int lockAfter,
+      @DefaultValue("15m") Duration lockFor,
+      @DefaultValue("15m") Duration window) {}
+
+  /** Admin console (MASTER_PLAN 7.2) and the identity_admin pool used by admin endpoints acting on others. */
+  public record Admin(
+      @DefaultValue("dexter-admin") String clientId,
+      @DefaultValue("12h") Duration refreshIdle,
+      @DefaultValue("7d") Duration refreshAbsolute,
+      @DefaultValue("1h") Duration elevationMax,
+      @DefaultValue("72h") Duration inviteTtl,
+      @DefaultValue("http://localhost:8099/p05-mfa-admin.html#invite={token}") String inviteLink,
+      String dbUrl,
+      @DefaultValue("identity_admin") String dbUsername,
+      String dbPassword,
+      @DefaultValue("4") int dbPoolSize) {}
 }

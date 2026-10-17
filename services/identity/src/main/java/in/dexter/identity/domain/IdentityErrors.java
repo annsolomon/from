@@ -30,7 +30,23 @@ public enum IdentityErrors implements ErrorCode {
   /** Token endpoint: the client may not request a token for this audience (RFC 8707 invalid_target). */
   INVALID_AUDIENCE(400, "Audience not allowed for this client"),
   /** Phone number already belongs to another account. */
-  PHONE_TAKEN(409, "Phone number already in use");
+  PHONE_TAKEN(409, "Phone number already in use"),
+  /** MFA challenge unknown, expired, used or out of attempts: sign in again. */
+  MFA_CHALLENGE_INVALID(401, "MFA challenge invalid or expired"),
+  /** Wrong (or replayed) TOTP code or recovery code. */
+  INVALID_MFA_CODE(401, "Invalid verification code"),
+  /** TOTP already enrolled and confirmed: disable it first. */
+  MFA_ALREADY_ENROLLED(409, "MFA already enrolled"),
+  /** No pending or confirmed TOTP enrolment for this action. */
+  MFA_NOT_ENROLLED(409, "MFA not enrolled"),
+  /** Admin endpoints accept only admin tokens obtained with a second factor. */
+  ADMIN_MFA_REQUIRED(403, "Admin access requires a multi-factor sign-in"),
+  /** The admin may not use break-glass. */
+  NOT_BREAK_GLASS_ELIGIBLE(403, "Not eligible for break-glass elevation"),
+  /** Admin creation with an email that already has an admin. */
+  ADMIN_EMAIL_TAKEN(409, "Admin email already exists"),
+  /** Admins cannot change their own status, roles or MFA. */
+  SELF_CHANGE_FORBIDDEN(403, "Admins cannot change themselves");
 
   private final int status;
   private final String title;

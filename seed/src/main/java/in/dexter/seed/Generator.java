@@ -40,6 +40,9 @@ import java.util.UUID;
  * <p>Accounts are generated one at a time and streamed out, so memory stays flat up to {@code large}.
  */
 public final class Generator {
+  /** P05: the demo admin's standing roles; it reaches SUPER_ADMIN only through break-glass (break_glass_eligible). */
+  static final java.util.List<String> ADMIN_STANDING_ROLES = java.util.List.of("SUPPORT", "CATALOG_EDITOR", "FINANCE");
+
   public static final ZoneId ZONE = ZoneId.of("Asia/Kolkata");
   /** Spending window: 2025-10-01 .. 2026-09-30 in IST (365 days). */
   public static final LocalDate WINDOW_START = LocalDate.of(2025, 10, 1);
@@ -211,7 +214,10 @@ public final class Generator {
     Persona admin = Persona.ADMIN;
     UUID adminId = SeedIds.v7(admin.createdAt().toEpochMilli(), root.fork("admin:" + admin.email()));
     w(Tables.ADMINS).row(adminId, admin.email(), Passwords.argon2id(password(admin.passwordEnv()),
-        root.fork("salt:" + admin.email())), "active", true, admin.createdAt(), admin.createdAt(), 0);
+        root.fork("salt:" + admin.email())), "active", true, true, admin.createdAt(), admin.createdAt(), 0);
+    for (String role : ADMIN_STANDING_ROLES) {
+      w(Tables.ADMIN_ROLES).row(adminId, role);
+    }
     Map<String, Object> afx = new LinkedHashMap<>();
     afx.put("key", admin.key());
     afx.put("adminId", adminId);

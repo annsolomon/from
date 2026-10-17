@@ -17,8 +17,12 @@ public final class Tables {
 
   public static final Table ADMINS = Table.of("identity", "admins", "P05")
       .col("id", "uuid").col("email", "public.citext").col("password_hash", "text").col("status", "text")
-      .col("mfa_required", "boolean").col("created_at", "timestamptz").col("updated_at", "timestamptz")
-      .col("version", "integer").build();
+      .col("mfa_required", "boolean").col("break_glass_eligible", "boolean").col("created_at", "timestamptz")
+      .col("updated_at", "timestamptz").col("version", "integer").build();
+
+  /** P05: the demo admin's standing roles (SUPER_ADMIN is break-glass only, never a standing row). */
+  public static final Table ADMIN_ROLES = Table.of("identity", "admin_roles", "P05")
+      .col("admin_id", "uuid").col("role", "text").build();
 
   // ---------------------------------------------------------------- catalog (P09)
   public static final Table ISSUERS = Table.of("catalog", "issuers", "P09")
@@ -81,6 +85,6 @@ public final class Tables {
       .col("txn_count", "integer").build();
 
   /** Load order: parents first (real tables get foreign keys inside a service). */
-  public static final List<Table> ALL = List.of(ACCOUNTS, ADMINS, ISSUERS, CARD_PRODUCTS, CARD_PRODUCT_VERSIONS,
+  public static final List<Table> ALL = List.of(ACCOUNTS, ADMINS, ADMIN_ROLES, ISSUERS, CARD_PRODUCTS, CARD_PRODUCT_VERSIONS,
       REWARD_RULES, MILESTONES, USER_CARDS, CATEGORIES, MERCHANTS, MERCHANT_ALIASES, EXPENSES, EXPENSE_DAILY_TOTALS);
 }

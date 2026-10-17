@@ -13,17 +13,22 @@ import in.dexter.identity.app.FieldCipher;
 import in.dexter.identity.app.IdentitySettings;
 import in.dexter.identity.app.KeyCrypto;
 import in.dexter.identity.app.Mailer;
+import in.dexter.identity.app.MfaChallenges;
+import in.dexter.identity.app.MfaStore;
 import in.dexter.identity.app.PasswordHasher;
 import in.dexter.identity.app.PasswordService;
 import in.dexter.identity.app.PreAuthStore;
 import in.dexter.identity.app.ProfileService;
 import in.dexter.identity.app.RefreshTokenStore;
 import in.dexter.identity.app.RegistrationService;
+import in.dexter.identity.app.SecuritySettings;
 import in.dexter.identity.app.ServiceTokenService;
 import in.dexter.identity.app.SessionService;
 import in.dexter.identity.app.SessionStore;
 import in.dexter.identity.app.SigningKeyService;
 import in.dexter.identity.app.SigningKeyStore;
+import in.dexter.identity.app.Throttles;
+import in.dexter.identity.app.UserSecondFactor;
 import in.dexter.identity.app.VerificationTokenStore;
 import in.dexter.identity.domain.PasswordPolicy;
 import in.dexter.identity.domain.SecretTokens;
@@ -214,8 +219,10 @@ public class IdentityConfiguration {
   @Bean
   AuthService authService(TenantTx tx, PreAuthStore preAuth, AccountStore accounts, SessionStore sessions,
       RefreshTokenStore refreshTokens, PasswordHasher hasher, AccessTokens tokens, OutboxWriter outbox,
-      IdentitySettings s, Clock clock) {
-    return new AuthService(tx, preAuth, accounts, sessions, refreshTokens, hasher, tokens, outbox, s, clock);
+      IdentitySettings s, SecuritySettings security, Throttles throttles, MfaChallenges challenges, MfaStore mfa,
+      UserSecondFactor secondFactor, Clock clock) {
+    return new AuthService(tx, preAuth, accounts, sessions, refreshTokens, hasher, tokens, outbox, s, security,
+        throttles, challenges, mfa, secondFactor, clock);
   }
 
   @Bean

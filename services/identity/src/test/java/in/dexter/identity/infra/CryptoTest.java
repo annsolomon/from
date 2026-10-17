@@ -77,7 +77,7 @@ class CryptoTest {
     UUID account = UUID.randomUUID();
     String token = crypto.sign(row, new TokenClaimsSpec(account.toString(), List.of("identity", "ledger"), "dexter-app",
         "sid-1", "user", List.of("USER"), List.of("pwd"), now.minusSeconds(5), false, "Asia/Kolkata", "PREMIUM",
-        Duration.ofMinutes(10), "https://issuer.test", now, UUID.randomUUID().toString()));
+        Duration.ofMinutes(10), "https://issuer.test", now, UUID.randomUUID().toString(), null));
     String jwks = crypto.jwks(List.of(row));
     JwtVerifier v = new JwtVerifier(JwtSettings.of("https://issuer.test", "ledger"),
         JwksCache.withDefaults(source(jwks), Clocks.systemUtc()), Clocks.systemUtc());
@@ -92,7 +92,7 @@ class CryptoTest {
     KekRing other = new KekRing("k1", Map.of("k1", key()));
     assertThatThrownBy(() -> new JoseKeyCrypto(other).sign(row, new TokenClaimsSpec("svc:ledger", List.of("catalog"),
         "ledger", null, "service", null, null, null, null, null, null, Duration.ofMinutes(5), "https://issuer.test", now,
-        "j"))).isInstanceOf(IllegalStateException.class);
+        "j", null))).isInstanceOf(IllegalStateException.class);
   }
 
   @Test
@@ -102,7 +102,7 @@ class CryptoTest {
     KeyRow row = new KeyRow(k.kid(), k.publicJwk(), k.privateEnc(), k.kekId(), "active", Instant.now(), Instant.now(), null);
     Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS);
     String token = crypto.sign(row, new TokenClaimsSpec("svc:ledger", List.of("catalog"), "ledger", null, "service", null,
-        null, null, null, null, null, Duration.ofMinutes(5), "https://issuer.test", now, "jti-1"));
+        null, null, null, null, null, Duration.ofMinutes(5), "https://issuer.test", now, "jti-1", null));
     JwtVerifier v = new JwtVerifier(JwtSettings.of("https://issuer.test", "catalog"),
         JwksCache.withDefaults(source(crypto.jwks(List.of(row))), Clocks.systemUtc()), Clocks.systemUtc());
     AuthContext ctx = v.verify(token);

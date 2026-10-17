@@ -102,6 +102,15 @@ public final class SessionRepository implements SessionStore {
         .param("now", Sql.ts(now)).param("a", accountId).param("id", sessionId).update();
   }
 
+  @Override
+  public boolean updateAuth(UUID accountId, UUID sessionId, Instant authTime, List<String> amr) {
+    TenantScope.require();
+    return jdbc.sql("UPDATE identity.sessions SET auth_time = :t, amr = :amr, version = version + 1"
+            + " WHERE account_id = :a AND id = :id AND revoked_at IS NULL")
+        .param("t", Sql.ts(authTime)).param("amr", Sql.texts(amr)).param("a", accountId).param("id", sessionId)
+        .update() == 1;
+  }
+
   static List<String> texts(Array a) throws java.sql.SQLException {
     return a == null ? List.of() : Arrays.stream((Object[]) a.getArray()).map(Object::toString).toList();
   }

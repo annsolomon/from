@@ -79,6 +79,7 @@ public final class JoseKeyCrypto implements KeyCrypto {
     put(b, TokenClaims.MFA_ENROLLED, c.mfaEnrolled());
     put(b, TokenClaims.TZ, c.tz());
     put(b, TokenClaims.TIER, c.tier());
+    put(b, TokenClaims.PERMISSIONS, c.permissions());
     SignedJWT jwt = new SignedJWT(header, b.build());
     try {
       jwt.sign(signer);

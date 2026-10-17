@@ -1,5 +1,6 @@
 package in.dexter.identity.api;
 
+import in.dexter.identity.app.AdminGuard;
 import in.dexter.identity.app.AuthService;
 import in.dexter.identity.app.ClientInfo;
 import in.dexter.identity.app.EmailVerificationService;
@@ -61,11 +62,34 @@ public class AuthController {
 
   @PublicEndpoint
   @PostMapping("/login")
-  public ResponseEntity<TokenResponse> login(@RequestBody AuthRequests.Login body, HttpServletRequest request,
+  public ResponseEntity<Object> login(@RequestBody AuthRequests.Login body, HttpServletRequest request,
       @RequestHeader(value = "User-Agent", required = false) String userAgent) {
-    TokenPair p = auth.login(body.command(), new ClientInfo(request.getRemoteAddr(), userAgent));
+    return switch (auth.login(body.command(), new ClientInfo(request.getRemoteAddr(), userAgent))) {
+      case AuthService.Tokens t -> noStore(TokenResponse.of(t.pair()));
+      case AuthService.MfaRequired m -> noStore(new MfaChallengeResponse(true, m.mfaToken(), m.expiresIn()));
+    };
+  }
+
+  /** Second step when MFA is enrolled: {@code code} (TOTP) or {@code recoveryCode}. */
+  @PublicEndpoint
+  @PostMapping("/mfa/verify")
+  public ResponseEntity<TokenResponse> verifyMfa(@RequestBody AuthRequests.MfaVerify body) {
+    TokenPair p = auth.verifyMfa(body.mfaToken(), body.code(), body.recoveryCode());
     return noStore(TokenResponse.of(p));
   }
+
+  /** Re-authentication for sensitive actions: password (+ second factor when enrolled) → a fresh access token. */
+  @PostMapping("/step-up")
+  public ResponseEntity<AccessTokenResponse> stepUp(AuthContext caller, @RequestBody AuthRequests.StepUp body) {
+    AuthService.StepUp r = auth.stepUp(AdminGuard.requireUser(caller), body.password(), body.code(),
+        body.recoveryCode());
+    return noStore(new AccessTokenResponse(r.accessToken(), "Bearer", r.expiresIn()));
+  }
+
+  /** Login answer when a second factor is needed. */
+  public record MfaChallengeResponse(boolean mfaRequired, String mfaToken, long expiresIn) {}
+
+  public record AccessTokenResponse(String accessToken, String tokenType, long expiresIn) {}
 
   @PublicEndpoint
   @PostMapping("/token/refresh")
@@ -76,7 +100,7 @@ public class AuthController {
   /** Signs out the session of this access token. */
   @PostMapping("/logout")
   public ResponseEntity<Void> logout(AuthContext caller) {
-    auth.logout(caller);
+    auth.logout(AdminGuard.requireUser(caller));
     return ResponseEntity.noContent().build();
   }
 
@@ -84,7 +108,7 @@ public class AuthController {
   @RequiresStepUp
   @PostMapping("/logout-all")
   public ResponseEntity<Map<String, Integer>> logoutAll(AuthContext caller) {
-    return ResponseEntity.ok(Map.of("sessionsRevoked", auth.logoutAll(caller)));
+    return ResponseEntity.ok(Map.of("sessionsRevoked", auth.logoutAll(AdminGuard.requireUser(caller))));
   }
 
   /** Always 202, whether or not the email exists. */
@@ -106,7 +130,7 @@ public class AuthController {
   @RequiresStepUp
   @PostMapping("/password/change")
   public ResponseEntity<Void> change(AuthContext caller, @RequestBody AuthRequests.Change body) {
-    passwords.change(caller, body.currentPassword(), body.newPassword());
+    passwords.change(AdminGuard.requireUser(caller), body.currentPassword(), body.newPassword());
     return ResponseEntity.noContent().build();
   }
 

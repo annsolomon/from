@@ -3,6 +3,7 @@ package in.dexter.identity.api;
 import in.dexter.core.error.CoreErrors;
 import in.dexter.core.error.DexterException;
 import in.dexter.db.page.PageRequest;
+import in.dexter.identity.app.AdminGuard;
 import in.dexter.identity.app.MeView;
 import in.dexter.identity.app.ProfilePatch;
 import in.dexter.identity.app.ProfileService;
@@ -42,26 +43,26 @@ public class MeController {
 
   @GetMapping
   public ResponseEntity<MeView> me(AuthContext caller) {
-    MeView v = profiles.me(caller);
+    MeView v = profiles.me(AdminGuard.requireUser(caller));
     return ResponseEntity.ok().eTag(ETags.of(v.version())).body(v);
   }
 
   /** JSON Merge Patch (RFC 7386) of displayName, tz, phone; requires {@code If-Match}. */
   @PatchMapping(consumes = {MERGE_PATCH, "application/json"})
   public ResponseEntity<MeView> patch(AuthContext caller, @IfMatchVersion long version, @RequestBody JsonNode body) {
-    MeView v = profiles.patch(caller, version, toPatch(body));
+    MeView v = profiles.patch(AdminGuard.requireUser(caller), version, toPatch(body));
     return ResponseEntity.ok().eTag(ETags.of(v.version())).body(v);
   }
 
   @GetMapping("/sessions")
   public PageResponse<SessionItem> sessions(AuthContext caller, PageRequest page) {
     UUID current = caller.sessionId() == null ? null : UUID.fromString(caller.sessionId());
-    return PageResponse.from(sessions.list(caller, page), s -> SessionItem.of(s, current));
+    return PageResponse.from(sessions.list(AdminGuard.requireUser(caller), page), s -> SessionItem.of(s, current));
   }
 
   @DeleteMapping("/sessions/{id}")
   public ResponseEntity<Void> revokeSession(AuthContext caller, @PathVariable("id") UUID id) {
-    sessions.revoke(caller, id);
+    sessions.revoke(AdminGuard.requireUser(caller), id);
     return ResponseEntity.noContent().build();
   }
 

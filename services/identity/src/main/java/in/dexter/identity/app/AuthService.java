@@ -1,6 +1,6 @@
 package in.dexter.identity.app;
 
-import in.dexter.contracts.events.identity.SecurityAlertV1;
+import in.dexter.contracts.events.identity.SecurityAlertV2;
 import in.dexter.contracts.events.identity.SessionRevokedV1;
 import in.dexter.core.error.DexterException;
 import in.dexter.core.id.Ids;
@@ -54,11 +54,17 @@ public final class AuthService {
   private final AccessTokens accessTokens;
   private final OutboxWriter outbox;
   private final IdentitySettings settings;
+  private final SecuritySettings security;
+  private final Throttles throttles;
+  private final MfaChallenges challenges;
+  private final MfaStore mfaStore;
+  private final UserSecondFactor secondFactor;
   private final Clock clock;
 
   public AuthService(TenantTx tx, PreAuthStore preAuth, AccountStore accounts, SessionStore sessions,
       RefreshTokenStore refreshTokens, PasswordHasher hasher, AccessTokens accessTokens, OutboxWriter outbox,
-      IdentitySettings settings, Clock clock) {
+      IdentitySettings settings, SecuritySettings security, Throttles throttles, MfaChallenges challenges,
+      MfaStore mfaStore, UserSecondFactor secondFactor, Clock clock) {
     this.tx = tx;
     this.preAuth = preAuth;
     this.accounts = accounts;
@@ -68,23 +74,47 @@ public final class AuthService {
     this.accessTokens = accessTokens;
     this.outbox = outbox;
     this.settings = settings;
+    this.security = security;
+    this.throttles = throttles;
+    this.challenges = challenges;
+    this.mfaStore = mfaStore;
+    this.secondFactor = secondFactor;
     this.clock = clock;
   }
 
   // ------------------------------------------------------------------------------------------- login
 
-  public TokenPair login(LoginCommand cmd, ClientInfo client) {
+  /** Login answer: tokens, or (MFA enrolled) a challenge to complete at /v1/auth/mfa/verify. */
+  public sealed interface LoginResult permits Tokens, MfaRequired {}
+
+  public record Tokens(TokenPair pair) implements LoginResult {}
+
+  public record MfaRequired(String mfaToken, long expiresIn) implements LoginResult {}
+
+  /**
+   * Throttled (MASTER_PLAN 7.1): per email (hashed, also for unknown emails) and per IP, progressive delay then a
+   * 15-minute lock. A lock of a real account raises {@code ACCOUNT_LOCKED}.
+   */
+  public LoginResult login(LoginCommand cmd, ClientInfo client) {
     String clientId = Clients.require(settings, cmd.clientId());
     String password = cmd.password() == null ? "" : cmd.password();
+    String key = Throttles.userLogin(cmd.email());
+    Instant attempt = clock.instant();
+    throttles.check(attempt, key, security.loginPolicy(), client.ip());
     String email = Emails.normalize(cmd.email());
     LoginRow row = email == null ? null : tx.read(IdentityTenants.SYSTEM, () -> preAuth.findLogin(email)).orElse(null);
     if (row == null) {
       hasher.dummyMatch(password); // same cost as a real check: timing does not reveal unknown emails
+      throttles.fail(attempt, key, security.loginPolicy(), client.ip());
       throw invalidCredentials();
     }
     if (!hasher.matches(password, row.passwordHash())) {
+      if (throttles.fail(attempt, key, security.loginPolicy(), client.ip())) {
+        alert(row.accountId(), SecurityAlertV2.ACCOUNT_LOCKED, row.accountId());
+      }
       throw invalidCredentials();
     }
+    throttles.succeed(key);
     AccountStatus status = AccountStatus.fromDb(row.status());
     if (status == AccountStatus.PENDING_VERIFICATION) {
       throw new DexterException(IdentityErrors.EMAIL_NOT_VERIFIED, "Verify your email address first; check your inbox");
@@ -93,35 +123,132 @@ public final class AuthService {
       throw new DexterException(IdentityErrors.ACCOUNT_UNAVAILABLE, "This account cannot sign in");
     }
     String rehash = hasher.needsRehash(row.passwordHash()) ? hasher.hash(password) : null;
+    if (rehash != null) {
+      tx.writeVoid(Tenant.user(row.accountId()), () -> accounts.updatePasswordHash(row.accountId(), rehash, false));
+      log.info("PASSWORD_REHASHED account={}", row.accountId());
+    }
+    if (row.mfaEnabled()) {
+      String token = challenges.issue(new MfaChallenges.Challenge(MfaChallenges.Kind.USER, row.accountId(), clientId,
+          label(cmd.deviceLabel()), client.ip(), b64(uaHash(client.userAgent())), false), security.mfaChallengeTtl());
+      return new MfaRequired(token, security.mfaChallengeTtl().toSeconds());
+    }
+    return new Tokens(openSession(row.accountId(), row.tz(), row.tier(), false, clientId, label(cmd.deviceLabel()),
+        uaHash(client.userAgent()), client.ip(), AMR_PASSWORD));
+  }
+
+  /**
+   * Second step of an MFA sign-in: a TOTP code (or a recovery code) for the challenge. 5 wrong codes burn the
+   * challenge; failures also count on the account's MFA throttle.
+   */
+  public TokenPair verifyMfa(String mfaToken, String code, String recoveryCode) {
+    MfaChallenges.Challenge c = challenges.peek(mfaToken).filter(x -> x.kind() == MfaChallenges.Kind.USER)
+        .orElseThrow(AuthService::challengeInvalid);
+    Instant attempt = clock.instant();
+    String key = Throttles.userMfa(c.principalId());
+    throttles.check(attempt, key, security.mfaPolicy(), c.ip());
+    Tenant tenant = Tenant.user(c.principalId());
+    List<String> amr = tx.write(tenant, () -> secondFactor.verify(c.principalId(), code, recoveryCode));
+    if (amr == null) {
+      throttles.fail(attempt, key, security.mfaPolicy(), c.ip());
+      if (challenges.fail(mfaToken, security.mfaChallengeTtl()) >= security.mfaMaxAttempts()) {
+        challenges.consume(mfaToken);
+        throw challengeInvalid();
+      }
+      throw new DexterException(IdentityErrors.INVALID_MFA_CODE, "The code is not valid (or was already used)");
+    }
+    if (challenges.consume(mfaToken).isEmpty()) {
+      throw challengeInvalid(); // a concurrent request completed this challenge first
+    }
+    throttles.succeed(key);
+    Account a = tx.read(tenant, () -> accounts.find(c.principalId())).orElseThrow(AuthService::challengeInvalid);
+    if (!AccountStatus.fromDb(a.status()).canSignIn()) {
+      throw new DexterException(IdentityErrors.ACCOUNT_UNAVAILABLE, "This account cannot sign in");
+    }
+    byte[] ua = c.uaHashB64() == null ? null : java.util.Base64.getDecoder().decode(c.uaHashB64());
+    return openSession(a.id(), a.tz(), a.tier(), true, c.clientId(), c.deviceLabel(), ua, c.ip(), amr);
+  }
+
+  /** Session + first refresh token + access token. */
+  private TokenPair openSession(UUID accountId, String tz, String tier, boolean mfaEnrolled, String clientId,
+      String deviceLabel, byte[] uaHash, String ip, List<String> amr) {
     Instant now = clock.instant().truncatedTo(ChronoUnit.MICROS);
     Instant authTime = now.truncatedTo(ChronoUnit.SECONDS);
     UUID sessionId = Ids.newId();
     String refresh = SecretTokens.newToken();
     Instant absolute = now.plus(settings.refreshAbsolute());
     Instant refreshExpires = RefreshRotation.nextExpiry(now, settings.refreshIdle(), absolute);
-    Tenant tenant = Tenant.user(row.accountId(), zone(row.tz()));
-    tx.writeVoid(tenant, () -> {
-      if (rehash != null) {
-        accounts.updatePasswordHash(row.accountId(), rehash, false);
-      }
-      sessions.create(new NewSession(sessionId, row.accountId(), clientId, label(cmd.deviceLabel()),
-          uaHash(client.userAgent()), client.ip(), AMR_PASSWORD, authTime, now));
-      refreshTokens.insert(new NewRefresh(Ids.newId(), row.accountId(), sessionId, Ids.newId(),
-          SecretTokens.hash(refresh), null, now, refreshExpires, absolute));
+    tx.writeVoid(Tenant.user(accountId, zone(tz)), () -> {
+      sessions.create(new NewSession(sessionId, accountId, clientId, deviceLabel, uaHash, ip, amr, authTime, now));
+      refreshTokens.insert(new NewRefresh(Ids.newId(), accountId, sessionId, Ids.newId(), SecretTokens.hash(refresh),
+          null, now, refreshExpires, absolute));
     });
-    if (rehash != null) {
-      log.info("PASSWORD_REHASHED account={}", row.accountId());
-    }
-    AccessTokens.Issued at = accessTokens.forUser(row.accountId(), sessionId, clientId, AMR_PASSWORD, authTime,
-        row.tz(), row.tier(), row.mfaEnabled());
+    AccessTokens.Issued at = accessTokens.forUser(accountId, sessionId, clientId, amr, authTime, tz, tier, mfaEnrolled);
     return new TokenPair(at.token(), "Bearer", at.expiresIn(), refresh, refreshExpires, sessionId);
+  }
+
+  // ------------------------------------------------------------------------------------------- step-up
+
+  /** A fresh access token after re-authentication. */
+  public record StepUp(String accessToken, long expiresIn) {}
+
+  /**
+   * POST /v1/auth/step-up (MASTER_PLAN 7.1): password again, plus the second factor when MFA is enrolled. The
+   * session's {@code auth_time} and {@code amr} are updated, so refreshed tokens keep the recent sign-in.
+   */
+  public StepUp stepUp(AuthContext caller, String password, String code, String recoveryCode) {
+    UUID accountId = caller.accountId();
+    UUID sid = UUID.fromString(caller.sessionId());
+    Instant attempt = clock.instant();
+    String key = Throttles.stepUp(accountId);
+    throttles.check(attempt, key, security.loginPolicy(), null);
+    Account a = tx.read(caller.tenant(), () -> accounts.find(accountId)).orElseThrow(AuthService::invalidCredentials);
+    boolean mfa = tx.read(caller.tenant(), () -> mfaEnrolled(accountId));
+    if (!hasher.matches(password == null ? "" : password, a.passwordHash())) {
+      throttles.fail(attempt, key, security.loginPolicy(), null);
+      throw invalidCredentials();
+    }
+    Instant now = clock.instant().truncatedTo(ChronoUnit.SECONDS);
+    List<String> amr = tx.write(caller.tenant(), () -> {
+      List<String> m = mfa ? secondFactor.verify(accountId, code, recoveryCode) : AMR_PASSWORD;
+      if (m != null && !sessions.updateAuth(accountId, sid, now, m)) {
+        return List.<String>of(); // session revoked meanwhile
+      }
+      return m;
+    });
+    if (amr == null) {
+      throttles.fail(attempt, key, security.loginPolicy(), null);
+      throw new DexterException(IdentityErrors.INVALID_MFA_CODE, "The verification code is not valid");
+    }
+    if (amr.isEmpty()) {
+      throw invalidRefresh();
+    }
+    throttles.succeed(key);
+    AccessTokens.Issued at = accessTokens.forUser(accountId, sid, caller.clientId(), amr, now, a.tz(), a.tier(), mfa);
+    return new StepUp(at.token(), at.expiresIn());
+  }
+
+  private boolean mfaEnrolled(UUID accountId) {
+    return mfaStore.find(accountId).filter(r -> r.confirmedAt() != null).isPresent();
+  }
+
+  private void alert(UUID accountId, String kind, UUID refId) {
+    tx.writeVoid(IdentityTenants.SYSTEM, () -> outbox.append(IdentityEvents.SECURITY_ALERT, accountId, accountId, 1,
+        new SecurityAlertV2(kind, refId, clock.instant().toString())));
+  }
+
+  static DexterException challengeInvalid() {
+    return new DexterException(IdentityErrors.MFA_CHALLENGE_INVALID, "Sign in again");
+  }
+
+  private static String b64(byte[] b) {
+    return b == null ? null : java.util.Base64.getEncoder().encodeToString(b);
   }
 
   // ------------------------------------------------------------------------------------------- refresh
 
   private sealed interface RefreshResult permits Rotated, Rejected {}
 
-  private record Rotated(Account account, SessionRow session, String refresh, Instant refreshExpires)
+  private record Rotated(Account account, SessionRow session, String refresh, Instant refreshExpires, boolean mfa)
       implements RefreshResult {}
 
   private record Rejected(DexterException error) implements RefreshResult {}
@@ -139,7 +266,7 @@ public final class AuthService {
     }
     Rotated ok = (Rotated) result;
     AccessTokens.Issued at = accessTokens.forUser(ok.account().id(), ok.session().id(), ok.session().clientId(),
-        ok.session().amr(), ok.session().authTime(), ok.account().tz(), ok.account().tier(), false);
+        ok.session().amr(), ok.session().authTime(), ok.account().tz(), ok.account().tier(), ok.mfa());
     return new TokenPair(at.token(), "Bearer", at.expiresIn(), ok.refresh(), ok.refreshExpires(), ok.session().id());
   }
 
@@ -158,7 +285,7 @@ public final class AuthService {
           sessionRevoked(ref.accountId(), t.sessionId(), RevokeReason.REFRESH_REUSE, now);
         }
         outbox.append(IdentityEvents.SECURITY_ALERT, ref.accountId(), ref.accountId(), 1,
-            new SecurityAlertV1(SecurityAlertV1.REFRESH_TOKEN_REUSE, t.sessionId(), now.toString()));
+            new SecurityAlertV2(SecurityAlertV2.REFRESH_TOKEN_REUSE, t.sessionId(), now.toString()));
         log.warn("REFRESH_TOKEN_REUSE account={} session={} family={}", ref.accountId(), t.sessionId(), t.familyId());
         return new Rejected(new DexterException(IdentityErrors.REFRESH_TOKEN_REUSED,
             "This refresh token was already used; the session has been signed out for safety"));
@@ -178,7 +305,7 @@ public final class AuthService {
         refreshTokens.insert(new NewRefresh(Ids.newId(), ref.accountId(), t.sessionId(), t.familyId(),
             SecretTokens.hash(next), t.id(), now, expires, t.absoluteExpiresAt()));
         sessions.touch(ref.accountId(), t.sessionId(), now);
-        return new Rotated(account, session, next, expires);
+        return new Rotated(account, session, next, expires, mfaEnrolled(ref.accountId()));
       }
       default -> throw new IllegalStateException("unknown outcome " + outcome);
     }

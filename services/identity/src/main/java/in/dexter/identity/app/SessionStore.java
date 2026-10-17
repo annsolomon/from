@@ -33,4 +33,7 @@ public interface SessionStore {
   List<UUID> revokeAll(UUID accountId, UUID keep, RevokeReason reason, Instant now);
 
   void touch(UUID accountId, UUID sessionId, Instant now);
+
+  /** Step-up: the open session's new auth_time and amr (refreshed tokens carry them). False when revoked. */
+  boolean updateAuth(UUID accountId, UUID sessionId, Instant authTime, List<String> amr);
 }

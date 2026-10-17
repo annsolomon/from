@@ -5,8 +5,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import in.dexter.contracts.events.demo.NoteCreatedV1;
 import in.dexter.contracts.events.demo.NoteRenamedV1;
 import in.dexter.contracts.events.identity.AccountRegisteredV1;
+import in.dexter.contracts.events.identity.AdminActionV1;
 import in.dexter.contracts.events.identity.AccountVerifiedV1;
 import in.dexter.contracts.events.identity.SecurityAlertV1;
+import in.dexter.contracts.events.identity.SecurityAlertV2;
 import in.dexter.contracts.events.identity.SessionRevokedV1;
 import in.dexter.events.EnvelopeCodec;
 import in.dexter.events.EventEnvelope;
@@ -44,6 +46,11 @@ class SchemaContractTest {
     SAMPLES.put("identity.session.revoked.v1.json", new SessionRevokedV1(session, "logout", "2026-10-17T11:00:00Z"));
     SAMPLES.put("identity.security.alert.v1.json", new SecurityAlertV1(SecurityAlertV1.REFRESH_TOKEN_REUSE, session,
         "2026-10-17T11:00:01Z"));
+    SAMPLES.put("identity.security.alert.v2.json", new SecurityAlertV2(SecurityAlertV2.ACCOUNT_LOCKED, account,
+        "2026-10-17T11:00:02Z"));
+    SAMPLES.put("identity.admin.action.v1.json", new AdminActionV1("BREAK_GLASS_STARTED",
+        UUID.fromString("0192f1e2-0000-7000-8000-0000000000d1"), "elevation", session,
+        "Production incident INC-42: refund batch stuck", "2026-10-17T11:00:03Z"));
   }
 
   static JsonNode schema(String file) throws IOException {

@@ -28,4 +28,20 @@ public final class AuthRequests {
   public record Reset(String token, String newPassword) {}
 
   public record Change(String currentPassword, String newPassword) {}
+
+  public record MfaVerify(String mfaToken, String code, String recoveryCode) {}
+
+  public record StepUp(String password, String code, String recoveryCode) {}
+
+  public record MfaCode(String code) {}
+
+  public record AdminLogin(String email, String password) {}
+
+  public record AdminMfa(String mfaToken, String code) {}
+
+  public record InviteAccept(String token, String password) {}
+
+  public record Elevate(String reason, String code) {}
+
+  public record NewAdmin(String email, String displayName, java.util.List<String> roles, Boolean breakGlassEligible) {}
 }

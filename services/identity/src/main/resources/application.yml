@@ -20,6 +20,15 @@ spring:
     password: ${PG_PW_IDENTITY_OWNER:${PG_PW_OWNER:}}
     schemas: identity
     clean-disabled: true
+  # P05: throttles + MFA challenges. Per-service ACL user (infra/redis/acl.tmpl: keys identity:*, scripts only).
+  data:
+    redis:
+      host: ${DEXTER_REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      username: identity
+      password: ${REDIS_PW_IDENTITY:${REDIS_PW_SERVICE:}}
+      timeout: 200ms
+      connect-timeout: 1s
   mail:
     host: ${MAIL_HOST:127.0.0.1}
     port: ${MAIL_PORT:1025}
@@ -88,6 +97,12 @@ dexter:
       billing: { secret: "${SERVICE_CLIENT_SECRET_BILLING:${SERVICE_CLIENT_SECRET:}}", audiences: [identity, ledger, catalog, portfolio, planning, reco, commerce, audit] }
       commerce: { secret: "${SERVICE_CLIENT_SECRET_COMMERCE:${SERVICE_CLIENT_SECRET:}}", audiences: [identity, ledger, catalog, portfolio, planning, reco, billing, audit] }
       audit: { secret: "${SERVICE_CLIENT_SECRET_AUDIT:${SERVICE_CLIENT_SECRET:}}", audiences: [identity, ledger, catalog, portfolio, planning, reco, billing, commerce] }
+    # P05 admin console: identity_admin pool (same database), invite links into the trail page.
+    admin:
+      db-url: jdbc:postgresql://${DEXTER_PG_HOST:127.0.0.1}:${POSTGRES_PORT:5432}/identity?ApplicationName=identity-admin
+      db-username: identity_admin
+      db-password: ${PG_PW_IDENTITY_ADMIN:${PG_PW_ADMIN:}}
+      invite-link: ${IDENTITY_PUBLIC_URL:http://localhost:8099}/p05-mfa-admin.html#invite={token}
     relay:
       enabled: ${IDENTITY_RELAY_ENABLED:true}
       url: jdbc:postgresql://${DEXTER_PG_HOST:127.0.0.1}:${POSTGRES_PORT:5432}/identity?ApplicationName=identity-relay
