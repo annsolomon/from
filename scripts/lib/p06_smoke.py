@@ -49,7 +49,7 @@ def raw_post(base, path, size):
 
 def main():
     s, h, d = call("GET", GW + "/.well-known/jwks.json")
-    check("jwks through the gateway (public): 200 EC keys", s == 200 and '"EC"' in str(d), (s, d))
+    check("jwks through the gateway (public): 200 EC keys", s == 200 and any(k.get("kty") == "EC" for k in (d or {}).get("keys", [])), (s, d))
     rid = "smoke-p06-" + uuid.uuid4().hex[:8]
     s, h, d = call("GET", GW + "/v1/nope", headers={"X-Request-Id": rid})
     check("unknown path: 404 NOT_FOUND problem, request id echoed",
