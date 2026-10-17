@@ -88,6 +88,15 @@ Upload `MASTER_PLAN.md` + this README; the code is in the repo (clone it instead
 
 ## 3. Verification of previous phase
 
+### P03 re-check in the P04 chat (CI run 38924314244, git 85de7f1, 2026-10-16)
+
+The latest report on `verify-reports` before P04 work started is for the P03 docs commit: `verify.sh full` PASS (19/19
+incl. `full.seed-medium` 17 s, `full.seed-determinism` checksum `a67ed5cf…`) and trail-check PASS. Every P03 DoD
+item still holds; the uploaded BUILD_README equals the repo copy. P03 owed P04 one step (ADR-0008): load the small
+seed into the real `identity.accounts` once its migration exists — done as `full.seed-small` (after services-up) and
+proven by the api-smoke demo login. The seed's column list for `accounts` matches the P04 table (extra P04 columns
+have defaults), so `seed/…/Tables` needed no change. No P03 code issue found.
+
 ### P03 against its DoD (CI run 38922523673, git 4dc9033, 2026-10-16)
 
 | DoD / requirement | Result | Evidence |
@@ -160,6 +169,66 @@ Issues found in P01's own code during self-review and fixed:
 4. The web test asserted an exact `Content-Type`; now a compatible-type check (a charset suffix must not fail it).
 
 ## 4. What exists now
+
+**P04 Identity A** (status in §1)
+
+| Piece | What it does |
+|---|---|
+| Schema (`services/identity/src/main/resources/db/migration`) | `V202610170900__platform` = the dexter-db templates rendered for `identity` (drift-guarded by `PlatformMigrationTest`); `V202610170901__identity_core`: `accounts` (citext email, encrypted phone + blind index, status, tz, tier_cache, version), `account_keys` (wrapped per-account DEK), `verification_tokens`, `sessions`, `refresh_tokens` (family, parent, sliding + absolute expiry), `signing_keys` (next/active/retired). ENABLE + FORCE RLS everywhere; tenant policies for `identity_app`; `<table>_owner` policies (ADR-0009 §2); six `SECURITY DEFINER` pre-auth functions (`auth_find_login`, `auth_register`, `auth_find_refresh`, `auth_verify_email`, `auth_reset_password`, `auth_find_account`), EXECUTE for `identity_app` only. Flyway runs as `identity_owner` |
+| `domain` | `IdentityErrors`, `AccountStatus`, `Emails`, `PasswordPolicy` (10..128 code points, breached, not the email), `SecretTokens` (256-bit opaque, SHA-256 stored), `RefreshRotation` (rotate / reused / expired / revoked; sliding expiry capped), `RevokeReason`, `IdentityTenants` (SYSTEM + per-client pre-auth tenants), `Profiles` (IANA tz, display name, E.164 phone) |
+| `app` | `RegistrationService` (Idempotency-Key per client, always 202, verify / "already registered" mail), `EmailVerificationService`, `AuthService` (login, refresh rotation + family reuse detection, logout, logout-all), `PasswordService` (forgot / reset / change), `ProfileService` (GET/PATCH /me, phone envelope-encrypted), `SessionService`, `SigningKeyService` (next → active → retired, advisory-locked rotation, JWKS snapshot), `AccessTokens` (A-18 claims), `ServiceTokenService` (client credentials), ports |
+| `infra` | JDBC repositories (all `TenantScope.require()`), `PreAuthRepository` (definer functions, `CAST(:e AS citext)`), `Argon2Hasher` (OWASP baseline, semaphore bulkhead → 503), `BundledBreachedList` (NCSC top-100k ≥ 10 chars, see NOTICE), `Aead` / `KekRing` / `EnvelopeCipher` (AES-256-GCM, per-account DEK, HMAC blind index), `JoseKeyCrypto` (ES256 keys wrapped by the KEK), `AfterCommitMailer` + `SmtpTransport` / `MemoryTransport` |
+| `api` | `AuthController`, `MeController`, `JwksController`, `OAuthTokenController`, dev-only `DevKeysController` (`@Profile("dev")`) |
+| `config` | `IdentityProperties` (`dexter.identity.*`), `IdentityConfiguration` (wiring; own `JwtVerifier` fed from the key table), `ClientCredentialsArgumentResolver` (HTTP Basic for /oauth2/token), `IdentityRelayConfiguration` (relay as `identity_relay`, topics first, inbox + idempotency purge), `IdentityJobs` (key rotation check every 10 min) |
+| Tests | unit: `DomainRulesTest` 5, `RefreshRotationTest` 2, `CryptoTest` 4 (token contract against the real `JwtVerifier`), `Argon2HasherTest` 3, `BundledBreachedListTest` 1, `ClientCredentialsArgumentResolverTest` 2, `PlatformMigrationTest` 1, `IdentityArchitectureTest` 1. ITs (Testcontainers PG17 + Flyway, real HTTP): `AuthFlowIT` 7, `EnumerationSafetyIT` 4, `JwksRotationIT` 2, `ServiceTokenIT` 2, `ProfileIT` 2, `IdentityRlsIT` 7, `IdentityHealthIT` 2, `RegistrationIdempotencyContractIT` 6 (5.5), `SessionsPaginationContractIT` 9 (4.5, PlanAssert on 30k sessions) |
+| dexter-test | `TestPostgres.flywayDb` (roles + extensions, no templates: the service's Flyway owns the schema), `RlsProofKit` with a tenant column (`accounts.id`) |
+| contracts | `identity.account.registered`, `identity.account.verified`, `identity.session.revoked`, `identity.security.alert` v1 (schemas + records + samples) |
+| Trail / smoke | `test-ui/p04-identity.html` (Mock emulates identity incl. reuse detection; Live via `/svc/identity`), `trail.js` `liveRoutes` bridge (until P06), `scripts/lib/p04_smoke.py` (29 checks incl. Mailpit), outbox → Kafka check, trail-check P04 (JWKS, demo login, /me, bridge) |
+
+**Endpoints (identity :8081)**
+
+| Method | Path | Auth | Idempotency | Paging | Notes |
+|---|---|---|---|---|---|
+| POST | `/v1/auth/register` | public | **required** (per client) | — | always 202 `{"status":"accepted"}` |
+| POST | `/v1/auth/verify-email` | public | natural (single-use token) | — | `verified` / `already_verified` |
+| POST | `/v1/auth/login` | public | — | — | tokens, `Cache-Control: no-store` |
+| POST | `/v1/auth/token/refresh` | public (refresh token) | rotation | — | reuse → 401 `REFRESH_TOKEN_REUSED`, family revoked |
+| POST | `/v1/auth/logout` | user | idempotent | — | 204 |
+| POST | `/v1/auth/logout-all` | user + **step-up** | idempotent | — | `{"sessionsRevoked":n}` |
+| POST | `/v1/auth/password/forgot` | public | — | — | always 202 |
+| POST | `/v1/auth/password/reset` | public (token) | natural | — | revokes every session |
+| POST | `/v1/auth/password/change` | user + **step-up** | — | — | keeps this session, revokes others |
+| GET | `/v1/me` | user | — | — | `ETag: "<version>"` |
+| PATCH | `/v1/me` | user | If-Match **required** | — | merge patch: `displayName`, `tz`, `phone` |
+| GET | `/v1/me/sessions` | user | — | keyset | open sessions, `current` flag |
+| DELETE | `/v1/me/sessions/{id}` | user | idempotent | — | 204 / 404 |
+| GET | `/.well-known/jwks.json` | public | — | — | next + active + retired, `max-age=300` |
+| POST | `/oauth2/token` | HTTP Basic (service) | — | — | client credentials, 5-min token for one audience (A-18) |
+| GET/POST | `/_dev/p04/keys`, `/_dev/p04/keys/rotate` | dev profile only | — | — | trail + smoke |
+
+**Events (identity)**
+
+| Topic | Type | Key | Consumers (planned) |
+|---|---|---|---|
+| `dexter.identity.account.v1` | `identity.account.registered` v1, `identity.account.verified` v1 | account id | audit (P18), billing (P16) |
+| `dexter.identity.session.v1` | `identity.session.revoked` v1 | account id | audit (P18) |
+| `dexter.identity.security.v1` | `identity.security.alert` v1 (`REFRESH_TOKEN_REUSE`) | account id | audit/notifications (P18) |
+
+**Query→Index (P04)** (also in the migration header)
+
+| Where | SQL shape | Index | Proof |
+|---|---|---|---|
+| login, register, forgot | `auth_*(email)`: `WHERE email = :e` | `accounts_email_key` (unique citext) | `AuthFlowIT`, `EnumerationSafetyIT` |
+| verify / reset token | `WHERE token_hash = :h` | `verification_tokens_token_hash_key` | `AuthFlowIT` |
+| mail throttle, supersede | `WHERE account_id = :a AND purpose = :p AND created_at > :t` | `verification_tokens_recent` | `auth_register` (PG16 run in sandbox) |
+| /me, PATCH /me, password | `WHERE id = :id` | `accounts_pkey` | `ProfileIT` |
+| refresh lookup | `auth_find_refresh(hash)`: `WHERE token_hash = :h` | `refresh_tokens_token_hash_key` | `AuthFlowIT` |
+| refresh lock / rotate | `WHERE account_id = :a AND id = :id FOR UPDATE` (+ session by pk) | `refresh_tokens_pkey`, `sessions_pkey` | `AuthFlowIT` |
+| reuse → revoke family | `WHERE account_id = :a AND family_id = :f` | `refresh_tokens_family` | `AuthFlowIT.reusingARotated…` |
+| revoke by session(s) | `WHERE account_id = :a AND session_id = ANY(:s)` | `refresh_tokens_session` (also the FK index) | `AuthFlowIT` |
+| GET /v1/me/sessions | `WHERE account_id = app_account() AND revoked_at IS NULL ORDER BY created_at DESC, id DESC LIMIT n+1` | `sessions_active_list` (partial) | `SessionsPaginationContractIT.listQueryUsesTheIndex` (PlanAssert, 30k-session tenant, first + next page) |
+| logout-all / change: open sessions | `WHERE account_id = :a AND revoked_at IS NULL` | `sessions_active_list` (prefix) | `AuthFlowIT` |
+| signing keys | full scan of a ≤ 4-row table | `signing_keys_pkey` | `JwksRotationIT` |
 
 **P03 (DONE)**
 
@@ -308,6 +377,7 @@ Issues found in P01's own code during self-review and fixed:
 | 0006 | Events on plain kafka-clients; per-consumer retry/DLQ topics `<topic>.<consumer>.retry-1m`/`retry-10m`/`dlq` | Accepted: proven by the P02a r4 run (`OutboxRelayIT`, `ConsumerIT`, 2026-09-27) |
 | 0007 | Request authentication: Nimbus ES256 verifier + JWKS cache + MVC `SecurityInterceptor` (default deny), no Spring Security filter chain | Accepted: proven by the 2026-10-04 run (`JwtVerifierTest`, `SecurityInterceptorTest`, `ServiceTokenClientTest`, `DemoAuthIT`) |
 | 0008 | Seed data: deterministic generator, `seed_stage` before migrations, owner-role COPY with FORCE off in-tx, passwords hashed once | Accepted: proven by CI run 38922523673 (`SeedLoadIT`, `GeneratorTest`, `full.seed-medium`, `full.seed-determinism`) |
+| 0009 | Identity: pre-auth SECURITY DEFINER functions + owner policies, synthetic tenants, password-free registration fingerprint, strict refresh-family reuse detection, next/active/retired ES256 keys, envelope encryption, after-commit mail, client-credentials endpoint | Accepted (P04); proof: identity ITs + api-smoke P04 (§1) |
 
 ## 6. Plan amendments (deviations from MASTER_PLAN.md)
 
@@ -341,9 +411,44 @@ Issues found in P01's own code during self-review and fixed:
 | 2026-10-16 | P03 | A-27: `test-ui/tests/pager.spec.js` is plain `node --test` on the DOM-free parts of `trail.js` (no Playwright/npm), and runs in `verify.sh static` (`static.trail-pager`). | MASTER_PLAN P03 allows Node or Playwright; no dependency to pin, runs in every verify mode and CI job. | Pages' DOM code stays outside the spec; trail-check covers serving. |
 | 2026-10-16 | P03 | A-28 (revises A-02): rest-assured and wiremock are pinned by their first user (P04 API tests / P06 gateway), not in P03. | P03 has no HTTP API test; A-02's own rule is "pin in the phase that first uses it". | P04, P06. |
 | 2026-10-16 | P03 | A-29: trail Mock/Live paths are the planned gateway paths under `/api/v1/…` (`/api/v1/expenses`, `/api/v1/auth/login`, …); fixtures are generated by `seed/`, never edited; the event viewer's Live mode polls a per-page dev endpoint (`livePath`) and is a stub until a service emits events. | One mock router for every later page; Live mode starts working as each phase ships its endpoints. | P04+ pages call `Trail.loadSeed()` and the same paths. |
+| 2026-10-17 | P04 | A-30: pre-authentication SQL is six `SECURITY DEFINER` functions (not only lookups: register, verify-email and reset are atomic functions), and every identity table carries a `<table>_owner` policy for `identity_owner` because FORCE RLS applies to the owner (ADR-0009 §1–2). | Atomic pre-auth writes without an account context; the owner could disable RLS anyway. | Later services needing pre-auth access (webhooks P16) follow the same pattern. |
+| 2026-10-17 | P04 | A-31: pre-auth work runs in `TenantTx` with synthetic tenants (`SYSTEM` nil UUID; per-client `PREAUTH` UUIDv3 = the registration Idempotency-Key scope). The registration fingerprint covers `{email, displayName, tz, clientId}` — never the password. | Resolves the P02 gap "pre-auth idempotency scope"; a stored fast hash of a password would be guessable. | P05 admin login, P16 webhooks. |
+| 2026-10-17 | P04 | A-32: login/registration take an optional `clientId` (public clients `dexter-app`, `dexter-web`, `dexter-trail`; default `dexter-app`) that becomes the token's `client_id`. `PATCH /v1/me` also edits `phone` (E.164, envelope-encrypted), not only tz and display name. | `client_id` is required by the A-18 contract; the phone exercises 7.4's column encryption now. | P05 adds admin clients. |
+| 2026-10-17 | P04 | A-33: the service-token endpoint is `POST /oauth2/token` (A-18), not `/internal/v1/service-token`; dev clients for all 10 services share `SERVICE_CLIENT_SECRET` and may target any other service until P06+ tighten the pairs. | Matches dexter-security's `ServiceTokenClient` (IT-proven in P02). | P06+: per-pair audiences. |
+| 2026-10-17 | P04 | A-34: services with their own Flyway use `TestPostgres.flywayDb(svc)` (roles + extensions, no templates) and copy the rendered templates verbatim into their first migration, guarded by a drift test (`PlatformMigrationTest`). `RlsProofKit` takes a tenant column. | Tests run the real migrations as `<svc>_owner`. | Every service from P07 on copies identity's pattern. |
+| 2026-10-17 | P04 | A-35: verify.sh full gains `full.seed-small` after `full.services-up` (the small seed then lands in the real `identity.accounts`), and `run.sh` appends keys that later phases add to `.env.example` to an existing `.env`. | The medium seed runs before services exist (staging); the demo login needs real rows. | P05/P07/P09/P11 rely on the same step for their tables. |
+| 2026-10-17 | P04 | A-36: trail Live calls to `/api/v1/auth/*`, `/api/v1/me*`, `/api/.well-known/*`, `/api/_dev/p04/*` are rewritten to `/svc/identity/...` (`Trail.liveRoutes`). | The gateway routes `/api/*` only in P06. | P06 empties `liveRoutes`. |
+| 2026-10-17 | P04 | A-37: security email (verify, reset, already-registered, password-changed) is sent after commit, asynchronously and bounded, without a durable queue; flows are user-retryable (≤ 5 links per account and hour). | A durable notification queue is P18. | P18 may move these emails to the notification service. |
 | 2026-09-22 | P01 | A-12: the P01 trail is backed by a dev-only lab controller in `dexter-web` (`/_dev/p01/*`, `@Profile("dev")`, guard test) instead of database-backed endpoints. | P01 has no service schema yet; the lab runs the real library code. Paging against a real table is P07. | P19 deletes it with the trail; `run.sh` defaults to the dev profile locally. |
 
 ## 7. Known gaps / tech debt (honest, never deleted silently)
+
+- **P04 identity:**
+  - No lockout and no rate limits yet (P05 Redis lockout, P06 edge limits). The "already registered" email is not
+    throttled; verification and reset emails are (5 per account and hour).
+  - Sessions record the socket address as `ip_first`: behind the gateway (P06) that is the gateway until it forwards a
+    trusted client IP.
+  - Strict reuse detection: a client that refreshes the same token twice concurrently (two tabs) is signed out.
+    Apps must single-flight refreshes per device (ADR-0009 §5).
+  - Access tokens stay valid until they expire (≤ 10 min) after logout or reuse revocation — stateless by design
+    (MASTER_PLAN 7.1; no revocation list).
+  - `mfa_enrolled` is always false and `amr` is `[pwd]` until P05; `tier` comes from `accounts.tier_cache` (billing
+    keeps it current from P16).
+  - No durable mail queue (A-37); a mail-server outage loses those emails (logged `MAIL_FAILED`).
+  - The breached list holds the ≈ 9.1k NCSC top-100k entries that are ≥ 10 characters; no online HIBP k-anonymity
+    check (offline by plan).
+  - KEK, pepper, cursor key and client secrets are env values (dev values in `.env.example`); Vault Transit is P19.
+    KEK rotation re-wrapping of existing DEKs/keys is not automated (new material uses the active KEK id).
+  - The login timing test allows max(40 ms, 50 %) between medians on a shared CI runner; it proves the absence of the
+    ~50 ms Argon2 gap, not constant time to the microsecond.
+  - The relay's maintenance (topics, inbox + idempotency purge) runs on the leader every 10 min; there is no metric
+    for unpublished outbox rows yet (P19).
+  - `identity.flyway_schema_history` lives in the `identity` schema (owner-only, no RLS; not a tenant table).
+  - Idempotency-Key is implemented on registration only (the phase's "Idem: REQ" endpoint). The other mutations are
+    naturally idempotent (verify/reset: single-use tokens; logout, session revoke: no-ops when repeated) or must
+    **not** store their response (login/refresh return secrets — a replay store would persist live tokens).
+  - No events yet for password change/reset (besides the session revocations), profile changes or tz changes;
+    consumers that need them (audit P18) add them as new event types.
 
 - **P03 seed:**
   - The planned column lists (`Tables`) are a forward commitment. Each phase must reconcile them with its
@@ -422,6 +527,15 @@ Issues found in P01's own code during self-review and fixed:
 
 ## 8. How to run & verify (Codespaces)
 
+P04 additions (code in the repo; `git pull`):
+```bash
+./scripts/run.sh core && ./scripts/run.sh services     # run.sh adds the new IDENTITY_* / SERVICE_CLIENT_SECRET keys to .env
+./scripts/seed.sh small                                 # after identity started: demo accounts land in identity.accounts
+./scripts/run.sh trail                                  # port 8099 → p04-identity.html (Mock works without services)
+# Live: register on the page, open Mailpit (port 8025), click the link (it opens the page with the token), verify, login.
+./scripts/verify.sh full && ./scripts/trail-check.sh    # CI does the same: workflow verify-full, reports on branch verify-reports
+```
+
 P03 additions (code is in the repo; `git pull` instead of unzipping):
 ```bash
 cp -n .env.example .env; grep -q SEED_BULK_PASSWORD .env || echo 'SEED_BULK_PASSWORD=Seed-Bulk-2026!' >> .env
@@ -455,7 +569,9 @@ press **Lab status / start**, then **Get a valid token**. (After a manual `run.s
 - `asha@demo.in` (PREMIUM, 3 cards, 500 expenses), `ravi@demo.in` (FREE, 2 cards, 500 expenses) in `identity.accounts`;
   `admin@demo.in` (SUPER_ADMIN) in `identity.admins`. Passwords: `DEMO_PASSWORD_*` in `.env.example`.
 - Bulk seed users `u0000001@seed.test` … (medium: 9,998, large: 99,998), password `SEED_BULK_PASSWORD`.
-- Until P04/P05 create the tables, these rows live in `identity.seed_stage.*` (ADR-0008).
+- From P04 the users live in the real `identity.accounts` once `seed.sh small` ran after identity started (`verify.sh
+  full` does it as `full.seed-small`); `admin@demo.in` stays in `identity.seed_stage.admins` until P05.
+- Service clients (P04): every service name, secret `SERVICE_CLIENT_SECRET` from `.env`, via `POST /oauth2/token`.
 
 ## 10. Changelog (one line per response)
 
