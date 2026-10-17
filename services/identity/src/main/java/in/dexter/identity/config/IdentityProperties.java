@@ -13,7 +13,7 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
 @ConfigurationProperties("dexter.identity")
 public record IdentityProperties(
     String issuer,
-    @DefaultValue({"identity", "ledger", "catalog", "portfolio", "planning", "reco", "billing", "commerce", "audit"})
+    @DefaultValue({"gateway", "identity", "ledger", "catalog", "portfolio", "planning", "reco", "billing", "commerce", "audit"})
     List<String> audiences,
     @DefaultValue("10m") Duration accessTokenTtl,
     @DefaultValue("30d") Duration refreshIdle,

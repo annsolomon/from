@@ -1,11 +1,17 @@
 spring:
   application:
     name: gateway
-  threads:
-    virtual:
-      enabled: true
   main:
     banner-mode: "off"
+  # P06 rate limiter: per-service ACL user (infra/redis/acl.tmpl: keys gateway:*, scripts only). 200 ms timeout.
+  data:
+    redis:
+      host: ${DEXTER_REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      username: gateway
+      password: ${REDIS_PW_GATEWAY:${REDIS_PW_SERVICE:}}
+      timeout: 200ms
+      connect-timeout: 1s
 
 server:
   port: ${PORT_GATEWAY:8080}
@@ -21,9 +27,50 @@ management:
       probes:
         enabled: true
       show-details: never
+  health:
+    # The limiter fails open without Redis (except sign-in); Redis being down must not take the edge out of rotation.
+    redis:
+      enabled: false
   metrics:
     tags:
       service: gateway
+
+# Edge JWT pre-check (MASTER_PLAN 7.2): identity's JWKS, audience "gateway" (identity puts it in every user token).
+dexter:
+  security:
+    jwks-uri: ${IDENTITY_JWKS_URI:http://127.0.0.1:${PORT_IDENTITY:8081}/.well-known/jwks.json}
+    issuer: ${IDENTITY_ISSUER:https://identity.dexter.internal}
+    audience: gateway
+  gateway:
+    services:
+      identity: ${GATEWAY_URI_IDENTITY:http://127.0.0.1:${PORT_IDENTITY:8081}}
+      ledger: ${GATEWAY_URI_LEDGER:http://127.0.0.1:${PORT_LEDGER:8082}}
+      catalog: ${GATEWAY_URI_CATALOG:http://127.0.0.1:${PORT_CATALOG:8083}}
+      portfolio: ${GATEWAY_URI_PORTFOLIO:http://127.0.0.1:${PORT_PORTFOLIO:8084}}
+      planning: ${GATEWAY_URI_PLANNING:http://127.0.0.1:${PORT_PLANNING:8085}}
+      reco: ${GATEWAY_URI_RECO:http://127.0.0.1:${PORT_RECO:8086}}
+      billing: ${GATEWAY_URI_BILLING:http://127.0.0.1:${PORT_BILLING:8087}}
+      commerce: ${GATEWAY_URI_COMMERCE:http://127.0.0.1:${PORT_COMMERCE:8088}}
+      audit: ${GATEWAY_URI_AUDIT:http://127.0.0.1:${PORT_AUDIT:8089}}
+    activity:
+      bootstrap-servers: ${KAFKA_BOOTSTRAP:127.0.0.1:${KAFKA_PORT:9092}}
+      sample-rate: ${GATEWAY_ACTIVITY_SAMPLE_RATE:0.1}
+
+---
+# Local runs (run.sh) and the trail: dev endpoints routed, every request sampled, CORS for the trail origin only.
+spring:
+  config:
+    activate:
+      on-profile: dev
+dexter:
+  gateway:
+    dev-routes: true
+    activity:
+      sample-rate: 1.0
+    cors:
+      allowed-origins: [ "http://localhost:8099", "http://127.0.0.1:8099" ]
+    headers:
+      hsts: false
 
 ---
 spring:

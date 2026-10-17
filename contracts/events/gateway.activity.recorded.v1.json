@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dexter.in/events/gateway.activity.recorded.v1.json",
+  "title": "gateway.activity.recorded v1 - one sampled request at the edge (topic dexter.gateway.activity.v1, key = account id or request id). Envelope accountId = the verified caller or null.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["requestId", "service", "routePattern", "routeClass", "method", "status", "durationMs", "occurredAt"],
+  "properties": {
+    "requestId": {"type": "string", "minLength": 1, "maxLength": 128},
+    "service": {"type": "string", "enum": ["identity", "ledger", "catalog", "portfolio", "planning", "reco", "billing", "commerce", "audit"]},
+    "routePattern": {"type": "string", "minLength": 1, "maxLength": 200},
+    "routeClass": {"type": "string", "enum": ["auth", "write", "read", "calc"]},
+    "method": {"type": "string", "enum": ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]},
+    "status": {"type": "integer", "minimum": 100},
+    "durationMs": {"type": "integer", "minimum": 0},
+    "occurredAt": {"type": "string", "format": "date-time"}
+  }
+}

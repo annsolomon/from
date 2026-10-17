@@ -40,6 +40,9 @@ spring:
 server:
   port: ${PORT_IDENTITY:8081}
   shutdown: graceful
+  # P06: behind the gateway (and the trail nginx) the client IP comes from X-Forwarded-For, believed only from
+  # Tomcat's internal proxies (loopback, 10/8, 172.16/12, 192.168/16) - feeds the per-IP login throttle and sessions.
+  forward-headers-strategy: native
 
 management:
   endpoints:

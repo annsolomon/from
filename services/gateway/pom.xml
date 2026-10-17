@@ -19,6 +19,32 @@
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-starter-gateway-server-webflux</artifactId>
     </dependency>
+    <!-- P06: circuit breaker per route (Resilience4j, reactive) -->
+    <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-starter-circuitbreaker-reactor-resilience4j</artifactId>
+    </dependency>
+    <!-- P06: token-bucket rate limiter (Redis, ACL user `gateway`) -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-redis-reactive</artifactId>
+    </dependency>
+    <!-- P06: JWT pre-validation with the same verifier every service uses. dexter-web is servlet-only: excluded
+         (the gateway uses only dexter-security's jwt package; its servlet auto-config is conditional on SERVLET). -->
+    <dependency>
+      <groupId>in.dexter</groupId>
+      <artifactId>dexter-security</artifactId>
+      <exclusions>
+        <exclusion><groupId>in.dexter</groupId><artifactId>dexter-web</artifactId></exclusion>
+      </exclusions>
+    </dependency>
+    <dependency><groupId>in.dexter</groupId><artifactId>dexter-core</artifactId></dependency>
+    <dependency><groupId>in.dexter</groupId><artifactId>dexter-contracts</artifactId></dependency>
+    <!-- P06: activity events (plain producer, no outbox: the gateway has no database) -->
+    <dependency>
+      <groupId>org.apache.kafka</groupId>
+      <artifactId>kafka-clients</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
@@ -47,6 +73,22 @@
     <dependency>
       <groupId>com.tngtech.archunit</groupId>
       <artifactId>archunit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- P06 tests: WireMock backends (standalone = shaded, no Jetty/Jackson clash), Redis + Kafka containers -->
+    <dependency>
+      <groupId>org.wiremock</groupId>
+      <artifactId>wiremock-standalone</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers-kafka</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

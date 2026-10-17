@@ -15,7 +15,10 @@ export const options = {
 export default function () {
   for (const path of SCENARIO_PATHS) {
     const res = get(path, { cls: CLASS.HEALTH });
-    // X-Request-Id echo on the gateway arrives with its filter chain in P06; add the check there.
-    check(res, { 'status 200': (r) => r.status === 200 });
+    check(res, {
+      'status 200': (r) => r.status === 200,
+      // P06: the gateway's request-id filter echoes (or generates) X-Request-Id on every response
+      'X-Request-Id echoed': (r) => !!r.headers['X-Request-Id'],
+    });
   }
 }

@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trail P06 gateway</title>
+  <link rel="stylesheet" href="trail.css">
+</head>
+<body>
+<main>
+  <section class="card">
+    <h2>P06 · gateway: routes, request-id, header hygiene, body limit, JWT pre-check, rate limits, breaker, headers</h2>
+    <p class="mono" style="color:var(--muted);margin:0">
+      From P06 every Live call of every trail page goes <code>/api/…</code> → trail nginx → gateway <code>:8080</code> →
+      service (the <code>/svc/identity</code> bridge is gone). Services not built yet answer their own 404 problem
+      behind the gateway — the gateway's job is that the request reaches the right one. Mock mode emulates the edge
+      rules in the browser. Route contract: <code>docs/api/routes.md</code>. Testing aid only - deleted in P19.
+    </p>
+  </section>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>1 · Sign in (public route, auth class 10/min)</h2>
+      <div class="row"><button class="act" type="button" id="s-asha">Login asha@demo.in</button>
+        <button class="ghost" type="button" id="s-clear">Forget token</button></div>
+      <pre class="out" id="s-out">—</pre>
+    </section>
+    <section class="card">
+      <h2>2 · Route table (documented examples)</h2>
+      <div class="row"><select class="in" id="r-pick"></select>
+        <button class="act" type="button" id="r-send">Send</button>
+        <button class="ghost" type="button" id="r-all">Send all (token)</button></div>
+      <div class="list" id="r-items" style="max-height:220px"></div>
+      <pre class="out" id="r-out">—</pre>
+    </section>
+  </div>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>3 · Edge rules</h2>
+      <div class="row">
+        <button class="ghost" type="button" id="e-404">Unknown path → 404 (no token needed)</button>
+        <button class="ghost" type="button" id="e-401">/v1/me without token → 401</button>
+        <button class="ghost" type="button" id="e-spoof">/v1/me with spoofed X-Account-Id</button>
+      </div>
+      <div class="row" style="margin-top:6px">
+        <button class="ghost" type="button" id="e-rid">Own X-Request-Id echoed</button>
+        <button class="ghost" type="button" id="e-big">300 KB body → 413</button>
+        <button class="ghost" type="button" id="e-bad">Garbage token → 401</button>
+      </div>
+      <pre class="out" id="e-out">—</pre>
+    </section>
+    <section class="card">
+      <h2>4 · Rate limits (RateLimit-Policy / RateLimit / Retry-After)</h2>
+      <div class="row"><button class="act" type="button" id="l-auth">12 × POST /v1/auth/login</button>
+        <button class="ghost" type="button" id="l-read">5 × GET /v1/me</button></div>
+      <pre class="out" id="l-out">—</pre>
+    </section>
+  </div>
+
+  <section class="card" id="log"></section>
+</main>
+<script src="trail.js"></script>
+<script>
+(() => {
+  Trail.mountHeader('Gateway', 'P06');
+  Trail.mountLog(document.getElementById('log'));
+  const $ = id => document.getElementById(id);
+  const st = { token: null };
+  const H = r => ['x-request-id', 'x-backend', 'ratelimit-policy', 'ratelimit', 'retry-after', 'www-authenticate',
+    'x-content-type-options', 'content-security-policy'].filter(k => r.headers && r.headers[k]).map(k => k + ': ' + r.headers[k]).join('\n');
+  const show = (id, r, extra) => { $(id).textContent = `${r.status} ${r.requestId || ''}\n${H(r)}\n` + JSON.stringify(r.data, null, 2) + (extra ? '\n' + extra : ''); };
+  const auth = (more = {}) => st.token ? { Authorization: 'Bearer ' + st.token, ...more } : more;
+
+  // A slice of docs/api/routes.md (method, path, service, access)
+  const ROUTES = [
+    ['GET', '/.well-known/jwks.json', 'identity', 'public'], ['POST', '/v1/auth/login', 'identity', 'public'],
+    ['GET', '/v1/me', 'identity', 'token'], ['GET', '/v1/me/sessions', 'identity', 'token'],
+    ['GET', '/v1/admin/me', 'identity', 'token'], ['GET', '/v1/expenses?limit=50', 'ledger', 'token'],
+    ['GET', '/v1/categories', 'ledger', 'token'], ['POST', '/v1/expenses:bulk', 'ledger', 'token'],
+    ['GET', '/v1/catalog/cards?limit=24', 'catalog', 'public'], ['GET', '/v1/cards', 'portfolio', 'token'],
+    ['POST', '/v1/calc/emi', 'portfolio', 'token'], ['GET', '/v1/budgets/status', 'planning', 'token'],
+    ['GET', '/v1/recommendations', 'reco', 'token'], ['GET', '/v1/plans', 'billing', 'public'],
+    ['POST', '/v1/webhooks/razorpay', 'billing', 'public'], ['POST', '/v1/webhooks/affiliate/cuelinks', 'commerce', 'public'],
+    ['GET', '/v1/deals', 'commerce', 'public'], ['GET', '/v1/notifications', 'audit', 'token'],
+    ['GET', '/v1/admin/audit', 'audit', 'token']];
+  ROUTES.forEach(([m, p, s, a], i) => { const o = document.createElement('option'); o.value = i; o.textContent = `${m} ${p} → ${s} (${a})`; $('r-pick').appendChild(o); });
+  const sendRoute = async ([m, p]) => Trail.api(m, '/api' + p, { headers: auth(), ...(m === 'GET' ? {} : { body: {} }) });
+  $('r-send').onclick = async () => { const route = ROUTES[$('r-pick').value]; show('r-out', await sendRoute(route), 'expected service: ' + route[2]); };
+  $('r-all').onclick = async () => {
+    const box = $('r-items'); box.innerHTML = '';
+    for (const route of ROUTES) {
+      const r = await sendRoute(route);
+      const who = r.headers['x-backend'] || (r.data && r.data.instance ? '(service problem: ' + (r.data.code || '') + ')' : '');
+      const row = document.createElement('div'); row.className = 'mono';
+      row.textContent = `${r.status} ${route[0]} ${route[1]} → expected ${route[2]} ${who}`;
+      box.appendChild(row);
+    }
+  };
+
+  $('s-asha').onclick = async () => {
+    const r = await Trail.api('POST', '/api/v1/auth/login', { body: { email: 'asha@demo.in', password: 'Asha-Demo-2026!', clientId: 'dexter-trail' } });
+    if (r.status === 200 && r.data.accessToken) st.token = r.data.accessToken;
+    show('s-out', r);
+  };
+  $('s-clear').onclick = () => { st.token = null; $('s-out').textContent = 'token forgotten'; };
+
+  $('e-404').onclick = async () => show('e-out', await Trail.api('GET', '/api/v1/no-such-thing'));
+  $('e-401').onclick = async () => show('e-out', await Trail.api('GET', '/api/v1/me'));
+  $('e-spoof').onclick = async () => show('e-out', await Trail.api('GET', '/api/v1/me', { headers: auth({ 'X-Account-Id': Trail.uuidv7() }) }),
+    'the gateway strips X-Account-*; identity answers for the token\'s subject only');
+  $('e-rid').onclick = async () => show('e-out', await Trail.api('GET', '/api/v1/me', { headers: auth({ 'X-Request-Id': 'trail-p06-' + Date.now() }) }));
+  $('e-big').onclick = async () => show('e-out', await Trail.api('POST', '/api/v1/auth/login', { raw: JSON.stringify({ email: 'a@b.c', password: 'x'.repeat(300 * 1024) }) }));
+  $('e-bad').onclick = async () => show('e-out', await Trail.api('GET', '/api/v1/me', { headers: { Authorization: 'Bearer not.a.jwt' } }));
+  $('l-auth').onclick = async () => { const lines = [];
+    for (let i = 1; i <= 12; i++) { const r = await Trail.api('POST', '/api/v1/auth/login', { body: { email: 'rl' + i + '@demo.test', password: 'Wrong-Password-1' } });
+      lines.push(`${i}: ${r.status} ${(r.data && r.data.code) || ''}  ${r.headers.ratelimit || ''}${r.headers['retry-after'] ? '  Retry-After ' + r.headers['retry-after'] : ''}`); }
+    $('l-out').textContent = lines.join('\n'); };
+  $('l-read').onclick = async () => { const lines = [];
+    for (let i = 1; i <= 5; i++) { const r = await Trail.api('GET', '/api/v1/me', { headers: auth() }); lines.push(`${i}: ${r.status}  ${r.headers['ratelimit-policy'] || ''}  ${r.headers.ratelimit || ''}`); }
+    $('l-out').textContent = lines.join('\n'); };
+
+  // ------------------------------------------------------------- Mock mode: the edge rules in the browser
+  const P = Trail.problem;
+  const SEC = { 'x-content-type-options': 'nosniff', 'content-security-policy': "default-src 'none'; frame-ancestors 'none'" };
+  const buckets = new Map();
+  const PUBLIC = [/^POST \/api\/v1\/auth\/(login|register|verify-email|token\/refresh|password\/forgot|password\/reset|mfa\/verify)$/,
+    /^GET \/api\/\.well-known\/jwks\.json$/, /^GET \/api\/v1\/(catalog|plans|deals)(\/|$)/, /^POST \/api\/v1\/webhooks\//];
+  const SERVICE = [[/^\/api\/(v1\/(auth|me|admin\/(auth|me|admins|accounts|elevations))|\.well-known)/, 'identity'],
+    [/^\/api\/v1\/(expenses|categories|merchants|rules|imports|summary|calendar)/, 'ledger'], [/^\/api\/v1\/(catalog|admin\/(catalog|ingestion|review))/, 'catalog'],
+    [/^\/api\/v1\/(cards|emi-plans|links|portfolio|rewards|statements|calc)/, 'portfolio'], [/^\/api\/v1\/(budgets|liabilities|scenarios)/, 'planning'],
+    [/^\/api\/v1\/recommendations/, 'reco'], [/^\/api\/v1\/webhooks\/affiliate/, 'commerce'], [/^\/api\/v1\/(plans|subscriptions|entitlements|invoices|webhooks)/, 'billing'],
+    [/^\/api\/v1\/(deals|card-applications|ads)/, 'commerce'], [/^\/api\/v1\/(notifications|notification-prefs|privacy|admin\/(audit|activity))/, 'audit']];
+  const edge = (m, req) => {
+    const rid = (req.headers['X-Request-Id'] && /^[A-Za-z0-9._:-]{1,128}$/.test(req.headers['X-Request-Id'])) ? req.headers['X-Request-Id'] : Trail.uuidv7();
+    const svc = (SERVICE.find(([re]) => re.test(req.path)) || [])[1];
+    if (!svc) return Trail.reply(404, { code: 'NOT_FOUND', detail: 'No API route for this path', requestId: rid }, { ...SEC, 'x-request-id': rid });
+    if ((req.raw || '').length > 256 * 1024) return Trail.reply(413, { code: 'PAYLOAD_TOO_LARGE' }, { ...SEC, 'x-request-id': rid });
+    const pub = PUBLIC.some(re => re.test(req.method + ' ' + req.path));
+    const authz = Object.entries(req.headers).find(([k]) => k.toLowerCase() === 'authorization');
+    if (!pub && !(authz && /^Bearer [\w-]+\.[\w-]+\.[\w-]+$/.test(authz[1]) && authz[1] !== 'Bearer not.a.jwt'))
+      return Trail.reply(401, { code: 'UNAUTHENTICATED', detail: 'A Bearer access token is required', requestId: rid }, { ...SEC, 'x-request-id': rid, 'www-authenticate': 'Bearer realm="dexter"' });
+    const cls = /\/v1\/(admin\/)?auth\//.test(req.path) ? ['auth', 10] : /\/v1\/calc\//.test(req.path) ? ['calc', 60] : req.method === 'GET' ? ['read', 600] : ['write', 120];
+    const key = cls[0] + ':' + (authz ? authz[1].slice(-12) : 'ip');
+    const b = buckets.get(key) || { tokens: cls[1], ts: Date.now() };
+    b.tokens = Math.min(cls[1], b.tokens + (Date.now() - b.ts) * cls[1] / 60000); b.ts = Date.now(); buckets.set(key, b);
+    const rl = { 'ratelimit-policy': `"${cls[0]}";q=${cls[1]};w=60` };
+    if (b.tokens < 1) { const retry = Math.ceil((1 - b.tokens) * 60 / cls[1]);
+      return Trail.reply(429, { code: 'RATE_LIMITED', retryAfterSeconds: retry, requestId: rid }, { ...SEC, ...rl, 'x-request-id': rid, ratelimit: `"${cls[0]}";r=0;t=${retry}`, 'retry-after': String(retry) }); }
+    b.tokens -= 1; rl.ratelimit = `"${cls[0]}";r=${Math.floor(b.tokens)};t=0`;
+    if (svc === 'identity' && req.path === '/api/v1/auth/login') {
+      const ok = req.body && req.body.email === 'asha@demo.in' && req.body.password === 'Asha-Demo-2026!';
+      return Trail.reply(ok ? 200 : 401, ok ? { accessToken: 'eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiJhc2hhIn0.mock', tokenType: 'Bearer', expiresIn: 600 }
+        : { code: 'INVALID_CREDENTIALS' }, { ...SEC, ...rl, 'x-request-id': rid, 'x-backend': svc });
+    }
+    if (svc === 'identity' && req.path === '/api/v1/me') return Trail.reply(200, { email: 'asha@demo.in' }, { ...SEC, ...rl, 'x-request-id': rid, 'x-backend': svc });
+    return Trail.reply(200, { service: svc, note: 'mock backend' }, { ...SEC, ...rl, 'x-request-id': rid, 'x-backend': svc });
+  };
+  for (const method of ['GET', 'POST', 'PATCH', 'PUT', 'DELETE']) Trail.mock(method, /^\/api\/.*/, edge);
+})();
+</script>
+</body>
+</html>

@@ -119,3 +119,19 @@ property (the verifier's `TokenRejectedException.Reason`) — the real intercept
 it is a playground. `503 SERVICE_UNAVAILABLE` when the lab cannot start (Postgres `lab`, Kafka or Redis unreachable) or
 when a cache bump/purge cannot reach Redis. Validation codes in `errors[]`: `UNKNOWN_PERSONA`, `UNKNOWN_DEFECT`,
 `TITLE_INVALID`, `AMOUNT_INVALID`, `HOLD_INVALID`.
+
+### gateway (P06, `GatewayErrors` + core codes)
+
+| Code | Status | When |
+|---|---|---|
+| `NOT_FOUND` | 404 | No route for the path (`docs/api/routes.md`) — always 404, with or without a token. |
+| `UNAUTHENTICATED` | 401 | Token route without a Bearer token, or a token that fails edge verification (`WWW-Authenticate: Bearer realm="dexter"[, error="invalid_token"]`). |
+| `FORBIDDEN` | 403 | A service (client-credentials) token at the edge. |
+| `PAYLOAD_TOO_LARGE` | 413 | Body over 256 KB (declared `Content-Length` or streamed). |
+| `RATE_LIMITED` | 429 | Route-class bucket empty; `Retry-After` + `retryAfterSeconds`; `RateLimit-Policy` / `RateLimit` on every limited response. |
+| `SERVICE_UNAVAILABLE` | 503 | JWKS unreachable (`Retry-After: 5`), or Redis down on an `auth`-class route (`Retry-After: 2`). |
+| `UPSTREAM_UNAVAILABLE` | 503 | The service refused/reset the connection or its circuit breaker is open (`Retry-After: 5`). |
+| `UPSTREAM_TIMEOUT` | 504 | No answer within the route's response timeout (10 s; SSE routes have none). |
+
+Errors a service returns pass through the gateway unchanged (same body, same `X-Request-Id`).
+

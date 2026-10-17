@@ -51,6 +51,8 @@
          spring-security-crypto). bcprov-jdk18on 1.85.2 (bc-jdk18on-bom 1.85.2 on Central, ~2026-08); 1.84 and older are
          affected by CVE-2026-5598. -->
     <bouncycastle.version>1.85.2</bouncycastle.version>
+    <!-- P06 pin (A-02/A-28): WireMock standalone (shaded) for the gateway route-table tests. 3.13.2 on Central. -->
+    <wiremock.version>3.13.2</wiremock.version>
   </properties>
 
   <dependencyManagement>
@@ -71,6 +73,11 @@
         <groupId>com.tngtech.archunit</groupId>
         <artifactId>archunit</artifactId>
         <version>${archunit.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.wiremock</groupId>
+        <artifactId>wiremock-standalone</artifactId>
+        <version>${wiremock.version}</version>
       </dependency>
       <dependency>
         <groupId>com.nimbusds</groupId>

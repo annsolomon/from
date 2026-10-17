@@ -2,7 +2,7 @@
 //
 // P00: Mock/Live toggle, Trail.api(), request log with timings.
 // P01: mock handlers may return Trail.reply(status, body, headers); api() accepts {raw} bodies.
-// P04/P05: Live identity calls (incl. /api/v1/admin/*) are bridged to /svc/identity until the gateway routes /api/* (liveRoutes, P06).
+// P06: Live calls go through the gateway (/api → nginx → :8080); liveRoutes is empty (it was the P04/P05 identity bridge).
 // P03: the complete kit -
 //   * personas + tenant switcher (Asha / Ravi / Admin from the seed fixtures); Live mode logs in through
 //     /api/v1/auth/login (identity, P04) and sends the bearer token; Mock mode scopes data to the persona (RLS).
@@ -271,16 +271,11 @@
   }
 
   /**
-   * P04 bridge: until the gateway routes /api/* (P06), Live calls to identity go straight to the service through
-   * the trail proxy (/svc/identity/...). P06 empties this list.
+   * P04/P05 bridged identity calls to /svc/identity until the gateway routed /api/* (A-36). From P06 every Live call
+   * goes /api/... → trail nginx → gateway :8080 → service, so the list is empty; it stays as a hook for a page that
+   * must reach a service directly while debugging.
    */
-  const liveRoutes = [
-    ['/api/v1/auth/', '/svc/identity/v1/auth/'],
-    ['/api/v1/me', '/svc/identity/v1/me'],
-    ['/api/v1/admin/', '/svc/identity/v1/admin/'],
-    ['/api/.well-known/', '/svc/identity/.well-known/'],
-    ['/api/_dev/p04/', '/svc/identity/_dev/p04/'],
-  ];
+  const liveRoutes = [];
   function livePath(path) {
     for (const [from, to] of liveRoutes) if (path.startsWith(from)) return to + path.slice(from.length);
     return path;

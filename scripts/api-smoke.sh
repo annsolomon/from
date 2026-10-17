@@ -10,6 +10,8 @@
 #        login; client-credentials tokens; dev key rotation. Then: identity's outbox rows are published to Kafka.
 #   P05: identity (scripts/lib/p05_smoke.py): TOTP enrol -> MFA sign-in -> recovery code -> step-up -> disable; 429
 #        throttle; seeded admin first sign-in (TOTP setup), audited lookup, break-glass, invite -> accept, end.
+#   P06: gateway (scripts/lib/p06_smoke.py): routes to live identity, request-id, 401/404, 413, security headers,
+#        auth rate limit 429, dev route; then gateway activity events on Kafka.
 # Later phases append their checks below the P00 block. Output also goes to $SMOKE_OUT if set.
 set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -114,6 +116,11 @@ log "# P05 identity MFA + admin (:8081)"
 p05=$(python3 "$ROOT/scripts/lib/p05_smoke.py" "http://localhost:8081" "http://127.0.0.1:8025" 2>&1); p05rc=$?
 while IFS= read -r line; do log "$line"; done <<< "$p05"
 [[ $p05rc -eq 0 ]] || fail=1
+# ------------------------------------------------------------------ P06: gateway in front of the services
+log "# P06 gateway (:8080)"
+p06=$(python3 "$ROOT/scripts/lib/p06_smoke.py" "http://localhost:8080" 2>&1); p06rc=$?
+while IFS= read -r line; do log "$line"; done <<< "$p06"
+[[ $p06rc -eq 0 ]] || fail=1
 # Outbox -> Kafka (MASTER_PLAN 6.3): every identity event written above is published by the relay within 30 s.
 COMPOSE=(docker compose --env-file "$ROOT/.env" -f "$ROOT/infra/compose/docker-compose.yml")
 outbox() { "${COMPOSE[@]}" exec -T postgres psql -U "${POSTGRES_USER:-postgres}" -d identity -tA -c "$1" 2>/dev/null | tr -d '[:space:]'; }
@@ -130,6 +137,17 @@ topics=$("${COMPOSE[@]}" exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstra
 if [[ $topics == *dexter.identity.account.v1* && $topics == *dexter.identity.session.v1* && $topics == *dexter.identity.security.v1* && $topics == *dexter.identity.admin.v1* ]]; then
   log "PASS  identity topics exist (account, session, security, admin)"
 else log "FAIL  identity topics missing: $(tr '\n' ' ' <<< "$topics")"; fail=1; fi
+
+# P06: gateway activity events reach Kafka (sampled 100 % in the dev profile)
+act=0
+for _ in $(seq 1 20); do
+  act=$("${COMPOSE[@]}" exec -T kafka /opt/kafka/bin/kafka-get-offsets.sh --bootstrap-server localhost:9092 \
+    --topic dexter.gateway.activity.v1 2>/dev/null | awk -F: '{s+=$3} END {print s+0}')
+  [[ ${act:-0} -gt 0 ]] && break
+  sleep 1
+done
+if [[ ${act:-0} -gt 0 ]]; then log "PASS  gateway activity -> Kafka: $act events on dexter.gateway.activity.v1"
+else log "FAIL  gateway activity -> Kafka: no events"; fail=1; fi
 
 log "# summary: $([[ $fail -eq 0 ]] && echo PASS || echo FAIL)"
 exit $fail

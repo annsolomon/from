@@ -6,7 +6,7 @@ set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
 source scripts/lib/services.sh
-PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html p05-mfa-admin.html})
+PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html p05-mfa-admin.html p06-gateway.html})
 BASE=http://127.0.0.1:8099
 fail=0
 
@@ -58,29 +58,38 @@ js=$(curl -s --max-time 5 "$BASE/trail.js")
 if [[ $js == *'class Pager'* && $js == *'mountIdempotencyTester'* ]]; then printf 'PASS  %-10s %s\n' trail-kit 200
 else printf 'FAIL  %-10s %s\n' trail-kit "trail.js served without the P03 kit"; fail=1; fi
 
-# P04: identity through the proxy (what p04-identity.html Live mode calls): JWKS, seeded demo login, /v1/me
+# P04: identity through the gateway (/api → nginx → gateway, what p04-identity.html Live mode calls since P06): JWKS, seeded demo login, /v1/me
 set -a; source .env; set +a
-jw=$(curl -s --max-time 5 "$BASE/svc/identity/.well-known/jwks.json")
+jw=$(curl -s --max-time 5 "$BASE/api/.well-known/jwks.json")
 if [[ $jw == *'"kty":"EC"'* && $jw != *'"d":'* ]]; then printf 'PASS  %-10s %s\n' p04-jwks 200; else printf 'FAIL  %-10s %s\n' p04-jwks "${jw:0:120}"; fail=1; fi
 lg=$(curl -s --max-time 10 -H 'Content-Type: application/json' \
-  -d "{\"email\":\"asha@demo.in\",\"password\":\"${DEMO_PASSWORD_ASHA}\",\"clientId\":\"dexter-trail\"}" "$BASE/svc/identity/v1/auth/login")
+  -d "{\"email\":\"asha@demo.in\",\"password\":\"${DEMO_PASSWORD_ASHA}\",\"clientId\":\"dexter-trail\"}" "$BASE/api/v1/auth/login")
 at=$(sed -nE 's/.*"accessToken":"([^"]+)".*/\1/p' <<< "$lg")
 if [[ -n $at ]]; then printf 'PASS  %-10s %s\n' p04-login 200; else printf 'FAIL  %-10s %s\n' p04-login "${lg:0:160}"; fail=1; fi
-me=$(curl -s --max-time 5 -H "Authorization: Bearer $at" "$BASE/svc/identity/v1/me")
+me=$(curl -s --max-time 5 -H "Authorization: Bearer $at" "$BASE/api/v1/me")
 if [[ $me == *'"email":"asha@demo.in"'* ]]; then printf 'PASS  %-10s %s\n' p04-me 200; else printf 'FAIL  %-10s %s\n' p04-me "${me:0:160}"; fail=1; fi
-js=$(curl -s --max-time 5 "$BASE/trail.js")
-if [[ $js == *"'/svc/identity/v1/auth/'"* ]]; then printf 'PASS  %-10s %s\n' p04-bridge 200; else printf 'FAIL  %-10s %s\n' p04-bridge "trail.js without the /svc/identity bridge"; fail=1; fi
 
-# P05: admin console through the proxy (what p05-mfa-admin.html Live mode calls): password -> MFA challenge (never
-# tokens), admin endpoints refuse anonymous callers, the /api/v1/admin bridge is in trail.js
+# P05: admin console through the gateway (what p05-mfa-admin.html Live mode calls): password -> MFA challenge (never
+# tokens), admin endpoints refuse anonymous callers (at the edge now)
 al=$(curl -s --max-time 10 -H 'Content-Type: application/json' \
-  -d "{\"email\":\"admin@demo.in\",\"password\":\"${DEMO_PASSWORD_ADMIN}\"}" "$BASE/svc/identity/v1/admin/auth/login")
+  -d "{\"email\":\"admin@demo.in\",\"password\":\"${DEMO_PASSWORD_ADMIN}\"}" "$BASE/api/v1/admin/auth/login")
 if [[ $al == *'"mfaToken":"'* && $al != *accessToken* ]]; then printf 'PASS  %-10s %s\n' p05-admin challenge; else printf 'FAIL  %-10s %s\n' p05-admin "${al:0:160}"; fail=1; fi
-an=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$BASE/svc/identity/v1/admin/admins")
+an=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$BASE/api/v1/admin/admins")
 if [[ $an == 401 ]]; then printf 'PASS  %-10s %s\n' p05-anon 401; else printf 'FAIL  %-10s %s\n' p05-anon "$an"; fail=1; fi
-mf=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 -H "Authorization: Bearer $at" "$BASE/svc/identity/v1/me/mfa")
+mf=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 -H "Authorization: Bearer $at" "$BASE/api/v1/me/mfa")
 if [[ $mf == 200 ]]; then printf 'PASS  %-10s %s\n' p05-mfa 200; else printf 'FAIL  %-10s %s\n' p05-mfa "$mf"; fail=1; fi
-if [[ $js == *"'/svc/identity/v1/admin/'"* ]]; then printf 'PASS  %-10s %s\n' p05-bridge 200; else printf 'FAIL  %-10s %s\n' p05-bridge "trail.js without the admin bridge"; fail=1; fi
+
+# P06: the gateway behind the trail proxy (what p06-gateway.html Live mode calls): request id echo, unknown path 404,
+# security + rate-limit headers, spoofed identity header ignored, the bridge gone from trail.js
+gh=$(curl -s -D - -o /tmp/trail-p06.json --max-time 5 -H 'X-Request-Id: trail-check-p06' "$BASE/api/v1/nope")
+if [[ $gh == *' 404'* ]] && grep -qi '^x-request-id: trail-check-p06' <<< "$gh" && grep -q '"code":"NOT_FOUND"' /tmp/trail-p06.json \
+  && grep -qi '^x-content-type-options: nosniff' <<< "$gh"; then printf 'PASS  %-10s %s\n' p06-404 404
+else printf 'FAIL  %-10s %s\n' p06-404 "${gh:0:200}"; fail=1; fi
+rh=$(curl -s -D - -o /dev/null --max-time 5 -H "Authorization: Bearer $at" -H "X-Account-Id: $(cat /proc/sys/kernel/random/uuid)" "$BASE/api/v1/me")
+if [[ $rh == *' 200'* ]] && grep -qi '^ratelimit-policy: "read";q=600;w=60' <<< "$rh"; then printf 'PASS  %-10s %s\n' p06-me 200
+else printf 'FAIL  %-10s %s\n' p06-me "${rh:0:200}"; fail=1; fi
+js=$(curl -s --max-time 5 "$BASE/trail.js")
+if [[ $js == *'const liveRoutes = [];'* ]]; then printf 'PASS  %-10s %s\n' p06-bridge gone; else printf 'FAIL  %-10s %s\n' p06-bridge "trail.js still bridges to /svc"; fail=1; fi
 
 echo "trail-check: $([[ $fail -eq 0 ]] && echo PASS || echo FAIL)"
 exit $fail
