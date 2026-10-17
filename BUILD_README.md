@@ -16,7 +16,7 @@ break-glass). Upload `MASTER_PLAN.md` + this README; the code is in the repo (cl
 | P03 | Harness, seed, trail kit | **DONE** 2026-10-16 | `verify.sh full` 19/19 PASS + trail-check PASS (CI run 38922523673, git 4dc9033): seed 25 unit + `SeedLoadIT` 4, 11 ArchitectureTests, pager.spec.js 18/18, medium seed generate+load 16 s, determinism checksum `a67ed5cf…` (identical in the sandbox and on CI) | DoD all ticked (§3) |
 | P04 | Identity A | **DONE** 2026-10-17 | `verify.sh full` 21/21 PASS + trail-check PASS (CI run 39003795722, git 6e6ed9f): identity unit 19 + IT 41 (incl. IdempotencyContract 6, PaginationContract 9, RLS proof 7), api-smoke P04 26/26, outbox → Kafka 5 published / 0 pending | DoD all ticked (§3) |
 | P05 | Identity B (MFA/admin/RBAC) | **DONE** 2026-10-17 | `verify.sh full` PASS + trail-check PASS (CI run 39016105238, git 0b04cc0): identity unit 33 + IT 65 (MFA, lockout, admin, break-glass, RLS), api-smoke P05 28/28 | DoD all ticked (§3) |
-| P06 | Gateway | NOT STARTED | — | |
+| P06 | Gateway | **DONE** 2026-10-17 | `verify.sh full` PASS + trail-check PASS (CI run 39020903788, git cf48871): gateway unit 10 + IT 19 (route table over 88 documented paths, edge filters, rate limit, breaker/SSE, activity → Kafka, degraded Redis/Kafka), api-smoke P06 18/18 | DoD all ticked (§3) |
 | P07 | Ledger A (reference impl) | NOT STARTED | — | |
 | P08 | Ledger B | NOT STARTED | — | |
 | P09 | Catalog A | NOT STARTED | — | |
@@ -32,6 +32,19 @@ break-glass). Upload `MASTER_PLAN.md` + this README; the code is in the repo (cl
 | P19 | Hardening & release | NOT STARTED | — | |
 
 ## 2. In progress (exact stopping point)
+
+- **P06 (2026-10-17): complete.** Nothing in progress. Next action: P07 (verify P06 first, then Ledger A).
+  P07 starts from: `/v1/expenses*`, `/v1/categories*` already route to ledger through the gateway (ledger answers
+  its own 404 today); trail pages call `/api/v1/...` (no bridge); ledger must accept audience `ledger` tokens
+  (identity issues them) and the gateway forwards `Authorization` unchanged.
+
+### History (P06)
+
+- r1 (`ffd0cd8`/`1672c72`): everything green except `ResilienceIT` breaker test: a connection reset from the
+  service surfaced as Netty `NativeIoException` → 500. r2 (`ea0aeb7`): upstream `IOException` → 503; the open
+  circuit surfaced as SCG `ServiceUnavailableException` (`@ResponseStatus`) → 500. r3 (`aa88308`): mapped; Maven
+  green, p06 smoke crashed importing p04's helpers (Mailpit argv). r4 (`1b67d27`): fixed; one smoke check compared
+  JWKS as text. r5 (`cf48871`): all green (run 39020903788).
 
 - **P05 (2026-10-17): complete.** Nothing in progress. Next action: P06 (verify P05 first, then the gateway).
   P06 starts from: identity's Live trail calls (incl. `/api/v1/admin/*`) go through `Trail.liveRoutes`; per-IP
@@ -112,6 +125,21 @@ break-glass). Upload `MASTER_PLAN.md` + this README; the code is in the repo (cl
 - **P02b scope (A-13):** `dexter-security` (resource server, JWKS cache + unknown-kid refetch, `AuthContext`, audience check, `@RequiresStepUp`, `@RequiresPermission`, service-token client, test JWKS/JWT factory; pins nimbus + bouncycastle, verified on Maven Central), `dexter-cache` (ADR-0004, generation keys, Redis ACLs, cache contract), `ArchRules` (pins archunit), demo module switched from the `X-Demo-Account` test header to `AuthContext`, `p02-*.html` trail page + lab endpoints (idempotency replay/409/422, outbox → Kafka → projection, DLQ).
 
 ## 3. Verification of previous phase
+
+### P06 against its DoD (CI run 39020903788, git cf48871, 2026-10-17)
+
+| DoD / requirement | Result | Evidence |
+|---|---|---|
+| IT-GREEN | PASS | `full.maven`: gateway unit 10 + IT 19, 0 failures; identity (audience `gateway`, forwarded headers) still green |
+| `docs/api/routes.md` complete | PASS | `RouteDocsTest` (doc patterns = `RouteTable` patterns; each example matches its documented pattern, service, access, class) |
+| Route table test (WireMock backends) | PASS | `RouteTableIT` (every documented example → right service, path unchanged, token forwarded; token routes 401 without a token; unknown paths 404 with or without) |
+| Rate-limit 429 + headers | PASS | `RateLimitIT` (auth 10/min per IP, calc 60/min per account, `RateLimit-Policy`/`RateLimit`/`Retry-After`, bucket refill with an injected clock); api-smoke 11th sign-in 429 |
+| Spoofed `X-Account-Id` stripped | PASS | `EdgeFiltersIT.spoofedIdentityHeadersAreStripped` (backend never sees X-Account-*/X-Actor-*/X-User-*/X-Roles/X-Tenant-*) |
+| Public route works without a token | PASS | `EdgeFiltersIT.publicRouteWorksWithoutAToken`, `RouteTableIT`; api-smoke demo sign-in through the gateway |
+| SSE isn't cut at 10 s | PASS | `ResilienceIT.sseIsNotCutAfterTenSeconds` (12 s stream with 4 s silences while normal routes time out at 3 s → 504) |
+| Breaker per route (not SSE) | PASS | `ResilienceIT.breakerOpensOnFailuresAndStopsCallingTheService`; `RouteDocsTest` only `reco-stream` skips it |
+| Activity events, sampled + never blocking | PASS | `ActivityIT` (envelope + data on `dexter.gateway.activity.v1`), `DegradedIT` (Kafka and Redis unreachable: reads 200 fast, sign-in 503); api-smoke activity offsets > 0 |
+| Trail page exercised | PASS | trail-check p06 (404 problem + request id + nosniff, `/api/v1/me` with RateLimit-Policy, bridge gone; P04/P05 checks now via `/api`); Mock flow in jsdom, 0 errors |
 
 ### P05 against its DoD (CI run 39016105238, git 0b04cc0, 2026-10-17)
 
@@ -224,6 +252,20 @@ Issues found in P01's own code during self-review and fixed:
 4. The web test asserted an exact `Content-Type`; now a compatible-type check (a charset suffix must not fail it).
 
 ## 4. What exists now
+
+**P06 Gateway (DONE)** — ADR-0011, `docs/api/routes.md`
+
+| Piece | What it does |
+|---|---|
+| `domain` | `RouteTable` (11 routes, 88 patterns+examples documented; SSE `reco-stream`; public allowlist; dev route `/_dev/p04/**`), `RouteClass` (auth/write/read/calc), `GatewayErrors` (`UPSTREAM_UNAVAILABLE`, `UPSTREAM_TIMEOUT`) |
+| `infra` | WebFilters in `FilterOrder`: `ActivityFilter` → `RequestIdFilter` → `SecurityHeadersFilter` → `StripIdentityHeadersFilter` (+ `ClientIp`) → `OrderedCorsFilter` → `BodySizeFilter` → `JwtPreCheckFilter` (dexter-security `JwtVerifier`, audience `gateway`) → `RateLimitFilter` (`RedisTokenBucket`, Lua); `RouteMatcher`; `ActivityPublisher` (Kafka, bounded queue, drop on full); `GatewayErrorHandler` (ProblemDetails); `Problems` |
+| `config` | `GatewayConfiguration` (SCG routes from the table, breaker per service via Resilience4j customizer, per-route connect/response timeouts, SSE without both), `GatewayProperties` (`dexter.gateway.*`) |
+| identity | audience `gateway` in every token; `server.forward-headers-strategy=native` (client IP behind the gateway) |
+| contracts | `gateway.activity.recorded` v1 (`ActivityRecordedV1`) |
+| Tests | unit `RouteDocsTest` 5, `ClientIpTest` 2, `GatewayArchitectureTest` 2, `GatewayHealthSmokeTest` 1; IT `RouteTableIT` 4, `EdgeFiltersIT` 7, `RateLimitIT` 3, `ResilienceIT` 3, `ActivityIT` 1, `DegradedIT` 1 (WireMock 3.13.2 backends, Redis with the `gateway` ACL user, Kafka) |
+| Trail / smoke | `test-ui/p06-gateway.html`; `Trail.liveRoutes` emptied (all Live calls via the gateway); trail-check P04/P05 via `/api` + P06 checks; `scripts/lib/p06_smoke.py`; activity offsets check; k6 smoke checks the gateway's `X-Request-Id` echo |
+
+**Query→Index (P06):** none (no database). Redis keys: `gateway:rl:<class>:<a|i>:<account|ip>` (string, PX ≥ 61 s).
 
 **P05 Identity B (DONE)** — ADR-0010
 
@@ -485,6 +527,7 @@ Issues found in P01's own code during self-review and fixed:
 | 0006 | Events on plain kafka-clients; per-consumer retry/DLQ topics `<topic>.<consumer>.retry-1m`/`retry-10m`/`dlq` | Accepted: proven by the P02a r4 run (`OutboxRelayIT`, `ConsumerIT`, 2026-09-27) |
 | 0007 | Request authentication: Nimbus ES256 verifier + JWKS cache + MVC `SecurityInterceptor` (default deny), no Spring Security filter chain | Accepted: proven by the 2026-10-04 run (`JwtVerifierTest`, `SecurityInterceptorTest`, `ServiceTokenClientTest`, `DemoAuthIT`) |
 | 0008 | Seed data: deterministic generator, `seed_stage` before migrations, owner-role COPY with FORCE off in-tx, passwords hashed once | Accepted: proven by CI run 38922523673 (`SeedLoadIT`, `GeneratorTest`, `full.seed-medium`, `full.seed-determinism`) |
+| 0011 | Gateway: route table as code + doc + test, WebFilter edge chain (404 before 401), Redis Lua token bucket (auth fails closed, rest open), trusted-proxy client IP, breaker per service except SSE, activity via bounded queue without outbox | Accepted: proven by CI run 39020903788 |
 | 0010 | Identity B: RFC 6238 TOTP with step replay guard, keyed recovery codes, Redis Lua throttles failing closed, admins separate from accounts with mandatory MFA, RBAC as data, SUPER_ADMIN only via ≤ 1 h elevation re-checked per request, second `identity_admin` pool | Accepted: proven by CI run 39016105238 |
 | 0009 | Identity: pre-auth SECURITY DEFINER functions + owner policies, synthetic tenants, password-free registration fingerprint, strict refresh-family reuse detection, next/active/retired ES256 keys, envelope encryption, after-commit mail, client-credentials endpoint | Accepted: proven by CI run 39003795722 (identity ITs, api-smoke P04) |
 
@@ -532,6 +575,9 @@ Issues found in P01's own code during self-review and fixed:
 | 2026-10-17 | P05 | A-39: admins are a separate principal (`identity.admins`, own sessions/refresh tokens/client `dexter-admin`, `scope=admin`), not accounts with roles; user and admin tokens are refused on each other's endpoints. The admin sign-in always returns a challenge; a first sign-in includes TOTP setup. Admin invitations (email link, `POST /v1/admin/admins`) replace seeding further admins. | MFA mandatory for admins without a half-authenticated token state; no account data reachable by admin principals except through `identity_admin`. | P06 routes `/api/v1/admin/*`; P18 audit. |
 | 2026-10-17 | P05 | A-40: SUPER_ADMIN is never a standing role: only `elevations` (eligible admin, reason, fresh TOTP, ≤ 1 h) grant it, the token is capped at the elevation end and SUPER_ADMIN use-cases re-read the row. The seeded `admin@demo.in` holds SUPPORT, CATALOG_EDITOR, FINANCE and is break-glass eligible. | MASTER_PLAN 7.2 time-boxed break-glass; ending early must be immediate. | Demo docs (§9) updated. |
 | 2026-10-17 | P05 | A-41: login throttling lives in Redis (Lua, time as argument) and fails closed (503) when Redis is down; keys are an email hash, the principal id and the IP. Admin endpoints acting on others use a second pool as `identity_admin` with column grants. | 7.1 lockout must survive restarts and be shared across instances; 3.1 role separation. | P06 adds edge rate limits and trusted client IP. |
+| 2026-10-17 | P06 | A-42: route ownership where the plan overlaps — `/v1/calc/**` → portfolio (planning's `POST /v1/calc/emi` is served by portfolio's calc library), `/v1/webhooks/affiliate/**` → commerce before `/v1/webhooks/**` → billing, notifications/privacy/admin audit+activity → audit, the rest of `/v1/admin/*` by owner (routes.md). | One owner per path; the gateway cannot route one path to two services. | P12/P13 implement accordingly. |
+| 2026-10-17 | P06 | A-43: edge rules run as WebFilters (not per-route gateway filters), so unknown paths are 404 problems before any token check; CORS runs before the token check (preflights). Only breaker and timeouts are per route. Rate-limit key = class + verified account, else class + client IP (not both). | MASTER_PLAN P06 "fixes the old 404/401 bugs"; one bucket per caller and class keeps limits predictable. | P19 ZAP baseline. |
+| 2026-10-17 | P06 | A-44: identity adds audience `gateway` to user/admin tokens; identity trusts `X-Forwarded-For` from Tomcat's internal proxies; the trail bridge (`liveRoutes`, A-36) is removed — trail-check's P04/P05 checks go through `/api`. Activity events use a plain producer (no outbox, gateway has no DB), type `gateway.activity.recorded`. | The gateway verifies with the shared verifier; client IP for throttles; one Live path. | P18 consumes activity. |
 | 2026-09-22 | P01 | A-12: the P01 trail is backed by a dev-only lab controller in `dexter-web` (`/_dev/p01/*`, `@Profile("dev")`, guard test) instead of database-backed endpoints. | P01 has no service schema yet; the lab runs the real library code. Paging against a real table is P07. | P19 deletes it with the trail; `run.sh` defaults to the dev profile locally. |
 
 ## 7. Known gaps / tech debt (honest, never deleted silently)
@@ -551,10 +597,16 @@ Issues found in P01's own code during self-review and fixed:
   - The breached list holds the ≈ 9.1k NCSC top-100k entries that are ≥ 10 characters; no online HIBP k-anonymity
     check (offline by plan).
   - (P05 resolved: lockout, `mfa_enrolled`/`amr` real.)
+- **P06 gateway:**
+  - The gateway's JWT check is early rejection only; it does not check roles/permissions (services do).
+  - Rate limits are per account *or* per IP (not both); a NAT'd anonymous crowd shares one `auth` bucket.
+  - Activity events can be dropped (queue full, Kafka down) by design; no outbox.
+  - SSE through the trail nginx needs `proxy_buffering off` when P15 ships streams.
+  - CORS allowlist is dev-only (`localhost:8099`); prod origins are configured in P19.
 - **P05 identity B:**
   - An admin or user access token stays valid ≤ 10 min after disable/logout; only SUPER_ADMIN is re-checked per
     request (sessions and refresh tokens are revoked at once).
-  - Per-IP throttle sees the socket address until P06 forwards a trusted client IP.
+  - (P06 resolved: identity sees the client IP behind the gateway via X-Forwarded-For from trusted proxies.)
   - Break-glass has no two-person approval (`approved_by` reserved); no admin UI beyond the trail page.
   - `GET /v1/admin/admins` has no PlanAssert (tiny table); audit read endpoints are P18.
   - Admin TOTP secrets are KEK-wrapped (no per-admin DEK); KEK rotation re-wrap not automated (as P04).
@@ -697,6 +749,8 @@ press **Lab status / start**, then **Get a valid token**. (After a manual `run.s
 - Service clients (P04): every service name, secret `SERVICE_CLIENT_SECRET` from `.env`, via `POST /oauth2/token`.
 
 ## 10. Changelog (one line per response)
+
+- 2026-10-17 P06 r1–r5: gateway (route table + routes.md + tests, edge WebFilters, JWT pre-check, Redis token-bucket limiter, breaker per service, SSE route, security headers, CORS, activity events), identity audience `gateway` + forwarded headers, trail bridge removed, ADR-0011, A-42..A-44, api-smoke P06, p06-gateway.html, trail-check P06. CI run 39020903788: verify full + trail-check PASS → **P06 DONE**.
 
 - 2026-10-17 P05 r1–r3: TOTP MFA + recovery codes + step-up, Redis lockout (Lua, fail closed), admin console (separate principal, mandatory MFA, invite), RBAC as data, break-glass elevations, `identity_admin` pool, alert v2 + admin.action v1, ADR-0010, A-38..A-41, api-smoke P05, p05-mfa-admin.html, trail-check P05. CI run 39016105238: verify full + trail-check PASS → **P05 DONE**.
 
