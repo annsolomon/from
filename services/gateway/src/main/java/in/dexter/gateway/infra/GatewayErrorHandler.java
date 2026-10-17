@@ -58,8 +58,16 @@ public final class GatewayErrorHandler implements WebExceptionHandler, Ordered {
       // connection refused/reset, premature close, open breaker: the service is (for now) not there
       if (t instanceof ConnectException || t instanceof java.io.IOException || n.endsWith("CallNotPermittedException")
           || n.endsWith("PrematureCloseException") || n.endsWith("ConnectTimeoutException")
-          || n.endsWith("AbortedException")) {
+          || n.endsWith("AbortedException") || n.endsWith("ServiceUnavailableException")) {
         return GatewayErrors.UPSTREAM_UNAVAILABLE;
+      }
+      // exceptions that carry their status as @ResponseStatus (e.g. Spring Cloud Gateway's own)
+      org.springframework.web.bind.annotation.ResponseStatus rs = org.springframework.core.annotation.AnnotatedElementUtils
+          .findMergedAnnotation(t.getClass(), org.springframework.web.bind.annotation.ResponseStatus.class);
+      if (rs != null) {
+        int s = rs.code().value();
+        return s == 503 || s == 502 ? GatewayErrors.UPSTREAM_UNAVAILABLE : s == 504 ? GatewayErrors.UPSTREAM_TIMEOUT
+            : s == 404 ? CoreErrors.NOT_FOUND : s < 500 ? CoreErrors.BAD_REQUEST : CoreErrors.INTERNAL_ERROR;
       }
       if (t instanceof ResponseStatusException rse) {
         int s = rse.getStatusCode().value();
