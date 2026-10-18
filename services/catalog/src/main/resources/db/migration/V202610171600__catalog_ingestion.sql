@@ -27,10 +27,11 @@ $$ SELECT coalesce(catalog.app_actor_role() = 'INGESTOR', false) $$;
 REVOKE ALL ON FUNCTION catalog.is_ingestor() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION catalog.is_ingestor() TO catalog_admin, catalog_readonly;
 
--- The worker reads the published catalog to match cards and diff against their current version (read only).
+-- The worker reads the published catalog to match cards and diff against their current version (read only; drafts
+-- and retired cards are invisible to it, as they are to the public).
 CREATE POLICY issuers_ingestor ON catalog.issuers FOR SELECT TO catalog_admin USING ((SELECT catalog.is_ingestor()));
 CREATE POLICY card_products_ingestor ON catalog.card_products FOR SELECT TO catalog_admin
-  USING ((SELECT catalog.is_ingestor()));
+  USING ((SELECT catalog.is_ingestor()) AND status = 'published');
 CREATE POLICY card_product_versions_ingestor ON catalog.card_product_versions FOR SELECT TO catalog_admin
   USING ((SELECT catalog.is_ingestor()));
 CREATE POLICY reward_rules_ingestor ON catalog.reward_rules FOR SELECT TO catalog_admin
