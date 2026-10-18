@@ -157,8 +157,8 @@ class IngestionPipelineIT extends IngestionIT {
     assertThat(pub.get("name").asString()).as("the discarded edit is gone").isEqualTo("Sup Card " + tag);
     JsonNode delivery = null;
     for (JsonNode r : pub.get("rules")) {
-      JsonNode path = r.get("categoryPath");
-      if (path != null && path.isString() && "food.delivery".equals(path.asString()) && r.path("merchantId").isNull()) {
+      JsonNode rulePath = r.get("categoryPath");
+      if (rulePath != null && rulePath.isString() && "food.delivery".equals(rulePath.asString()) && r.path("merchantId").isNull()) {
         delivery = r;
       }
     }
