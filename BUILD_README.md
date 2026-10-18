@@ -1,8 +1,8 @@
 # Dexter v2 — Build README (living handoff)
 
-**Last updated:** 2026-10-17 · **Chat/phase:** P09 DONE · **Model:** Claude Opus 5.5
-**P09 is DONE (2026-10-17).** `verify.sh full` PASS + `trail-check.sh` PASS on a GitHub runner (repo `annsolomon/from`,
-commit `1135b29`, run 39046289166; reports on branch `verify-reports`). Next chat: **P10** (Catalog B, ingestion). Upload `MASTER_PLAN.md`
+**Last updated:** 2026-10-18 · **Chat/phase:** P10 DONE · **Model:** Claude Opus 5.5
+**P10 is DONE (2026-10-18).** `verify.sh full` PASS + `trail-check.sh` PASS on a GitHub runner (repo `annsolomon/from`,
+commit `c68837d`, run 39109141399; reports on branch `verify-reports`). Next chat: **P11** (Portfolio A). Upload `MASTER_PLAN.md`
 + this README; the code is in the repo (clone it).
 
 ## 1. Phase status
@@ -19,7 +19,7 @@ commit `1135b29`, run 39046289166; reports on branch `verify-reports`). Next cha
 | P07 | Ledger A (reference impl) | **DONE** 2026-10-17 | `verify.sh full` PASS + trail-check PASS (CI run 39023459091, git 4101870): ledger unit 5 + IT 31 (CRUD, PlanAssert on 1.2M rows, pagination + idempotency contracts, 1 000-op daily-totals property, RLS proof), api-smoke P07 30/30, ledger outbox → Kafka 4 published / 0 pending | DoD all ticked (§3) |
 | P08 | Ledger B | **DONE** 2026-10-17 | `verify.sh full` PASS + trail-check PASS (CI run 39042585515, git 960e916): resolver 500/500 seed, 492/500 distorted, 42/42 payees unmatched; autocomplete p95 11 ms (p50 7 ms); 10k-row import 2.2 s + idempotent re-import; api-smoke P08 24/24 + import topic |  DoD all ticked (§3) |
 | P09 | Catalog A | **DONE** 2026-10-17 | `verify.sh full` PASS + trail-check PASS (CI run 39046289166, git 1135b29): catalog unit 6 + IT 15 (admin draft→publish→version, public keyset/filters/search/potential, RLS 4, projection from the compacted topic = stored snapshot, PlanAssert on 50k cards incl. search inside the owner function), api-smoke P09 15/15 | DoD all ticked (§3) |
-| P10 | Catalog B (ingestion) | NOT STARTED | — | |
+| P10 | Catalog B (ingestion) | **DONE** 2026-10-18 | `verify.sh full` PASS + trail-check PASS (CI run 39109141399, git c68837d): catalog unit 21 + IT 27 (pipeline: unchanged → no item, fee change → one item, approve idempotent sequential + concurrent, supersede/stale/draft-pending; collector: SSRF incl. redirects to private addresses, sitemap politeness, resume from checkpoint, abandoned runs, scheduler; API + permissions; RLS for ingestion tables), objectstore unit 2, api-smoke P10 16/16 (real admin MFA, SeaweedFS snapshot, approve → v2 public) | DoD all ticked (§3) |
 | P11 | Portfolio A | NOT STARTED | — | |
 | P12 | Portfolio B (calc + parser) | NOT STARTED | — | |
 | P13 | Planning | NOT STARTED | — | |
@@ -32,11 +32,18 @@ commit `1135b29`, run 39046289166; reports on branch `verify-reports`). Next cha
 
 ## 2. In progress (exact stopping point)
 
-- **P09 (2026-10-17): complete.** Nothing in progress. Next action: P10 (verify P09 first, then Catalog B ingestion).
-  P10 starts from: drafts + `CatalogAdminService.saveDraft/publish` (the review queue approves a draft and publishes),
-  `catalog.card.published/retired` on the compacted `dexter.catalog.card.v1`, `catalog.offer.changed` on
-  `dexter.catalog.offer.v1`, editor permissions `catalog:read/write/publish` (ADR-0014). Ledger's merchant cache
-  scopes need a bump when P10 changes merchant data (A-51).
+- **P10 (2026-10-18): complete.** Nothing in progress. Next action: P11 (verify P10 first, then Portfolio A).
+  P11 starts from: `dexter.catalog.card.v1` (compacted; publish, promotion and retire all emit the full snapshot)
+  for its card projection; `libs/dexter-objectstore` for statement files; the seed stages `user_cards` in
+  `seed_stage` until portfolio's migrations exist (A-24); the trail kit has `/api/v1/cards` mocks (P03).
+
+### History (P10)
+
+- The first "go with 11" run (2026-10-17) wrote the schema, the collector, the review/promoter code and the
+  dexter-objectstore move, then hit the usage limit before tests; the 2026-10-18 chat resumed from that tree.
+- r1 (`65450b9`): main code compiled; one test-compile error (duplicate local name). r2 (`c83e07e`): 26 of 27 ITs
+  green; `CatalogRlsIT` caught that the INGESTOR read policy also showed draft cards. r3 (`c68837d`): the policy
+  shows published cards only. All green (run 39109141399).
 
 ### History (P09)
 
@@ -147,6 +154,19 @@ commit `1135b29`, run 39046289166; reports on branch `verify-reports`). Next cha
 - **P02b scope (A-13):** `dexter-security` (resource server, JWKS cache + unknown-kid refetch, `AuthContext`, audience check, `@RequiresStepUp`, `@RequiresPermission`, service-token client, test JWKS/JWT factory; pins nimbus + bouncycastle, verified on Maven Central), `dexter-cache` (ADR-0004, generation keys, Redis ACLs, cache contract), `ArchRules` (pins archunit), demo module switched from the `X-Demo-Account` test header to `AuthContext`, `p02-*.html` trail page + lab endpoints (idempotency replay/409/422, outbox → Kafka → projection, DLQ).
 
 ## 3. Verification of previous phase
+
+### P10 against its DoD (CI run 39109141399, git c68837d, 2026-10-18)
+
+| DoD / requirement | Result | Evidence |
+|---|---|---|
+| IT-GREEN | PASS | `full.maven`: catalog unit 21 (`CardExtractorTest` 5, `FetchPolicyTest` 4, `CardDiffTest` 4, `SchedulesTest` 2, P09's 6) + IT 27 (`IngestionPipelineIT` 3, `IngestionCollectorIT` 5, `IngestionApiIT` 3, `CatalogRlsIT` 5, P09's 11); `dexter-objectstore` `SigV4Test` 2 |
+| Unchanged content → no review item | PASS | `IngestionPipelineIT.unchangedContentMakesNoReviewItem` (same facts: `noChange`; same bytes: `unchanged`, no snapshot); api-smoke re-run of the same page |
+| Changed fee → one review item with the right diff | PASS | `aChangedFeeIsOneReviewItemAndApproveIsIdempotent` (`annualFeePaise` 50,000 → 99,900 against v1, nothing else); api-smoke on the seeded Saffron card |
+| Promoter idempotent (double approve = one version) | PASS | same IT: sequential replay + two concurrent approves → one version, one promotion each; api-smoke approve twice → `replayed: true` |
+| SSRF (localhost, 169.254.x, redirect to a private address) | PASS | `IngestionCollectorIT.theFetcherRefusesPrivateTargetsAndCapsEverything` + `blockedSourcesAreRefusedAtSaveOrRecordedPerFetch`; `FetchPolicyTest` (all special ranges incl. IPv6 forms); api-smoke 400s |
+| Hash diffing, resumable checkpoints, per-host politeness | PASS | content-hash `unchanged`; `aCrashedRunResumesFromItsCheckpointAndDyingRunsAreAbandoned`; sitemap fetch gaps ≥ 140 ms at 150 ms politeness |
+| Review queue admin-only, keyset | PASS | `IngestionApiIT` (401/403 by permission, keyset pages, cursor filter mismatch); `CatalogRlsIT.ingestionTablesAreForEditorsAndTheWorkerOnly` |
+| Trail page exercised | PASS | trail-check p10 (admin endpoints 401 through `/api`, mock source fixture served); Mock flow in jsdom (run → item → approve v2 → replay → unchanged → supersede → reject), 0 errors |
 
 ### P09 against its DoD (CI run 39046289166, git 1135b29, 2026-10-17)
 
@@ -314,6 +334,34 @@ Issues found in P01's own code during self-review and fixed:
 4. The web test asserted an exact `Content-Type`; now a compatible-type check (a charset suffix must not fail it).
 
 ## 4. What exists now
+
+**P10 Catalog B (DONE)** — ADR-0015, errors.md catalog ingestion section
+
+| Piece | What it does |
+|---|---|
+| Schema `V202610171600__catalog_ingestion` | `sources` (issuer, optional card, URL + host, kind html/pdf/sitemap/image, cron, soft delete, version), `crawl_runs` (source ids, checkpoint jsonb, attempts, claim), `snapshots` (SHA-256, content type, size, object key), `extractions` (jsonb, extractor version, confidence), `review_items` (diff jsonb against `base_version`, one pending per card, decision shape CHECK), `promotions` (unique per item). FORCE RLS: editors everything, actor role INGESTOR (worker) writes runs/snapshots/extractions/items and reads published cards only; catalog_app nothing. `GRANT DELETE` on drafts (discard) |
+| `domain` | `FetchPolicy` (URL + address rules), `CardExtractor` (pattern-v1), `HtmlText`, `Sitemaps` (XXE-free), `CardDiff` (compute/apply), new `CatalogErrors` |
+| `app` | `Promoter` (the only writer of published data; P09 publish moved here), `IngestionAdminService` (sources, runs), `IngestionRunner` (scheduler, claim, per-source checkpoint, politeness, snapshot → extraction → diff → item), `ReviewService` (queue, approve with replay, reject), ports `IngestionStore`, `PageFetcher`, `SnapshotStore`, `Schedules` |
+| `infra` | `IngestionRepository`, `SafeFetcher` (DNS check per hop, manual redirects, caps), `S3SnapshotStore` |
+| `api` | `IngestionController` (`/v1/admin/ingestion/sources` CRUD + `/{id}/runs`, `/runs`), `ReviewController` (`/v1/admin/review`, `/{id}`, `:approve`, `:reject`), `DELETE /v1/admin/catalog/cards/{id}/draft` |
+| `config` | `IngestionWorker` (poll 2 s, schedule 60 s), `dexter.catalog.ingestion.*` (allowlist, dev hosts, caps, politeness, stale 10 min, 3 attempts, snapshot bucket) |
+| Library | `libs/dexter-objectstore`: `SigV4` (moved from ledger) + `S3Objects` (put/open/presign, bucket on first use); ledger's `S3ImportFiles` uses it |
+| Tests | see §3; support `IngestionIT`, `MockIssuerSite` (JDK HttpServer, hit log), `MemorySnapshotStore`, test DNS for `*.issuer.test` |
+| Trail / smoke | `test-ui/p10-ingestion.html` + `fixtures/p10-source.json`; `scripts/lib/p10_smoke.py` (mock issuer site on :18091, admin TOTP from `.run/admin-totp` saved by the P05 smoke); trail-check P10 |
+
+**Query→Index (P10):**
+
+| Query | Index | Plan |
+|---|---|---|
+| sources list (newest first) | `sources_list` (created_at, id) partial live | Index |
+| one live source per URL | `sources_url_key` unique partial | Index |
+| scheduler: due sources | `sources_due` (next_run_at) partial | Index, SKIP LOCKED |
+| worker claim | `crawl_runs_claim` (created_at) partial queued/running | Index, SKIP LOCKED |
+| runs list | `crawl_runs_list` (created_at, id) | Index |
+| latest snapshot of (source, url) | `snapshots_latest` (source_id, url, fetched_at DESC) | Index, LIMIT 1 |
+| review queue by status (oldest first) | `review_items_queue` (status, created_at, id) | Index |
+| pending item of a card | `review_items_card_pending` unique partial | Index |
+| promotion of an item | `promotions_review_item_id_key` | Index |
 
 **P09 Catalog A (DONE)** — ADR-0014, errors.md catalog section
 
@@ -691,6 +739,7 @@ Croma Online vs label Croma).
 | 0012 | Ledger as the reference service: layers + ports, static keyset query per filter mask, daily totals maintained in the write transaction (IST day × root), merge PATCH + If-Match, soft delete + `:restore`, outbox event per write, admin tokens refused on user endpoints | Accepted: proven by CI run 39023459091 |
 | 0013 | Ledger B: global merchants read-only for the app, resolver (variants → exact/compact/prefix → trigram 0.45 → typo; rules after), Redis alias cache outside transactions, bounded search without a trigram index on expenses, bulk with per-item outcome, CSV import via presigned upload + COPY into a temp table + derived client refs | Accepted: proven by CI run 39042585515 |
 | 0014 | Catalog: published face + editor drafts + immutable versions (trigger), publish in one transaction (no-op by content hash), rule overlap impossible (EXCLUDE gist), snapshot = API = compacted event, public reads with a sentinel tenant, editor-only admin pool, search through an owner SECURITY DEFINER function | Accepted: proven by CI run 39046289166 |
+| 0015 | Catalog ingestion: SSRF policy in two halves (URL rules, then every resolved address public; manual redirects re-checked; size/time/type caps), sources saved only when fetchable, crawl runs with a checkpoint per source + stale re-claim + politeness, content-hash change detection with snapshots in the object store, field-level diff (absent ≠ removed, merchant rules untouched), the promoter as the only writer with replay-safe approve, INGESTOR actor role | Accepted: proven by CI run 39109141399 |
 
 ## 6. Plan amendments (deviations from MASTER_PLAN.md)
 
@@ -752,6 +801,11 @@ Croma Online vs label Croma).
 | 2026-10-17 | P09 | A-54: the reward-rule exclusion constraint also includes the merchant (NULLs coalesced), so a merchant rule and a category rule may coexist; versions are immutable by trigger (`DX409`), not only by grants. | Merchant-specific rates are in the seed; the owner bypasses grants. | — |
 | 2026-10-17 | P09 | A-55: public reads run in a sentinel `PUBLIC` tenant on catalog_app (policies ignore the account); search runs through the owner's SECURITY DEFINER `catalog.search_published_cards`, because RLS stops the planner from using the trigram index for non-leakproof LIKE/`%`. | RLS is FORCE on every table; a seq scan per search does not scale. | Other services with trigram search under RLS reuse the pattern (ADR-0014 §6). |
 | 2026-10-17 | P09 | A-56: the admin flow is proven in ITs (editor tokens from TestJwt); api-smoke covers only 401/403 for admin, since a real admin token needs the MFA login of P05. | Smoke has no TOTP device. | P19 may add an admin smoke with a scripted TOTP. |
+| 2026-10-18 | P10 | A-57: the plan's tables gain operational columns: sources (`host`, `card_product_id`, soft delete, `next_run_at`/`last_run_at`, `version`), crawl_runs (`trigger`, `source_ids`, `attempts`, `claimed_at`, `error_code`), snapshots (`url`, `run_id`, `content_type`, `size_bytes`), review_items (`base_version`, `confidence`, `reason`, `version`). A run covers a list of sources; endpoints add `GET/PATCH/DELETE …/sources/{id}`, `POST …/sources/{id}/runs`, `GET …/runs[/{id}]`, `GET /v1/admin/review/{id}`. | Resumability, scheduling and the review screen need them; the plan names only the core columns. | — |
+| 2026-10-18 | P10 | A-58: the worker is a system actor role `INGESTOR` on the catalog_admin pool (no token carries it): it reads published cards only, writes ingestion rows, and can neither write published data nor record a promotion. | "The promoter is the only writer" enforced by RLS, not only by code. | — |
+| 2026-10-18 | P10 | A-59: an approve is refused while the card has unpublished draft edits (`DRAFT_PENDING`); `DELETE /v1/admin/catalog/cards/{id}/draft` discards them. An item whose card moved past its base version is stale (`REVIEW_STALE`). One pending item per card; a newer diff supersedes it, an identical one is ignored. | Otherwise the next publish of the stale draft would silently undo a promotion; one item per card keeps the queue reviewable. | — |
+| 2026-10-18 | P10 | A-60: extractor `pattern-v1` reads HTML only (fees, waiver spend, APR, forex, fuel waiver, cashback per category); PDFs and images are fetched, hashed and stored for review by eye. Cron schedules are at most hourly. | No PDF/OCR dependency in P10. | A later extractor (PDF text, LLM-assisted) produces the same extraction shape. |
+| 2026-10-18 | P10 | A-61: S3 code moved to `libs/dexter-objectstore` (SigV4 + `S3Objects`) now that catalog is the second user (A-51 said P12). The P05 smoke saves the demo admin's TOTP secret to the git-ignored `.run/admin-totp` so later smokes sign in as a real admin (A-56's limit lifted for P10). | Two users of the same signer; the admin flow deserved an end-to-end smoke. | P12 uses the library for statements. |
 
 ## 7. Known gaps / tech debt (honest, never deleted silently)
 
@@ -770,6 +824,15 @@ Croma Online vs label Croma).
   - The breached list holds the ≈ 9.1k NCSC top-100k entries that are ≥ 10 characters; no online HIBP k-anonymity
     check (offline by plan).
   - (P05 resolved: lockout, `mfa_enrolled`/`amr` real.)
+- **P10 catalog B:**
+  - Fetching is plain HTTP GET: pages rendered by JavaScript, PDFs and images are stored but not extracted (A-60).
+  - `pattern-v1` is tuned to common Indian issuer wording; unusual wording yields fewer fields (never wrong ones by
+    design, but a misread is possible: every change goes through a human approve).
+  - The snapshot bucket has no retention policy yet (content-addressed, so unchanged pages add nothing).
+  - The DNS-rebinding guard relies on the JVM address cache (default 30 s TTL): the check and the connect use the
+    same cached answer; an in-process pinned resolver would be stricter (P19 hardening).
+  - Sitemap pages match cards by URL slug or exact normalised name only; new cards found on a sitemap are not
+    created as drafts (an editor creates the card, the next run diffs it).
 - **P09 catalog A:**
   - Offers have create/withdraw only; no edit and no per-user eligibility (P10/P17).
   - Search is not paged (top 20) and ranks by name similarity only.
@@ -949,6 +1012,7 @@ press **Lab status / start**, then **Get a valid token**. (After a manual `run.s
 
 ## 10. Changelog (one line per response)
 
+- 2026-10-18 P10 r1–r3: ingestion schema + RLS (INGESTOR), SSRF-safe fetcher, pattern extractor, field diff, resumable runs + scheduler + politeness, review queue + idempotent approve via the promoter, draft discard, dexter-objectstore library, ADR-0015, A-57..A-61, p10 page/fixture/smoke/trail-check. CI run 39109141399: verify full + trail-check PASS → **P10 DONE**.
 - 2026-10-17 P09 r1–r2: catalog schema (issuers, cards, drafts, immutable versions, rules with EXCLUDE, milestones, offers) with FORCE RLS, public reads (keyset, filters, detail ETag, search via owner function, potential, offers), editor admin (drafts, publish/retire, offers), outbox relay + catalog events/contracts, projection IT, 50k PlanAssert, ADR-0014, A-52..A-56, p09 page/smoke/trail-check. CI run 39046289166: verify full + trail-check PASS → **P09 DONE**.
 - 2026-10-17 P08 r1–r2: merchants/aliases, resolver + rules, search, bulk, CSV import (presigned S3 + COPY + worker), calendar, summary, OutboxWriter.appendAll, ADR-0013, A-48..A-51, p08 page/smoke/trail-check. CI run 39042585515: verify full + trail-check PASS → **P08 DONE**.
 - 2026-10-17 P07 r2: daily-totals negative deltas via UPDATE, date-range plan test allows a bounded sort. CI run 39023459091: verify full + trail-check PASS → **P07 DONE**.
