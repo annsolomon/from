@@ -71,6 +71,27 @@ dexter:
       username: catalog_relay
       password: ${PG_PW_CATALOG_RELAY:${PG_PW_RELAY:}}
       bootstrap-servers: ${KAFKA_BOOTSTRAP:127.0.0.1:${KAFKA_PORT:9092}}
+    # P10 ingestion (collector -> review -> promoter). The fetcher only reaches allowlisted issuer hosts on public
+    # addresses over https; dev-hosts (host:port) may use http and a private address (a local mock issuer site, dev
+    # and smoke only; empty in production).
+    ingestion:
+      worker-enabled: ${CATALOG_INGEST_WORKER:true}
+      poll-interval: 2s
+      schedule-interval: 60s
+      allowed-hosts: ${CATALOG_INGEST_ALLOWED_HOSTS:hdfcbank.com,sbicard.com,icicibank.com,axisbank.com,kotak.com,yesbank.in,indusind.com,idfcfirstbank.com,americanexpress.com,aubank.in,federalbank.co.in,rblbank.com,hsbc.co.in,standardchartered.co.in,bobcard.co.in}
+      dev-hosts: ${CATALOG_INGEST_DEV_HOSTS:}
+      max-bytes: 5242880
+      timeout: 10s
+      max-redirects: 3
+      politeness: ${CATALOG_INGEST_POLITENESS:2s}
+      stale-after: 10m
+      max-attempts: 3
+      sitemap-max-urls: 50
+      snapshots:
+        endpoint: http://127.0.0.1:${OBJECTSTORE_PORT:8333}
+        bucket: ${CATALOG_SNAPSHOT_BUCKET:dexter-catalog-snapshots}
+        access-key: ${OBJECTSTORE_ACCESS_KEY:dexter-dev}
+        secret-key: ${OBJECTSTORE_SECRET_KEY:}
 
 ---
 spring:

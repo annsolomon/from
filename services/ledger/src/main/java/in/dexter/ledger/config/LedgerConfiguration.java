@@ -32,7 +32,8 @@ import in.dexter.ledger.infra.MerchantRepository;
 import in.dexter.ledger.infra.RedisReferenceCache;
 import in.dexter.ledger.infra.RuleRepository;
 import in.dexter.ledger.infra.objectstore.S3ImportFiles;
-import in.dexter.ledger.infra.objectstore.SigV4;
+import in.dexter.objectstore.S3Objects;
+import in.dexter.objectstore.SigV4;
 import java.time.Clock;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.ObjectProvider;
@@ -96,8 +97,8 @@ public class LedgerConfiguration {
   @Bean
   ImportFiles importFiles(LedgerProperties props, Clock clock) {
     LedgerProperties.Imports i = props.imports();
-    return new S3ImportFiles(new SigV4(i.accessKey(), i.secretKey() == null ? "" : i.secretKey(), i.region()),
-        i.endpoint(), i.publicEndpoint(), i.bucket(), clock);
+    return new S3ImportFiles(new S3Objects(new SigV4(i.accessKey(), i.secretKey() == null ? "" : i.secretKey(),
+        i.region()), i.endpoint(), i.publicEndpoint(), i.bucket(), clock), clock);
   }
 
   @Bean

@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trail P10 ingestion</title>
+  <link rel="stylesheet" href="trail.css">
+  <style>
+    textarea.in { width: 100%; min-height: 160px; font: 12px var(--mono); box-sizing: border-box; }
+    table.diff { width: 100%; border-collapse: collapse; font: 12px var(--mono); }
+    table.diff td, table.diff th { border-bottom: 1px solid var(--line, #ddd); padding: 3px 6px; text-align: left; }
+    .list div.pick { cursor: pointer; }
+  </style>
+</head>
+<body>
+<main>
+  <section class="card">
+    <h2>P10 · catalog ingestion: collector → review → promoter</h2>
+    <p class="mono" style="color:var(--muted);margin:0">
+      Admin endpoints: <code>/api/v1/admin/ingestion/sources</code> (CRUD, If-Match), <code>…/sources/{id}/runs</code> and
+      <code>…/runs</code> (202, the worker crawls), <code>/api/v1/admin/review</code> (keyset, oldest first) and
+      <code>/api/v1/admin/review/{id}:approve|:reject</code>. Approve runs the promoter - the only writer of published
+      data - which creates the card's next version; a second approve answers the same promotion. Mock mode serves a
+      mock issuer page from <code>fixtures/p10-source.json</code>: change the fee on the page, run, approve, watch the
+      version. Live mode needs an admin token (sign in on <a href="p05-mfa-admin.html">p05-mfa-admin.html</a>) and a
+      source on an allowlisted host. Testing aid only - deleted in P19.
+    </p>
+  </section>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>Sources</h2>
+      <div class="row">
+        <input class="in mono" id="a-token" placeholder="Live: paste an admin access token" style="flex:1">
+        <button class="ghost" type="button" id="a-use">Use token</button>
+      </div>
+      <div class="row">
+        <input class="in" id="s-issuer" placeholder="issuer code" style="width:130px">
+        <input class="in mono" id="s-card" placeholder="card id (optional)" style="width:180px">
+        <select class="in" id="s-kind" aria-label="kind"><option>html</option><option>pdf</option><option>sitemap</option><option>image</option></select>
+      </div>
+      <div class="row">
+        <input class="in mono" id="s-url" placeholder="https://…" style="flex:1">
+        <button class="act" type="button" id="s-add">Add source</button>
+        <button class="ghost" type="button" id="s-reload">Reload</button>
+      </div>
+      <div class="list pickable" id="s-list" style="max-height:180px;margin-top:6px"></div>
+      <div class="row" style="margin-top:6px">
+        <button class="act" type="button" id="s-run">Run selected now</button>
+        <button class="ghost" type="button" id="s-toggle">Enable / disable (If-Match)</button>
+        <button class="ghost" type="button" id="s-del">Delete</button>
+      </div>
+      <pre class="out" id="s-out">—</pre>
+    </section>
+    <section class="card">
+      <h2>Mock issuer page (Mock mode: what the collector fetches)</h2>
+      <p class="mono" style="color:var(--muted);margin:0" id="m-url">—</p>
+      <textarea class="in" id="m-html" spellcheck="false"></textarea>
+      <div class="row">
+        <button class="ghost" type="button" id="m-fee">Raise the annual fee by ₹250</button>
+        <button class="ghost" type="button" id="m-save">Save page</button>
+      </div>
+      <h2 style="margin-top:10px">Runs</h2>
+      <pre class="out" id="r-out" style="max-height:200px">—</pre>
+    </section>
+  </div>
+
+  <div class="grid2">
+    <section class="card">
+      <div class="row" style="justify-content:space-between">
+        <h2 style="margin:0">Review queue (keyset, oldest first)</h2>
+        <select class="in" id="q-status" aria-label="status"><option>pending</option><option>approved</option>
+          <option>rejected</option><option>superseded</option></select>
+      </div>
+      <div id="queue" style="margin-top:8px"></div>
+    </section>
+    <section class="card">
+      <h2>Item: field-level diff against the published version</h2>
+      <p class="mono" style="color:var(--muted);margin:0" id="i-state">click an item</p>
+      <table class="diff" id="i-diff"><tr><th>field</th><th>published</th><th>page</th><th>conf.</th></tr></table>
+      <div class="row" style="margin-top:6px">
+        <button class="act" type="button" id="i-approve">:approve</button>
+        <button class="ghost" type="button" id="i-again">:approve again (idempotent)</button>
+        <input class="in" id="i-reason" placeholder="reject reason" style="width:150px">
+        <button class="ghost" type="button" id="i-reject">:reject</button>
+      </div>
+      <pre class="out" id="i-out">—</pre>
+      <h2 style="margin-top:10px">Published card (GET /v1/catalog/cards/{slug})</h2>
+      <pre class="out" id="c-out">—</pre>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>SSRF guard: sources the API refuses</h2>
+    <div class="row">
+      <button class="ghost" type="button" id="x-local">https://localhost/</button>
+      <button class="ghost" type="button" id="x-meta">https://169.254.169.254/latest/meta-data/</button>
+      <button class="ghost" type="button" id="x-http">http://www.hdfcbank.com/</button>
+      <button class="ghost" type="button" id="x-other">https://evil.example/</button>
+      <button class="ghost" type="button" id="x-anon">Review queue without a token</button>
+    </div>
+    <pre class="out" id="x-out">—</pre>
+  </section>
+
+  <div class="grid2">
+    <section class="card" id="tenant"></section>
+    <section class="card" id="events"></section>
+  </div>
+  <section class="card" id="log"></section>
+</main>
+<script src="trail.js"></script>
+<script>
+(async () => {
+  Trail.mountHeader('Ingestion', 'P10');
+  Trail.mountLog(document.getElementById('log'));
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const rupees = p => p == null ? '—' : '₹' + (p / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+  const fmt = (path, v) => v == null ? '—' : typeof v === 'object' ? `${v.rateBps} bps ${v.rewardType}` : /Paise$/.test(path) ? rupees(v) : /Bps$/.test(path) ? v + ' bps' : String(v);
+
+  // ---------------------------------------------------------------- mock pipeline
+  let seed = null; let src = null;
+  try { seed = await Trail.loadSeed(); src = await Trail.fixture('p10-source.json'); } catch (e) { $('s-out').textContent = 'fixtures missing: ' + e.message; }
+  const cards = seed ? seed.catalog.rows() : [];
+  const site = new Map();
+  const ALLOWED = ['mock-issuer.test', 'hdfcbank.com', 'sbicard.com', 'icicibank.com', 'axisbank.com'];
+  const isEditor = req => req.tenant && req.tenant.role !== 'USER';
+  const gate = req => !req.tenant ? Trail.problem(401, 'UNAUTHENTICATED', 'admin token required')
+    : !isEditor(req) ? Trail.problem(403, 'FORBIDDEN', 'catalog permissions required') : null;
+  const refusal = raw => {
+    let u; try { u = new URL(raw); } catch { return 'BAD_URL'; }
+    if (u.username || u.password) return 'CREDENTIALS_IN_URL';
+    if (u.protocol !== 'https:') return 'SCHEME_NOT_ALLOWED';
+    const h = u.hostname.toLowerCase();
+    if (/^[0-9.]+$/.test(h) || h.includes(':') || h.startsWith('[')) return 'HOST_NOT_ALLOWED';
+    if (!ALLOWED.some(a => h === a || h.endsWith('.' + a))) return 'HOST_NOT_ALLOWED';
+    if (u.port && u.port !== '443') return 'PORT_NOT_ALLOWED';
+    return null;
+  };
+  // the extractor, small: fees, forex, cashback per category (the real one is CardExtractor pattern-v1)
+  const CATS = [['all other', null], ['online shopping', 'shopping.online'], ['food delivery', 'food.delivery'], ['dining', 'food.dining'], ['fuel', 'fuel'], ['travel', 'travel']];
+  const extract = html => {
+    const t = html.replace(/<[^>]*>/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').toLowerCase().replace(/\brs\.?\s*(?=\d)/g, '₹');
+    const amt = re => { const m = t.match(re); return m ? Math.round(Number(m[1].replace(/,/g, '')) * 100) : undefined; };
+    const fields = {};
+    const j = amt(/joining fee\s*:?\s*₹\s*([\d,]+)/); if (j !== undefined) fields.joiningFeePaise = j;
+    const a = amt(/annual fee\s*:?\s*₹\s*([\d,]+)/); if (a !== undefined) fields.annualFeePaise = a;
+    const fx = t.match(/(?:foreign currency|forex)\s+mark-?up\s*:?\s*([\d.]+)\s*%/); if (fx) fields.forexMarkupBps = Math.round(Number(fx[1]) * 100);
+    const rules = []; const re = /([\d.]+)\s*%\s*cashback on ([^.;]+)/g; let m;
+    while ((m = re.exec(t))) { const c = CATS.find(([w]) => m[2].includes(w)); if (c && !rules.some(r => r.categoryPath === c[1])) rules.push({ categoryPath: c[1], rateBps: Math.round(Number(m[1]) * 100) }); }
+    return { fields, rules };
+  };
+  const diffOf = (card, x) => {
+    const out = [];
+    Object.entries(x.fields).forEach(([k, v]) => { if (card[k] !== v) out.push({ path: k, from: card[k] ?? null, to: v, confidence: 1 }); });
+    x.rules.forEach(r => {
+      const cur = card.rules.find(c => (c.categoryPath || null) === r.categoryPath && !c.merchantSlug);
+      if (!cur || cur.rateBps !== r.rateBps || cur.rewardType !== 'cashback') {
+        out.push({ path: r.categoryPath ? 'rules/' + r.categoryPath : 'rules/base', from: cur ? { rewardType: cur.rewardType, rateBps: cur.rateBps } : null, to: { rewardType: 'cashback', rateBps: r.rateBps }, confidence: 1 });
+      }
+    });
+    return out;
+  };
+  const hash = s => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(16); };
+  const iso = () => new Date().toISOString();
+  const sources = Trail.collection({ rows: [], sortKey: 'createdAt', sortName: 'created_desc', tenantKey: null });
+  const runs = Trail.collection({ rows: [], sortKey: 'createdAt', sortName: 'created_desc', tenantKey: null });
+  const reviews = Trail.collection({ rows: [], sortKey: 'createdAt', sortName: 'created_asc', tenantKey: null, asc: true,
+    filters: { status: (r, v) => r.status === v } });
+  const lastHash = new Map(); const promotions = new Map();
+  if (src) {
+    site.set(src.url, src.html);
+    const card = cards.find(c => c.slug === src.cardSlug) || cards[0];
+    if (card) sources.add({ id: Trail.uuidv7(), issuerCode: src.issuerCode, cardProductId: card.id, url: src.url, host: new URL(src.url).host,
+      kind: 'html', scheduleCron: '30 3 * * *', enabled: true, version: 0, createdAt: iso(), updatedAt: iso(), nextRunAt: null, lastRunAt: null });
+  }
+  const crawl = run => {
+    const stats = {}; const errors = []; const count = k => { stats[k] = (stats[k] || 0) + 1; };
+    run.sourceIds.forEach(id => {
+      const s = sources.rows().find(x => x.id === id && !x.deleted);
+      if (!s || !s.enabled) { count('skipped'); return; }
+      s.lastRunAt = iso();
+      const html = site.get(s.url);
+      const why = refusal(s.url) || (html === undefined ? 'HTTP_404' : null);
+      if (why) { count('errors'); errors.push({ sourceId: id, url: s.url, code: why }); return; }
+      count('fetched');
+      const h = hash(html);
+      if (lastHash.get(s.url) === h) { count('unchanged'); return; }
+      lastHash.set(s.url, h); count('snapshots'); count('extractions');
+      const card = cards.find(c => c.id === s.cardProductId);
+      if (!card) { count('unmatched'); return; }
+      const changes = diffOf(card, extract(html));
+      if (!changes.length) { count('noChange'); return; }
+      const pending = reviews.rows().find(r => r.cardProductId === card.id && r.status === 'pending');
+      if (pending && JSON.stringify(pending.changes) === JSON.stringify(changes)) { count('duplicateDiff'); return; }
+      if (pending) { pending.status = 'superseded'; pending.decidedAt = iso(); count('superseded'); }
+      reviews.add({ id: Trail.uuidv7(), status: 'pending', cardProductId: card.id, cardSlug: card.slug, cardName: card.name, baseVersion: card.version,
+        confidence: 1, changes, sourceId: s.id, url: s.url, fetchedAt: iso(), createdAt: iso(), reviewerId: null, decidedAt: null, reason: null, promotion: null });
+      count('reviewItems');
+    });
+    Object.assign(run, { status: 'completed', attempts: 1, startedAt: run.createdAt, finishedAt: iso(), checkpoint: { done: run.sourceIds.length, stats, errors } });
+  };
+  const queueRun = (req, ids) => {
+    const live = ids.filter(id => sources.rows().some(s => s.id === id && !s.deleted && s.enabled));
+    if (!live.length) return Trail.problem(400, 'VALIDATION_FAILED', 'sourceIds: NONE_RUNNABLE');
+    const run = runs.add({ id: Trail.uuidv7(), trigger: 'manual', status: 'queued', sourceIds: live, attempts: 0, errorCode: null, checkpoint: { done: 0, stats: {}, errors: [] }, createdAt: iso(), startedAt: null, finishedAt: null });
+    setTimeout(() => crawl(run), 300); // the worker
+    return Trail.reply(202, run, { location: '/v1/admin/ingestion/runs/' + run.id });
+  };
+  Trail.mock('GET', /^\/api\/v1\/admin\/ingestion\/sources$/, (m, req) => gate(req) || sources.list(req.query, null));
+  Trail.mock('POST', /^\/api\/v1\/admin\/ingestion\/sources$/, (m, req) => gate(req) || (() => {
+    const b = req.body || {}; const why = refusal(b.url || '');
+    if (why) return Trail.problem(400, 'VALIDATION_FAILED', 'url: ' + why, { errors: [{ field: 'url', code: why, message: 'refused' }] });
+    if (sources.rows().some(s => s.url === b.url && !s.deleted)) return Trail.problem(409, 'SOURCE_EXISTS', 'a source already fetches ' + b.url);
+    const s = sources.add({ id: Trail.uuidv7(), issuerCode: b.issuerCode, cardProductId: b.cardProductId || null, url: b.url, host: new URL(b.url).host,
+      kind: b.kind || 'html', scheduleCron: null, enabled: true, version: 0, createdAt: iso(), updatedAt: iso(), nextRunAt: null, lastRunAt: null });
+    return Trail.reply(201, s, { etag: '"0"', location: '/v1/admin/ingestion/sources/' + s.id });
+  })());
+  Trail.mock('PATCH', /^\/api\/v1\/admin\/ingestion\/sources\/([0-9a-f-]{36})$/, (m, req) => gate(req) || (() => {
+    const s = sources.rows().find(x => x.id === m[1] && !x.deleted); if (!s) return Trail.problem(404, 'NOT_FOUND', 'source');
+    const im = Object.entries(req.headers).find(([k]) => k.toLowerCase() === 'if-match');
+    if (!im) return Trail.problem(428, 'IF_MATCH_REQUIRED', 'If-Match required');
+    if (im[1] !== `"${s.version}"`) return Trail.problem(412, 'VERSION_CONFLICT', 'source changed');
+    Object.assign(s, req.body || {}, { version: s.version + 1, updatedAt: iso() });
+    return Trail.reply(200, s, { etag: `"${s.version}"` });
+  })());
+  Trail.mock('DELETE', /^\/api\/v1\/admin\/ingestion\/sources\/([0-9a-f-]{36})$/, (m, req) => gate(req) || (() => {
+    const s = sources.rows().find(x => x.id === m[1] && !x.deleted); if (!s) return Trail.problem(404, 'NOT_FOUND', 'source');
+    s.deleted = true; s.enabled = false; return Trail.reply(204, null);
+  })());
+  Trail.mock('POST', /^\/api\/v1\/admin\/ingestion\/sources\/([0-9a-f-]{36})\/runs$/, (m, req) => gate(req) || queueRun(req, [m[1]]));
+  Trail.mock('GET', /^\/api\/v1\/admin\/ingestion\/runs$/, (m, req) => gate(req) || runs.list(req.query, null));
+  Trail.mock('GET', /^\/api\/v1\/admin\/ingestion\/runs\/([0-9a-f-]{36})$/, (m, req) => gate(req) || runs.rows().find(r => r.id === m[1]) || Trail.problem(404, 'NOT_FOUND', 'run'));
+  Trail.mock('GET', /^\/api\/v1\/admin\/review$/, (m, req) => gate(req) || reviews.list({ status: 'pending', ...req.query }, null));
+  Trail.mock('POST', /^\/api\/v1\/admin\/review\/([0-9a-f-]{36}):(approve|reject)$/, (m, req) => gate(req) || (() => {
+    const r = reviews.rows().find(x => x.id === m[1]); if (!r) return Trail.problem(404, 'NOT_FOUND', 'review item');
+    const card = cards.find(c => c.id === r.cardProductId);
+    if (m[2] === 'reject') {
+      if (r.status !== 'pending' && r.status !== 'rejected') return Trail.problem(409, 'REVIEW_DECIDED', 'the item is ' + r.status);
+      Object.assign(r, { status: 'rejected', reviewerId: req.tenant.accountId, decidedAt: r.decidedAt || iso(), reason: (req.body || {}).reason || null });
+      return r;
+    }
+    if (r.status === 'approved') { const p = promotions.get(r.id); return { reviewItemId: r.id, cardProductId: card.id, cardSlug: card.slug, newVersion: p.newVersion, promotedAt: p.promotedAt, replayed: true }; }
+    if (r.status === 'rejected') return Trail.problem(409, 'REVIEW_DECIDED', 'the item was rejected');
+    if (r.status === 'superseded' || card.version !== r.baseVersion) return Trail.problem(409, 'REVIEW_STALE', 'a newer item or version exists');
+    r.changes.forEach(c => {
+      if (!c.path.startsWith('rules/')) { card[c.path] = c.to; return; }
+      const path = c.path === 'rules/base' ? null : c.path.slice(6);
+      const cur = card.rules.find(x => (x.categoryPath || null) === path && !x.merchantSlug);
+      if (cur) Object.assign(cur, c.to); else card.rules.push({ id: Trail.uuidv7(), categoryPath: path, merchantSlug: null, ...c.to, capPaise: null, capPeriod: null, excludedPaths: [], priority: path ? 100 : 10 });
+    });
+    card.version += 1;
+    const p = { id: Trail.uuidv7(), newVersion: card.version, promotedBy: req.tenant.accountId, promotedAt: iso() };
+    promotions.set(r.id, p); Object.assign(r, { status: 'approved', reviewerId: req.tenant.accountId, decidedAt: p.promotedAt, promotion: p });
+    const { sortName, version, ...snapshot } = card;
+    Trail.events.emit('catalog.card.published', card.id, { cardId: card.id, slug: card.slug, status: 'published', version: card.version, snapshot }, null);
+    return { reviewItemId: r.id, cardProductId: card.id, cardSlug: card.slug, newVersion: card.version, promotedAt: p.promotedAt, replayed: false };
+  })());
+  Trail.mock('GET', /^\/api\/v1\/catalog\/cards\/([a-z0-9-]+)$/, m => {
+    const c = cards.find(x => x.slug === m[1]); if (!c) return Trail.problem(404, 'NOT_FOUND', 'card not found');
+    const { sortName, ...v } = c; return Trail.reply(200, v, { etag: `"${c.version}"` });
+  });
+
+  // ---------------------------------------------------------------- mock issuer page
+  if (src) { $('m-url').textContent = src.url + ' (Mock mode)'; $('m-html').value = src.html; }
+  $('m-save').addEventListener('click', () => { if (src) { site.set(src.url, $('m-html').value); $('s-out').textContent = 'mock page saved: run the source'; } });
+  $('m-fee').addEventListener('click', () => {
+    $('m-html').value = $('m-html').value.replace(/(Annual fee:\s*₹)([\d,]+)/, (all, p, n) => p + (Number(n.replace(/,/g, '')) + 250).toLocaleString('en-IN'));
+    $('m-save').click();
+  });
+
+  // ---------------------------------------------------------------- sources
+  let picked = null;
+  const loadSources = async () => {
+    const r = await Trail.api('GET', '/api/v1/admin/ingestion/sources?limit=50');
+    $('s-list').innerHTML = r.status === 200 ? r.data.data.map(s => `<div class="pick" data-id="${esc(s.id)}" data-version="${s.version}" data-enabled="${s.enabled}">${s.enabled ? '●' : '○'} ${esc(s.kind)} <strong>${esc(s.url)}</strong> <span style="color:var(--muted)">${esc(s.issuerCode)} · v${s.version}${s.lastRunAt ? ' · ran ' + esc(s.lastRunAt.slice(11, 19)) : ''}</span></div>`).join('') || '<div class="skel">no sources</div>'
+      : `<div class="skel">${r.status} ${esc(r.data && r.data.code)}</div>`;
+    if (!picked && r.status === 200 && r.data.data.length) picked = r.data.data[0];
+  };
+  $('s-list').addEventListener('click', e => { const d = e.target.closest('[data-id]'); if (!d) return;
+    picked = { id: d.dataset.id, version: Number(d.dataset.version), enabled: d.dataset.enabled === 'true' }; $('s-out').textContent = 'selected source ' + picked.id; });
+  $('s-reload').addEventListener('click', loadSources);
+  $('s-add').addEventListener('click', async () => {
+    const body = { issuerCode: $('s-issuer').value.trim(), cardProductId: $('s-card').value.trim() || null, url: $('s-url').value.trim(), kind: $('s-kind').value };
+    const r = await Trail.api('POST', '/api/v1/admin/ingestion/sources', { body });
+    $('s-out').textContent = `${r.status} ${r.data && r.data.code || ''}\n${JSON.stringify(r.data, null, 2)}`; loadSources();
+  });
+  const showRun = async id => {
+    for (let i = 0; i < 20; i++) {
+      const r = await Trail.api('GET', '/api/v1/admin/ingestion/runs/' + id);
+      if (r.status !== 200) { $('r-out').textContent = `${r.status} ${r.data && r.data.code}`; return; }
+      $('r-out').textContent = `run ${r.data.id} · ${r.data.status} · attempts ${r.data.attempts}\nstats ${JSON.stringify(r.data.checkpoint.stats)}`
+        + (r.data.checkpoint.errors.length ? '\nerrors ' + JSON.stringify(r.data.checkpoint.errors) : '');
+      if (r.data.status === 'completed' || r.data.status === 'failed') { queue.reload(); loadSources(); return; }
+      await new Promise(res => setTimeout(res, 500));
+    }
+  };
+  $('s-run').addEventListener('click', async () => {
+    if (!picked) { $('s-out').textContent = 'select a source'; return; }
+    const r = await Trail.api('POST', `/api/v1/admin/ingestion/sources/${picked.id}/runs`);
+    $('s-out').textContent = `${r.status} ${r.data && r.data.code || ''} ${r.headers.location || ''}`;
+    if (r.status === 202) showRun(r.data.id);
+  });
+  $('s-toggle').addEventListener('click', async () => {
+    if (!picked) return;
+    const r = await Trail.api('PATCH', `/api/v1/admin/ingestion/sources/${picked.id}`, { body: { enabled: !picked.enabled }, headers: { 'If-Match': `"${picked.version}"`, 'Content-Type': 'application/merge-patch+json' } });
+    $('s-out').textContent = `${r.status} ${r.data && r.data.code || ''} · ETag ${r.headers.etag || '—'}`;
+    if (r.status === 200) picked = { id: r.data.id, version: r.data.version, enabled: r.data.enabled };
+    loadSources();
+  });
+  $('s-del').addEventListener('click', async () => {
+    if (!picked) return;
+    const r = await Trail.api('DELETE', `/api/v1/admin/ingestion/sources/${picked.id}`);
+    $('s-out').textContent = `delete → ${r.status}`; picked = null; loadSources();
+  });
+
+  // ---------------------------------------------------------------- review queue + item
+  let item = null;
+  const queue = Trail.mountPager($('queue'), {
+    path: '/api/v1/admin/review', query: () => ({ status: $('q-status').value }), first: 10, page: 10,
+    render: r => `<a href="#" data-item="${esc(r.id)}"><strong>${esc(r.cardName)}</strong></a> <span style="color:var(--muted)">${esc(r.status)} · v${r.baseVersion} · ${r.changes.length} change(s) · conf ${Number(r.confidence).toFixed(2)}</span>`,
+  });
+  const showCard = async slug => {
+    const r = await Trail.api('GET', '/api/v1/catalog/cards/' + encodeURIComponent(slug));
+    $('c-out').textContent = r.status === 200 ? `${r.data.name} · version ${r.data.version} (ETag ${r.headers.etag || '—'})\njoining ${rupees(r.data.joiningFeePaise)} · annual ${rupees(r.data.annualFeePaise)} · forex ${r.data.forexMarkupBps} bps\n`
+      + r.data.rules.map(x => `  ${x.categoryPath || '(base)'} ${x.rateBps} bps ${x.rewardType}`).join('\n') : `${r.status} ${r.data && r.data.code}`;
+  };
+  const showItem = it => {
+    item = it;
+    $('i-state').textContent = `${it.cardName} · ${it.status} · against v${it.baseVersion} · ${it.url}`;
+    $('i-diff').innerHTML = '<tr><th>field</th><th>published</th><th>page</th><th>conf.</th></tr>' + it.changes.map(c =>
+      `<tr><td>${esc(c.path)}</td><td>${esc(fmt(c.path, c.from))}</td><td><strong>${esc(fmt(c.path, c.to))}</strong></td><td>${Number(c.confidence).toFixed(2)}</td></tr>`).join('');
+    showCard(it.cardSlug);
+  };
+  $('queue').addEventListener('click', async e => { const a = e.target.closest('[data-item]'); if (!a) return; e.preventDefault();
+    const r = await Trail.api('GET', '/api/v1/admin/review?status=' + $('q-status').value + '&limit=100');
+    const it = r.status === 200 && r.data.data.find(x => x.id === a.dataset.item); if (it) showItem(it); });
+  $('q-status').addEventListener('change', () => queue.reload());
+  const decide = async action => {
+    if (!item) { $('i-out').textContent = 'click an item'; return; }
+    const r = await Trail.api('POST', `/api/v1/admin/review/${item.id}:${action}`, action === 'reject' ? { body: { reason: $('i-reason').value || null } } : {});
+    $('i-out').textContent = `${action} → ${r.status} ${r.data && r.data.code || ''}\n${JSON.stringify(r.data, null, 2)}`;
+    showCard(item.cardSlug); queue.reload();
+  };
+  $('i-approve').addEventListener('click', () => decide('approve'));
+  $('i-again').addEventListener('click', () => decide('approve'));
+  $('i-reject').addEventListener('click', () => decide('reject'));
+
+  // ---------------------------------------------------------------- SSRF + permissions
+  const refuse = async url => {
+    const r = await Trail.api('POST', '/api/v1/admin/ingestion/sources', { body: { issuerCode: 'MOCK_SAFFRON', url, kind: 'html' } });
+    const e = r.data && r.data.errors && r.data.errors[0];
+    $('x-out').textContent = `${url} → ${r.status} ${r.data && r.data.code || ''}${e ? ' · ' + e.field + ': ' + e.code : ''}`;
+  };
+  $('x-local').addEventListener('click', () => refuse('https://localhost/'));
+  $('x-meta').addEventListener('click', () => refuse('https://169.254.169.254/latest/meta-data/'));
+  $('x-http').addEventListener('click', () => refuse('http://www.hdfcbank.com/'));
+  $('x-other').addEventListener('click', () => refuse('https://evil.example/'));
+  $('x-anon').addEventListener('click', async () => {
+    const me = Trail.persona && Trail.persona.key; Trail.usePersona(null);
+    try { const r = await Trail.api('GET', '/api/v1/admin/review'); $('x-out').textContent = `no token → ${r.status} ${r.data && r.data.code || ''} (expected 401)`; }
+    finally { Trail.usePersona(me); }
+  });
+  $('a-use').addEventListener('click', () => {
+    const t = $('a-token').value.trim(); if (!t) return;
+    Trail.usePersona('admin'); Trail.setToken('admin', t); $('s-out').textContent = 'admin token set for Live calls'; loadSources(); queue.reload();
+  });
+
+  Trail.mountTenantSwitcher($('tenant'), { onSwitch: () => { loadSources(); queue.reload(); } });
+  if (!Trail.persona) Trail.usePersona('admin');
+  Trail.mountEvents($('events'));
+  document.addEventListener('trail:mode', () => { picked = null; loadSources(); queue.reload(); });
+  await loadSources();
+  await queue.init();
+  if (src) showCard(src.cardSlug);
+})();
+</script>
+</body>
+</html>

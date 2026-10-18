@@ -6,7 +6,7 @@ set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
 source scripts/lib/services.sh
-PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html p05-mfa-admin.html p06-gateway.html p07-ledger.html p08-ledger-plus.html p09-catalog.html})
+PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html p05-mfa-admin.html p06-gateway.html p07-ledger.html p08-ledger-plus.html p09-catalog.html p10-ingestion.html})
 BASE=http://127.0.0.1:8099
 fail=0
 
@@ -120,6 +120,16 @@ if [[ $cd1 == *' 200'* ]] && grep -qi '^etag: "' <<< "$cd1" && grep -q '"rules":
 else printf 'FAIL  %-10s %s\n' p09-detail "${cd1:0:200}"; fail=1; fi
 cp=$(curl -s --max-time 5 "$BASE/api/v1/catalog/categories/potential?category=food.delivery")
 if [[ $cp == *'"rateBps":'* ]]; then printf 'PASS  %-10s %s\n' p09-potent 200; else printf 'FAIL  %-10s %s\n' p09-potent "${cp:0:200}"; fail=1; fi
+
+# P10: what p10-ingestion.html Live mode calls without an admin token (admin flow: api-smoke P10 + ITs) and the
+# mock source fixture the page serves in Mock mode
+for p in /api/v1/admin/review /api/v1/admin/ingestion/sources; do
+  rc=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$BASE$p")
+  if [[ $rc == 401 ]]; then printf 'PASS  %-10s %s %s\n' p10-anon "$p" 401; else printf 'FAIL  %-10s %s %s\n' p10-anon "$p" "$rc"; fail=1; fi
+done
+fx=$(curl -s --max-time 5 "$BASE/fixtures/p10-source.json")
+if [[ $fx == *'"cardSlug": "mock-saffron-millennia-cashback"'* ]]; then printf 'PASS  %-10s %s\n' p10-fixture 200
+else printf 'FAIL  %-10s %s\n' p10-fixture "${fx:0:120}"; fail=1; fi
 
 echo "trail-check: $([[ $fail -eq 0 ]] && echo PASS || echo FAIL)"
 exit $fail

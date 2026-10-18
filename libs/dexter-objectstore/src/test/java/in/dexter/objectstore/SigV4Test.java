@@ -1,4 +1,4 @@
-package in.dexter.ledger.infra.objectstore;
+package in.dexter.objectstore;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,9 +23,9 @@ class SigV4Test {
   @Test
   void pathStyleKeepsThePortAndEncodesKeys() {
     SigV4 s = new SigV4("k", "s", "us-east-1");
-    String url = s.presign("PUT", "http://127.0.0.1:8333", "/dexter-imports/imports/a b.csv", Duration.ofMinutes(15),
+    String url = s.presign("PUT", "http://127.0.0.1:8333", "/bucket/dir/a b.csv", Duration.ofMinutes(15),
         Instant.parse("2026-10-17T00:00:00Z")).toString();
-    assertThat(url).startsWith("http://127.0.0.1:8333/dexter-imports/imports/a%20b.csv?X-Amz-Algorithm=");
+    assertThat(url).startsWith("http://127.0.0.1:8333/bucket/dir/a%20b.csv?X-Amz-Algorithm=");
     assertThat(url).contains("X-Amz-Expires=900");
   }
 }

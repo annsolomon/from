@@ -25,6 +25,7 @@
     <module>libs/dexter-events</module>
     <module>libs/dexter-cache</module>
     <module>libs/dexter-security</module>
+    <module>libs/dexter-objectstore</module>
     <module>contracts</module>
     <module>libs/dexter-test</module>
     <module>libs/dexter-lab</module>
@@ -77,6 +78,11 @@
       <dependency>
         <groupId>in.dexter</groupId>
         <artifactId>dexter-security</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>in.dexter</groupId>
+        <artifactId>dexter-objectstore</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

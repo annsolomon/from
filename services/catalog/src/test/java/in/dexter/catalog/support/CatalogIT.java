@@ -8,11 +8,18 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import in.dexter.catalog.app.PageFetcher;
+import in.dexter.catalog.app.SnapshotStore;
+import in.dexter.catalog.domain.FetchPolicy;
+import in.dexter.catalog.infra.SafeFetcher;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.security.SecureRandom;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +27,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.datasource.SimpleDriverDataSource;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -42,6 +50,16 @@ public abstract class CatalogIT {
   public static final JdbcClient ADMIN = JdbcClient.create(
       new SimpleDriverDataSource(new org.postgresql.Driver(), DB.url(), "postgres", "postgres"));
   public static final TestJwt IDP = TestJwt.create();
+  /** P10: the local issuer site the collector fetches (its 127.0.0.1:port is the one dev host). */
+  public static final MockIssuerSite SITE = new MockIssuerSite();
+  public static final MemorySnapshotStore SNAPSHOTS = new MemorySnapshotStore();
+  /**
+   * Invented issuer hosts (allowlisted as {@code issuer.test}) and the addresses they "resolve" to: the SSRF tests
+   * point allowlisted names at private ranges.
+   */
+  public static final Map<String, String> TEST_DNS = Map.of("meta.issuer.test", "169.254.169.254",
+      "loop.issuer.test", "127.0.0.1", "internal.issuer.test", "10.0.0.7", "ula.issuer.test", "fd00::7",
+      "mapped.issuer.test", "::ffff:192.168.1.9", "public.issuer.test", "93.184.215.14");
   static final HttpClient HTTP = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
   static final String CURSOR_KEY;
 
@@ -61,6 +79,28 @@ public abstract class CatalogIT {
       return IDP.verifier("catalog", Clock.systemUTC());
     }
 
+    /** The production fetcher with the test DNS for *.issuer.test (everything else resolves normally). */
+    @Bean
+    @Primary
+    PageFetcher testPageFetcher(FetchPolicy policy) {
+      return new SafeFetcher(policy, host -> {
+        String ip = TEST_DNS.get(host);
+        if (ip != null) {
+          return List.of(InetAddress.getByName(ip));
+        }
+        if (host.endsWith(".issuer.test") || host.equals("issuer.test")) {
+          throw new UnknownHostException(host);
+        }
+        return SafeFetcher.SYSTEM.resolve(host);
+      }, 200_000, Duration.ofSeconds(3), 3);
+    }
+
+    @Bean
+    @Primary
+    SnapshotStore testSnapshotStore() {
+      return SNAPSHOTS;
+    }
+
   }
 
   @DynamicPropertySource
@@ -77,6 +117,11 @@ public abstract class CatalogIT {
     r.add("dexter.catalog.relay.username", () -> "catalog_relay");
     r.add("dexter.catalog.relay.password", () -> ServiceDb.PW);
     r.add("dexter.catalog.relay.bootstrap-servers", in.dexter.testkit.containers.TestKafka::bootstrapServers);
+    // P10: tests drive the collector themselves (no background worker), politeness short but measurable
+    r.add("dexter.catalog.ingestion.worker-enabled", () -> "false");
+    r.add("dexter.catalog.ingestion.allowed-hosts", () -> "issuer.test");
+    r.add("dexter.catalog.ingestion.dev-hosts", SITE::hostPort);
+    r.add("dexter.catalog.ingestion.politeness", () -> "150ms");
   }
 
   public static String token(UUID account) {

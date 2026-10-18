@@ -191,3 +191,21 @@ row): `DATE_INVALID`, `AMOUNT_INVALID`, `MERCHANT_TOO_LONG`, `CATEGORY_INVALID`,
 | `CURSOR_INVALID` / `CURSOR_FILTER_MISMATCH` / `LIMIT_INVALID` | 400 | `GET /v1/catalog/cards` keyset paging. |
 
 A publish of an unchanged draft is not an error: it answers the current version with `changed: false`.
+
+### catalog ingestion (P10, `CatalogErrors` + core codes)
+
+| Code | Status | When |
+|---|---|---|
+| `SOURCE_EXISTS` | 409 | `POST /v1/admin/ingestion/sources` (or a PATCH of `url`) with a URL another live source fetches. |
+| `REVIEW_DECIDED` | 409 | `:approve` of a rejected item, `:reject` of an approved or superseded item. (`:approve` of an approved item is not an error: it answers the same promotion with `replayed: true`; `:reject` twice answers the rejected item.) |
+| `REVIEW_STALE` | 409 | `:approve` of a superseded item, or of an item whose card moved past its `baseVersion` (an editor published meanwhile): approve the newer item or run the source again. |
+| `DRAFT_PENDING` | 409 | `:approve` while the card has unpublished draft edits: publish them or `DELETE /v1/admin/catalog/cards/{id}/draft` first. |
+| `DRAFT_NOT_DISCARDABLE` | 409 | `DELETE …/draft` of a card that was never published (the draft is the card). |
+| `VALIDATION_FAILED` | 400 | Source fields: `url` refused by the fetch policy (`HOST_NOT_ALLOWED`, `SCHEME_NOT_ALLOWED`, `PORT_NOT_ALLOWED`, `CREDENTIALS_IN_URL`, `BAD_URL`), `kind`, `cardProductId` (UNKNOWN_CARD, OTHER_ISSUER, NOT_ALLOWED on a sitemap), `issuerCode` (REQUIRED, UNKNOWN_ISSUER), `scheduleCron` (five fields, IST, at most hourly); PATCH fields not patchable (UNKNOWN_FIELD); runs `sourceIds` (INVALID, NONE_RUNNABLE, NOT_RUNNABLE); review `status`; reject `reason` > 500. |
+| `IF_MATCH_REQUIRED` / `VERSION_CONFLICT` | 428 / 412 | `PATCH /v1/admin/ingestion/sources/{id}` without / with a stale ETag. |
+| `INVALID_ID` / `NOT_FOUND` | 400 / 404 | Review item id not a UUID / unknown source, run or item, unknown review `:action`. |
+| `FORBIDDEN` / `ADMIN_TOKEN_REQUIRED` | 403 | Reads need `catalog:read`, sources and runs `catalog:write`, approve/reject `catalog:publish`; user and service tokens are refused. |
+
+Fetch failures are not API errors: a run records them per URL in its checkpoint (`errors[].code`: the refusals above
+after DNS as `PRIVATE_ADDRESS`, or `UNKNOWN_HOST`, `TIMEOUT`, `NETWORK`, `HTTP_<status>`, `TOO_LARGE`,
+`WRONG_CONTENT_TYPE`, `TOO_MANY_REDIRECTS`) and moves on to the next source.

@@ -29,6 +29,8 @@
     <dependency><groupId>in.dexter</groupId><artifactId>dexter-events</artifactId></dependency>
     <dependency><groupId>in.dexter</groupId><artifactId>dexter-security</artifactId></dependency>
     <dependency><groupId>in.dexter</groupId><artifactId>dexter-contracts</artifactId></dependency>
+    <!-- P10: snapshot content in the S3-compatible object store -->
+    <dependency><groupId>in.dexter</groupId><artifactId>dexter-objectstore</artifactId></dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-jdbc</artifactId>

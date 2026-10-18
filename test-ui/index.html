@@ -24,6 +24,7 @@
         <tr><td>P07</td><td><a href="p07-ledger.html">p07-ledger.html</a></td><td>Ledger: expenses keyset window with filters, create with Idempotency-Key, GET ETag → PATCH If-Match (412 stale, 428 missing), soft delete + :restore, daily totals (IST day × category root) live after every write, cross-tenant 404, custom categories</td></tr>
         <tr><td>P08</td><td><a href="p08-ledger-plus.html">p08-ledger-plus.html</a></td><td>Ledger plus: merchant autocomplete (latency), resolver stages + rules, search with keyset paging, bulk create (partial failure, clientRef duplicates, replay), CSV import via presigned upload with progress and re-import idempotency, calendar grid, summary by category/merchant/payment/day</td></tr>
         <tr><td>P09</td><td><a href="p09-catalog.html">p09-catalog.html</a></td><td>Catalog: public cards without a token (name keyset, network/issuer/fee/category-earning filters), detail with ETag = version, trigram search, category potential, offers; editor flow draft → If-Match save → publish v1/v2 → versions → retire; drafts stay invisible; admin endpoints 401/403</td></tr>
+        <tr><td>P10</td><td><a href="p10-ingestion.html">p10-ingestion.html</a></td><td>Catalog ingestion: sources (CRUD, If-Match), run → snapshot/extraction/field-level diff → review queue (keyset) → approve publishes the next version through the promoter (a second approve replays), reject, supersede; unchanged page = no item; SSRF-refused sources; admin endpoints 401 without a token</td></tr>
       </tbody>
     </table>
   </section>

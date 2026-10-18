@@ -4,11 +4,9 @@ import in.dexter.catalog.app.AdminCatalogStore.Card;
 import in.dexter.catalog.app.AdminCatalogStore.Draft;
 import in.dexter.catalog.app.AdminCatalogStore.Issuer;
 import in.dexter.catalog.app.AdminCatalogStore.OfferRow;
-import in.dexter.catalog.app.AdminCatalogStore.RuleRow;
 import in.dexter.catalog.app.AdminCatalogStore.Version;
 import in.dexter.catalog.domain.CardDocument;
 import in.dexter.catalog.domain.CardDocuments;
-import in.dexter.catalog.domain.CardSnapshots;
 import in.dexter.catalog.domain.CatalogErrors;
 import in.dexter.contracts.events.catalog.CardPublishedV1;
 import in.dexter.contracts.events.catalog.OfferChangedV1;
@@ -23,15 +21,9 @@ import in.dexter.db.page.Page;
 import in.dexter.db.page.PageRequest;
 import in.dexter.db.tenant.TenantTx;
 import in.dexter.events.OutboxWriter;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,7 +34,6 @@ import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Catalog administration (MASTER_PLAN P09, CATALOG_EDITOR): issuers, card drafts, publish/retire, offers. Runs on the
@@ -80,15 +71,15 @@ public final class CatalogAdminService {
   private final ObjectMapper mapper;
   private final ObjectMapper lenient = JsonMapper.builder()
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
-  private final Clock clock;
+  private final Promoter promoter;
 
   public CatalogAdminService(TenantTx tx, AdminCatalogStore store, OutboxWriter outbox, ObjectMapper mapper,
-      Clock clock) {
+      Promoter promoter) {
     this.tx = tx;
     this.store = store;
     this.outbox = outbox;
     this.mapper = mapper;
-    this.clock = clock;
+    this.promoter = promoter;
   }
 
   // ------------------------------------------------------------------------------------------- issuers
@@ -186,30 +177,23 @@ public final class CatalogAdminService {
       }
       Draft d = ensureDraft(admin, c);
       CardDocument doc = valid(read(d.documentJson()));
-      byte[] hash = hash(doc);
-      if ("published".equals(c.status()) && Arrays.equals(hash, c.contentHash())) {
-        Version v = store.currentVersion(id).orElseThrow();
-        return new PublishResult(id, c.slug(), c.status(), v.version(), v.effectiveFrom().toString(), null, false);
+      issuer(doc.issuerCode());
+      return promoter.publish(c, doc);
+    });
+  }
+
+  /**
+   * Discards the unpublished edits of a published card: the draft row goes, and the next read recreates it from the
+   * current version (P10: an approved review item needs a card without pending draft edits).
+   */
+  public void discardDraft(Tenant admin, UUID id) {
+    tx.writeVoid(admin, () -> {
+      Card c = store.lock(id).orElseThrow(() -> new NotFoundException("card"));
+      if (c.currentVersion() == null) {
+        throw new DexterException(CatalogErrors.DRAFT_NOT_DISCARDABLE,
+            "A card that was never published is only its draft");
       }
-      Issuer issuer = issuer(doc.issuerCode());
-      Instant now = now();
-      int version = c.currentVersion() == null ? 1 : c.currentVersion() + 1;
-      List<UUID> ruleIds = new ArrayList<>();
-      List<RuleRow> rules = new ArrayList<>();
-      for (CardDocument.Rule r : doc.rules()) {
-        UUID rid = Ids.newId();
-        ruleIds.add(rid);
-        rules.add(new RuleRow(rid, id, version, r, now));
-      }
-      Map<String, Object> snapshot = CardSnapshots.of(id, doc, issuer.name(), ruleIds);
-      store.closeCurrent(id, now);
-      store.insertVersion(id, version, mapper.writeValueAsString(snapshot), now);
-      store.insertRules(rules);
-      store.replaceMilestone(id, doc.milestone());
-      store.markPublished(id, issuer.id(), doc, version, hash, now);
-      outbox.append(CatalogEvents.CARD_PUBLISHED, null, id, c.version() + 1,
-          new CardPublishedV1(id, c.slug(), "published", version, now.toString(), null, snapshot));
-      return new PublishResult(id, c.slug(), "published", version, now.toString(), null, true);
+      store.deleteDraft(id);
     });
   }
 
@@ -325,40 +309,9 @@ public final class CatalogAdminService {
     return store.draft(c.id()).orElseGet(() -> {
       Version v = store.currentVersion(c.id())
           .orElseThrow(() -> new IllegalStateException("card " + c.id() + " has neither a draft nor a version"));
-      CardDocument doc = fromVersion(v);
-      store.saveDraft(c.id(), json(doc), admin.accountId(), null, now());
+      store.saveDraft(c.id(), json(promoter.document(v)), admin.accountId(), null, now());
       return store.draft(c.id()).orElseThrow();
     });
-  }
-
-  /**
-   * A version as a document: the snapshot's card fields, the rules from the version's rule rows (they carry the
-   * merchant ids; seeded snapshots name merchants by slug only) and the snapshot's milestone.
-   */
-  CardDocument fromVersion(Version v) {
-    ObjectNode snap = (ObjectNode) lenient.readTree(v.snapshotJson());
-    Map<String, String> slugByRuleId = new HashMap<>();
-    JsonNode rules = snap.get("rules");
-    if (rules != null) {
-      rules.forEach(r -> {
-        JsonNode slug = r.get("merchantSlug");
-        if (r.get("id") != null && slug != null && !slug.isNull()) {
-          slugByRuleId.put(r.get("id").asString(), slug.asString());
-        }
-      });
-    }
-    snap.remove("rules");
-    CardDocument base = lenient.treeToValue(snap, CardDocument.class);
-    List<CardDocument.Rule> fromRows = new ArrayList<>();
-    for (RuleRow row : store.rules(v.cardId(), v.version())) {
-      CardDocument.Rule r = row.rule();
-      fromRows.add(new CardDocument.Rule(r.categoryPath(), r.merchantId(), slugByRuleId.get(row.id().toString()),
-          r.rewardType(), r.rateBps(), r.pointValueMilliPaise(), r.capPaise(), r.capPeriod(), r.minTxnPaise(),
-          r.excludedPaths(), r.priority()));
-    }
-    return CardDocuments.normalize(new CardDocument(base.slug(), base.name(), base.issuerCode(), base.network(),
-        base.tier(), base.joiningFeePaise(), base.annualFeePaise(), base.feeWaiverSpendPaise(), base.aprBps(),
-        base.forexMarkupBps(), base.fuelSurchargeWaiverBps(), base.features(), fromRows, base.milestone()));
   }
 
   private Issuer issuer(String code) {
@@ -367,7 +320,7 @@ public final class CatalogAdminService {
   }
 
   private boolean changed(Card c, CardDocument doc) {
-    return !"published".equals(c.status()) || !Arrays.equals(hash(doc), c.contentHash());
+    return promoter.differsFromPublished(c, doc);
   }
 
   static CardDocument valid(CardDocument raw) {
@@ -378,24 +331,15 @@ public final class CatalogAdminService {
     return CardDocuments.normalize(raw);
   }
 
-  /** SHA-256 of the canonical document (records in declaration order, features sorted). */
-  byte[] hash(CardDocument doc) {
-    try {
-      return MessageDigest.getInstance("SHA-256").digest(json(doc).getBytes(StandardCharsets.UTF_8));
-    } catch (NoSuchAlgorithmException e) {
-      throw new IllegalStateException(e);
-    }
-  }
-
   private String json(CardDocument doc) {
-    return mapper.writeValueAsString(CardDocuments.normalize(doc));
+    return promoter.json(doc);
   }
 
   private CardDocument read(String json) {
-    return lenient.readValue(json, CardDocument.class);
+    return promoter.read(json);
   }
 
   private Instant now() {
-    return clock.instant().truncatedTo(ChronoUnit.MICROS);
+    return promoter.now();
   }
 }

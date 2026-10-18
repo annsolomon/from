@@ -180,6 +180,12 @@ public final class AdminCatalogRepository implements AdminCatalogStore {
   }
 
   @Override
+  public void deleteDraft(UUID cardId) {
+    TenantScope.require();
+    jdbc.sql("DELETE FROM catalog.card_product_drafts WHERE card_product_id = :id").param("id", cardId).update();
+  }
+
+  @Override
   public boolean saveDraft(UUID cardId, String json, UUID adminId, Long expectedVersion, Instant now) {
     TenantScope.require();
     if (expectedVersion == null) {

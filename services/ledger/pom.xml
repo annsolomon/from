@@ -37,6 +37,8 @@
     <dependency><groupId>in.dexter</groupId><artifactId>dexter-contracts</artifactId></dependency>
     <!-- P08: Redis-cached merchant aliases + autocomplete (dexter-cache on the per-service ACL user `ledger`) -->
     <dependency><groupId>in.dexter</groupId><artifactId>dexter-cache</artifactId></dependency>
+    <!-- P08/P10: S3 presigning + object client (moved to a library when catalog became the second user) -->
+    <dependency><groupId>in.dexter</groupId><artifactId>dexter-objectstore</artifactId></dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-redis</artifactId>

@@ -1,4 +1,4 @@
-package in.dexter.ledger.infra.objectstore;
+package in.dexter.objectstore;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;

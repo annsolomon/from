@@ -34,6 +34,21 @@ def totp(secret_b32, offset=0):
     return "%06d" % ((struct.unpack(">I", h[o:o + 4])[0] & 0x7FFFFFFF) % 1000000)
 
 
+ADMIN_TOTP_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+                               ".run", "admin-totp")
+
+
+def keep_secret(secret):
+    """The demo admin's TOTP secret exists only at its first sign-in: later smokes (P10 catalog review) sign in
+    with it. Dev only, in the git-ignored .run/ (mode 600)."""
+    if not secret:
+        return
+    os.makedirs(os.path.dirname(ADMIN_TOTP_FILE), exist_ok=True)
+    fd = os.open(ADMIN_TOTP_FILE, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w") as f:
+        f.write(secret)
+
+
 def claims(jwt):
     part = jwt.split(".")[1]
     return json.loads(base64.urlsafe_b64decode(part + "=" * (-len(part) % 4)))
@@ -119,6 +134,7 @@ def admin():
     s, _, st = call("POST", ID + "/v1/admin/auth/mfa/setup", {"mfaToken": mt})
     check("admin MFA setup: secret + otpauth URI", s == 200 and (st or {}).get("secret"), (s, st))
     secret = (st or {}).get("secret", "")
+    keep_secret(secret)
     s, _, t = call("POST", ID + "/v1/admin/auth/mfa/verify", {"mfaToken": mt, "code": totp(secret)})
     if not check("admin verify: 200 admin tokens", s == 200 and (t or {}).get("accessToken"), (s, t)):
         return

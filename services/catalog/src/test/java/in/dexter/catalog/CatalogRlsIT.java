@@ -21,7 +21,10 @@ import org.junit.jupiter.api.Test;
 class CatalogRlsIT extends CatalogIT {
   static final ServiceDb DBX = TestPostgres.flywayDb("catalog");
   static final String[] TABLES = {"issuers", "card_products", "card_product_drafts", "card_product_versions",
-      "reward_rules", "milestones", "offers"};
+      "reward_rules", "milestones", "offers", "sources", "crawl_runs", "snapshots", "extractions", "review_items",
+      "promotions"};
+  static final String[] INGESTION = {"sources", "crawl_runs", "snapshots", "extractions", "review_items",
+      "promotions"};
 
   static long count(Statement s, String sql) throws Exception {
     try (ResultSet rs = s.executeQuery(sql)) {
@@ -110,6 +113,50 @@ class CatalogRlsIT extends CatalogIT {
       s.executeUpdate("INSERT INTO catalog.reward_rules (id, card_product_id, version, category_path, merchant_id,"
           + " reward_type, rate_bps, valid) VALUES (gen_random_uuid(), '" + card + "', 1, 'food.delivery',"
           + " gen_random_uuid(), 'cashback', 900, tstzrange(now() - interval '1 day', NULL))"); // other scope: fine
+    }
+  }
+
+  /**
+   * P10: ingestion data is admin-only. catalog_app cannot read it; on the admin pool editors see it, the worker
+   * (actor role INGESTOR) writes runs/snapshots/review items but reads the published catalog only (no drafts) and
+   * can neither change published data nor record a promotion; other admin roles see nothing.
+   */
+  @Test
+  void ingestionTablesAreForEditorsAndTheWorkerOnly() throws Exception {
+    UUID card = publishedCard("rls-ing-" + Cards.suffix(), "Rls Ingestion", "visa", 0);
+    UUID draft = newCard(Cards.doc("rls-ing-d-" + Cards.suffix(), "Rls Ingestion Draft", newIssuer(), "visa", 0));
+    try (Connection c = DBX.conn("app"); Statement s = c.createStatement()) {
+      for (String t : INGESTION) {
+        assertThatThrownBy(() -> s.executeQuery("SELECT count(1) FROM catalog." + t)).as(t)
+            .hasMessageContaining("permission denied");
+      }
+    }
+    try (Connection c = DBX.conn("admin")) {
+      c.setAutoCommit(false);
+      try (Statement s = c.createStatement()) {
+        s.execute("SELECT set_config('app.account_id', gen_random_uuid()::text, true),"
+            + " set_config('app.actor_role', 'SUPPORT', true)");
+        for (String t : INGESTION) {
+          assertThat(count(s, "SELECT count(1) FROM catalog." + t)).as("SUPPORT: " + t).isZero();
+        }
+      } finally {
+        c.rollback();
+      }
+      try (Statement s = c.createStatement()) {
+        s.execute("SELECT set_config('app.account_id', '00000000-0000-0000-0000-000000016e57', true),"
+            + " set_config('app.actor_role', 'INGESTOR', true)");
+        assertThat(count(s, "SELECT count(1) FROM catalog.card_products WHERE id = '" + card + "'")).isEqualTo(1);
+        assertThat(count(s, "SELECT count(1) FROM catalog.card_products WHERE id = '" + draft + "'"))
+            .as("the worker reads published cards only").isZero();
+        assertThat(count(s, "SELECT count(1) FROM catalog.card_product_drafts")).isZero();
+        assertThat(s.executeUpdate("UPDATE catalog.card_products SET annual_fee_paise = 1 WHERE id = '" + card + "'"))
+            .as("no write path to published data").isZero();
+        assertThatThrownBy(() -> s.executeUpdate("INSERT INTO catalog.promotions (id, review_item_id,"
+            + " card_product_id, new_version, promoted_by, promoted_at) VALUES (gen_random_uuid(), gen_random_uuid(), '"
+            + card + "', 2, gen_random_uuid(), now())")).hasMessageContaining("row-level security");
+      } finally {
+        c.rollback();
+      }
     }
   }
 }

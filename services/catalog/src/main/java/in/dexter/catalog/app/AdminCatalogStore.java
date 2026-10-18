@@ -51,6 +51,9 @@ public interface AdminCatalogStore {
 
   Optional<Draft> draft(UUID cardId);
 
+  /** Removes the draft row (P10 discard; a published card's draft is recreated from its current version). */
+  void deleteDraft(UUID cardId);
+
   /** Insert (expectedVersion null) or replace when the stored version matches; false on a version mismatch. */
   boolean saveDraft(UUID cardId, String documentJson, UUID adminId, Long expectedVersion, Instant now);
 

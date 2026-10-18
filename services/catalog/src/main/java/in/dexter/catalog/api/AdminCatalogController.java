@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -75,6 +76,14 @@ public class AdminCatalogController {
       @IfMatchVersion long version, @RequestBody CardDocument body) {
     CatalogAdminService.DraftView v = admin.saveDraft(Callers.editor(caller), id, version, body);
     return ResponseEntity.ok().eTag(ETags.of(v.draftVersion())).body(v);
+  }
+
+  /** Discards a published card's unpublished edits (P10: the review approve needs a clean draft). */
+  @DeleteMapping("/cards/{id}/draft")
+  @RequiresPermission("catalog:write")
+  public ResponseEntity<Void> discardDraft(AuthContext caller, @PathVariable("id") UUID id) {
+    admin.discardDraft(Callers.editor(caller), id);
+    return ResponseEntity.noContent().build();
   }
 
   @GetMapping("/cards/{id}/versions")
