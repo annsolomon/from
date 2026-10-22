@@ -24,6 +24,26 @@
       <groupId>in.dexter</groupId>
       <artifactId>dexter-web</artifactId>
     </dependency>
+    <!-- P11: the platform libraries (TenantTx/keyset, Idempotency-Key, outbox + relay + consumers, JWT) -->
+    <dependency><groupId>in.dexter</groupId><artifactId>dexter-db</artifactId></dependency>
+    <dependency><groupId>in.dexter</groupId><artifactId>dexter-idempotency</artifactId></dependency>
+    <dependency><groupId>in.dexter</groupId><artifactId>dexter-events</artifactId></dependency>
+    <dependency><groupId>in.dexter</groupId><artifactId>dexter-security</artifactId></dependency>
+    <dependency><groupId>in.dexter</groupId><artifactId>dexter-contracts</artifactId></dependency>
+    <dependency>
+      <!-- DataSource (Hikari) + JdbcClient. No JPA (MASTER_PLAN 3, enforcer bans it). -->
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jdbc</artifactId>
+    </dependency>
+    <dependency>
+      <!-- Flyway runs as portfolio_owner (spring.flyway.user); the app pool connects as portfolio_app -->
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-flyway</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-database-postgresql</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
@@ -39,15 +59,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <!-- P03 (A-22, A-26): ArchitectureTest. Only ArchRules + ArchUnit on the test classpath; everything else that
-           dexter-test drags in (Testcontainers, Kafka, Redis, servlet) is excluded so it cannot change the Spring
-           test context. -->
+      <!-- P11 (A-26): the full test kit (Testcontainers PG/Kafka, RlsProofKit, IdempotencyContract,
+           PaginationContract, ArchRules, TestJwt), declared without the P03 exclusion. -->
       <groupId>in.dexter</groupId>
       <artifactId>dexter-test</artifactId>
       <scope>test</scope>
-      <exclusions>
-        <exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.tngtech.archunit</groupId>

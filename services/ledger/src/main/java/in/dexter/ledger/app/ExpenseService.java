@@ -373,7 +373,8 @@ public final class ExpenseService {
 
   static ExpenseStateV1 state(ExpenseRow r) {
     return r == null ? null : new ExpenseStateV1(r.amountPaise(), LedgerTime.day(r.occurredAt()).toString(),
-        r.categoryPath(), r.paymentMethod(), r.userCardId(), r.merchantId(), r.occurredAt().toString());
+        r.categoryPath(), r.paymentMethod(), r.userCardId(), r.merchantId(), r.merchantDisplay(),
+        r.occurredAt().toString());
   }
 
   private void event(EventType<ExpenseChangedV1> type, ExpenseRow row, ExpenseRow before, ExpenseRow after,

@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dexter.in/events/portfolio.card.updated.v1.json",
+  "title": "portfolio.card.updated v1 - a card's nickname, cycle, limit or status changed (topic dexter.portfolio.card.v1, key = account id).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "userCardId",
+    "cardProductId",
+    "nickname",
+    "last4",
+    "network",
+    "statementDay",
+    "status",
+    "version",
+    "changedAt"
+  ],
+  "properties": {
+    "userCardId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "cardProductId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "nickname": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 60
+    },
+    "last4": {
+      "type": "string",
+      "pattern": "^[0-9]{4}$"
+    },
+    "network": {
+      "type": "string",
+      "enum": [
+        "visa",
+        "mastercard",
+        "rupay",
+        "amex",
+        "diners"
+      ]
+    },
+    "statementDay": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "closed",
+        "removed"
+      ]
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "changedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

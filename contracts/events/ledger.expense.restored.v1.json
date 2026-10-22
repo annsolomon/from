@@ -33,6 +33,7 @@
         "paymentMethod",
         "userCardId",
         "merchantId",
+        "merchant",
         "occurredAt"
       ],
       "properties": {
@@ -72,6 +73,13 @@
             "null"
           ],
           "format": "uuid"
+        },
+        "merchant": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 120
         },
         "occurredAt": {
           "type": "string",
@@ -92,6 +100,7 @@
         "paymentMethod",
         "userCardId",
         "merchantId",
+        "merchant",
         "occurredAt"
       ],
       "properties": {
@@ -131,6 +140,13 @@
             "null"
           ],
           "format": "uuid"
+        },
+        "merchant": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 120
         },
         "occurredAt": {
           "type": "string",

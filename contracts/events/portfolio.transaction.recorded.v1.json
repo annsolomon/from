@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dexter.in/events/portfolio.transaction.recorded.v1.json",
+  "title": "portfolio.transaction.recorded v1 - a card transaction and what it earned (topic dexter.portfolio.transaction.v1, key = account id).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "transactionId",
+    "userCardId",
+    "statementId",
+    "postedAt",
+    "amountPaise",
+    "direction",
+    "kind",
+    "merchantId",
+    "categoryPath",
+    "rewardType",
+    "rewardValuePaise",
+    "points",
+    "recordedAt"
+  ],
+  "properties": {
+    "transactionId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "userCardId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "statementId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "postedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "amountPaise": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "debit",
+        "credit"
+      ]
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "purchase",
+        "refund",
+        "payment",
+        "fee",
+        "interest",
+        "cashback",
+        "emi"
+      ]
+    },
+    "merchantId": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    },
+    "categoryPath": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*){0,3}$"
+    },
+    "rewardType": {
+      "type": "string",
+      "enum": [
+        "none",
+        "cashback",
+        "points",
+        "miles"
+      ]
+    },
+    "rewardValuePaise": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "points": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "recordedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

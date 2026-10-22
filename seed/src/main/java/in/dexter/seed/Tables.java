@@ -59,6 +59,16 @@ public final class Tables {
       .col("status", "text").col("created_at", "timestamptz").col("updated_at", "timestamptz")
       .col("version", "integer").build();
 
+  /**
+   * P11: portfolio's projection of the seeded catalog (normally consumed from dexter.catalog.card.v1; the seed loads
+   * the catalog straight into its tables, so it writes the projection too, at projected_version 0).
+   */
+  public static final Table CATALOG_PRODUCTS_PROJ = Table.of("portfolio", "catalog_products_proj", "P11")
+      .col("card_product_id", "uuid").col("slug", "text").col("name", "text").col("issuer_code", "text")
+      .col("network", "text").col("tier", "text").col("annual_fee_paise", "bigint").col("status", "text")
+      .col("current_version", "integer").col("snapshot", "jsonb").col("projected_version", "bigint")
+      .col("updated_at", "timestamptz").build();
+
   // ---------------------------------------------------------------- ledger (P07 / P08)
   public static final Table CATEGORIES = Table.of("ledger", "categories", "P07")
       .col("id", "uuid").col("account_id", "uuid").col("path", "public.ltree").col("name", "text").col("icon", "text")
@@ -86,5 +96,5 @@ public final class Tables {
 
   /** Load order: parents first (real tables get foreign keys inside a service). */
   public static final List<Table> ALL = List.of(ACCOUNTS, ADMINS, ADMIN_ROLES, ISSUERS, CARD_PRODUCTS, CARD_PRODUCT_VERSIONS,
-      REWARD_RULES, MILESTONES, USER_CARDS, CATEGORIES, MERCHANTS, MERCHANT_ALIASES, EXPENSES, EXPENSE_DAILY_TOTALS);
+      REWARD_RULES, MILESTONES, CATALOG_PRODUCTS_PROJ, USER_CARDS, CATEGORIES, MERCHANTS, MERCHANT_ALIASES, EXPENSES, EXPENSE_DAILY_TOTALS);
 }

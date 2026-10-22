@@ -136,6 +136,10 @@ public final class Generator {
           c.fuelSurchargeWaiverBps(), new Raw(Json.write(featureJson(c)).strip()), c.status(), 1,
           new Raw("\\x" + sha256Hex(snapshotJson)), t, t, 0);
       w(Tables.CARD_PRODUCT_VERSIONS).row(c.id(), 1, new Raw(snapshotJson), t, null);
+      if ("published".equals(c.status()) || "retired".equals(c.status())) {
+        w(Tables.CATALOG_PRODUCTS_PROJ).row(c.id(), c.slug(), c.name(), c.issuer().code(), c.network(), c.tier(),
+            c.annualFeePaise(), c.status(), 1, new Raw(snapshotJson), 0L, t);
+      }
       for (RefData.Rule r : c.rules()) {
         UUID merchantId = r.merchantSlug() == null ? null : ref.merchantBySlug.get(r.merchantSlug()).id();
         w(Tables.REWARD_RULES).row(r.id(), c.id(), 1, r.categoryPath(), merchantId, r.rewardType(), r.rateBps(),

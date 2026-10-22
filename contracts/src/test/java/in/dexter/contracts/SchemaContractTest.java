@@ -10,6 +10,9 @@ import in.dexter.contracts.events.catalog.OfferChangedV1;
 import in.dexter.contracts.events.ledger.ExpenseChangedV1;
 import in.dexter.contracts.events.ledger.ExpenseStateV1;
 import in.dexter.contracts.events.ledger.ImportCompletedV1;
+import in.dexter.contracts.events.portfolio.CardChangedV1;
+import in.dexter.contracts.events.portfolio.LinkConfirmedV1;
+import in.dexter.contracts.events.portfolio.TransactionRecordedV1;
 import in.dexter.contracts.events.identity.AccountRegisteredV1;
 import in.dexter.contracts.events.identity.AdminActionV1;
 import in.dexter.contracts.events.identity.AccountVerifiedV1;
@@ -61,9 +64,9 @@ class SchemaContractTest {
         "ledger", "/v1/expenses/**", "read", "GET", 200, 12, "2026-10-17T12:00:00Z"));
     UUID expense = UUID.fromString("0192f1e2-0000-7000-8000-0000000000e1");
     ExpenseStateV1 before = new ExpenseStateV1(45_000, "2026-10-17", "food.dining", "card",
-        UUID.fromString("0192f1e2-0000-7000-8000-0000000000b1"), null, "2026-10-17T08:30:00Z");
+        UUID.fromString("0192f1e2-0000-7000-8000-0000000000b1"), null, "Cafe Mocha", "2026-10-17T08:30:00Z");
     ExpenseStateV1 after = new ExpenseStateV1(52_000, "2026-10-16", "food.delivery", "upi", null,
-        UUID.fromString("0192f1e2-0000-7000-8000-0000000000f1"), "2026-10-16T19:30:00Z");
+        UUID.fromString("0192f1e2-0000-7000-8000-0000000000f1"), "Swiggy", "2026-10-16T19:30:00Z");
     SAMPLES.put("ledger.expense.created.v1.json", new ExpenseChangedV1(expense, 0, null, after, "2026-10-17T12:00:00Z"));
     SAMPLES.put("ledger.expense.updated.v1.json", new ExpenseChangedV1(expense, 1, before, after, "2026-10-17T12:00:01Z"));
     SAMPLES.put("ledger.expense.deleted.v1.json", new ExpenseChangedV1(expense, 2, after, null, "2026-10-17T12:00:02Z"));
@@ -80,6 +83,18 @@ class SchemaContractTest {
         UUID.fromString("0192f1e2-0000-7000-8000-0000000000a3"), "active",
         UUID.fromString("01941f29-7c00-7000-8000-0000000000a1"), card, null, "food.delivery", "10% off food",
         "pct", 1000, null, 15_000L, 50_000, "2026-10-01T00:00:00Z", null, true, 0, "2026-10-17T12:00:00Z"));
+    UUID userCard = UUID.fromString("0192f1e2-0000-7000-8000-0000000000c9");
+    for (String a : new String[] {"added", "updated", "removed"}) {
+      SAMPLES.put("portfolio.card." + a + ".v1.json", new CardChangedV1(userCard, card, "Millennia", "4321", "visa",
+          31, a.equals("removed") ? "removed" : "active", a.equals("added") ? 0 : 1, "2026-10-22T10:00:00Z"));
+    }
+    SAMPLES.put("portfolio.transaction.recorded.v1.json", new TransactionRecordedV1(
+        UUID.fromString("0192f1e2-0000-7000-8000-0000000000d9"), userCard,
+        UUID.fromString("0192f1e2-0000-7000-8000-0000000000e9"), "2026-10-21T09:00:00Z", 64_900, "debit", "purchase",
+        null, "food.delivery", "cashback", 3_245, 0, "2026-10-22T10:00:01Z"));
+    SAMPLES.put("portfolio.link.confirmed.v1.json", new LinkConfirmedV1(
+        UUID.fromString("0192f1e2-0000-7000-8000-0000000000f9"), expense,
+        UUID.fromString("0192f1e2-0000-7000-8000-0000000000d9"), userCard, "auto", "2026-10-22T10:00:02Z"));
     SAMPLES.put("ledger.import.completed.v1.json", new ImportCompletedV1(
         UUID.fromString("0192f1e2-0000-7000-8000-0000000000f2"), "completed", 120, 118, 20, 2, null,
         "2026-10-17T12:05:00Z"));
