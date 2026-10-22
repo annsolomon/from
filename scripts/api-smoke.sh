@@ -20,6 +20,9 @@
 #        detail + ETag, search, potential, offers; admin catalog refuses anonymous/user callers.
 #   P10: catalog ingestion via the gateway (scripts/lib/p10_smoke.py): SSRF-refused sources, a source on a local
 #        mock issuer site, run -> review item (fee diff) -> approve publishes v+1 (replay safe) -> unchanged re-run.
+#   P11: portfolio via the gateway (scripts/lib/p11_smoke.py): add card (replay, 409, unknown product) -> card
+#        transaction -> ledger expense -> auto-match suggestion over Kafka -> confirm; statements, EMI + schedule,
+#        rewards, monthly report, cross-tenant 404; the smoke card is removed.
 # Later phases append their checks below the P00 block. Output also goes to $SMOKE_OUT if set.
 set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -149,6 +152,11 @@ log "# P10 catalog ingestion via gateway (:8080, mock issuer site :18091)"
 p10=$(python3 "$ROOT/scripts/lib/p10_smoke.py" "http://localhost:8080" 2>&1); p10rc=$?
 while IFS= read -r line; do log "$line"; done <<< "$p10"
 [[ $p10rc -eq 0 ]] || fail=1
+# ------------------------------------------------------------------ P11: portfolio through the gateway
+log "# P11 portfolio via gateway (:8080)"
+p11=$(python3 "$ROOT/scripts/lib/p11_smoke.py" "http://localhost:8080" 2>&1); p11rc=$?
+while IFS= read -r line; do log "$line"; done <<< "$p11"
+[[ $p11rc -eq 0 ]] || fail=1
 # Outbox -> Kafka (MASTER_PLAN 6.3): every identity event written above is published by the relay within 30 s.
 COMPOSE=(docker compose --env-file "$ROOT/.env" -f "$ROOT/infra/compose/docker-compose.yml")
 outbox() { "${COMPOSE[@]}" exec -T postgres psql -U "${POSTGRES_USER:-postgres}" -d identity -tA -c "$1" 2>/dev/null | tr -d '[:space:]'; }

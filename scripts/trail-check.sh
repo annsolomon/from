@@ -6,7 +6,7 @@ set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
 source scripts/lib/services.sh
-PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html p05-mfa-admin.html p06-gateway.html p07-ledger.html p08-ledger-plus.html p09-catalog.html p10-ingestion.html})
+PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html p05-mfa-admin.html p06-gateway.html p07-ledger.html p08-ledger-plus.html p09-catalog.html p10-ingestion.html p11-portfolio.html})
 BASE=http://127.0.0.1:8099
 fail=0
 
@@ -130,6 +130,21 @@ done
 fx=$(curl -s --max-time 5 "$BASE/fixtures/p10-source.json")
 if [[ $fx == *'"cardSlug": "mock-saffron-millennia-cashback"'* ]]; then printf 'PASS  %-10s %s\n' p10-fixture 200
 else printf 'FAIL  %-10s %s\n' p10-fixture "${fx:0:120}"; fail=1; fi
+
+# P11: what p11-portfolio.html Live mode calls as asha (writes: api-smoke P11 + ITs)
+rc=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$BASE/api/v1/cards")
+if [[ $rc == 401 ]]; then printf 'PASS  %-10s %s\n' p11-anon 401; else printf 'FAIL  %-10s %s\n' p11-anon "$rc"; fail=1; fi
+uc=$(curl -s --max-time 5 -H "Authorization: Bearer $at" "$BASE/api/v1/cards?limit=50")
+if [[ $uc == *'"productSlug":"mock-'* && $uc == *'"currentCycle":{'* ]]; then printf 'PASS  %-10s %s\n' p11-cards 200
+else printf 'FAIL  %-10s %s\n' p11-cards "${uc:0:200}"; fail=1; fi
+rb=$(curl -s --max-time 5 -H "Authorization: Bearer $at" "$BASE/api/v1/rewards/balance")
+if [[ $rb == *'"points":'* && $rb == *'"cards":['* ]]; then printf 'PASS  %-10s %s\n' p11-rewards 200
+else printf 'FAIL  %-10s %s\n' p11-rewards "${rb:0:200}"; fail=1; fi
+rp=$(curl -s --max-time 5 -H "Authorization: Bearer $at" "$BASE/api/v1/portfolio/report?period=year")
+if [[ $rp == *'"period":"year"'* && $rp == *'"cards":['* ]]; then printf 'PASS  %-10s %s\n' p11-report 200
+else printf 'FAIL  %-10s %s\n' p11-report "${rp:0:200}"; fail=1; fi
+ls=$(curl -s --max-time 5 -H "Authorization: Bearer $at" "$BASE/api/v1/links/suggestions?limit=10")
+if [[ $ls == *'"page":'* ]]; then printf 'PASS  %-10s %s\n' p11-links 200; else printf 'FAIL  %-10s %s\n' p11-links "${ls:0:200}"; fail=1; fi
 
 echo "trail-check: $([[ $fail -eq 0 ]] && echo PASS || echo FAIL)"
 exit $fail

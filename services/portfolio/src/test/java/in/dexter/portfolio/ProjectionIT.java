@@ -105,9 +105,10 @@ class ProjectionIT extends PortfolioIT {
       EventEnvelope cardEvent = Events.card(product, "proj-kafka", "published", 1, 1, snapshot(product, "MOCK_Kafka",
           12_300));
       EventEnvelope expenseEvent = Events.created(a, expense, Events.state(33_300, "2026-09-02", card, "Decathlon"));
-      producer.send(new ProducerRecord<>(CardPublishedV1.TOPIC, cardEvent.messageKey(), codec.encode(cardEvent))).get();
+      producer.send(new ProducerRecord<>(CardPublishedV1.TOPIC, cardEvent.messageKey(),
+          codec.encode(cardEvent).getBytes(java.nio.charset.StandardCharsets.UTF_8))).get();
       producer.send(new ProducerRecord<>(ExpenseChangedV1.TOPIC, expenseEvent.messageKey(),
-          codec.encode(expenseEvent))).get();
+          codec.encode(expenseEvent).getBytes(java.nio.charset.StandardCharsets.UTF_8))).get();
       c1.start();
       c2.start();
       long until = System.nanoTime() + Duration.ofSeconds(60).toNanos();

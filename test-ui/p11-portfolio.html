@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trail P11 portfolio</title>
+  <link rel="stylesheet" href="trail.css">
+  <style>
+    table.t { width: 100%; border-collapse: collapse; font: 12px var(--mono); }
+    table.t td, table.t th { border-bottom: 1px solid var(--line, #ddd); padding: 3px 6px; text-align: left; }
+    table.t td.n, table.t th.n { text-align: right; }
+    .pickable div.pick { cursor: pointer; }
+    .pickable div.pick.on { font-weight: 600; }
+  </style>
+</head>
+<body>
+<main>
+  <section class="card">
+    <h2>P11 · portfolio: cards, statements, transactions, auto-match, EMI, rewards, report</h2>
+    <p class="mono" style="color:var(--muted);margin:0">
+      User endpoints: <code>/api/v1/cards</code> (keyset, newest first; POST with Idempotency-Key; PATCH If-Match;
+      DELETE = soft remove), <code>/api/v1/cards/{id}/statements</code>, <code>/api/v1/cards/{id}/transactions</code>
+      (POST with Idempotency-Key: statement + reward on the card's catalog terms),
+      <code>/api/v1/links/suggestions</code> and <code>/api/v1/links/{id}:confirm|:reject</code> (the auto-matcher
+      pairs a ledger expense paid by card with a card transaction: same amount, ±2 days, merchant similarity),
+      <code>/api/v1/emi-plans</code> + <code>…/schedule</code>, <code>/api/v1/rewards/balance|ledger</code>,
+      <code>/api/v1/portfolio/report</code>. Mock mode runs it all in the page; Live mode needs a demo persona.
+      Testing aid only - deleted in P19.
+    </p>
+  </section>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>My cards</h2>
+      <div class="list pickable" id="c-list" style="max-height:220px"></div>
+      <div class="row" style="margin-top:6px">
+        <select class="in" id="c-product" aria-label="catalog card" style="flex:1"></select>
+        <input class="in mono" id="c-last4" placeholder="last4" style="width:70px">
+        <input class="in mono" id="c-day" placeholder="stmt day" value="5" style="width:70px">
+        <button class="act" type="button" id="c-add">Add card</button>
+      </div>
+      <div class="row">
+        <button class="ghost" type="button" id="c-replay">Add again, same key (replay)</button>
+        <button class="ghost" type="button" id="c-nick">Rename (If-Match)</button>
+        <button class="ghost" type="button" id="c-del">Remove</button>
+      </div>
+      <pre class="out" id="c-out">—</pre>
+    </section>
+    <section class="card">
+      <h2>Card transactions (selected card)</h2>
+      <div class="row">
+        <input class="in mono" id="t-amount" placeholder="₹" value="450" style="width:80px">
+        <input class="in" id="t-desc" value="SWIGGY*BANGALORE" style="flex:1">
+        <select class="in" id="t-cat" aria-label="category"><option>food.delivery</option><option>shopping.online</option>
+          <option>food.dining</option><option>travel.flights</option><option>fuel.petrol</option><option>general</option></select>
+        <button class="act" type="button" id="t-add">Record</button>
+      </div>
+      <div id="t-pager" style="margin-top:6px"></div>
+      <pre class="out" id="t-out">—</pre>
+      <h2 style="margin-top:8px">Statements</h2>
+      <table class="t" id="s-table"><tr><th>period</th><th>due</th><th class="n">debits</th><th class="n">min due</th><th>status</th></tr></table>
+    </section>
+  </div>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>Auto-match: ledger expense ↔ card transaction</h2>
+      <div class="row">
+        <button class="act" type="button" id="m-expense">Add the last transaction to the ledger (merchant "Swiggy")</button>
+        <button class="ghost" type="button" id="m-reload">Reload suggestions</button>
+      </div>
+      <div id="m-list" style="margin-top:6px"></div>
+      <pre class="out" id="m-out">—</pre>
+    </section>
+    <section class="card">
+      <h2>EMI plan (reducing balance, GST on interest)</h2>
+      <div class="row">
+        <input class="in mono" id="e-principal" value="100000" title="principal ₹" style="width:100px">
+        <input class="in mono" id="e-rate" value="15" title="annual rate %" style="width:60px">
+        <input class="in mono" id="e-months" value="12" title="months" style="width:60px">
+        <button class="act" type="button" id="e-add">Create plan</button>
+        <button class="ghost" type="button" id="e-close">Close (DELETE)</button>
+      </div>
+      <pre class="out" id="e-out">—</pre>
+      <table class="t" id="e-table"></table>
+    </section>
+  </div>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>Rewards</h2>
+      <div class="row">
+        <button class="ghost" type="button" id="r-reload">Balance</button>
+        <input class="in mono" id="r-points" value="100" style="width:80px">
+        <button class="ghost" type="button" id="r-redeem">Redeem from selected card</button>
+      </div>
+      <pre class="out" id="r-out">—</pre>
+    </section>
+    <section class="card">
+      <h2>Report (rewards − fees − pro-rated annual fee)</h2>
+      <div class="row">
+        <select class="in" id="p-period" aria-label="period"><option>month</option><option>year</option></select>
+        <button class="ghost" type="button" id="p-run">Run</button>
+      </div>
+      <table class="t" id="p-table"></table>
+      <pre class="out" id="p-out">—</pre>
+    </section>
+  </div>
+  <div class="grid2">
+    <section class="card" id="tenant"></section>
+    <section class="card" id="events"></section>
+  </div>
+  <section class="card" id="log"></section>
+</main>
+<script src="trail.js"></script>
+<script>
+(async () => {
+  Trail.mountHeader('Portfolio', 'P11');
+  Trail.mountLog(document.getElementById('log'));
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const rupees = p => p == null ? '—' : '₹' + (p / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const iso = (d = new Date()) => d.toISOString();
+  const key = () => ({ 'Idempotency-Key': Trail.uuidv4() });
+  const pad = n => String(n).padStart(2, '0');
+  const ymd = d => `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
+  const istDay = instant => ymd(new Date(Date.parse(instant) + 330 * 60000));
+
+  // ---------------------------------------------------------------- domain (mirrors BillingCycle / EmiMath / MatchScore)
+  const stmtDate = (y, m, day) => { const last = new Date(Date.UTC(y, m + 1, 0)).getUTCDate(); return new Date(Date.UTC(y, m, day === 31 ? last : day)); };
+  const cycle = (dayStr, statementDay, dueOffset) => {
+    const d = new Date(dayStr + 'T00:00:00Z');
+    let end = stmtDate(d.getUTCFullYear(), d.getUTCMonth(), statementDay);
+    if (d > end) end = stmtDate(d.getUTCFullYear(), d.getUTCMonth() + 1, statementDay);
+    const start = stmtDate(end.getUTCFullYear(), end.getUTCMonth() - 1, statementDay); start.setUTCDate(start.getUTCDate() + 1);
+    const due = new Date(end); due.setUTCDate(due.getUTCDate() + dueOffset);
+    return { periodStart: ymd(start), periodEnd: ymd(end), dueDate: ymd(due) };
+  };
+  const emiSchedule = (P, rateBps, n, gstBps, firstDue) => {
+    const r = rateBps / 10000 / 12; const f = Math.pow(1 + r, n);
+    const emi = rateBps === 0 ? Math.round(P / n) : Math.round(P * r * f / (f - 1));
+    let out = P; let ti = 0; let tg = 0; const rows = [];
+    for (let k = 1; k <= n; k++) {
+      const interest = Math.round(out * r); const principal = k === n ? out : Math.min(out, Math.max(0, emi - interest));
+      const gst = Math.round(interest * gstBps / 10000); out -= principal; ti += interest; tg += gst;
+      const due = new Date(firstDue + 'T00:00:00Z'); due.setUTCMonth(due.getUTCMonth() + k - 1);
+      rows.push({ number: k, dueDate: ymd(due), principalPaise: principal, interestPaise: interest, gstPaise: gst, totalPaise: principal + interest + gst, outstandingAfterPaise: out, status: 'due' });
+    }
+    return { emi, ti, tg, rows };
+  };
+  const words = s => s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  const merchantScore = (expenseMerchant, descriptor) => {
+    const e = words(expenseMerchant).replace(/ /g, ''); const d = ' ' + words(descriptor);
+    if (e && (d.includes(' ' + e) || d.replace(/ /g, '').startsWith(e))) return 1;
+    const tri = s => { const t = new Set(); const x = '  ' + s + ' '; for (let i = 0; i < x.length - 2; i++) t.add(x.slice(i, i + 3)); return t; };
+    const a = tri(words(expenseMerchant)); const b = tri(words(descriptor)); let same = 0; a.forEach(x => b.has(x) && same++);
+    return same / (a.size + b.size - same);
+  };
+  const score = (m, days) => m < 0.45 || days > 2 ? -1 : Math.round((0.75 * m + 0.25 * (1 - days / 3)) * 1000) / 1000;
+
+  // ---------------------------------------------------------------- mock API
+  let seed = null;
+  try { seed = await Trail.loadSeed(); } catch (e) { $('c-out').textContent = 'fixtures missing: ' + e.message; }
+  const catalog = seed ? seed.catalog.rows().filter(c => !c.status || c.status === 'published') : [];
+  const product = id => catalog.find(c => c.id === id);
+  const today = () => istDay(iso());
+  const decorate = c => { c.currentCycle = cycle(today(), c.statementDay, c.dueOffsetDays); return c; };
+  if (seed) seed.userCards.rows().forEach(decorate);
+  const auth = req => req.tenant && req.tenant.accountId ? null : Trail.problem(401, 'UNAUTHENTICATED', 'log in as a persona first');
+  const myCard = (req, id) => seed.userCards.rows().find(c => c.id === id && c.accountId === req.tenant.accountId);
+  const txns = Trail.collection({ rows: [], sortKey: 'postedAt', sortName: 'posted_desc', filters: { cardId: (r, v) => r.userCardId === v } });
+  const statements = []; const links = []; const expenses = []; const plans = []; const points = [];
+  const ruleFor = (p, cat) => {
+    const ok = p.rules.filter(r => !r.merchantSlug && (!r.categoryPath || cat === r.categoryPath || cat.startsWith(r.categoryPath + '.'))
+      && !(r.excludedPaths || []).some(x => cat === x || cat.startsWith(x + '.')));
+    ok.sort((a, b) => (b.categoryPath || '').length - (a.categoryPath || '').length);
+    return ok[0] || null;
+  };
+  const reward = (p, cat, amount) => {
+    const r = p && ruleFor(p, cat); if (!r) return { type: 'none', rateBps: 0, valuePaise: 0, points: 0 };
+    const value = Math.floor(amount * r.rateBps / 10000);
+    if (r.rewardType === 'cashback') return { type: 'cashback', rateBps: r.rateBps, valuePaise: value, points: 0 };
+    const pv = r.pointValueMilliPaise || 25000; const pts = Math.floor(value * 1000 / pv);
+    return { type: r.rewardType, rateBps: r.rateBps, valuePaise: Math.floor(pts * pv / 1000), points: pts };
+  };
+  const match = (t, e) => {
+    if (t.amountPaise !== e.amountPaise || t.userCardId !== e.userCardId || t.expenseId) return;
+    const days = Math.abs(Date.parse(istDay(t.postedAt)) - Date.parse(e.day)) / 86400000;
+    const s = score(merchantScore(e.merchant, t.description), days); if (s < 0) return;
+    if (links.some(l => l.expenseId === e.id && l.transactionId === t.id)) return;
+    links.push({ id: Trail.uuidv7(), accountId: t.accountId, expenseId: e.id, transactionId: t.id, userCardId: t.userCardId, score: s, status: 'suggested',
+      postedAt: t.postedAt, amountPaise: t.amountPaise, description: t.description, expenseDay: e.day, expenseMerchant: e.merchant, createdAt: iso(), decidedAt: null });
+  };
+
+  Trail.mock('POST', /^\/api\/v1\/cards$/, Trail.idempotent((m, req) => auth(req) || (() => {
+    const b = req.body || {}; const p = product(b.cardProductId);
+    if (!p) return Trail.problem(400, 'VALIDATION_FAILED', 'cardProductId', { errors: [{ field: 'cardProductId', code: 'UNKNOWN_CARD_PRODUCT', message: 'No such card in the catalog' }] });
+    if (!/^[0-9]{4}$/.test(b.last4 || '')) return Trail.problem(400, 'VALIDATION_FAILED', 'last4', { errors: [{ field: 'last4', code: 'INVALID', message: 'four digits' }] });
+    const day = Number(b.statementDay); if (!(day >= 1 && day <= 28) && day !== 31) return Trail.problem(400, 'VALIDATION_FAILED', 'statementDay', { errors: [{ field: 'statementDay', code: 'INVALID', message: '1-28 or 31' }] });
+    if (seed.userCards.rows().some(c => c.accountId === req.tenant.accountId && c.cardProductId === p.id && c.last4 === b.last4 && c.status !== 'removed'))
+      return Trail.problem(409, 'CARD_EXISTS', `This card (${p.name} ending ${b.last4}) is already in your portfolio`);
+    const c = decorate(seed.userCards.add({ id: Trail.uuidv7(), accountId: req.tenant.accountId, cardProductId: p.id, productSlug: p.slug, productName: p.name, issuerCode: p.issuerCode,
+      nickname: b.nickname || p.name.replace(/^MOCK_/, ''), last4: b.last4, network: p.network, statementDay: day, dueOffsetDays: b.dueOffsetDays || 20, creditLimitPaise: null,
+      openedOn: null, status: 'active', createdAt: iso(), updatedAt: iso(), version: 0 }));
+    Trail.events.emit('portfolio.card.added', c.id, { userCardId: c.id, cardProductId: p.id, last4: c.last4, status: 'active', version: 0 }, c.accountId);
+    return Trail.reply(201, c, { etag: '"0"', location: '/v1/cards/' + c.id });
+  })()));
+  Trail.mock('GET', /^\/api\/v1\/cards\/([0-9a-f-]{36})$/, (m, req) => auth(req) || (() => {
+    const c = myCard(req, m[1]); return c ? Trail.reply(200, c, { etag: `"${c.version}"` }) : Trail.problem(404, 'NOT_FOUND', 'card not found');
+  })());
+  Trail.mock('PATCH', /^\/api\/v1\/cards\/([0-9a-f-]{36})$/, (m, req) => auth(req) || (() => {
+    const c = myCard(req, m[1]); if (!c || c.status === 'removed') return Trail.problem(404, 'NOT_FOUND', 'card not found');
+    const im = Object.entries(req.headers).find(([k]) => k.toLowerCase() === 'if-match');
+    if (!im) return Trail.problem(428, 'IF_MATCH_REQUIRED', 'If-Match required');
+    if (im[1] !== `"${c.version}"`) return Trail.problem(412, 'VERSION_CONFLICT', 'card changed');
+    Object.assign(c, req.body || {}, { version: c.version + 1, updatedAt: iso() }); decorate(c);
+    return Trail.reply(200, c, { etag: `"${c.version}"` });
+  })());
+  Trail.mock('DELETE', /^\/api\/v1\/cards\/([0-9a-f-]{36})$/, (m, req) => auth(req) || (() => {
+    const c = myCard(req, m[1]); if (!c) return Trail.problem(404, 'NOT_FOUND', 'card not found');
+    if (c.status !== 'removed') { Object.assign(c, { status: 'removed', version: c.version + 1, updatedAt: iso() }); Trail.events.emit('portfolio.card.removed', c.id, { userCardId: c.id, status: 'removed', version: c.version }, c.accountId); }
+    return Trail.reply(204, null);
+  })());
+  Trail.mock('GET', /^\/api\/v1\/cards\/([0-9a-f-]{36})\/transactions$/, (m, req) => auth(req) || (myCard(req, m[1]) ? txns.list({ ...req.query, cardId: m[1] }, req.tenant.accountId) : Trail.problem(404, 'NOT_FOUND', 'card not found')));
+  Trail.mock('POST', /^\/api\/v1\/cards\/([0-9a-f-]{36})\/transactions$/, Trail.idempotent((m, req) => auth(req) || (() => {
+    const c = myCard(req, m[1]); if (!c || c.status === 'removed') return Trail.problem(404, 'NOT_FOUND', 'card not found');
+    if (c.status !== 'active') return Trail.problem(409, 'CARD_NOT_ACTIVE', 'card is ' + c.status);
+    const b = req.body || {};
+    if (!Number.isInteger(b.amountPaise) || b.amountPaise <= 0) return Trail.problem(400, 'VALIDATION_FAILED', 'amountPaise', { errors: [{ field: 'amountPaise', code: 'POSITIVE', message: 'positive paise' }] });
+    const cy = cycle(istDay(b.postedAt), c.statementDay, c.dueOffsetDays);
+    let s = statements.find(x => x.userCardId === c.id && x.periodStart === cy.periodStart);
+    if (!s) { s = { id: Trail.uuidv7(), accountId: c.accountId, userCardId: c.id, ...cy, debitsPaise: 0, creditsPaise: 0, txnCount: 0, totalDuePaise: 0, minDuePaise: 0, status: 'open', version: 0 }; statements.push(s); }
+    s.debitsPaise += b.amountPaise; s.txnCount += 1; s.totalDuePaise = s.debitsPaise - s.creditsPaise; s.version += 1;
+    const rw = reward(product(c.cardProductId), b.categoryPath || 'general', b.amountPaise);
+    const t = txns.add({ id: Trail.uuidv7(), accountId: c.accountId, userCardId: c.id, statementId: s.id, postedAt: new Date(b.postedAt).toISOString(), amountPaise: b.amountPaise,
+      direction: 'debit', kind: b.kind || 'purchase', description: b.description || '', merchantId: null, categoryPath: b.categoryPath || null, expenseId: null, clientRef: null, source: 'manual', createdAt: iso(), reward: rw });
+    if (rw.points) points.push({ id: Trail.uuidv7(), accountId: c.accountId, userCardId: c.id, kind: 'earn', points: rw.points, valuePaise: rw.valuePaise, createdAt: iso() });
+    Trail.events.emit('portfolio.transaction.recorded', t.id, { transactionId: t.id, userCardId: c.id, amountPaise: t.amountPaise, reward: rw }, c.accountId);
+    expenses.filter(e => e.accountId === c.accountId).forEach(e => match(t, e));
+    return Trail.reply(201, t, { etag: '"0"', location: `/v1/cards/${c.id}/transactions/${t.id}` });
+  })()));
+  Trail.mock('GET', /^\/api\/v1\/cards\/([0-9a-f-]{36})\/statements$/, (m, req) => auth(req) || (myCard(req, m[1])
+    ? { data: statements.filter(s => s.userCardId === m[1]).sort((a, b) => b.periodStart.localeCompare(a.periodStart)), page: { limit: 25, hasMore: false, nextCursor: null } }
+    : Trail.problem(404, 'NOT_FOUND', 'card not found')));
+  // the ledger side: the seed's POST /api/v1/expenses emits ledger.expense.created; this consumer feeds the matcher
+  // (Live: the ledger outbox -> Kafka -> the portfolio's expense-match consumer)
+  Trail.events.on(ev => {
+    if (ev.type !== 'ledger.expense.created' || !ev.data || !ev.data.after) return;
+    const x = ev.data.after;
+    const e = { id: x.id, accountId: x.accountId, amountPaise: x.amountPaise, day: istDay(x.occurredAt), merchant: x.merchantDisplay, userCardId: x.userCardId };
+    expenses.push(e);
+    if (e.userCardId) setTimeout(() => txns.rows().filter(t => t.accountId === e.accountId).forEach(t => match(t, e)), 400);
+  });
+  Trail.mock('GET', /^\/api\/v1\/links\/suggestions$/, (m, req) => auth(req) || ({
+    data: links.filter(l => l.accountId === req.tenant.accountId && l.status === 'suggested').sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+    page: { limit: 25, hasMore: false, nextCursor: null } }));
+  Trail.mock('POST', /^\/api\/v1\/links\/([0-9a-f-]{36}):(confirm|reject)$/, (m, req) => auth(req) || (() => {
+    const l = links.find(x => x.id === m[1] && x.accountId === req.tenant.accountId); if (!l) return Trail.problem(404, 'NOT_FOUND', 'link not found');
+    const want = m[2] === 'confirm' ? 'confirmed' : 'rejected';
+    if (l.status === want) return l;
+    if (l.status !== 'suggested') return Trail.problem(409, 'LINK_DECIDED', 'the link is ' + l.status);
+    Object.assign(l, { status: want, decidedAt: iso(), method: 'auto' });
+    if (want === 'confirmed') {
+      const t = txns.rows().find(x => x.id === l.transactionId); t.expenseId = l.expenseId;
+      links.filter(x => x !== l && x.status === 'suggested' && (x.expenseId === l.expenseId || x.transactionId === l.transactionId)).forEach(x => { x.status = 'rejected'; x.decidedAt = iso(); });
+      Trail.events.emit('portfolio.link.confirmed', l.id, { linkId: l.id, expenseId: l.expenseId, transactionId: l.transactionId }, l.accountId);
+    }
+    return l;
+  })());
+  Trail.mock('POST', /^\/api\/v1\/emi-plans$/, Trail.idempotent((m, req) => auth(req) || (() => {
+    const b = req.body || {}; const c = myCard(req, b.userCardId); if (!c) return Trail.problem(404, 'NOT_FOUND', 'card not found');
+    if (c.status !== 'active') return Trail.problem(409, 'CARD_NOT_ACTIVE', 'card is ' + c.status);
+    const first = b.firstDueDate || c.currentCycle.dueDate;
+    const s = emiSchedule(b.principalPaise, b.annualRateBps, b.tenureMonths, b.gstBps == null ? 1800 : b.gstBps, first);
+    const p = { id: Trail.uuidv7(), accountId: c.accountId, userCardId: c.id, cardTxnId: null, description: b.description, principalPaise: b.principalPaise, annualRateBps: b.annualRateBps,
+      tenureMonths: b.tenureMonths, processingFeePaise: 0, gstBps: b.gstBps == null ? 1800 : b.gstBps, firstDueDate: first, lastDueDate: s.rows[s.rows.length - 1].dueDate, emiPaise: s.emi,
+      totalInterestPaise: s.ti, totalGstPaise: s.tg, totalPayablePaise: b.principalPaise + s.ti + s.tg, status: 'active', createdAt: iso(), updatedAt: iso(), version: 0, schedule: s.rows };
+    plans.push(p); const { schedule, ...view } = p; return Trail.reply(201, view, { etag: '"0"', location: '/v1/emi-plans/' + p.id });
+  })()));
+  Trail.mock('GET', /^\/api\/v1\/emi-plans\/([0-9a-f-]{36})\/schedule$/, (m, req) => auth(req) || (() => {
+    const p = plans.find(x => x.id === m[1] && x.accountId === req.tenant.accountId); if (!p) return Trail.problem(404, 'NOT_FOUND', 'plan not found');
+    return { data: p.schedule, page: { limit: 25, hasMore: false, nextCursor: null } };
+  })());
+  Trail.mock('DELETE', /^\/api\/v1\/emi-plans\/([0-9a-f-]{36})$/, (m, req) => auth(req) || (() => {
+    const p = plans.find(x => x.id === m[1] && x.accountId === req.tenant.accountId); if (!p) return Trail.problem(404, 'NOT_FOUND', 'plan not found');
+    if (p.status === 'active') { p.status = 'closed'; p.schedule.filter(r => r.status === 'due' && r.dueDate > today()).forEach(r => { r.status = 'cancelled'; }); }
+    return Trail.reply(204, null);
+  })());
+  const balance = acct => {
+    const mine = points.filter(p => p.accountId === acct);
+    const cards = seed.userCards.rows().filter(c => c.accountId === acct && c.status !== 'removed').map(c => {
+      const pts = mine.filter(p => p.userCardId === c.id).reduce((s, p) => s + p.points, 0);
+      return { userCardId: c.id, nickname: c.nickname, points: pts, valuePaise: Math.floor(pts * 25), pointValueMilliPaise: 25000, lapsed: 0, expiringSoon: 0, expiring: [] };
+    });
+    return { points: cards.reduce((s, c) => s + c.points, 0), valuePaise: cards.reduce((s, c) => s + c.valuePaise, 0), expiringSoon: 0, horizonDays: 60, cards };
+  };
+  Trail.mock('GET', /^\/api\/v1\/rewards\/balance$/, (m, req) => auth(req) || balance(req.tenant.accountId));
+  Trail.mock('POST', /^\/api\/v1\/rewards\/ledger$/, Trail.idempotent((m, req) => auth(req) || (() => {
+    const b = req.body || {}; const c = myCard(req, b.userCardId); if (!c) return Trail.problem(404, 'NOT_FOUND', 'card not found');
+    const have = balance(req.tenant.accountId).cards.find(x => x.userCardId === c.id).points;
+    if (b.kind === 'redeem' && b.points > have) return Trail.problem(409, 'INSUFFICIENT_POINTS', `${have} points available`);
+    const e = { id: Trail.uuidv7(), accountId: c.accountId, userCardId: c.id, kind: b.kind, points: b.kind === 'redeem' ? -b.points : b.points, valuePaise: 0, createdAt: iso() };
+    points.push(e); return Trail.reply(201, e);
+  })()));
+  Trail.mock('GET', /^\/api\/v1\/portfolio\/report$/, (m, req) => auth(req) || (() => {
+    const period = req.query.period || 'month'; if (period !== 'month' && period !== 'year') return Trail.problem(400, 'VALIDATION_FAILED', 'period: month or year');
+    const t = today(); const from = period === 'month' ? t.slice(0, 8) + '01' : t.slice(0, 5) + '01-01'; const months = period === 'month' ? 1 : 12;
+    const cards = seed.userCards.rows().filter(c => c.accountId === req.tenant.accountId && c.status !== 'removed').map(c => {
+      const ts = txns.rows().filter(x => x.userCardId === c.id && istDay(x.postedAt) >= from);
+      const spend = ts.reduce((s, x) => s + x.amountPaise, 0); const rw = ts.reduce((s, x) => s + x.reward.valuePaise, 0);
+      const annual = Math.floor((product(c.cardProductId) || {}).annualFeePaise * months / 12 || 0);
+      return { userCardId: c.id, nickname: c.nickname, productName: c.productName, spendPaise: spend, txnCount: ts.length, rewardsValuePaise: rw, feesPaise: 0, annualFeePaise: annual, netPaise: rw - annual };
+    });
+    const sum = k => cards.reduce((s, c) => s + c[k], 0);
+    return { period, from, to: t, spendPaise: sum('spendPaise'), txnCount: sum('txnCount'), rewardsValuePaise: sum('rewardsValuePaise'), feesPaise: 0, annualFeePaise: sum('annualFeePaise'), netPaise: sum('netPaise'), cards };
+  })());
+
+  // ---------------------------------------------------------------- UI
+  $('c-product').innerHTML = catalog.map(c => `<option value="${esc(c.id)}">${esc(c.name)} · ${esc(c.network)} · fee ${rupees(c.annualFeePaise)}</option>`).join('');
+  let card = null; let lastAdd = null; let lastTxn = null; let plan = null;
+  const loadCards = async () => {
+    const r = await Trail.api('GET', '/api/v1/cards?limit=50');
+    if (r.status !== 200) { $('c-list').innerHTML = `<div class="skel">${r.status} ${esc(r.data && r.data.code)}</div>`; return; }
+    if (card && !r.data.data.some(c => c.id === card.id)) card = null;
+    if (!card && r.data.data.length) card = r.data.data[0];
+    $('c-list').innerHTML = r.data.data.map(c => `<div class="pick${card && c.id === card.id ? ' on' : ''}" data-id="${esc(c.id)}">${c.status === 'active' ? '●' : '○'} <strong>${esc(c.nickname)}</strong> ··${esc(c.last4)} <span style="color:var(--muted)">${esc(c.network)} · cycle ${esc(c.currentCycle && c.currentCycle.periodStart)} → ${esc(c.currentCycle && c.currentCycle.periodEnd)}, due ${esc(c.currentCycle && c.currentCycle.dueDate)} · v${c.version}</span></div>`).join('') || '<div class="skel">no cards</div>';
+  };
+  const pick = async id => {
+    const r = await Trail.api('GET', '/api/v1/cards/' + id);
+    if (r.status === 200) { card = r.data; $('c-out').textContent = `${card.nickname} · ${card.productName || ''} · ETag ${r.headers.etag}`; }
+    await loadCards(); txPager.reload(); loadStatements();
+  };
+  $('c-list').addEventListener('click', e => { const d = e.target.closest('[data-id]'); if (d) pick(d.dataset.id); });
+  const addCard = async headers => {
+    const body = { cardProductId: $('c-product').value, last4: $('c-last4').value.trim() || String(1000 + Math.floor(Math.random() * 9000)), statementDay: Number($('c-day').value) };
+    lastAdd = { body, headers };
+    const r = await Trail.api('POST', '/api/v1/cards', { body, headers });
+    $('c-out').textContent = `${r.status} ${r.data && r.data.code || ''}${r.headers['idempotent-replayed'] ? ' · Idempotent-Replayed' : ''}\n${JSON.stringify(r.data, null, 2).slice(0, 600)}`;
+    if (r.status === 201) { card = r.data; await loadCards(); txPager.reload(); loadStatements(); }
+  };
+  $('c-add').addEventListener('click', () => addCard(key()));
+  $('c-replay').addEventListener('click', () => { if (lastAdd) { $('c-last4').value = lastAdd.body.last4; addCard(lastAdd.headers); } });
+  $('c-nick').addEventListener('click', async () => {
+    if (!card) return;
+    const r = await Trail.api('PATCH', '/api/v1/cards/' + card.id, { body: { nickname: card.nickname.replace(/ \(renamed\)$/, '') + ' (renamed)' }, headers: { 'If-Match': `"${card.version}"`, 'Content-Type': 'application/merge-patch+json' } });
+    $('c-out').textContent = `${r.status} ${r.data && r.data.code || ''} · ETag ${r.headers.etag || '—'}`; if (r.status === 200) card = r.data; loadCards();
+  });
+  $('c-del').addEventListener('click', async () => {
+    if (!card) return; const r = await Trail.api('DELETE', '/api/v1/cards/' + card.id);
+    $('c-out').textContent = `remove → ${r.status}`; card = null; loadCards();
+  });
+  const txPager = Trail.mountPager($('t-pager'), {
+    get path() { return `/api/v1/cards/${card ? card.id : '00000000-0000-0000-0000-000000000000'}/transactions`; }, first: 10, page: 10,
+    render: t => `${esc(t.postedAt.slice(0, 16).replace('T', ' '))} <strong>${rupees(t.amountPaise)}</strong> ${esc(t.description)} <span style="color:var(--muted)">${esc(t.categoryPath || '')}${t.reward ? ' · ' + esc(t.reward.type) + ' ' + rupees(t.reward.valuePaise) + (t.reward.points ? ' (' + t.reward.points + ' pts)' : '') : ''}${t.expenseId ? ' · linked' : ''}</span>`,
+  });
+  const loadStatements = async () => {
+    const head = '<tr><th>period</th><th>due</th><th class="n">debits</th><th class="n">min due</th><th>status</th></tr>';
+    if (!card) { $('s-table').innerHTML = head; return; }
+    const r = await Trail.api('GET', `/api/v1/cards/${card.id}/statements`);
+    $('s-table').innerHTML = head + (r.status === 200 ? r.data.data.map(s => `<tr><td>${esc(s.periodStart)} → ${esc(s.periodEnd)}</td><td>${esc(s.dueDate)}</td><td class="n">${rupees(s.debitsPaise)}</td><td class="n">${rupees(s.minDuePaise)}</td><td>${esc(s.status)}</td></tr>`).join('') : `<tr><td colspan="5">${r.status}</td></tr>`);
+  };
+  $('t-add').addEventListener('click', async () => {
+    if (!card) { $('t-out').textContent = 'select a card'; return; }
+    const body = { postedAt: iso(new Date(Date.now() - 3600000)), amountPaise: Math.round(Number($('t-amount').value) * 100), kind: 'purchase', description: $('t-desc').value, categoryPath: $('t-cat').value };
+    const r = await Trail.api('POST', `/api/v1/cards/${card.id}/transactions`, { body, headers: key() });
+    $('t-out').textContent = `${r.status} ${r.data && r.data.code || ''}` + (r.status === 201 ? ` · reward ${r.data.reward.type} ${rupees(r.data.reward.valuePaise)} at ${r.data.reward.rateBps} bps` : '');
+    if (r.status === 201) { lastTxn = r.data; txPager.reload(); loadStatements(); }
+  });
+  const loadSuggestions = async () => {
+    const r = await Trail.api('GET', '/api/v1/links/suggestions?limit=25');
+    $('m-list').innerHTML = r.status === 200 ? r.data.data.map(l => `<div>${esc(l.expenseMerchant)} ${esc(l.expenseDay)} ↔ ${esc(l.description)} <strong>${rupees(l.amountPaise)}</strong> · score ${Number(l.score).toFixed(3)}
+      <button class="ghost" type="button" data-link="${esc(l.id)}" data-act="confirm">confirm</button> <button class="ghost" type="button" data-link="${esc(l.id)}" data-act="reject">reject</button></div>`).join('') || '<div class="skel">no suggestions</div>'
+      : `<div class="skel">${r.status} ${esc(r.data && r.data.code)}</div>`;
+  };
+  $('m-list').addEventListener('click', async e => {
+    const b = e.target.closest('[data-link]'); if (!b) return;
+    const r = await Trail.api('POST', `/api/v1/links/${b.dataset.link}:${b.dataset.act}`);
+    $('m-out').textContent = `${b.dataset.act} → ${r.status} ${r.data && (r.data.code || r.data.status) || ''}`; loadSuggestions(); txPager.reload();
+  });
+  $('m-reload').addEventListener('click', loadSuggestions);
+  $('m-expense').addEventListener('click', async () => {
+    if (!lastTxn) { $('m-out').textContent = 'record a card transaction first'; return; }
+    const r = await Trail.api('POST', '/api/v1/expenses', { body: { occurredAt: lastTxn.postedAt, amountPaise: lastTxn.amountPaise, merchant: 'Swiggy', categoryPath: lastTxn.categoryPath, paymentMethod: 'card', userCardId: lastTxn.userCardId }, headers: key() });
+    $('m-out').textContent = `ledger expense → ${r.status}; waiting for the matcher…`;
+    for (let i = 0; i < 20; i++) { await new Promise(res => setTimeout(res, 500)); await loadSuggestions(); if ($('m-list').querySelector('[data-link]')) break; }
+  });
+  $('e-add').addEventListener('click', async () => {
+    if (!card) { $('e-out').textContent = 'select a card'; return; }
+    const body = { userCardId: card.id, description: 'Trail EMI', principalPaise: Math.round(Number($('e-principal').value) * 100), annualRateBps: Math.round(Number($('e-rate').value) * 100), tenureMonths: Number($('e-months').value) };
+    const r = await Trail.api('POST', '/api/v1/emi-plans', { body, headers: key() });
+    if (r.status !== 201) { $('e-out').textContent = `${r.status} ${r.data && r.data.code || ''}`; return; }
+    plan = r.data;
+    $('e-out').textContent = `EMI ${rupees(plan.emiPaise)} × ${plan.tenureMonths} · interest ${rupees(plan.totalInterestPaise)} · GST ${rupees(plan.totalGstPaise)} · total ${rupees(plan.totalPayablePaise)}`;
+    const s = await Trail.api('GET', `/api/v1/emi-plans/${plan.id}/schedule?limit=50`);
+    $('e-table').innerHTML = '<tr><th>#</th><th>due</th><th class="n">principal</th><th class="n">interest</th><th class="n">GST</th><th class="n">outstanding</th><th>status</th></tr>'
+      + (s.status === 200 ? s.data.data.map(i => `<tr><td>${i.number}</td><td>${esc(i.dueDate)}</td><td class="n">${rupees(i.principalPaise)}</td><td class="n">${rupees(i.interestPaise)}</td><td class="n">${rupees(i.gstPaise)}</td><td class="n">${rupees(i.outstandingAfterPaise)}</td><td>${esc(i.status)}</td></tr>`).join('') : '');
+  });
+  $('e-close').addEventListener('click', async () => {
+    if (!plan) return; const r = await Trail.api('DELETE', '/api/v1/emi-plans/' + plan.id);
+    $('e-out').textContent = `close → ${r.status}`;
+  });
+  const loadRewards = async () => {
+    const r = await Trail.api('GET', '/api/v1/rewards/balance');
+    $('r-out').textContent = r.status === 200 ? `${r.data.points} points worth ${rupees(r.data.valuePaise)} · expiring in ${r.data.horizonDays} days: ${r.data.expiringSoon}\n`
+      + r.data.cards.map(c => `  ${c.nickname}: ${c.points} pts (${rupees(c.valuePaise)})`).join('\n') : `${r.status} ${r.data && r.data.code}`;
+  };
+  $('r-reload').addEventListener('click', loadRewards);
+  $('r-redeem').addEventListener('click', async () => {
+    if (!card) return;
+    const r = await Trail.api('POST', '/api/v1/rewards/ledger', { body: { userCardId: card.id, kind: 'redeem', points: Number($('r-points').value) }, headers: key() });
+    $('r-out').textContent = `redeem → ${r.status} ${r.data && (r.data.code || '') || ''}`; if (r.status === 201) loadRewards();
+  });
+  $('p-run').addEventListener('click', async () => {
+    const r = await Trail.api('GET', '/api/v1/portfolio/report?period=' + $('p-period').value);
+    if (r.status !== 200) { $('p-out').textContent = `${r.status} ${r.data && r.data.code}`; return; }
+    $('p-out').textContent = `${r.data.period} ${r.data.from} → ${r.data.to} · spend ${rupees(r.data.spendPaise)} · rewards ${rupees(r.data.rewardsValuePaise)} · annual fees ${rupees(r.data.annualFeePaise)} · net ${rupees(r.data.netPaise)}`;
+    $('p-table').innerHTML = '<tr><th>card</th><th class="n">spend</th><th class="n">rewards</th><th class="n">annual fee</th><th class="n">net</th></tr>'
+      + r.data.cards.map(c => `<tr><td>${esc(c.nickname)}</td><td class="n">${rupees(c.spendPaise)}</td><td class="n">${rupees(c.rewardsValuePaise)}</td><td class="n">${rupees(c.annualFeePaise)}</td><td class="n">${rupees(c.netPaise)}</td></tr>`).join('');
+  });
+  Trail.mountTenantSwitcher($('tenant'), { onSwitch: () => { card = null; loadCards().then(() => { txPager.reload(); loadStatements(); }); loadSuggestions(); loadRewards(); } });
+  if (!Trail.persona) Trail.usePersona('asha');
+  Trail.mountEvents($('events'));
+  document.addEventListener('trail:mode', () => { card = null; loadCards(); loadSuggestions(); loadRewards(); });
+  await loadCards();
+  await txPager.init();
+  loadStatements(); loadSuggestions(); loadRewards();
+})();
+</script>
+</body>
+</html>

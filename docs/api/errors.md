@@ -209,3 +209,19 @@ A publish of an unchanged draft is not an error: it answers the current version 
 Fetch failures are not API errors: a run records them per URL in its checkpoint (`errors[].code`: the refusals above
 after DNS as `PRIVATE_ADDRESS`, or `UNKNOWN_HOST`, `TIMEOUT`, `NETWORK`, `HTTP_<status>`, `TOO_LARGE`,
 `WRONG_CONTENT_TYPE`, `TOO_MANY_REDIRECTS`) and moves on to the next source.
+
+### portfolio (P11, `PortfolioErrors` + core codes)
+
+| Code | Status | When |
+|---|---|---|
+| `USER_TOKEN_REQUIRED` | 403 | Any portfolio endpoint called with an admin-console or service token: portfolio data belongs to an end-user account. |
+| `CARD_EXISTS` | 409 | `POST /v1/cards` for a product + last4 the account already holds (a removed card does not count: it can be added again). |
+| `CARD_NOT_ACTIVE` | 409 | Recording a transaction, creating an EMI plan or posting points on a closed or removed card. |
+| `CLIENT_REF_TAKEN` | 409 | `POST /v1/cards/{id}/transactions` with a `clientRef` another transaction of the account already carries (with a different Idempotency-Key). |
+| `LINK_DECIDED` | 409 | `:confirm` of a rejected suggestion or `:reject` of a confirmed one, or `:confirm` when the transaction or the expense is already confirmed with another partner. Repeating the same decision answers the link. |
+| `EMI_NOT_ACTIVE` | 409 | `PATCH /v1/emi-plans/{id}` that changes the status of a closed or foreclosed plan (an ended plan cannot be reopened). |
+| `INSUFFICIENT_POINTS` | 409 | `POST /v1/rewards/ledger` `kind: redeem` for more than the card's available (unexpired) points. |
+| `VALIDATION_FAILED` | 400 | Card: `cardProductId` (REQUIRED, UNKNOWN_CARD_PRODUCT, PRODUCT_RETIRED), `last4`, `statementDay` (1-28 or 31), `dueOffsetDays` (10-30), `creditLimitPaise`, `openedOn` (IN_FUTURE); transaction: `postedAt`, `amountPaise`, `kind`/`direction`, `description`, `categoryPath`; EMI: `userCardId` (UNKNOWN_CARD), `principalPaise`, `annualRateBps` (0-6000), `tenureMonths` (1-84), `processingFeePaise`, `gstBps` (0-2800), `firstDueDate`, `cardTxnId` (UNKNOWN_TRANSACTION, NOT_A_DEBIT), PATCH `status` (closed/foreclosed); rewards: `kind` (redeem/adjust), `points`, `note` (REQUIRED for adjust); report: `period` (month/year), `month`, `year`. |
+| `IDEMPOTENCY_KEY_REQUIRED` | 400 | `POST /v1/cards`, `/v1/cards/{id}/transactions`, `/v1/emi-plans`, `/v1/rewards/ledger` without the header. |
+| `IF_MATCH_REQUIRED` / `VERSION_CONFLICT` | 428 / 412 | `PATCH /v1/cards/{id}` or `/v1/emi-plans/{id}` without / with a stale ETag. |
+| `NOT_FOUND` | 404 | Unknown or another account's card, transaction, link or plan (RLS: they do not exist for the caller); unknown link `:action`. |

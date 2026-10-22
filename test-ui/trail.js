@@ -237,6 +237,8 @@
       return e;
     },
     recent(limit = 50) { return events.log.slice(0, limit); },
+    /** Mock-mode consumers (P11: the portfolio matcher listens to ledger.expense.created). */
+    on(fn) { eventListeners.push(fn); },
     clear() { events.log.length = 0; },
   };
 
@@ -426,8 +428,12 @@
         maxAnnualFee: (r, v) => r.annualFeePaise <= Number(v),
         category: (r, v, q) => { const rate = rateFor(r, v); return rate !== null && rate >= Number(q.minRateBps || 0); },
         minRateBps: () => true } });
-    const userCards = collection({ rows: seed.userCards.map(c => ({ ...c, sortName: c.nickname })), sortKey: 'sortName',
-      sortName: 'nickname_desc', filters: {} });
+    // P11: GET /v1/cards (newest first, removed cards hidden), the CardView shape
+    const userCards = collection({ rows: seed.userCards.map(c => {
+      const p = seed.catalogCards.find(x => x.id === c.cardProductId) || {};
+      return { ...c, productSlug: c.cardProductSlug, productName: p.name || null, issuerCode: p.issuerCode || null,
+        createdAt: c.openedOn + 'T04:30:00.000Z', updatedAt: c.openedOn + 'T04:30:00.000Z' };
+    }), sortKey: 'createdAt', sortName: 'created_desc', where: r => r.status !== 'removed', filters: {} });
 
     const auth401 = req => (req.tenant ? null : problem(401, 'UNAUTHENTICATED', 'log in as a persona first'));
     mockList(/^\/api\/v1\/expenses$/, expenses);
@@ -446,7 +452,7 @@
       const row = expenses.add({ id: uuidv7(now), accountId: req.tenant.accountId, occurredAt: new Date(b.occurredAt).toISOString(),
         amountPaise: b.amountPaise, currency: 'INR', merchantDisplay: b.merchant || 'Manual entry', merchantId: null,
         categoryPath: b.categoryPath || 'general', categorySource: b.categoryPath ? 'user' : 'resolver', resolutionConfidence: b.categoryPath ? 1000 : 0,
-        paymentMethod: b.paymentMethod || 'upi', userCardId: null, note: b.note || null, tags: b.tags || [], source: 'manual', version: 0,
+        paymentMethod: b.paymentMethod || 'upi', userCardId: b.paymentMethod === 'card' ? (b.userCardId || null) : null, note: b.note || null, tags: b.tags || [], source: 'manual', version: 0,
         createdAt: new Date(now).toISOString() });
       events.emit('ledger.expense.created', row.id, { after: row }, req.tenant.accountId);
       return reply(201, row, { location: '/v1/expenses/' + row.id, etag: '"0"' });
