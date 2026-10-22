@@ -32,7 +32,8 @@ class ResilienceIT extends GatewayIT {
         + "event: tick\ndata: {\"n\":4}\n\n";
     BACKENDS.get("reco").stubFor(get(urlPathEqualTo("/v1/recommendations/stream")).atPriority(1)
         .willReturn(aResponse().withStatus(200).withHeader("Content-Type", "text/event-stream")
-            .withHeader("Cache-Control", "no-cache").withBody(sse).withChunkedDribbleDelay(4, 12_000)));
+            .withHeader("Cache-Control", "no-cache").withHeader("X-Backend", "reco") // the stub outlives this test
+            .withBody(sse).withChunkedDribbleDelay(4, 12_000)));
     Res r = send("GET", "/v1/recommendations/stream?ticket=t-" + System.nanoTime(), null, "X-Forwarded-For", ip());
     assertThat(r.status()).isEqualTo(200);
     assertThat(r.millis()).as("the stream ran past 10 s").isGreaterThanOrEqualTo(10_000);
