@@ -131,6 +131,7 @@ public final class EmiRepository implements EmiStore {
   @Override
   public Page<Installment> schedule(PageRequest page, UUID planId) {
     TenantScope.require();
-    return pager.page(jdbc, SCHEDULE, page, Map.of("plan", planId), Map.of("planId", planId.toString()));
+    // the path id scopes the rows; the cursor binds query filters only (a cursor of another card or plan is safe)
+    return pager.page(jdbc, SCHEDULE, page, Map.of("plan", planId), Map.of());
   }
 }

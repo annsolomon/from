@@ -116,7 +116,8 @@ public final class TransactionRepository implements TransactionStore {
   @Override
   public Page<TxnRow> list(PageRequest page, UUID cardId) {
     TenantScope.require();
-    return pager.page(jdbc, LIST, page, Map.of("card", cardId), Map.of("cardId", cardId.toString()));
+    // the path id scopes the rows; the cursor binds query filters only (a cursor of another card or plan is safe)
+    return pager.page(jdbc, LIST, page, Map.of("card", cardId), Map.of());
   }
 
   @Override
@@ -172,7 +173,8 @@ public final class TransactionRepository implements TransactionStore {
   @Override
   public Page<StatementRow> statements(PageRequest page, UUID cardId) {
     TenantScope.require();
-    return pager.page(jdbc, STATEMENTS, page, Map.of("card", cardId), Map.of("cardId", cardId.toString()));
+    // the path id scopes the rows; the cursor binds query filters only (a cursor of another card or plan is safe)
+    return pager.page(jdbc, STATEMENTS, page, Map.of("card", cardId), Map.of());
   }
 
   @Override
