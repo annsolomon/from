@@ -206,7 +206,7 @@
     return Trail.reply(201, c, { etag: '"0"', location: '/v1/cards/' + c.id });
   })()));
   Trail.mock('GET', /^\/api\/v1\/cards\/([0-9a-f-]{36})$/, (m, req) => auth(req) || (() => {
-    const c = myCard(req, m[1]); return c ? Trail.reply(200, c, { etag: `"${c.version}"` }) : Trail.problem(404, 'NOT_FOUND', 'card not found');
+    const c = myCard(req, m[1]); return c && c.status !== 'removed' ? Trail.reply(200, c, { etag: `"${c.version}"` }) : Trail.problem(404, 'NOT_FOUND', 'card not found');
   })());
   Trail.mock('PATCH', /^\/api\/v1\/cards\/([0-9a-f-]{36})$/, (m, req) => auth(req) || (() => {
     const c = myCard(req, m[1]); if (!c || c.status === 'removed') return Trail.problem(404, 'NOT_FOUND', 'card not found');

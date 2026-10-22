@@ -144,7 +144,9 @@ def main():
     s, _, d = call("DELETE", GW + "/v1/cards/" + card["id"], headers=bearer(asha))
     check("remove the smoke card: 204", s == 204, (s, d))
     s, _, d = call("GET", GW + "/v1/cards/" + card["id"], headers=bearer(asha))
-    check("removed card reads status removed", s == 200 and d.get("status") == "removed", (s, d))
+    check("a removed card is gone: 404", s == 404, (s, d))
+    s, _, d = call("DELETE", GW + "/v1/cards/" + card["id"], headers=bearer(asha))
+    check("remove again: 204 (idempotent)", s == 204, (s, d))
 
 
 if __name__ == "__main__":
