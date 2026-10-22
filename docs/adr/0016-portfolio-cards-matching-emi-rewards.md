@@ -1,6 +1,6 @@
 # ADR-0016: Portfolio A — user cards, billing cycles, auto-match, EMI and the points ledger
 
-- Status: Accepted (P11; proven by CI run RUNID, git SHA).
+- Status: Accepted (P11; proven by CI run 39703341828, git bac4db8).
   Proof: `CardsIT`, `TransactionsIT`, `LinksIT`, `AutoMatchAccuracyIT`, `ProjectionIT`, `EmiIT`, `RewardsReportIT`,
   `PortfolioRlsIT`, `TransactionsPaginationContractIT`, `IdempotencyContractsIT`, `BillingCycleTest`, `EmiMathTest`,
   `MatchScoreTest`, `RewardsDomainTest`, api-smoke P11, trail-check P11.

@@ -1,8 +1,8 @@
 # Dexter v2 — Build README (living handoff)
 
-**Last updated:** 2026-10-18 · **Chat/phase:** P10 DONE · **Model:** Claude Opus 5.5
-**P10 is DONE (2026-10-18).** `verify.sh full` PASS + `trail-check.sh` PASS on a GitHub runner (repo `annsolomon/from`,
-commit `c68837d`, run 39109141399; reports on branch `verify-reports`). Next chat: **P11** (Portfolio A). Upload `MASTER_PLAN.md`
+**Last updated:** 2026-10-22 · **Chat/phase:** P11 DONE · **Model:** Claude Opus 5.5
+**P11 is DONE (2026-10-22).** `verify.sh full` PASS + `trail-check.sh` PASS on a GitHub runner (repo `annsolomon/from`,
+commit `bac4db8`, run 39703341828; reports on branch `verify-reports`). Next chat: **P12** (Portfolio B: calc + parser). Upload `MASTER_PLAN.md`
 + this README; the code is in the repo (clone it).
 
 ## 1. Phase status
@@ -20,7 +20,7 @@ commit `c68837d`, run 39109141399; reports on branch `verify-reports`). Next cha
 | P08 | Ledger B | **DONE** 2026-10-17 | `verify.sh full` PASS + trail-check PASS (CI run 39042585515, git 960e916): resolver 500/500 seed, 492/500 distorted, 42/42 payees unmatched; autocomplete p95 11 ms (p50 7 ms); 10k-row import 2.2 s + idempotent re-import; api-smoke P08 24/24 + import topic |  DoD all ticked (§3) |
 | P09 | Catalog A | **DONE** 2026-10-17 | `verify.sh full` PASS + trail-check PASS (CI run 39046289166, git 1135b29): catalog unit 6 + IT 15 (admin draft→publish→version, public keyset/filters/search/potential, RLS 4, projection from the compacted topic = stored snapshot, PlanAssert on 50k cards incl. search inside the owner function), api-smoke P09 15/15 | DoD all ticked (§3) |
 | P10 | Catalog B (ingestion) | **DONE** 2026-10-18 | `verify.sh full` PASS + trail-check PASS (CI run 39109141399, git c68837d): catalog unit 21 + IT 27 (pipeline: unchanged → no item, fee change → one item, approve idempotent sequential + concurrent, supersede/stale/draft-pending; collector: SSRF incl. redirects to private addresses, sitemap politeness, resume from checkpoint, abandoned runs, scheduler; API + permissions; RLS for ingestion tables), objectstore unit 2, api-smoke P10 16/16 (real admin MFA, SeaweedFS snapshot, approve → v2 public) | DoD all ticked (§3) |
-| P11 | Portfolio A | NOT STARTED | — | |
+| P11 | Portfolio A | **DONE** 2026-10-22 | `verify.sh full` PASS + trail-check PASS (CI run 39703341828, git bac4db8): portfolio unit 14 (BillingCycle, EmiMath, MatchScore, rewards domain, platform migration, ArchRules) + IT 46 (cards, transactions + statements + closer, links, auto-match accuracy on the seed's 357 merchants: precision 1.000 / recall 1.000 over 400 expenses, projection version guard + Kafka end to end, EMI, rewards + report, RLS proof on 10 tables, PaginationContract 9, IdempotencyContract 2 × 6), api-smoke P11 29/29 (auto-match over real Kafka) | DoD all ticked (§3) |
 | P12 | Portfolio B (calc + parser) | NOT STARTED | — | |
 | P13 | Planning | NOT STARTED | — | |
 | P14 | Reco A | NOT STARTED | — | |
@@ -32,10 +32,19 @@ commit `c68837d`, run 39109141399; reports on branch `verify-reports`). Next cha
 
 ## 2. In progress (exact stopping point)
 
-- **P10 (2026-10-18): complete.** Nothing in progress. Next action: P11 (verify P10 first, then Portfolio A).
-  P11 starts from: `dexter.catalog.card.v1` (compacted; publish, promotion and retire all emit the full snapshot)
-  for its card projection; `libs/dexter-objectstore` for statement files; the seed stages `user_cards` in
-  `seed_stage` until portfolio's migrations exist (A-24); the trail kit has `/api/v1/cards` mocks (P03).
+- **P11 (2026-10-22): complete.** Nothing in progress. Next action: P12 (verify P11 first, then Portfolio B).
+  P12 starts from: `card_transactions.source` (statement rows land here and reuse `Matcher`), `statements` (upload
+  attaches to a period), `libs/dexter-objectstore` for statement files, `EmiMath`/`BillingCycle` (domain, pure) for
+  the calc engine library, and the `ai-parser` skeleton.
+
+### History (P11)
+
+- r1 (`e335e27`): main code compiled; one test-compile error (Kafka record value must be bytes). r2 (`3e7277f`):
+  a pre-existing gateway flake (`ResilienceIT`'s SSE stub outlived its test and lacked `X-Backend`) failed
+  `RouteTableIT` before portfolio ran; r3 (`95bae52`) fixed the stub. 45 of 46 portfolio ITs green; the
+  PaginationContract rejected a cursor of another card (`CURSOR_FILTER_MISMATCH`): path ids were bound into the
+  cursor. r4 (`ed081e7`): path ids scope rows only; maven green, api-smoke 28/29 (the smoke expected a removed card
+  to read back; the API answers 404). r5 (`bac4db8`): smoke fixed. All green (run 39703341828).
 
 ### History (P10)
 
@@ -154,6 +163,17 @@ commit `c68837d`, run 39109141399; reports on branch `verify-reports`). Next cha
 - **P02b scope (A-13):** `dexter-security` (resource server, JWKS cache + unknown-kid refetch, `AuthContext`, audience check, `@RequiresStepUp`, `@RequiresPermission`, service-token client, test JWKS/JWT factory; pins nimbus + bouncycastle, verified on Maven Central), `dexter-cache` (ADR-0004, generation keys, Redis ACLs, cache contract), `ArchRules` (pins archunit), demo module switched from the `X-Demo-Account` test header to `AuthContext`, `p02-*.html` trail page + lab endpoints (idempotency replay/409/422, outbox → Kafka → projection, DLQ).
 
 ## 3. Verification of previous phase
+
+### P11 against its DoD (CI run 39703341828, git bac4db8, 2026-10-22)
+
+| DoD / requirement | Result | Evidence |
+|---|---|---|
+| IT-GREEN | PASS | `full.maven`: portfolio unit 14 + IT 46 (`CardsIT` 2, `TransactionsIT` 3, `LinksIT` 3, `AutoMatchAccuracyIT` 1, `ProjectionIT` 2, `EmiIT` 2, `RewardsReportIT` 2, `PortfolioRlsIT` 9, `TransactionsPaginationContractIT` 9, `IdempotencyContractsIT` 12, `PortfolioHealthIT` 1) |
+| RLS proof on all tables | PASS | `PortfolioRlsIT`: RlsProofKit (flags, isolation, fail-closed, WITH CHECK, no escape) on user_cards, statements, card_transactions, expense_links, ledger_expenses_proj, emi_plans, emi_schedule, reward_points_ledger (append-only: UPDATE/DELETE denied), card_savings_summary; catalog_products_proj readable by tenants, writable only by the PROJECTOR actor |
+| Pagination and idempotency contracts | PASS | PaginationContract on `GET /v1/cards/{id}/transactions` incl. PlanAssert on 305,000 rows (`card_transactions_list`, no Sort); IdempotencyContract on `POST /v1/cards` and `POST /v1/cards/{id}/transactions` (replay, 422, concurrent, rollback on injected failure, 400 without key) |
+| Auto-match accuracy on the seed | PASS | `AutoMatchAccuracyIT`: 400 seed-merchant expenses, 343 charged with bank-style descriptors + 69 decoys → 343 suggestions, 343 correct (precision 1.000, recall 1.000; gates 0.97 / 0.95); api-smoke: ledger expense → Kafka → suggestion → confirm |
+| Projection version guard | PASS | `ProjectionIT`: stale and replayed catalog/expense versions are skipped, newer ones applied; Kafka end to end (compacted catalog topic + ledger topic → both projections → suggestion) |
+| Trail page exercised | PASS | trail-check p11 (anon 401, asha's cards with current cycle, rewards balance, year report, suggestions page); Mock flow in jsdom (add/replay/409/rename/remove, record → reward + statement, ledger expense → suggestion → confirm, EMI ₹9,025.83 × 12, redeem 409, report), 0 errors |
 
 ### P10 against its DoD (CI run 39109141399, git c68837d, 2026-10-18)
 
@@ -334,6 +354,37 @@ Issues found in P01's own code during self-review and fixed:
 4. The web test asserted an exact `Content-Type`; now a compatible-type check (a charset suffix must not fail it).
 
 ## 4. What exists now
+
+**P11 Portfolio A (DONE)** — ADR-0016, errors.md portfolio section
+
+| Piece | What it does |
+|---|---|
+| Schema `V202610221000__platform` + `V202610221001__portfolio_core` | `catalog_products_proj` (global; PROJECTOR writes), `user_cards` (active/closed/removed, live unique per product + last4), `statements` (per card period, debits/credits/total/min due, status), `card_transactions` (kind, direction, statement, expense link, client ref), `ledger_expenses_proj`, `expense_links` (suggested/confirmed/rejected, one confirmed per side), `emi_plans` + `emi_schedule`, `reward_points_ledger` (append-only for the app), `card_savings_summary` (month). FORCE RLS everywhere; `portfolio.close_ended_statements` SECURITY DEFINER; extended statistics on (account_id, user_card_id) |
+| `domain` | `BillingCycle` (IST, day 31 = last), `EmiMath` (exact reducing balance + GST), `MatchScore` (normalise, word-start containment, truncated descriptors, trigram ≥ 0.45; 0.75 merchant + 0.25 days), `RewardTerms` (rule choice, earning), `PointsBalance` (FIFO expiry), `PortfolioErrors` |
+| `app` | `CardService`, `TransactionService` (statement find-or-create, rewards, savings, matcher), `LinkService`, `EmiService`, `RewardService`, `ReportService`, `Matcher` (both directions), `ProjectionService` (catalog + expense consumers under the version guard), ports |
+| `infra` | `CardRepository` (+ projection store), `TransactionRepository` (keyset lists, closer via the owner function), `LinkRepository`, `EmiRepository`, `RewardRepository` (filter mask) |
+| `api` | `CardController` (`/v1/cards` CRUD, statements, transactions), `LinkController` (`/v1/links/suggestions`, `:confirm`, `:reject`), `EmiController` (`/v1/emi-plans` CRUD + schedule), `RewardController` (`/v1/rewards/balance|ledger`, `/v1/portfolio/report`) |
+| `config` | `PortfolioConfiguration`, `StatementCloserJob`, `PortfolioRelayConfiguration` (outbox relay; ensures consumed topics too), `PortfolioConsumersConfiguration` (`catalog-projection`, `expense-match` with retry/DLQ) |
+| Contracts | `portfolio.card.added|updated|removed` v1 (`CardChangedV1`), `portfolio.transaction.recorded` v1, `portfolio.link.confirmed` v1; `ExpenseStateV1.merchant` (A-62) |
+| Seed | `CATALOG_PRODUCTS_PROJ` rows from the seeded catalog (projected_version 0); `user_cards` load into the real table |
+| Tests | see §3; support `PortfolioIT` (three catalog products), `Events`, `SeedMerchants` |
+| Trail / smoke | `test-ui/p11-portfolio.html` (trail.js: user-card mock in the API shape, `events.on`); `scripts/lib/p11_smoke.py`; trail-check P11 |
+
+**Query→Index (P11):**
+
+| Query | Index | Plan |
+|---|---|---|
+| cards list (newest first) | `user_cards_list` (account_id, created_at, id) partial live | Index |
+| one live card per product + last4 | `user_cards_key` unique partial | Index |
+| statements of a card | `statements_list` (account_id, user_card_id, period_start, id) | Index |
+| statement of a posting day / closer | `statements_card_period_key` / `statements_open` (period_end) partial | Index |
+| card transactions (newest first) | `card_transactions_list` (account_id, user_card_id, posted_at, id) + statistics `card_transactions_card` | Index (PlanAssert, 305k rows) |
+| client ref dedupe | `card_transactions_client_ref` unique partial | Index |
+| match candidates | `card_transactions_match` partial unlinked debits; `ledger_expenses_proj_match` partial live | Index |
+| suggestions | `expense_links_suggested` partial | Index |
+| EMI plans / schedule | `emi_plans_list` / `emi_schedule_pkey` | Index |
+| rewards ledger / balance / earn once | `reward_points_ledger_list` / `_card` / `_source` unique partial | Index |
+| report | `card_savings_summary_pkey` | Index |
 
 **P10 Catalog B (DONE)** — ADR-0015, errors.md catalog ingestion section
 
@@ -607,7 +658,7 @@ Croma Online vs label Croma).
 |---|---|---|---|
 | identity | accounts / admins | P04 / P05 | 10,000 / 1 |
 | catalog | issuers, card_products, card_product_versions, reward_rules, milestones | P09 | 10, 40, 40, 103, 10 |
-| portfolio | user_cards | P11 | 30,000 |
+| portfolio | user_cards, catalog_products_proj | P11 | 30,000, 40 |
 | ledger | categories, expenses, expense_daily_totals / merchants, merchant_aliases | P07 / P08 | 48, 1,200,000, 1,099,029 / 357, 635 |
 
 **Query→Index (P03):** no service queries. The loader's own statements are `to_regclass`, `information_schema.columns`,
@@ -739,6 +790,7 @@ Croma Online vs label Croma).
 | 0012 | Ledger as the reference service: layers + ports, static keyset query per filter mask, daily totals maintained in the write transaction (IST day × root), merge PATCH + If-Match, soft delete + `:restore`, outbox event per write, admin tokens refused on user endpoints | Accepted: proven by CI run 39023459091 |
 | 0013 | Ledger B: global merchants read-only for the app, resolver (variants → exact/compact/prefix → trigram 0.45 → typo; rules after), Redis alias cache outside transactions, bounded search without a trigram index on expenses, bulk with per-item outcome, CSV import via presigned upload + COPY into a temp table + derived client refs | Accepted: proven by CI run 39042585515 |
 | 0014 | Catalog: published face + editor drafts + immutable versions (trigger), publish in one transaction (no-op by content hash), rule overlap impossible (EXCLUDE gist), snapshot = API = compacted event, public reads with a sentinel tenant, editor-only admin pool, search through an owner SECURITY DEFINER function | Accepted: proven by CI run 39046289166 |
+| 0016 | Portfolio A: catalog as a version-guarded projection written only by the PROJECTOR actor, soft-removed cards with a live-only unique key, computed billing cycles with statements materialised on posting + an owner-function closer, rewards earned at record time on catalog terms into an append-only points ledger (FIFO expiry), auto-match as scored suggestions from both sides, exact reducing-balance EMI, consumers ensure their source topics | Accepted: proven by CI run 39703341828 |
 | 0015 | Catalog ingestion: SSRF policy in two halves (URL rules, then every resolved address public; manual redirects re-checked; size/time/type caps), sources saved only when fetchable, crawl runs with a checkpoint per source + stale re-claim + politeness, content-hash change detection with snapshots in the object store, field-level diff (absent ≠ removed, merchant rules untouched), the promoter as the only writer with replay-safe approve, INGESTOR actor role | Accepted: proven by CI run 39109141399 |
 
 ## 6. Plan amendments (deviations from MASTER_PLAN.md)
@@ -805,6 +857,12 @@ Croma Online vs label Croma).
 | 2026-10-18 | P10 | A-58: the worker is a system actor role `INGESTOR` on the catalog_admin pool (no token carries it): it reads published cards only, writes ingestion rows, and can neither write published data nor record a promotion. | "The promoter is the only writer" enforced by RLS, not only by code. | — |
 | 2026-10-18 | P10 | A-59: an approve is refused while the card has unpublished draft edits (`DRAFT_PENDING`); `DELETE /v1/admin/catalog/cards/{id}/draft` discards them. An item whose card moved past its base version is stale (`REVIEW_STALE`). One pending item per card; a newer diff supersedes it, an identical one is ignored. | Otherwise the next publish of the stale draft would silently undo a promotion; one item per card keeps the queue reviewable. | — |
 | 2026-10-18 | P10 | A-60: extractor `pattern-v1` reads HTML only (fees, waiver spend, APR, forex, fuel waiver, cashback per category); PDFs and images are fetched, hashed and stored for review by eye. Cron schedules are at most hourly. | No PDF/OCR dependency in P10. | A later extractor (PDF text, LLM-assisted) produces the same extraction shape. |
+| 2026-10-22 | P11 | A-62: `ExpenseStateV1` (all `ledger.expense.*` v1 events) carries `merchant` (the display text) beside `merchantId`; changed in place because portfolio is its first consumer. | The matcher compares merchant text with the bank descriptor; ids alone miss unresolved merchants. | Later consumers read it as part of v1. |
+| 2026-10-22 | P11 | A-63: `user_cards` unique key is partial (`WHERE status <> 'removed'`) and removing is soft (status `removed`, `removed_at`; reads answer 404, a second DELETE 204); statements gain debits/credits/txn count; `card_transactions` gain `kind` (purchase/fee/interest/emi debits; refund/payment/cashback credits) and `version`; links gain `method`/`decided_at`; savings summary gains spend/txn columns. | History must survive removal and a card can come back; reports and fees need the kind. | — |
+| 2026-10-22 | P11 | A-64: the global catalog projection is written by the consumer with actor role `PROJECTOR` on the app pool (no token carries it); the seed writes the seeded catalog's projection rows (`projected_version 0`) because it loads catalog tables without events. | RLS on a global table, and a working dev stack right after `seed.sh`. | — |
+| 2026-10-22 | P11 | A-65: endpoints add `POST /v1/rewards/ledger` (redeem / adjust with note) and `/v1/cards/{id}/transactions/{txnId}`; `DELETE /v1/emi-plans/{id}` closes a plan and PATCH can foreclose; the report is `?period=month&month=YYYY-MM` or `?period=year&year=YYYY`. Statement closing is a scheduled job over an owner `SECURITY DEFINER` function (cross-tenant). | The plan names the reads; users need to record redemptions and end plans. | P12 statement upload marks statements paid. |
+| 2026-10-22 | P11 | A-66: path ids (card, plan) scope keyset lists but are not bound into the cursor; query filters are. | PaginationContract case 8: another tenant's cursor must still return only own rows. | — |
+| 2026-10-22 | P11 | A-67: a consuming service's relay also ensures the topics it consumes (same specs as the producer) because topic auto-creation is off. | Consumers otherwise wait minutes for metadata on a fresh stack. | — |
 | 2026-10-18 | P10 | A-61: S3 code moved to `libs/dexter-objectstore` (SigV4 + `S3Objects`) now that catalog is the second user (A-51 said P12). The P05 smoke saves the demo admin's TOTP secret to the git-ignored `.run/admin-totp` so later smokes sign in as a real admin (A-56's limit lifted for P10). | Two users of the same signer; the admin flow deserved an end-to-end smoke. | P12 uses the library for statements. |
 
 ## 7. Known gaps / tech debt (honest, never deleted silently)
@@ -824,6 +882,16 @@ Croma Online vs label Croma).
   - The breached list holds the ≈ 9.1k NCSC top-100k entries that are ≥ 10 characters; no online HIBP k-anonymity
     check (offline by plan).
   - (P05 resolved: lockout, `mfa_enrolled`/`amr` real.)
+- **P11 portfolio A:**
+  - Statements are generated from recorded transactions only; payments (status paid/partially_paid/overdue) are not
+    tracked until statement upload (P12).
+  - Reward caps (`capPaise`, statement/month) and milestones in the catalog terms are not applied at earn time; the
+    points value is the catalog's point value, not a redemption-partner rate.
+  - Auto-match needs the expense to carry the card (`paymentMethod card` + `userCardId`); expenses without a card
+    are not matched to card transactions.
+  - Points expire by FIFO at read time; no `expire` entries are written yet (a job could write them; the balance is
+    already correct).
+  - The report's annual fee is pro-rated by months, not by the card's anniversary or fee waiver spend.
 - **P10 catalog B:**
   - Fetching is plain HTTP GET: pages rendered by JavaScript, PDFs and images are stored but not extracted (A-60).
   - `pattern-v1` is tuned to common Indian issuer wording; unusual wording yields fewer fields (never wrong ones by
@@ -1012,6 +1080,7 @@ press **Lab status / start**, then **Get a valid token**. (After a manual `run.s
 
 ## 10. Changelog (one line per response)
 
+- 2026-10-22 P11 r1–r5: portfolio schema (cards, statements, transactions, links, EMI, points ledger, savings, two projections) with FORCE RLS, billing cycles + closer, rewards on catalog terms, auto-match (MatchScore + both-direction matcher via Kafka), EMI math, report, ADR-0016, A-62..A-67, p11 page/smoke/trail-check, gateway ResilienceIT flake fixed. CI run 39703341828: verify full + trail-check PASS → **P11 DONE**.
 - 2026-10-18 P10 r1–r3: ingestion schema + RLS (INGESTOR), SSRF-safe fetcher, pattern extractor, field diff, resumable runs + scheduler + politeness, review queue + idempotent approve via the promoter, draft discard, dexter-objectstore library, ADR-0015, A-57..A-61, p10 page/fixture/smoke/trail-check. CI run 39109141399: verify full + trail-check PASS → **P10 DONE**.
 - 2026-10-17 P09 r1–r2: catalog schema (issuers, cards, drafts, immutable versions, rules with EXCLUDE, milestones, offers) with FORCE RLS, public reads (keyset, filters, detail ETag, search via owner function, potential, offers), editor admin (drafts, publish/retire, offers), outbox relay + catalog events/contracts, projection IT, 50k PlanAssert, ADR-0014, A-52..A-56, p09 page/smoke/trail-check. CI run 39046289166: verify full + trail-check PASS → **P09 DONE**.
 - 2026-10-17 P08 r1–r2: merchants/aliases, resolver + rules, search, bulk, CSV import (presigned S3 + COPY + worker), calendar, summary, OutboxWriter.appendAll, ADR-0013, A-48..A-51, p08 page/smoke/trail-check. CI run 39042585515: verify full + trail-check PASS → **P08 DONE**.
