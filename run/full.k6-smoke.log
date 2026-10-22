@@ -1,0 +1,47 @@
+
+
+  █ THRESHOLDS 
+
+    checks
+    ✓ 'rate>0.99' rate=100.00%
+
+    http_req_duration{class:health}
+    ✓ 'p(95)<200' p(95)=4.17ms
+
+    http_req_failed
+    ✓ 'rate<0.01' rate=0.00%
+
+      {class:health}
+      ✓ 'rate<0.01' rate=0.00%
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 28794   479.885064/s
+    checks_succeeded...: 100.00% 28794 out of 28794
+    checks_failed......: 0.00%   0 out of 28794
+
+    ✓ status 200
+    ✓ X-Request-Id echoed
+
+    HTTP
+    http_req_duration..............: avg=1.71ms min=639.78µs med=1.27ms max=35.87ms p(90)=2.77ms p(95)=4.17ms
+      { class:health }.............: avg=1.71ms min=639.78µs med=1.27ms max=35.87ms p(90)=2.77ms p(95)=4.17ms
+      { expected_response:true }...: avg=1.71ms min=639.78µs med=1.27ms max=35.87ms p(90)=2.77ms p(95)=4.17ms
+    http_req_failed................: 0.00%  0 out of 14397
+      { class:health }.............: 0.00%  0 out of 14397
+    http_reqs......................: 14397  239.942532/s
+
+    EXECUTION
+    iteration_duration.............: avg=1.84ms min=709.1µs  med=1.39ms max=35.99ms p(90)=2.96ms p(95)=4.38ms
+    iterations.....................: 14397  239.942532/s
+    vus............................: 10     min=10         max=10
+    vus_max........................: 10     min=10         max=10
+
+    NETWORK
+    data_received..................: 6.8 MB 113 kB/s
+    data_sent......................: 2.0 MB 34 kB/s
+
+
+
+k6 smoke thresholds met

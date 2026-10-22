@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: in.dexter.web.WebLabMvcTest
+-------------------------------------------------------------------------------
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.171 s -- in in.dexter.web.WebLabMvcTest

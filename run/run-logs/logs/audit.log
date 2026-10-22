@@ -1,0 +1,14 @@
+2026-10-22T01:28:33.458Z  INFO [] 52587 --- [audit] [           main] in.dexter.audit.AuditApplication         : Starting AuditApplication v0.1.0-SNAPSHOT using Java 25.0.4.1 with PID 52587 (/home/runner/work/from/from/services/audit/target/app.jar started by runner in /home/runner/work/from/from)
+2026-10-22T01:28:33.496Z  INFO [] 52587 --- [audit] [           main] in.dexter.audit.AuditApplication         : The following 1 profile is active: "dev"
+2026-10-22T01:28:40.878Z  INFO [] 52587 --- [audit] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8089 (http)
+2026-10-22T01:28:40.936Z  INFO [] 52587 --- [audit] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-10-22T01:28:40.936Z  INFO [] 52587 --- [audit] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
+2026-10-22T01:28:41.105Z  INFO [] 52587 --- [audit] [           main] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 7124 ms
+2026-10-22T01:28:43.818Z  INFO [] 52587 --- [audit] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 3 endpoints beneath base path '/actuator'
+2026-10-22T01:28:44.075Z  INFO [] 52587 --- [audit] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8089 (http) with context path '/'
+2026-10-22T01:28:44.109Z  INFO [] 52587 --- [audit] [           main] in.dexter.audit.AuditApplication         : Started AuditApplication in 14.272 seconds (process running for 16.674)
+2026-10-22T01:28:47.321Z  INFO [] 52587 --- [audit] [omcat-handler-0] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-10-22T01:28:47.324Z  INFO [] 52587 --- [audit] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-10-22T01:28:47.327Z  INFO [] 52587 --- [audit] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-10-22T01:29:14.487Z  INFO [] 52587 --- [audit] [ionShutdownHook] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-22T01:29:14.495Z  INFO [] 52587 --- [audit] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete

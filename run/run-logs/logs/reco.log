@@ -1,0 +1,14 @@
+2026-10-22T01:28:32.759Z  INFO [] 52526 --- [reco] [           main] in.dexter.reco.RecoApplication           : Starting RecoApplication v0.1.0-SNAPSHOT using Java 25.0.4.1 with PID 52526 (/home/runner/work/from/from/services/reco/target/app.jar started by runner in /home/runner/work/from/from)
+2026-10-22T01:28:32.808Z  INFO [] 52526 --- [reco] [           main] in.dexter.reco.RecoApplication           : The following 1 profile is active: "dev"
+2026-10-22T01:28:40.544Z  INFO [] 52526 --- [reco] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8086 (http)
+2026-10-22T01:28:40.615Z  INFO [] 52526 --- [reco] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-10-22T01:28:40.616Z  INFO [] 52526 --- [reco] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
+2026-10-22T01:28:40.835Z  INFO [] 52526 --- [reco] [           main] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 7588 ms
+2026-10-22T01:28:43.589Z  INFO [] 52526 --- [reco] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 3 endpoints beneath base path '/actuator'
+2026-10-22T01:28:43.864Z  INFO [] 52526 --- [reco] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8086 (http) with context path '/'
+2026-10-22T01:28:43.895Z  INFO [] 52526 --- [reco] [           main] in.dexter.reco.RecoApplication           : Started RecoApplication in 14.184 seconds (process running for 16.573)
+2026-10-22T01:28:45.432Z  INFO [] 52526 --- [reco] [omcat-handler-0] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-10-22T01:28:45.435Z  INFO [] 52526 --- [reco] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-10-22T01:28:45.437Z  INFO [] 52526 --- [reco] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+2026-10-22T01:29:14.606Z  INFO [] 52526 --- [reco] [ionShutdownHook] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-22T01:29:14.647Z  INFO [] 52526 --- [reco] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete

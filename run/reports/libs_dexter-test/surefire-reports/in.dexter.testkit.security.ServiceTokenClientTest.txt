@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: in.dexter.testkit.security.ServiceTokenClientTest
+-------------------------------------------------------------------------------
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.419 s -- in in.dexter.testkit.security.ServiceTokenClientTest

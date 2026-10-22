@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: in.dexter.catalog.IngestionApiIT
+-------------------------------------------------------------------------------
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.573 s -- in in.dexter.catalog.IngestionApiIT

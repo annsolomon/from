@@ -1,0 +1,4 @@
+seed.sh: building seed/target/seed.jar
+run 1: 08da35b601c5441ce952655b81aa3a0e80fa57ca46b92fab30d1f4a0c1fd676c
+run 2: 08da35b601c5441ce952655b81aa3a0e80fa57ca46b92fab30d1f4a0c1fd676c
+seed deterministic: medium seed=42 checksum 08da35b601c5441ce952655b81aa3a0e80fa57ca46b92fab30d1f4a0c1fd676c

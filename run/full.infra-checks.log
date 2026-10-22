@@ -1,0 +1,18 @@
+service databases: 9 (expected 9)
+service roles: 45 (expected 45)
+non-superuser roles with row-security bypass: 0 (expected 0)
+dev lab database (P02 trail lab): 1 (expected 1)
+ledger_app settings: statement_timeout=5s; lock_timeout=2s; idle_in_transaction_session_timeout=10s; search_path=ledger, public
+ledger_app login to ledger: OK
+cross-db isolation: OK (ledger_app cannot connect to identity)
+redis: PONG
+redis acl users: 12 OK
+redis ledger user, own prefix: OK
+redis ledger user, 'GET gen:catalog:global:rules': refused OK
+redis ledger user, 'SET catalog:v1:x 1': refused OK
+redis ledger user, 'KEYS *': refused OK
+redis ledger user, 'FLUSHALL': refused OK
+redis ledger user, 'CONFIG GET maxmemory': refused OK
+redis ledger user, 'DEL ledger:v1:acl-check': refused OK
+objectstore: S3 endpoint reachable on :8333
+kafka: topics API reachable

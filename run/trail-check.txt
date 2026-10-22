@@ -1,0 +1,155 @@
+ Container dexter-mailpit-1  Running
+ Container dexter-kafka-1  Running
+ Container dexter-objectstore-1  Running
+ Container dexter-redis-1  Running
+ Container dexter-postgres-1  Running
+ Container dexter-kafka-1  Waiting
+ Container dexter-objectstore-1  Waiting
+ Container dexter-postgres-1  Waiting
+ Container dexter-redis-1  Waiting
+ Container dexter-mailpit-1  Waiting
+ Container dexter-mailpit-1  Healthy
+ Container dexter-objectstore-1  Healthy
+ Container dexter-redis-1  Healthy
+ Container dexter-kafka-1  Healthy
+ Container dexter-postgres-1  Healthy
+building service jars (missing or stale)...
+SPRING_PROFILES_ACTIVE=dev
+all 10 services UP
+ trail Pulling 
+ 589002ba0eae Pulling fs layer 
+ 1d9cbdb003be Pulling fs layer 
+ e914c6e98e37 Pulling fs layer 
+ d631a49fb4f7 Pulling fs layer 
+ 8f7c784e2471 Pulling fs layer 
+ 44fa0a5a779f Pulling fs layer 
+ 98104829f3fe Pulling fs layer 
+ 0151c82f84a9 Pulling fs layer 
+ 44fa0a5a779f Waiting 
+ d631a49fb4f7 Waiting 
+ 98104829f3fe Waiting 
+ 0151c82f84a9 Waiting 
+ 8f7c784e2471 Waiting 
+ e914c6e98e37 Downloading [==================================================>]     626B/626B
+ e914c6e98e37 Verifying Checksum 
+ e914c6e98e37 Download complete 
+ 1d9cbdb003be Downloading [>                                                  ]  32.13kB/1.834MB
+ 589002ba0eae Downloading [>                                                  ]  48.51kB/3.862MB
+ 1d9cbdb003be Download complete 
+ 589002ba0eae Verifying Checksum 
+ 589002ba0eae Download complete 
+ 589002ba0eae Extracting [>                                                  ]  65.54kB/3.862MB
+ 589002ba0eae Extracting [==================================================>]  3.862MB/3.862MB
+ 589002ba0eae Extracting [==================================================>]  3.862MB/3.862MB
+ 589002ba0eae Pull complete 
+ 1d9cbdb003be Extracting [>                                                  ]  32.77kB/1.834MB
+ 1d9cbdb003be Extracting [==================================================>]  1.834MB/1.834MB
+ d631a49fb4f7 Downloading [==================================================>]     956B/956B
+ d631a49fb4f7 Verifying Checksum 
+ d631a49fb4f7 Download complete 
+ 44fa0a5a779f Downloading [==================================================>]   1.21kB/1.21kB
+ 44fa0a5a779f Verifying Checksum 
+ 44fa0a5a779f Download complete 
+ 8f7c784e2471 Downloading [==================================================>]     405B/405B
+ 8f7c784e2471 Verifying Checksum 
+ 8f7c784e2471 Download complete 
+ 98104829f3fe Downloading [==================================================>]  1.398kB/1.398kB
+ 98104829f3fe Verifying Checksum 
+ 98104829f3fe Download complete 
+ 0151c82f84a9 Downloading [>                                                  ]  212.4kB/20.25MB
+ 0151c82f84a9 Downloading [===================================>               ]  14.48MB/20.25MB
+ 0151c82f84a9 Verifying Checksum 
+ 0151c82f84a9 Download complete 
+ 1d9cbdb003be Pull complete 
+ e914c6e98e37 Extracting [==================================================>]     626B/626B
+ e914c6e98e37 Extracting [==================================================>]     626B/626B
+ e914c6e98e37 Pull complete 
+ d631a49fb4f7 Extracting [==================================================>]     956B/956B
+ d631a49fb4f7 Extracting [==================================================>]     956B/956B
+ d631a49fb4f7 Pull complete 
+ 8f7c784e2471 Extracting [==================================================>]     405B/405B
+ 8f7c784e2471 Extracting [==================================================>]     405B/405B
+ 8f7c784e2471 Pull complete 
+ 44fa0a5a779f Extracting [==================================================>]   1.21kB/1.21kB
+ 44fa0a5a779f Extracting [==================================================>]   1.21kB/1.21kB
+ 44fa0a5a779f Pull complete 
+ 98104829f3fe Extracting [==================================================>]  1.398kB/1.398kB
+ 98104829f3fe Extracting [==================================================>]  1.398kB/1.398kB
+ 98104829f3fe Pull complete 
+ 0151c82f84a9 Extracting [>                                                  ]  229.4kB/20.25MB
+ 0151c82f84a9 Extracting [==========>                                        ]  4.358MB/20.25MB
+ 0151c82f84a9 Extracting [==============================>                    ]  12.39MB/20.25MB
+ 0151c82f84a9 Extracting [=================================================> ]  20.19MB/20.25MB
+ 0151c82f84a9 Extracting [==================================================>]  20.25MB/20.25MB
+ 0151c82f84a9 Pull complete 
+ trail Pulled 
+ Container dexter-trail-1  Creating
+ Container dexter-trail-1  Created
+ Container dexter-trail-1  Starting
+ Container dexter-trail-1  Started
+ Container dexter-trail-1  Waiting
+ Container dexter-trail-1  Healthy
+PASS  page       200
+PASS  page       200
+PASS  page       200
+PASS  page       200
+PASS  page       200
+PASS  page       200
+PASS  page       200
+PASS  page       200
+PASS  page       200
+PASS  page       200
+PASS  page       200
+PASS  page       200
+PASS  api        200
+PASS  gateway    200
+PASS  identity   200
+PASS  ledger     200
+PASS  catalog    200
+PASS  portfolio  200
+PASS  planning   200
+PASS  reco       200
+PASS  billing    200
+PASS  commerce   200
+PASS  audit      200
+PASS  p01-lab    200
+PASS  p01-problem 412
+PASS  p02-lab    ready
+PASS  p02-jwt    200
+PASS  p02-idem   201 + replay
+PASS  fx-personas 200
+PASS  fx-expenses 200
+PASS  fx-categories 200
+PASS  fx-merchants 200
+PASS  fx-catalog-cards 200
+PASS  fx-user-cards 200
+PASS  fx-seed-info 200
+PASS  trail-kit  200
+PASS  p04-jwks   200
+PASS  p04-login  200
+PASS  p04-me     200
+PASS  p05-admin  challenge
+PASS  p05-anon   401
+PASS  p05-mfa    200
+PASS  p06-404    404
+PASS  p06-me     200
+PASS  p06-bridge gone
+PASS  p07-list   200
+PASS  p07-totals 200
+PASS  p07-cats   200
+PASS  p08-ac     200
+PASS  p08-cal    200
+PASS  p08-sum    200
+PASS  p08-search 200
+PASS  p09-cards  200
+PASS  p09-detail 200
+PASS  p09-potent 200
+PASS  p10-anon   /api/v1/admin/review 401
+PASS  p10-anon   /api/v1/admin/ingestion/sources 401
+PASS  p10-fixture 200
+PASS  p11-anon   401
+PASS  p11-cards  200
+PASS  p11-rewards 200
+PASS  p11-report 200
+PASS  p11-links  200
+trail-check: PASS

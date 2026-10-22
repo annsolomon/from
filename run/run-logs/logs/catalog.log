@@ -1,0 +1,258 @@
+2026-10-22T01:28:33.761Z  INFO [] 52447 --- [catalog] [           main] in.dexter.catalog.CatalogApplication     : Starting CatalogApplication v0.1.0-SNAPSHOT using Java 25.0.4.1 with PID 52447 (/home/runner/work/from/from/services/catalog/target/app.jar started by runner in /home/runner/work/from/from)
+2026-10-22T01:28:33.827Z  INFO [] 52447 --- [catalog] [           main] in.dexter.catalog.CatalogApplication     : The following 1 profile is active: "dev"
+2026-10-22T01:28:43.166Z  INFO [] 52447 --- [catalog] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8083 (http)
+2026-10-22T01:28:43.248Z  INFO [] 52447 --- [catalog] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-10-22T01:28:43.252Z  INFO [] 52447 --- [catalog] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
+2026-10-22T01:28:43.377Z  INFO [] 52447 --- [catalog] [           main] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 9075 ms
+2026-10-22T01:28:44.561Z  INFO [] 52447 --- [catalog] [           main] com.zaxxer.hikari.HikariDataSource       : catalog-admin - Starting...
+2026-10-22T01:28:44.590Z  INFO [] 52447 --- [catalog] [           main] com.zaxxer.hikari.HikariDataSource       : catalog-admin - Start completed.
+2026-10-22T01:28:45.989Z  INFO [] 52447 --- [catalog] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://127.0.0.1:5432/catalog?ApplicationName=catalog (PostgreSQL 17.11)
+2026-10-22T01:28:46.111Z  INFO [] 52447 --- [catalog] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 4 migrations (execution time 00:00.072s)
+2026-10-22T01:28:46.200Z  INFO [] 52447 --- [catalog] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "catalog": 202610171600
+2026-10-22T01:28:46.207Z  INFO [] 52447 --- [catalog] [           main] o.f.core.internal.command.DbMigrate      : Schema "catalog" is up to date. No migration necessary.
+2026-10-22T01:28:46.706Z  INFO [] 52447 --- [catalog] [           main] o.a.kafka.common.config.AbstractConfig   : ProducerConfig values: 
+	acks = -1
+	batch.size = 16384
+	bootstrap.servers = [127.0.0.1:9092]
+	buffer.memory = 33554432
+	client.dns.lookup = use_all_dns_ips
+	client.id = catalog-relay
+	compression.gzip.level = -1
+	compression.lz4.level = 9
+	compression.type = none
+	compression.zstd.level = 3
+	connections.max.idle.ms = 540000
+	delivery.timeout.ms = 15000
+	enable.idempotence = true
+	enable.metrics.push = true
+	interceptor.classes = []
+	key.serializer = class org.apache.kafka.common.serialization.StringSerializer
+	linger.ms = 5
+	max.block.ms = 60000
+	max.in.flight.requests.per.connection = 5
+	max.request.size = 1048576
+	metadata.max.age.ms = 300000
+	metadata.max.idle.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partitioner.adaptive.partitioning.enable = true
+	partitioner.availability.timeout.ms = 0
+	partitioner.class = null
+	partitioner.ignore.keys = false
+	receive.buffer.bytes = 32768
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 10000
+	retries = 2147483647
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	transaction.timeout.ms = 60000
+	transaction.two.phase.commit.enable = false
+	transactional.id = null
+	value.serializer = class org.apache.kafka.common.serialization.ByteArraySerializer
+
+2026-10-22T01:28:46.779Z  INFO [] 52447 --- [catalog] [           main] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-10-22T01:28:47.070Z  INFO [] 52447 --- [catalog] [           main] o.a.k.clients.producer.KafkaProducer     : [Producer clientId=catalog-relay] Instantiated an idempotent producer.
+2026-10-22T01:28:47.154Z  INFO [] 52447 --- [catalog] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.1.2
+2026-10-22T01:28:47.155Z  INFO [] 52447 --- [catalog] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c82fd9b934b4c1e6
+2026-10-22T01:28:47.155Z  INFO [] 52447 --- [catalog] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-7153]
+2026-10-22T01:28:48.457Z  INFO [] 52447 --- [catalog] [| catalog-relay] org.apache.kafka.clients.Metadata        : [Producer clientId=catalog-relay] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-10-22T01:28:48.458Z  INFO [] 52447 --- [catalog] [| catalog-relay] o.a.k.c.p.internals.TransactionManager   : [Producer clientId=catalog-relay] ProducerId set to 8 with epoch 0
+2026-10-22T01:28:48.792Z  INFO [] 52447 --- [catalog] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 3 endpoints beneath base path '/actuator'
+2026-10-22T01:28:49.034Z  INFO [] 52447 --- [catalog] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8083 (http) with context path '/'
+2026-10-22T01:28:49.048Z  INFO [] 52447 --- [catalog] [           main] o.a.kafka.common.config.AbstractConfig   : AdminClientConfig values: 
+	bootstrap.controllers = []
+	bootstrap.servers = [127.0.0.1:9092]
+	client.dns.lookup = use_all_dns_ips
+	client.id = 
+	connections.max.idle.ms = 300000
+	default.api.timeout.ms = 10000
+	enable.metrics.push = false
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 5000
+	retries = 2147483647
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+
+2026-10-22T01:28:49.144Z  INFO [] 52447 --- [catalog] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.1.2
+2026-10-22T01:28:49.144Z  INFO [] 52447 --- [catalog] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c82fd9b934b4c1e6
+2026-10-22T01:28:49.144Z  INFO [] 52447 --- [catalog] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-9144]
+2026-10-22T01:28:49.193Z  INFO [] 52447 --- [catalog] [           main] c.CatalogRelayConfiguration$EnsureTopics : TOPICS_READY created=[]
+2026-10-22T01:28:49.194Z  INFO [] 52447 --- [catalog] [           main] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-10-22T01:28:49.194Z  INFO [] 52447 --- [catalog] [           main] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-10-22T01:28:49.197Z  INFO [] 52447 --- [catalog] [           main] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-10-22T01:28:49.197Z  INFO [] 52447 --- [catalog] [| adminclient-1] o.a.kafka.common.utils.AppInfoParser     : App info kafka.admin.client for adminclient-1 unregistered
+2026-10-22T01:28:49.209Z  INFO [] 52447 --- [catalog] [| adminclient-1] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-10-22T01:28:49.209Z  INFO [] 52447 --- [catalog] [| adminclient-1] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-10-22T01:28:49.209Z  INFO [] 52447 --- [catalog] [| adminclient-1] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-10-22T01:28:49.253Z  INFO [] 52447 --- [catalog] [           main] in.dexter.catalog.CatalogApplication     : Started CatalogApplication in 19.212 seconds (process running for 21.998)
+2026-10-22T01:28:49.392Z  INFO [] 52447 --- [catalog] [x-relay-catalog] in.dexter.events.relay.OutboxRelay       : outbox relay catalog: leader
+2026-10-22T01:28:51.013Z  INFO [] 52447 --- [catalog] [omcat-handler-0] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-10-22T01:28:51.013Z  INFO [] 52447 --- [catalog] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-10-22T01:28:51.015Z  INFO [] 52447 --- [catalog] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+2026-10-22T01:28:51.286Z  INFO [01a16139-a8ac-72b1-bde2-a087a389a811] 52447 --- [catalog] [omcat-handler-0] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-10-22T01:28:51.328Z  INFO [01a16139-a8ac-72b1-bde2-a087a389a811] 52447 --- [catalog] [omcat-handler-0] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@7f4780e8
+2026-10-22T01:28:51.331Z  INFO [01a16139-a8ac-72b1-bde2-a087a389a811] 52447 --- [catalog] [omcat-handler-0] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-10-22T01:29:14.601Z  INFO [] 52447 --- [catalog] [ionShutdownHook] o.a.k.clients.producer.KafkaProducer     : [Producer clientId=catalog-relay] Closing the Kafka producer with timeoutMillis = [CARD-5807] ms.
+2026-10-22T01:29:14.669Z  INFO [] 52447 --- [catalog] [ionShutdownHook] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-10-22T01:29:14.673Z  INFO [] 52447 --- [catalog] [ionShutdownHook] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-10-22T01:29:14.683Z  INFO [] 52447 --- [catalog] [ionShutdownHook] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.telemetry.internals.ClientTelemetryReporter
+2026-10-22T01:29:14.683Z  INFO [] 52447 --- [catalog] [ionShutdownHook] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-10-22T01:29:14.698Z  INFO [] 52447 --- [catalog] [ionShutdownHook] o.a.kafka.common.utils.AppInfoParser     : App info kafka.producer for catalog-relay unregistered
+2026-10-22T01:29:14.739Z  INFO [] 52447 --- [catalog] [ionShutdownHook] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-22T01:29:14.758Z  INFO [] 52447 --- [catalog] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+2026-10-22T01:29:14.773Z  INFO [] 52447 --- [catalog] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-10-22T01:29:14.802Z  INFO [] 52447 --- [catalog] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-10-22T01:29:14.805Z  INFO [] 52447 --- [catalog] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : catalog-admin - Shutdown initiated...
+2026-10-22T01:29:14.808Z  INFO [] 52447 --- [catalog] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : catalog-admin - Shutdown completed.

@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-failsafe-plugin/xsd/failsafe-test-report.xsd" version="3.0.2" name="in.dexter.catalog.CatalogHealthIT" time="16.088" tests="1" errors="0" skipped="0" failures="0" flakes="0">
+  <properties>
+    <property name="java.specification.version" value="25"/>
+    <property name="sun.jnu.encoding" value="UTF-8"/>
+    <property name="java.class.path" value="/home/runner/work/from/from/services/catalog/target/test-classes:/home/runner/work/from/from/services/catalog/target/classes:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-webmvc/4.0.8/spring-boot-starter-webmvc-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter/4.0.8/spring-boot-starter-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-logging/4.0.8/spring-boot-starter-logging-4.0.8.jar:/home/runner/.m2/repository/ch/qos/logback/logback-classic/1.5.38/logback-classic-1.5.38.jar:/home/runner/.m2/repository/ch/qos/logback/logback-core/1.5.38/logback-core-1.5.38.jar:/home/runner/.m2/repository/org/apache/logging/log4j/log4j-to-slf4j/2.25.5/log4j-to-slf4j-2.25.5.jar:/home/runner/.m2/repository/org/apache/logging/log4j/log4j-api/2.25.5/log4j-api-2.25.5.jar:/home/runner/.m2/repository/org/slf4j/jul-to-slf4j/2.0.18/jul-to-slf4j-2.0.18.jar:/home/runner/.m2/repository/jakarta/annotation/jakarta.annotation-api/3.0.0/jakarta.annotation-api-3.0.0.jar:/home/runner/.m2/repository/org/yaml/snakeyaml/2.5/snakeyaml-2.5.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-jackson/4.0.8/spring-boot-starter-jackson-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-jackson/4.0.8/spring-boot-jackson-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-tomcat/4.0.8/spring-boot-starter-tomcat-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-tomcat-runtime/4.0.8/spring-boot-starter-tomcat-runtime-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-web-server/4.0.8/spring-boot-web-server-4.0.8.jar:/home/runner/.m2/repository/org/apache/tomcat/embed/tomcat-embed-core/11.0.24/tomcat-embed-core-11.0.24.jar:/home/runner/.m2/repository/org/apache/tomcat/embed/tomcat-embed-el/11.0.24/tomcat-embed-el-11.0.24.jar:/home/runner/.m2/repository/org/apache/tomcat/embed/tomcat-embed-websocket/11.0.24/tomcat-embed-websocket-11.0.24.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-tomcat/4.0.8/spring-boot-tomcat-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-http-converter/4.0.8/spring-boot-http-converter-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot/4.0.8/spring-boot-4.0.8.jar:/home/runner/.m2/repository/org/springframework/spring-context/7.0.9/spring-context-7.0.9.jar:/home/runner/.m2/repository/org/springframework/spring-web/7.0.9/spring-web-7.0.9.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-webmvc/4.0.8/spring-boot-webmvc-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-servlet/4.0.8/spring-boot-servlet-4.0.8.jar:/home/runner/.m2/repository/org/springframework/spring-webmvc/7.0.9/spring-webmvc-7.0.9.jar:/home/runner/.m2/repository/org/springframework/spring-aop/7.0.9/spring-aop-7.0.9.jar:/home/runner/.m2/repository/org/springframework/spring-expression/7.0.9/spring-expression-7.0.9.jar:/home/runner/work/from/from/libs/dexter-web/target/dexter-web-0.1.0-SNAPSHOT.jar:/home/runner/work/from/from/libs/dexter-core/target/dexter-core-0.1.0-SNAPSHOT.jar:/home/runner/.m2/repository/com/github/f4b6a3/uuid-creator/6.1.1/uuid-creator-6.1.1.jar:/home/runner/work/from/from/libs/dexter-db/target/dexter-db-0.1.0-SNAPSHOT.jar:/home/runner/.m2/repository/org/springframework/spring-jdbc/7.0.9/spring-jdbc-7.0.9.jar:/home/runner/.m2/repository/org/springframework/spring-beans/7.0.9/spring-beans-7.0.9.jar:/home/runner/.m2/repository/org/springframework/spring-tx/7.0.9/spring-tx-7.0.9.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-autoconfigure/4.0.8/spring-boot-autoconfigure-4.0.8.jar:/home/runner/.m2/repository/org/postgresql/postgresql/42.7.13/postgresql-42.7.13.jar:/home/runner/.m2/repository/org/checkerframework/checker-qual/3.55.1/checker-qual-3.55.1.jar:/home/runner/work/from/from/libs/dexter-events/target/dexter-events-0.1.0-SNAPSHOT.jar:/home/runner/.m2/repository/org/apache/kafka/kafka-clients/4.1.2/kafka-clients-4.1.2.jar:/home/runner/.m2/repository/com/github/luben/zstd-jni/1.5.6-10/zstd-jni-1.5.6-10.jar:/home/runner/.m2/repository/at/yawk/lz4/lz4-java/1.10.1/lz4-java-1.10.1.jar:/home/runner/.m2/repository/org/xerial/snappy/snappy-java/1.1.10.7/snappy-java-1.1.10.7.jar:/home/runner/.m2/repository/tools/jackson/core/jackson-databind/3.1.5/jackson-databind-3.1.5.jar:/home/runner/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.21/jackson-annotations-2.21.jar:/home/runner/.m2/repository/tools/jackson/core/jackson-core/3.1.5/jackson-core-3.1.5.jar:/home/runner/.m2/repository/org/slf4j/slf4j-api/2.0.18/slf4j-api-2.0.18.jar:/home/runner/work/from/from/libs/dexter-security/target/dexter-security-0.1.0-SNAPSHOT.jar:/home/runner/.m2/repository/com/nimbusds/nimbus-jose-jwt/10.9.1/nimbus-jose-jwt-10.9.1.jar:/home/runner/work/from/from/contracts/target/dexter-contracts-0.1.0-SNAPSHOT.jar:/home/runner/work/from/from/libs/dexter-objectstore/target/dexter-objectstore-0.1.0-SNAPSHOT.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-jdbc/4.0.8/spring-boot-starter-jdbc-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-jdbc/4.0.8/spring-boot-jdbc-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-sql/4.0.8/spring-boot-sql-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-transaction/4.0.8/spring-boot-transaction-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-persistence/4.0.8/spring-boot-persistence-4.0.8.jar:/home/runner/.m2/repository/com/zaxxer/HikariCP/7.0.2/HikariCP-7.0.2.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-flyway/4.0.8/spring-boot-starter-flyway-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-flyway/4.0.8/spring-boot-flyway-4.0.8.jar:/home/runner/.m2/repository/org/flywaydb/flyway-database-postgresql/11.14.1/flyway-database-postgresql-11.14.1.jar:/home/runner/.m2/repository/org/flywaydb/flyway-core/11.14.1/flyway-core-11.14.1.jar:/home/runner/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.21.5/jackson-databind-2.21.5.jar:/home/runner/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.21.5/jackson-core-2.21.5.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-actuator/4.0.8/spring-boot-starter-actuator-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-micrometer-metrics/4.0.8/spring-boot-starter-micrometer-metrics-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-micrometer-metrics/4.0.8/spring-boot-micrometer-metrics-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-micrometer-observation/4.0.8/spring-boot-micrometer-observation-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-actuator-autoconfigure/4.0.8/spring-boot-actuator-autoconfigure-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-actuator/4.0.8/spring-boot-actuator-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-health/4.0.8/spring-boot-health-4.0.8.jar:/home/runner/.m2/repository/io/micrometer/micrometer-observation/1.16.7/micrometer-observation-1.16.7.jar:/home/runner/.m2/repository/io/micrometer/micrometer-commons/1.16.7/micrometer-commons-1.16.7.jar:/home/runner/.m2/repository/io/micrometer/micrometer-jakarta9/1.16.7/micrometer-jakarta9-1.16.7.jar:/home/runner/.m2/repository/io/micrometer/micrometer-registry-prometheus/1.16.7/micrometer-registry-prometheus-1.16.7.jar:/home/runner/.m2/repository/org/jspecify/jspecify/1.0.1/jspecify-1.0.1.jar:/home/runner/.m2/repository/io/micrometer/micrometer-core/1.16.7/micrometer-core-1.16.7.jar:/home/runner/.m2/repository/org/hdrhistogram/HdrHistogram/2.2.2/HdrHistogram-2.2.2.jar:/home/runner/.m2/repository/org/latencyutils/LatencyUtils/2.0.3/LatencyUtils-2.0.3.jar:/home/runner/.m2/repository/io/prometheus/prometheus-metrics-core/1.4.3/prometheus-metrics-core-1.4.3.jar:/home/runner/.m2/repository/io/prometheus/prometheus-metrics-model/1.4.3/prometheus-metrics-model-1.4.3.jar:/home/runner/.m2/repository/io/prometheus/prometheus-metrics-config/1.4.3/prometheus-metrics-config-1.4.3.jar:/home/runner/.m2/repository/io/prometheus/prometheus-metrics-tracer-common/1.4.3/prometheus-metrics-tracer-common-1.4.3.jar:/home/runner/.m2/repository/io/prometheus/prometheus-metrics-exposition-formats/1.4.3/prometheus-metrics-exposition-formats-1.4.3.jar:/home/runner/.m2/repository/io/prometheus/prometheus-metrics-exposition-textformats/1.4.3/prometheus-metrics-exposition-textformats-1.4.3.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-test/4.0.8/spring-boot-starter-test-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-test/4.0.8/spring-boot-test-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-test-autoconfigure/4.0.8/spring-boot-test-autoconfigure-4.0.8.jar:/home/runner/.m2/repository/com/jayway/jsonpath/json-path/2.10.0/json-path-2.10.0.jar:/home/runner/.m2/repository/jakarta/xml/bind/jakarta.xml.bind-api/4.0.5/jakarta.xml.bind-api-4.0.5.jar:/home/runner/.m2/repository/jakarta/activation/jakarta.activation-api/2.1.4/jakarta.activation-api-2.1.4.jar:/home/runner/.m2/repository/net/minidev/json-smart/2.6.0/json-smart-2.6.0.jar:/home/runner/.m2/repository/net/minidev/accessors-smart/2.6.0/accessors-smart-2.6.0.jar:/home/runner/.m2/repository/org/ow2/asm/asm/9.7.1/asm-9.7.1.jar:/home/runner/.m2/repository/org/assertj/assertj-core/3.27.7/assertj-core-3.27.7.jar:/home/runner/.m2/repository/net/bytebuddy/byte-buddy/1.17.8/byte-buddy-1.17.8.jar:/home/runner/.m2/repository/org/awaitility/awaitility/4.3.0/awaitility-4.3.0.jar:/home/runner/.m2/repository/org/hamcrest/hamcrest/3.0/hamcrest-3.0.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter/6.0.3/junit-jupiter-6.0.3.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter-params/6.0.3/junit-jupiter-params-6.0.3.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter-engine/6.0.3/junit-jupiter-engine-6.0.3.jar:/home/runner/.m2/repository/org/junit/platform/junit-platform-engine/6.0.3/junit-platform-engine-6.0.3.jar:/home/runner/.m2/repository/org/mockito/mockito-core/5.20.0/mockito-core-5.20.0.jar:/home/runner/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar:/home/runner/.m2/repository/org/objenesis/objenesis/3.3/objenesis-3.3.jar:/home/runner/.m2/repository/org/mockito/mockito-junit-jupiter/5.20.0/mockito-junit-jupiter-5.20.0.jar:/home/runner/.m2/repository/org/skyscreamer/jsonassert/1.5.3/jsonassert-1.5.3.jar:/home/runner/.m2/repository/com/vaadin/external/google/android-json/0.0.20131108.vaadin1/android-json-0.0.20131108.vaadin1.jar:/home/runner/.m2/repository/org/springframework/spring-core/7.0.9/spring-core-7.0.9.jar:/home/runner/.m2/repository/commons-logging/commons-logging/1.3.6/commons-logging-1.3.6.jar:/home/runner/.m2/repository/org/springframework/spring-test/7.0.9/spring-test-7.0.9.jar:/home/runner/.m2/repository/org/xmlunit/xmlunit-core/2.10.4/xmlunit-core-2.10.4.jar:/home/runner/work/from/from/libs/dexter-test/target/dexter-test-0.1.0-SNAPSHOT.jar:/home/runner/work/from/from/libs/dexter-idempotency/target/dexter-idempotency-0.1.0-SNAPSHOT.jar:/home/runner/work/from/from/libs/dexter-cache/target/dexter-cache-0.1.0-SNAPSHOT.jar:/home/runner/.m2/repository/org/springframework/data/spring-data-redis/4.0.7/spring-data-redis-4.0.7.jar:/home/runner/.m2/repository/org/springframework/data/spring-data-keyvalue/4.0.7/spring-data-keyvalue-4.0.7.jar:/home/runner/.m2/repository/org/springframework/data/spring-data-commons/4.0.7/spring-data-commons-4.0.7.jar:/home/runner/.m2/repository/org/springframework/spring-oxm/7.0.9/spring-oxm-7.0.9.jar:/home/runner/.m2/repository/org/springframework/spring-context-support/7.0.9/spring-context-support-7.0.9.jar:/home/runner/.m2/repository/io/lettuce/lettuce-core/6.8.2.RELEASE/lettuce-core-6.8.2.RELEASE.jar:/home/runner/.m2/repository/redis/clients/authentication/redis-authx-core/0.1.1-beta2/redis-authx-core-0.1.1-beta2.jar:/home/runner/.m2/repository/io/netty/netty-common/4.2.17.Final/netty-common-4.2.17.Final.jar:/home/runner/.m2/repository/io/netty/netty-handler/4.2.17.Final/netty-handler-4.2.17.Final.jar:/home/runner/.m2/repository/io/netty/netty-resolver/4.2.17.Final/netty-resolver-4.2.17.Final.jar:/home/runner/.m2/repository/io/netty/netty-buffer/4.2.17.Final/netty-buffer-4.2.17.Final.jar:/home/runner/.m2/repository/io/netty/netty-transport-native-unix-common/4.2.17.Final/netty-transport-native-unix-common-4.2.17.Final.jar:/home/runner/.m2/repository/io/netty/netty-codec-base/4.2.17.Final/netty-codec-base-4.2.17.Final.jar:/home/runner/.m2/repository/io/netty/netty-transport/4.2.17.Final/netty-transport-4.2.17.Final.jar:/home/runner/.m2/repository/io/projectreactor/reactor-core/3.8.7/reactor-core-3.8.7.jar:/home/runner/.m2/repository/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar:/home/runner/.m2/repository/io/netty/netty-resolver-dns/4.2.17.Final/netty-resolver-dns-4.2.17.Final.jar:/home/runner/.m2/repository/io/netty/netty-codec-dns/4.2.17.Final/netty-codec-dns-4.2.17.Final.jar:/home/runner/.m2/repository/org/testcontainers/testcontainers/2.0.5/testcontainers-2.0.5.jar:/home/runner/.m2/repository/org/apache/commons/commons-compress/1.28.0/commons-compress-1.28.0.jar:/home/runner/.m2/repository/commons-codec/commons-codec/1.19.0/commons-codec-1.19.0.jar:/home/runner/.m2/repository/commons-io/commons-io/2.20.0/commons-io-2.20.0.jar:/home/runner/.m2/repository/org/apache/commons/commons-lang3/3.19.0/commons-lang3-3.19.0.jar:/home/runner/.m2/repository/org/rnorth/duct-tape/duct-tape/1.0.8/duct-tape-1.0.8.jar:/home/runner/.m2/repository/org/jetbrains/annotations/17.0.0/annotations-17.0.0.jar:/home/runner/.m2/repository/com/github/docker-java/docker-java-api/3.7.1/docker-java-api-3.7.1.jar:/home/runner/.m2/repository/com/github/docker-java/docker-java-transport-zerodep/3.7.1/docker-java-transport-zerodep-3.7.1.jar:/home/runner/.m2/repository/com/github/docker-java/docker-java-transport/3.7.1/docker-java-transport-3.7.1.jar:/home/runner/.m2/repository/net/java/dev/jna/jna/5.18.1/jna-5.18.1.jar:/home/runner/.m2/repository/org/testcontainers/testcontainers-postgresql/2.0.5/testcontainers-postgresql-2.0.5.jar:/home/runner/.m2/repository/org/testcontainers/testcontainers-jdbc/2.0.5/testcontainers-jdbc-2.0.5.jar:/home/runner/.m2/repository/org/testcontainers/testcontainers-database-commons/2.0.5/testcontainers-database-commons-2.0.5.jar:/home/runner/.m2/repository/org/testcontainers/testcontainers-kafka/2.0.5/testcontainers-kafka-2.0.5.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter-api/6.0.3/junit-jupiter-api-6.0.3.jar:/home/runner/.m2/repository/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar:/home/runner/.m2/repository/org/junit/platform/junit-platform-commons/6.0.3/junit-platform-commons-6.0.3.jar:/home/runner/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/home/runner/.m2/repository/com/tngtech/archunit/archunit/1.4.2/archunit-1.4.2.jar:"/>
+    <property name="java.vm.vendor" value="Eclipse Adoptium"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="catalina.useNaming" value="false"/>
+    <property name="java.vendor.url" value="https://adoptium.net/"/>
+    <property name="user.timezone" value="Etc/UTC"/>
+    <property name="os.name" value="Linux"/>
+    <property name="java.vm.specification.version" value="25"/>
+    <property name="APPLICATION_NAME" value="catalog"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="sun.boot.library.path" value="/usr/lib/jvm/temurin-25-jdk-amd64/lib"/>
+    <property name="sun.java.command" value="/home/runner/work/from/from/services/catalog/target/surefire/surefirebooter-20261022012224466_122.jar /home/runner/work/from/from/services/catalog/target/surefire 2026-10-22T01-17-18_059-jvmRun1 surefire-20261022012224466_120tmp surefire_6-20261022012224466_121tmp"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="surefire.test.class.path" value="/home/runner/work/from/from/services/catalog/target/test-classes:/home/runner/work/from/from/services/catalog/target/classes:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-webmvc/4.0.8/spring-boot-starter-webmvc-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter/4.0.8/spring-boot-starter-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-logging/4.0.8/spring-boot-starter-logging-4.0.8.jar:/home/runner/.m2/repository/ch/qos/logback/logback-classic/1.5.38/logback-classic-1.5.38.jar:/home/runner/.m2/repository/ch/qos/logback/logback-core/1.5.38/logback-core-1.5.38.jar:/home/runner/.m2/repository/org/apache/logging/log4j/log4j-to-slf4j/2.25.5/log4j-to-slf4j-2.25.5.jar:/home/runner/.m2/repository/org/apache/logging/log4j/log4j-api/2.25.5/log4j-api-2.25.5.jar:/home/runner/.m2/repository/org/slf4j/jul-to-slf4j/2.0.18/jul-to-slf4j-2.0.18.jar:/home/runner/.m2/repository/jakarta/annotation/jakarta.annotation-api/3.0.0/jakarta.annotation-api-3.0.0.jar:/home/runner/.m2/repository/org/yaml/snakeyaml/2.5/snakeyaml-2.5.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-jackson/4.0.8/spring-boot-starter-jackson-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-jackson/4.0.8/spring-boot-jackson-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-tomcat/4.0.8/spring-boot-starter-tomcat-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-tomcat-runtime/4.0.8/spring-boot-starter-tomcat-runtime-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-web-server/4.0.8/spring-boot-web-server-4.0.8.jar:/home/runner/.m2/repository/org/apache/tomcat/embed/tomcat-embed-core/11.0.24/tomcat-embed-core-11.0.24.jar:/home/runner/.m2/repository/org/apache/tomcat/embed/tomcat-embed-el/11.0.24/tomcat-embed-el-11.0.24.jar:/home/runner/.m2/repository/org/apache/tomcat/embed/tomcat-embed-websocket/11.0.24/tomcat-embed-websocket-11.0.24.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-tomcat/4.0.8/spring-boot-tomcat-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-http-converter/4.0.8/spring-boot-http-converter-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot/4.0.8/spring-boot-4.0.8.jar:/home/runner/.m2/repository/org/springframework/spring-context/7.0.9/spring-context-7.0.9.jar:/home/runner/.m2/repository/org/springframework/spring-web/7.0.9/spring-web-7.0.9.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-webmvc/4.0.8/spring-boot-webmvc-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-servlet/4.0.8/spring-boot-servlet-4.0.8.jar:/home/runner/.m2/repository/org/springframework/spring-webmvc/7.0.9/spring-webmvc-7.0.9.jar:/home/runner/.m2/repository/org/springframework/spring-aop/7.0.9/spring-aop-7.0.9.jar:/home/runner/.m2/repository/org/springframework/spring-expression/7.0.9/spring-expression-7.0.9.jar:/home/runner/work/from/from/libs/dexter-web/target/dexter-web-0.1.0-SNAPSHOT.jar:/home/runner/work/from/from/libs/dexter-core/target/dexter-core-0.1.0-SNAPSHOT.jar:/home/runner/.m2/repository/com/github/f4b6a3/uuid-creator/6.1.1/uuid-creator-6.1.1.jar:/home/runner/work/from/from/libs/dexter-db/target/dexter-db-0.1.0-SNAPSHOT.jar:/home/runner/.m2/repository/org/springframework/spring-jdbc/7.0.9/spring-jdbc-7.0.9.jar:/home/runner/.m2/repository/org/springframework/spring-beans/7.0.9/spring-beans-7.0.9.jar:/home/runner/.m2/repository/org/springframework/spring-tx/7.0.9/spring-tx-7.0.9.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-autoconfigure/4.0.8/spring-boot-autoconfigure-4.0.8.jar:/home/runner/.m2/repository/org/postgresql/postgresql/42.7.13/postgresql-42.7.13.jar:/home/runner/.m2/repository/org/checkerframework/checker-qual/3.55.1/checker-qual-3.55.1.jar:/home/runner/work/from/from/libs/dexter-events/target/dexter-events-0.1.0-SNAPSHOT.jar:/home/runner/.m2/repository/org/apache/kafka/kafka-clients/4.1.2/kafka-clients-4.1.2.jar:/home/runner/.m2/repository/com/github/luben/zstd-jni/1.5.6-10/zstd-jni-1.5.6-10.jar:/home/runner/.m2/repository/at/yawk/lz4/lz4-java/1.10.1/lz4-java-1.10.1.jar:/home/runner/.m2/repository/org/xerial/snappy/snappy-java/1.1.10.7/snappy-java-1.1.10.7.jar:/home/runner/.m2/repository/tools/jackson/core/jackson-databind/3.1.5/jackson-databind-3.1.5.jar:/home/runner/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.21/jackson-annotations-2.21.jar:/home/runner/.m2/repository/tools/jackson/core/jackson-core/3.1.5/jackson-core-3.1.5.jar:/home/runner/.m2/repository/org/slf4j/slf4j-api/2.0.18/slf4j-api-2.0.18.jar:/home/runner/work/from/from/libs/dexter-security/target/dexter-security-0.1.0-SNAPSHOT.jar:/home/runner/.m2/repository/com/nimbusds/nimbus-jose-jwt/10.9.1/nimbus-jose-jwt-10.9.1.jar:/home/runner/work/from/from/contracts/target/dexter-contracts-0.1.0-SNAPSHOT.jar:/home/runner/work/from/from/libs/dexter-objectstore/target/dexter-objectstore-0.1.0-SNAPSHOT.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-jdbc/4.0.8/spring-boot-starter-jdbc-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-jdbc/4.0.8/spring-boot-jdbc-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-sql/4.0.8/spring-boot-sql-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-transaction/4.0.8/spring-boot-transaction-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-persistence/4.0.8/spring-boot-persistence-4.0.8.jar:/home/runner/.m2/repository/com/zaxxer/HikariCP/7.0.2/HikariCP-7.0.2.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-flyway/4.0.8/spring-boot-starter-flyway-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-flyway/4.0.8/spring-boot-flyway-4.0.8.jar:/home/runner/.m2/repository/org/flywaydb/flyway-database-postgresql/11.14.1/flyway-database-postgresql-11.14.1.jar:/home/runner/.m2/repository/org/flywaydb/flyway-core/11.14.1/flyway-core-11.14.1.jar:/home/runner/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.21.5/jackson-databind-2.21.5.jar:/home/runner/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.21.5/jackson-core-2.21.5.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-actuator/4.0.8/spring-boot-starter-actuator-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-micrometer-metrics/4.0.8/spring-boot-starter-micrometer-metrics-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-micrometer-metrics/4.0.8/spring-boot-micrometer-metrics-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-micrometer-observation/4.0.8/spring-boot-micrometer-observation-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-actuator-autoconfigure/4.0.8/spring-boot-actuator-autoconfigure-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-actuator/4.0.8/spring-boot-actuator-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-health/4.0.8/spring-boot-health-4.0.8.jar:/home/runner/.m2/repository/io/micrometer/micrometer-observation/1.16.7/micrometer-observation-1.16.7.jar:/home/runner/.m2/repository/io/micrometer/micrometer-commons/1.16.7/micrometer-commons-1.16.7.jar:/home/runner/.m2/repository/io/micrometer/micrometer-jakarta9/1.16.7/micrometer-jakarta9-1.16.7.jar:/home/runner/.m2/repository/io/micrometer/micrometer-registry-prometheus/1.16.7/micrometer-registry-prometheus-1.16.7.jar:/home/runner/.m2/repository/org/jspecify/jspecify/1.0.1/jspecify-1.0.1.jar:/home/runner/.m2/repository/io/micrometer/micrometer-core/1.16.7/micrometer-core-1.16.7.jar:/home/runner/.m2/repository/org/hdrhistogram/HdrHistogram/2.2.2/HdrHistogram-2.2.2.jar:/home/runner/.m2/repository/org/latencyutils/LatencyUtils/2.0.3/LatencyUtils-2.0.3.jar:/home/runner/.m2/repository/io/prometheus/prometheus-metrics-core/1.4.3/prometheus-metrics-core-1.4.3.jar:/home/runner/.m2/repository/io/prometheus/prometheus-metrics-model/1.4.3/prometheus-metrics-model-1.4.3.jar:/home/runner/.m2/repository/io/prometheus/prometheus-metrics-config/1.4.3/prometheus-metrics-config-1.4.3.jar:/home/runner/.m2/repository/io/prometheus/prometheus-metrics-tracer-common/1.4.3/prometheus-metrics-tracer-common-1.4.3.jar:/home/runner/.m2/repository/io/prometheus/prometheus-metrics-exposition-formats/1.4.3/prometheus-metrics-exposition-formats-1.4.3.jar:/home/runner/.m2/repository/io/prometheus/prometheus-metrics-exposition-textformats/1.4.3/prometheus-metrics-exposition-textformats-1.4.3.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-test/4.0.8/spring-boot-starter-test-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-test/4.0.8/spring-boot-test-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-test-autoconfigure/4.0.8/spring-boot-test-autoconfigure-4.0.8.jar:/home/runner/.m2/repository/com/jayway/jsonpath/json-path/2.10.0/json-path-2.10.0.jar:/home/runner/.m2/repository/jakarta/xml/bind/jakarta.xml.bind-api/4.0.5/jakarta.xml.bind-api-4.0.5.jar:/home/runner/.m2/repository/jakarta/activation/jakarta.activation-api/2.1.4/jakarta.activation-api-2.1.4.jar:/home/runner/.m2/repository/net/minidev/json-smart/2.6.0/json-smart-2.6.0.jar:/home/runner/.m2/repository/net/minidev/accessors-smart/2.6.0/accessors-smart-2.6.0.jar:/home/runner/.m2/repository/org/ow2/asm/asm/9.7.1/asm-9.7.1.jar:/home/runner/.m2/repository/org/assertj/assertj-core/3.27.7/assertj-core-3.27.7.jar:/home/runner/.m2/repository/net/bytebuddy/byte-buddy/1.17.8/byte-buddy-1.17.8.jar:/home/runner/.m2/repository/org/awaitility/awaitility/4.3.0/awaitility-4.3.0.jar:/home/runner/.m2/repository/org/hamcrest/hamcrest/3.0/hamcrest-3.0.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter/6.0.3/junit-jupiter-6.0.3.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter-params/6.0.3/junit-jupiter-params-6.0.3.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter-engine/6.0.3/junit-jupiter-engine-6.0.3.jar:/home/runner/.m2/repository/org/junit/platform/junit-platform-engine/6.0.3/junit-platform-engine-6.0.3.jar:/home/runner/.m2/repository/org/mockito/mockito-core/5.20.0/mockito-core-5.20.0.jar:/home/runner/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar:/home/runner/.m2/repository/org/objenesis/objenesis/3.3/objenesis-3.3.jar:/home/runner/.m2/repository/org/mockito/mockito-junit-jupiter/5.20.0/mockito-junit-jupiter-5.20.0.jar:/home/runner/.m2/repository/org/skyscreamer/jsonassert/1.5.3/jsonassert-1.5.3.jar:/home/runner/.m2/repository/com/vaadin/external/google/android-json/0.0.20131108.vaadin1/android-json-0.0.20131108.vaadin1.jar:/home/runner/.m2/repository/org/springframework/spring-core/7.0.9/spring-core-7.0.9.jar:/home/runner/.m2/repository/commons-logging/commons-logging/1.3.6/commons-logging-1.3.6.jar:/home/runner/.m2/repository/org/springframework/spring-test/7.0.9/spring-test-7.0.9.jar:/home/runner/.m2/repository/org/xmlunit/xmlunit-core/2.10.4/xmlunit-core-2.10.4.jar:/home/runner/work/from/from/libs/dexter-test/target/dexter-test-0.1.0-SNAPSHOT.jar:/home/runner/work/from/from/libs/dexter-idempotency/target/dexter-idempotency-0.1.0-SNAPSHOT.jar:/home/runner/work/from/from/libs/dexter-cache/target/dexter-cache-0.1.0-SNAPSHOT.jar:/home/runner/.m2/repository/org/springframework/data/spring-data-redis/4.0.7/spring-data-redis-4.0.7.jar:/home/runner/.m2/repository/org/springframework/data/spring-data-keyvalue/4.0.7/spring-data-keyvalue-4.0.7.jar:/home/runner/.m2/repository/org/springframework/data/spring-data-commons/4.0.7/spring-data-commons-4.0.7.jar:/home/runner/.m2/repository/org/springframework/spring-oxm/7.0.9/spring-oxm-7.0.9.jar:/home/runner/.m2/repository/org/springframework/spring-context-support/7.0.9/spring-context-support-7.0.9.jar:/home/runner/.m2/repository/io/lettuce/lettuce-core/6.8.2.RELEASE/lettuce-core-6.8.2.RELEASE.jar:/home/runner/.m2/repository/redis/clients/authentication/redis-authx-core/0.1.1-beta2/redis-authx-core-0.1.1-beta2.jar:/home/runner/.m2/repository/io/netty/netty-common/4.2.17.Final/netty-common-4.2.17.Final.jar:/home/runner/.m2/repository/io/netty/netty-handler/4.2.17.Final/netty-handler-4.2.17.Final.jar:/home/runner/.m2/repository/io/netty/netty-resolver/4.2.17.Final/netty-resolver-4.2.17.Final.jar:/home/runner/.m2/repository/io/netty/netty-buffer/4.2.17.Final/netty-buffer-4.2.17.Final.jar:/home/runner/.m2/repository/io/netty/netty-transport-native-unix-common/4.2.17.Final/netty-transport-native-unix-common-4.2.17.Final.jar:/home/runner/.m2/repository/io/netty/netty-codec-base/4.2.17.Final/netty-codec-base-4.2.17.Final.jar:/home/runner/.m2/repository/io/netty/netty-transport/4.2.17.Final/netty-transport-4.2.17.Final.jar:/home/runner/.m2/repository/io/projectreactor/reactor-core/3.8.7/reactor-core-3.8.7.jar:/home/runner/.m2/repository/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar:/home/runner/.m2/repository/io/netty/netty-resolver-dns/4.2.17.Final/netty-resolver-dns-4.2.17.Final.jar:/home/runner/.m2/repository/io/netty/netty-codec-dns/4.2.17.Final/netty-codec-dns-4.2.17.Final.jar:/home/runner/.m2/repository/org/testcontainers/testcontainers/2.0.5/testcontainers-2.0.5.jar:/home/runner/.m2/repository/org/apache/commons/commons-compress/1.28.0/commons-compress-1.28.0.jar:/home/runner/.m2/repository/commons-codec/commons-codec/1.19.0/commons-codec-1.19.0.jar:/home/runner/.m2/repository/commons-io/commons-io/2.20.0/commons-io-2.20.0.jar:/home/runner/.m2/repository/org/apache/commons/commons-lang3/3.19.0/commons-lang3-3.19.0.jar:/home/runner/.m2/repository/org/rnorth/duct-tape/duct-tape/1.0.8/duct-tape-1.0.8.jar:/home/runner/.m2/repository/org/jetbrains/annotations/17.0.0/annotations-17.0.0.jar:/home/runner/.m2/repository/com/github/docker-java/docker-java-api/3.7.1/docker-java-api-3.7.1.jar:/home/runner/.m2/repository/com/github/docker-java/docker-java-transport-zerodep/3.7.1/docker-java-transport-zerodep-3.7.1.jar:/home/runner/.m2/repository/com/github/docker-java/docker-java-transport/3.7.1/docker-java-transport-3.7.1.jar:/home/runner/.m2/repository/net/java/dev/jna/jna/5.18.1/jna-5.18.1.jar:/home/runner/.m2/repository/org/testcontainers/testcontainers-postgresql/2.0.5/testcontainers-postgresql-2.0.5.jar:/home/runner/.m2/repository/org/testcontainers/testcontainers-jdbc/2.0.5/testcontainers-jdbc-2.0.5.jar:/home/runner/.m2/repository/org/testcontainers/testcontainers-database-commons/2.0.5/testcontainers-database-commons-2.0.5.jar:/home/runner/.m2/repository/org/testcontainers/testcontainers-kafka/2.0.5/testcontainers-kafka-2.0.5.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter-api/6.0.3/junit-jupiter-api-6.0.3.jar:/home/runner/.m2/repository/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar:/home/runner/.m2/repository/org/junit/platform/junit-platform-commons/6.0.3/junit-platform-commons-6.0.3.jar:/home/runner/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/home/runner/.m2/repository/com/tngtech/archunit/archunit/1.4.2/archunit-1.4.2.jar:"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="user.home" value="/home/runner"/>
+    <property name="user.language" value="en"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.version.date" value="2026-08-18"/>
+    <property name="java.home" value="/usr/lib/jvm/temurin-25-jdk-amd64"/>
+    <property name="file.separator" value="/"/>
+    <property name="basedir" value="/home/runner/work/from/from/services/catalog"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="line.separator" value="&#10;"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="FILE_LOG_CHARSET" value="UTF-8"/>
+    <property name="java.awt.headless" value="true"/>
+    <property name="surefire.real.class.path" value="/home/runner/work/from/from/services/catalog/target/surefire/surefirebooter-20261022012224466_122.jar"/>
+    <property name="LOG_LEVEL_PATTERN" value="%5p [%X{requestId:-}]"/>
+    <property name="polyglot.engine.WarnInterpreterOnly" value="false"/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="java.runtime.version" value="25.0.4.1+1-LTS"/>
+    <property name="user.name" value="runner"/>
+    <property name="stdout.encoding" value="UTF-8"/>
+    <property name="path.separator" value=":"/>
+    <property name="os.version" value="6.17.0-1022-azure"/>
+    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+    <property name="java.vendor.version" value="Temurin-25.0.4.1+1"/>
+    <property name="localRepository" value="/home/runner/.m2/repository"/>
+    <property name="java.vendor.url.bug" value="https://github.com/adoptium/adoptium-support/issues"/>
+    <property name="java.io.tmpdir" value="/tmp"/>
+    <property name="catalina.home" value="/tmp/tomcat.0.89400786591555612"/>
+    <property name="com.zaxxer.hikari.pool_number" value="1"/>
+    <property name="java.version" value="25.0.4.1"/>
+    <property name="user.dir" value="/home/runner/work/from/from/services/catalog"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="PID" value="28054"/>
+    <property name="CONSOLE_LOG_CHARSET" value="UTF-8"/>
+    <property name="catalina.base" value="/tmp/tomcat.0.89400786591555612"/>
+    <property name="native.encoding" value="UTF-8"/>
+    <property name="java.library.path" value="/usr/java/packages/lib:/usr/lib64:/lib64:/lib:/usr/lib"/>
+    <property name="java.vm.info" value="mixed mode, sharing"/>
+    <property name="stderr.encoding" value="UTF-8"/>
+    <property name="java.vendor" value="Eclipse Adoptium"/>
+    <property name="java.vm.version" value="25.0.4.1+1-LTS"/>
+    <property name="stdin.encoding" value="UTF-8"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="java.class.version" value="69.0"/>
+    <property name="LOGGED_APPLICATION_NAME" value="[catalog] "/>
+  </properties>
+  <testcase name="healthRequestIdProblemDetailAndMigrations" classname="in.dexter.catalog.CatalogHealthIT" time="1.407">
+    <system-out><![CDATA[01:22:26.404 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [in.dexter.catalog.CatalogHealthIT]: CatalogHealthIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+01:22:26.570 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration in.dexter.catalog.CatalogApplication for test class in.dexter.catalog.CatalogHealthIT
+01:22:26.729 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [in.dexter.catalog.CatalogHealthIT]: CatalogHealthIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+01:22:26.734 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration in.dexter.catalog.CatalogApplication for test class in.dexter.catalog.CatalogHealthIT
+01:22:26.736 [main] WARN org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- For test class [in.dexter.catalog.CatalogHealthIT], the following 'default' context configuration classes were detected but are currently ignored: in.dexter.catalog.support.CatalogIT$TestIdp. In Spring Framework 7.1, these classes will no longer be ignored. Please update your test configuration accordingly. For details, see: https://docs.spring.io/spring-framework/reference/testing/testcontext-framework/ctx-management/default-config.html
+01:22:27.230 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+01:22:27.233 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+01:22:27.254 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 2.0.5
+01:22:27.840 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+01:22:28.404 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+01:22:28.406 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+01:22:28.427 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 28.0.4
+  API Version: 1.48
+  Operating System: Ubuntu 24.04.5 LTS
+  Total Memory: 15989 MB
+01:22:28.462 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Creating container for image: testcontainers/ryuk:0.14.0
+01:22:29.341 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 is starting: 3d3de035e6f335f96017307027f9ac2bb999c6f12ee61b785d7d9d6c7345423f
+01:22:29.768 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 started in PT1.30605611S
+01:22:29.777 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+01:22:29.777 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+01:22:29.777 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+01:22:29.778 [main] INFO tc.postgres:17 -- Creating container for image: postgres:17
+01:22:29.932 [main] INFO tc.postgres:17 -- Container postgres:17 is starting: c060c1b054552e386b51566bc98064f278b673130deb55cfc0d38bd16bca277b
+01:22:31.041 [main] INFO tc.postgres:17 -- Container postgres:17 started in PT1.26316033S
+01:22:31.042 [main] INFO tc.postgres:17 -- Container is started (JDBC URL: jdbc:postgresql://localhost:32786/test?loggerLevel=OFF)
+2026-10-22T01:22:32.295Z  INFO [] 28054 --- [catalog] [           main] in.dexter.catalog.CatalogHealthIT        : Starting CatalogHealthIT using Java 25.0.4.1 with PID 28054 (started by runner in /home/runner/work/from/from/services/catalog)
+2026-10-22T01:22:32.299Z  INFO [] 28054 --- [catalog] [           main] in.dexter.catalog.CatalogHealthIT        : No active profile set, falling back to 1 default profile: "default"
+2026-10-22T01:22:34.113Z  INFO [] 28054 --- [catalog] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 0 (http)
+2026-10-22T01:22:34.132Z  INFO [] 28054 --- [catalog] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-10-22T01:22:34.133Z  INFO [] 28054 --- [catalog] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
+2026-10-22T01:22:34.187Z  INFO [] 28054 --- [catalog] [           main] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 1869 ms
+2026-10-22T01:22:34.486Z  INFO [] 28054 --- [catalog] [           main] tc.apache/kafka:4.1.0                    : Creating container for image: apache/kafka:4.1.0
+2026-10-22T01:22:34.550Z  INFO [] 28054 --- [catalog] [           main] tc.apache/kafka:4.1.0                    : Container apache/kafka:4.1.0 is starting: 1bc31a83e16730a38ec[CARD-5436]bfa323d34d58ecc8cff66c61289fbea7
+2026-10-22T01:22:38.351Z  INFO [] 28054 --- [catalog] [           main] tc.apache/kafka:4.1.0                    : Container apache/kafka:4.1.0 started in PT3.865172336S
+2026-10-22T01:22:38.469Z  INFO [] 28054 --- [catalog] [           main] com.zaxxer.hikari.HikariDataSource       : catalog-admin - Starting...
+2026-10-22T01:22:38.480Z  INFO [] 28054 --- [catalog] [           main] com.zaxxer.hikari.HikariDataSource       : catalog-admin - Start completed.
+2026-10-22T01:22:39.025Z  INFO [] 28054 --- [catalog] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:32786/catalog (PostgreSQL 17.11)
+2026-10-22T01:22:39.086Z  INFO [] 28054 --- [catalog] [           main] o.f.core.internal.database.base.Schema   : Creating schema "catalog" ...
+2026-10-22T01:22:39.092Z  INFO [] 28054 --- [catalog] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "catalog"."flyway_schema_history" ...
+2026-10-22T01:22:39.159Z  INFO [] 28054 --- [catalog] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "catalog": null
+2026-10-22T01:22:39.190Z  INFO [] 28054 --- [catalog] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "catalog" to version "202610171500 - platform"
+2026-10-22T01:22:39.196Z  WARN [] 28054 --- [catalog] [           main] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: schema "catalog" already exists, skipping (SQL State: 42P06 - Error Code: 0)
+2026-10-22T01:22:39.231Z  INFO [] 28054 --- [catalog] [           main] o.f.c.i.s.DefaultSqlScriptExecutor       : +-------------------------+
+| create_partitions_ahead |
++-------------------------+
+| 4                       |
++-------------------------+
+
+2026-10-22T01:22:39.270Z  INFO [] 28054 --- [catalog] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "catalog" to version "202610171501 - catalog core"
+2026-10-22T01:22:39.342Z  INFO [] 28054 --- [catalog] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "catalog" to version "202610171600 - catalog ingestion"
+2026-10-22T01:22:39.398Z  INFO [] 28054 --- [catalog] [           main] o.f.core.internal.command.DbMigrate      : Successfully applied 3 migrations to schema "catalog", now at version v202610171600 (execution time 00:00.142s)
+2026-10-22T01:22:39.506Z  INFO [] 28054 --- [catalog] [           main] o.a.kafka.common.config.AbstractConfig   : ProducerConfig values: 
+	acks = -1
+	batch.size = 16384
+	bootstrap.servers = [localhost:32787]
+	buffer.memory = 33554432
+	client.dns.lookup = use_all_dns_ips
+	client.id = catalog-relay
+	compression.gzip.level = -1
+	compression.lz4.level = 9
+	compression.type = none
+	compression.zstd.level = 3
+	connections.max.idle.ms = 540000
+	delivery.timeout.ms = 15000
+	enable.idempotence = true
+	enable.metrics.push = true
+	interceptor.classes = []
+	key.serializer = class org.apache.kafka.common.serialization.StringSerializer
+	linger.ms = 5
+	max.block.ms = 60000
+	max.in.flight.requests.per.connection = 5
+	max.request.size = 1048576
+	metadata.max.age.ms = 300000
+	metadata.max.idle.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partitioner.adaptive.partitioning.enable = true
+	partitioner.availability.timeout.ms = 0
+	partitioner.class = null
+	partitioner.ignore.keys = false
+	receive.buffer.bytes = 32768
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 10000
+	retries = 2147483647
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	transaction.timeout.ms = 60000
+	transaction.two.phase.commit.enable = false
+	transactional.id = null
+	value.serializer = class org.apache.kafka.common.serialization.ByteArraySerializer
+
+2026-10-22T01:22:39.545Z  INFO [] 28054 --- [catalog] [           main] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-10-22T01:22:39.660Z  INFO [] 28054 --- [catalog] [           main] o.a.k.clients.producer.KafkaProducer     : [Producer clientId=catalog-relay] Instantiated an idempotent producer.
+2026-10-22T01:22:39.709Z  INFO [] 28054 --- [catalog] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.1.2
+2026-10-22T01:22:39.709Z  INFO [] 28054 --- [catalog] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c82fd9b934b4c1e6
+2026-10-22T01:22:39.710Z  INFO [] 28054 --- [catalog] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-9707]
+2026-10-22T01:22:40.349Z  INFO [] 28054 --- [catalog] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 3 endpoints beneath base path '/actuator'
+2026-10-22T01:22:40.459Z  INFO [] 28054 --- [catalog] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 40681 (http) with context path '/'
+2026-10-22T01:22:40.467Z  INFO [] 28054 --- [catalog] [           main] o.a.kafka.common.config.AbstractConfig   : AdminClientConfig values: 
+	bootstrap.controllers = []
+	bootstrap.servers = [localhost:32787]
+	client.dns.lookup = use_all_dns_ips
+	client.id = 
+	connections.max.idle.ms = 300000
+	default.api.timeout.ms = 10000
+	enable.metrics.push = false
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 5000
+	retries = 2147483647
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+
+2026-10-22T01:22:40.495Z  INFO [] 28054 --- [catalog] [| catalog-relay] org.apache.kafka.clients.Metadata        : [Producer clientId=catalog-relay] Cluster ID: 4L6g3nShT-eMCtK--X86sw
+2026-10-22T01:22:40.531Z  INFO [] 28054 --- [catalog] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.1.2
+2026-10-22T01:22:40.533Z  INFO [] 28054 --- [catalog] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c82fd9b934b4c1e6
+2026-10-22T01:22:40.533Z  INFO [] 28054 --- [catalog] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-0531]
+2026-10-22T01:22:40.607Z  INFO [] 28054 --- [catalog] [| catalog-relay] o.a.k.c.p.internals.TransactionManager   : [Producer clientId=catalog-relay] ProducerId set to 0 with epoch 0
+2026-10-22T01:22:40.622Z  INFO [] 28054 --- [catalog] [           main] in.dexter.events.topics.TopicRegistry    : created 2 topic(s): [dexter.catalog.offer.v1, dexter.catalog.card.v1]
+2026-10-22T01:22:40.623Z  INFO [] 28054 --- [catalog] [           main] c.CatalogRelayConfiguration$EnsureTopics : TOPICS_READY created=[dexter.catalog.offer.v1, dexter.catalog.card.v1]
+2026-10-22T01:22:40.623Z  INFO [] 28054 --- [catalog] [           main] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-10-22T01:22:40.624Z  INFO [] 28054 --- [catalog] [           main] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-10-22T01:22:40.624Z  INFO [] 28054 --- [catalog] [           main] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-10-22T01:22:40.627Z  INFO [] 28054 --- [catalog] [| adminclient-1] o.a.kafka.common.utils.AppInfoParser     : App info kafka.admin.client for adminclient-1 unregistered
+2026-10-22T01:22:40.664Z  INFO [] 28054 --- [catalog] [| adminclient-1] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-10-22T01:22:40.664Z  INFO [] 28054 --- [catalog] [| adminclient-1] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-10-22T01:22:40.665Z  INFO [] 28054 --- [catalog] [| adminclient-1] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-10-22T01:22:40.715Z  INFO [] 28054 --- [catalog] [x-relay-catalog] in.dexter.events.relay.OutboxRelay       : outbox relay catalog: leader
+2026-10-22T01:22:40.719Z  INFO [] 28054 --- [catalog] [           main] in.dexter.catalog.CatalogHealthIT        : Started CatalogHealthIT in 8.986 seconds (process running for 16.239)
+2026-10-22T01:22:41.716Z  INFO [] 28054 --- [catalog] [omcat-handler-0] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-10-22T01:22:41.716Z  INFO [] 28054 --- [catalog] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-10-22T01:22:41.718Z  INFO [] 28054 --- [catalog] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+2026-10-22T01:22:41.789Z  INFO [smoke-test-1] 28054 --- [catalog] [omcat-handler-0] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-10-22T01:22:41.805Z  INFO [smoke-test-1] 28054 --- [catalog] [omcat-handler-0] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@45917688
+2026-10-22T01:22:41.813Z  INFO [smoke-test-1] 28054 --- [catalog] [omcat-handler-0] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+]]></system-out>
+    <system-err><![CDATA[Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (/home/runner/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+]]></system-err>
+  </testcase>
+</testsuite>

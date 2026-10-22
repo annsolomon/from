@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: in.dexter.identity.RegistrationIdempotencyContractIT
+-------------------------------------------------------------------------------
+Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.005 s -- in in.dexter.identity.RegistrationIdempotencyContractIT

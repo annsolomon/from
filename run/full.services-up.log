@@ -1,0 +1,3 @@
+building service jars (missing or stale)...
+SPRING_PROFILES_ACTIVE=dev
+all 10 services UP

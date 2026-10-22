@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: in.dexter.commerce.CommerceHealthSmokeTest
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.472 s -- in in.dexter.commerce.CommerceHealthSmokeTest
