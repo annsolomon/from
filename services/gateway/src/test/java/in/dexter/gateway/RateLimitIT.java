@@ -43,7 +43,12 @@ class RateLimitIT extends GatewayIT {
       assertThat(send("POST", "/v1/calc/emi", "{}", auth(ta, "X-Forwarded-For", ip)).status()).as("calc " + i)
           .isEqualTo(200);
     }
-    Res limited = send("POST", "/v1/calc/emi", "{}", auth(ta, "X-Forwarded-For", ip));
+    // The bucket refills continuously (1 token/s at 60/min), so a slow runner may earn a token or two back while
+    // the 60 calls run: the limit must bite within a few more calls, not necessarily on the 61st.
+    Res limited = null;
+    for (int i = 0; i < 5 && (limited == null || limited.status() != 429); i++) {
+      limited = send("POST", "/v1/calc/emi", "{}", auth(ta, "X-Forwarded-For", ip));
+    }
     assertThat(limited.status()).isEqualTo(429);
     assertThat(limited.header("RateLimit-Policy")).isEqualTo("\"calc\";q=60;w=60");
     assertThat(send("POST", "/v1/calc/emi", "{}", auth(Tokens.user(), "X-Forwarded-For", ip)).status())
