@@ -1,7 +1,7 @@
 # ADR-0017: Statement uploads, the ai-parser and S3 identities
 
-- Status: Proposed (P12a; becomes Accepted with the first green `verify.sh full` that runs `StatementsIT`,
-  `StatementContractsIT`, the ai-parser pytest suite, api-smoke P12 and trail-check P12).
+- Status: Accepted (P12a; proven by CI run 40419721529, git 81d63ae). Proof: `StatementsIT`, `StatementContractsIT`,
+  `PortfolioRlsIT`, `StatementDomainTest`, ai-parser pytest (72), api-smoke P12, trail-check P12.
 - Context: MASTER_PLAN P12 asks for statement upload → parser (async via Kafka) → review → confirm into
   `card_transactions`, PAN redaction before parsing, three mock bank formats, an idempotent confirm by line hash,
   and S3 identities on the object store (ADR-0003 deferred them to P12). Statements are the most sensitive files
@@ -53,7 +53,9 @@
    is P18 (privacy).
 9. **The object store has S3 identities.** `infra/objectstore/render-s3.sh` renders one identity from
    `OBJECTSTORE_ACCESS_KEY` / `_SECRET_KEY` at every container start (like the Redis ACL); anonymous requests are
-   refused (verify `infra-checks` asserts an anonymous PUT gets 403); the healthcheck uses `/healthz`. SeaweedFS 4.22's
+   refused (verify `infra-checks` asserts an anonymous PUT gets 403); the healthcheck uses `/healthz`. Volumes are 256 MB
+   with room for 64 (`-volume.max`): each bucket reserves its own volumes, and 1 GB volumes left no room for a third
+   bucket on a CI runner. SeaweedFS 4.22's
    default CORS answers preflights for any origin, which the trail's browser PUT needs (trail-check P12 asserts it).
    Ledger imports and catalog snapshots already signed every request (P08/P10), so they are unaffected.
 
