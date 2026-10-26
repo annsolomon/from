@@ -17,7 +17,19 @@ public enum PortfolioErrors implements ErrorCode {
   /** The EMI plan is closed or foreclosed. */
   EMI_NOT_ACTIVE(409, "EMI plan is not active"),
   /** A redemption larger than the card's available points. */
-  INSUFFICIENT_POINTS(409, "Not enough points");
+  INSUFFICIENT_POINTS(409, "Not enough points"),
+  /** P12: submit before the file was PUT to the upload URL (or the URL expired before the upload). */
+  STATEMENT_NOT_UPLOADED(409, "Statement file not uploaded"),
+  /** P12: the scan refused the file (empty, too large, not a PDF); the upload is failed with that code. */
+  STATEMENT_FILE_REJECTED(422, "Statement file rejected"),
+  /** P12: this file was already uploaded for this card and is being processed or was confirmed. */
+  STATEMENT_ALREADY_UPLOADED(409, "Statement already uploaded"),
+  /** P12: the upload is not in a state that allows this action (e.g. submit twice with different keys). */
+  STATEMENT_WRONG_STATE(409, "Statement upload is in another state"),
+  /** P12: the statement's card number (last four digits) is not the card it was uploaded for. */
+  STATEMENT_CARD_MISMATCH(409, "Statement belongs to another card"),
+  /** P12: the object store did not answer; nothing was changed, retry later. */
+  OBJECT_STORE_UNAVAILABLE(503, "Object store unavailable");
 
   private final int status;
   private final String title;

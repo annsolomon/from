@@ -18,12 +18,19 @@ import in.dexter.portfolio.app.ProjectionStore;
 import in.dexter.portfolio.app.ReportService;
 import in.dexter.portfolio.app.RewardService;
 import in.dexter.portfolio.app.RewardStore;
+import in.dexter.portfolio.app.StatementFiles;
+import in.dexter.portfolio.app.StatementService;
+import in.dexter.portfolio.app.StatementStore;
 import in.dexter.portfolio.app.TransactionService;
 import in.dexter.portfolio.app.TransactionStore;
 import in.dexter.portfolio.infra.CardRepository;
 import in.dexter.portfolio.infra.EmiRepository;
 import in.dexter.portfolio.infra.LinkRepository;
 import in.dexter.portfolio.infra.RewardRepository;
+import in.dexter.portfolio.infra.StatementRepository;
+import in.dexter.portfolio.infra.objectstore.S3StatementFiles;
+import in.dexter.objectstore.S3Objects;
+import in.dexter.objectstore.SigV4;
 import in.dexter.portfolio.infra.TransactionRepository;
 import java.time.Clock;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -115,6 +122,28 @@ public class PortfolioConfiguration {
   ProjectionService projectionService(TenantTx tx, InboxGuard inbox, CardRepository projections, LinkStore links,
       Matcher matcher, JsonMapper mapper, Clock clock) {
     return new ProjectionService(tx, inbox, projections, links, matcher, mapper, clock);
+  }
+
+  @Bean
+  StatementStore statementStore(JdbcClient jdbc, KeysetPager pager) {
+    return new StatementRepository(jdbc, pager);
+  }
+
+  @Bean
+  StatementFiles statementFiles(PortfolioProperties props, Clock clock) {
+    PortfolioProperties.Statements s = props.statements();
+    return new S3StatementFiles(new S3Objects(new SigV4(s.accessKey() == null ? "" : s.accessKey(),
+        s.secretKey() == null ? "" : s.secretKey(), s.region()), s.endpoint(), s.publicEndpoint(), s.bucket(), clock),
+        clock);
+  }
+
+  @Bean
+  StatementService statementService(TenantTx tx, IdempotencyEngine idempotency, InboxGuard inbox,
+      CardRepository cards, StatementStore store, TransactionService transactions, StatementFiles files,
+      OutboxWriter outbox, JsonMapper mapper, Clock clock, PortfolioProperties props) {
+    PortfolioProperties.Statements s = props.statements();
+    return new StatementService(tx, idempotency, inbox, cards, store, transactions, files, outbox, mapper, clock,
+        new StatementService.Settings(s.maxBytes(), s.uploadTtl(), s.fileUrlTtl(), s.submitLease()));
   }
 
   @Bean

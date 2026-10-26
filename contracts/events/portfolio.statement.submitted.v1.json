@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dexter.in/events/portfolio.statement.submitted.v1.json",
+  "title": "portfolio.statement.submitted v1 - an uploaded statement passed the scan and waits for the parser (topic dexter.portfolio.statement.v1, key = account id).",
+  "description": "fileUrl is a presigned GET on the internal object-store endpoint, valid until urlExpiresAt; the parser must check the bytes against fileSha256.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "uploadId",
+    "userCardId",
+    "last4",
+    "fileUrl",
+    "fileSha256",
+    "sizeBytes",
+    "contentType",
+    "urlExpiresAt",
+    "submittedAt"
+  ],
+  "properties": {
+    "uploadId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "userCardId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "last4": {
+      "type": "string",
+      "pattern": "^[0-9]{4}$"
+    },
+    "fileUrl": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000
+    },
+    "fileSha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "sizeBytes": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "contentType": {
+      "type": "string",
+      "enum": [
+        "application/pdf"
+      ]
+    },
+    "urlExpiresAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "submittedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

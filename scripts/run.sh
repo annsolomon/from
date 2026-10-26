@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Local runner for Codespaces.
 #   run.sh core|obs|trail|all   start infra profile(s) and wait until healthy
-#   run.sh services             build (if needed) and start all 10 services in the background
+#   run.sh services             build (if needed) and start all 10 services + the ai-parser in the background
+#   run.sh parser               start only the ai-parser (Python venv in .run/venv-ai-parser)
 #   run.sh svc <name>           run one service in the foreground (mvn spring-boot:run)
 #   run.sh stop                 stop background services
 #   run.sh down                 stop all containers (keeps volumes)
@@ -11,6 +12,7 @@ set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
 source scripts/lib/services.sh
+source scripts/lib/ai_parser.sh
 RUN_DIR="$ROOT/.run"
 COMPOSE=(docker compose --env-file "$ROOT/.env" -f "$ROOT/infra/compose/docker-compose.yml")
 ALL_PROFILES=(--profile core --profile obs --profile trail)
@@ -52,7 +54,7 @@ start_services() {
   while :; do
     down=()
     for entry in "${DEXTER_SERVICES[@]}"; do health "${entry##*:}" || down+=("${entry%%:*}"); done
-    [[ ${#down[@]} -eq 0 ]] && { echo "all ${#DEXTER_SERVICES[@]} services UP"; return 0; }
+    if [[ ${#down[@]} -eq 0 ]]; then echo "all ${#DEXTER_SERVICES[@]} services UP"; parser_start; return $?; fi
     (( SECONDS > deadline )) && { echo "not UP after 180s: ${down[*]} (logs in .run/logs)"; return 1; }
     sleep 3
   done
@@ -71,6 +73,7 @@ status() {
   for entry in "${DEXTER_SERVICES[@]}"; do
     if health "${entry##*:}"; then echo "UP    ${entry%%:*} :${entry##*:}"; else echo "DOWN  ${entry%%:*} :${entry##*:}"; fi
   done
+  if parser_health; then echo "UP    ai-parser :$(parser_port)"; else echo "DOWN  ai-parser :$(parser_port)"; fi
   curl -fsS --max-time 2 http://localhost:13133/ >/dev/null 2>&1 && echo "UP    otel-collector" || echo "DOWN  otel-collector (obs profile)"
   curl -fsS --max-time 2 http://localhost:3200/ready >/dev/null 2>&1 && echo "UP    tempo" || echo "DOWN  tempo (obs profile)"
 }
@@ -82,11 +85,12 @@ case "$cmd" in
                   "${COMPOSE[@]}" --profile trail up -d --wait --wait-timeout 120 --force-recreate trail ;;
   all)            "${COMPOSE[@]}" "${ALL_PROFILES[@]}" up -d --wait --wait-timeout 300 --remove-orphans ;;
   services)       start_services ;;
+  parser)         parser_start ;;
   svc)            [[ -n ${2:-} ]] || { echo "usage: run.sh svc <name>"; exit 2; }
                   mvn -B -q -pl "services/$2" -am -DskipTests install && mvn -B -pl "services/$2" spring-boot:run ;;
   stop)           stop_services ;;
   down)           stop_services; "${COMPOSE[@]}" "${ALL_PROFILES[@]}" down --remove-orphans ;;
   nuke)           stop_services; "${COMPOSE[@]}" "${ALL_PROFILES[@]}" down -v --remove-orphans ;;
   status)         status ;;
-  *)              sed -n '2,11p' "$0"; exit 2 ;;
+  *)              sed -n '2,12p' "$0"; exit 2 ;;
 esac

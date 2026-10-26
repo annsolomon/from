@@ -96,6 +96,22 @@ class PortfolioRlsIT extends PortfolioIT {
         .proveAll();
   }
 
+  /** P12: uploads, the parser's headers and the staged lines. */
+  @Test
+  void statementUploadsParsedHeadersAndLines() throws Exception {
+    String upload = CARD + ", u AS (INSERT INTO portfolio.statement_uploads (id, account_id, user_card_id, file_name,"
+        + " quarantine_key) SELECT gen_random_uuid(), account_id, id, 'x.pdf', 'q' FROM c RETURNING id, account_id)";
+    kit("statement_uploads", CARD + " INSERT INTO portfolio.statement_uploads (id, account_id, user_card_id,"
+        + " file_name, quarantine_key) SELECT gen_random_uuid(), account_id, id, 'x.pdf', 'q' FROM c",
+        "UPDATE portfolio.statement_uploads SET account_id = ?").proveAll();
+    kit("parsed_statements", upload + " INSERT INTO portfolio.parsed_statements (upload_id, account_id,"
+        + " parser_version, line_count, debits_paise, credits_paise, parsed_at) SELECT id, account_id, 'rules-1', 1,"
+        + " 100, 0, now() FROM u", "UPDATE portfolio.parsed_statements SET account_id = ?").proveAll();
+    kit("parsed_lines", upload + " INSERT INTO portfolio.parsed_lines (upload_id, line_no, account_id, posted_on,"
+        + " description, amount_paise, direction, kind, client_ref) SELECT id, 1, account_id, current_date, 'x', 100,"
+        + " 'debit', 'purchase', 'stmt:x' FROM u", "UPDATE portfolio.parsed_lines SET account_id = ?").proveAll();
+  }
+
   /** The catalog projection is global: every tenant reads it, only the PROJECTOR actor writes it. */
   @Test
   void catalogProjectionIsReadOnlyForTenants() throws Exception {

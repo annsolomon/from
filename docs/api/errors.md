@@ -225,3 +225,23 @@ after DNS as `PRIVATE_ADDRESS`, or `UNKNOWN_HOST`, `TIMEOUT`, `NETWORK`, `HTTP_<
 | `IDEMPOTENCY_KEY_REQUIRED` | 400 | `POST /v1/cards`, `/v1/cards/{id}/transactions`, `/v1/emi-plans`, `/v1/rewards/ledger` without the header. |
 | `IF_MATCH_REQUIRED` / `VERSION_CONFLICT` | 428 / 412 | `PATCH /v1/cards/{id}` or `/v1/emi-plans/{id}` without / with a stale ETag. |
 | `NOT_FOUND` | 404 | Unknown or another account's card, transaction, link or plan (RLS: they do not exist for the caller); unknown link `:action`. |
+
+### portfolio statements (P12a, `PortfolioErrors` + core codes)
+
+| Code | Status | When |
+|---|---|---|
+| `STATEMENT_NOT_UPLOADED` | 409 | `:submit` before the PDF was PUT to the upload URL (or after the 15-minute URL expired without an upload: create a new upload). The Idempotency-Key is released, so a retry with it works once the file is there. |
+| `STATEMENT_FILE_REJECTED` | 422 | The scan refused the file; `reason` = `EMPTY_FILE`, `FILE_TOO_LARGE` (10 MB) or `NOT_A_PDF` (no `%PDF-` magic). The upload is `failed` with that code and the quarantined object is deleted. |
+| `STATEMENT_ALREADY_UPLOADED` | 409 | `:submit` of a file (same SHA-256) already submitted, parsed or confirmed for the same card; `uploadId` = that upload. After a discard or a failure the file may be uploaded again. |
+| `STATEMENT_WRONG_STATE` | 409 | `:submit` of an upload that is not `awaiting_upload` (with another key), `:confirm` of one that is not `parsed`, `:discard` of one that is not `awaiting_upload`/`parsed`; `status` = the current status. Discarding twice answers the upload. |
+| `STATEMENT_CARD_MISMATCH` | 409 | `:confirm` when the parser read another card's last four digits from the PDF (`parsed.cardMatches: false`): discard it and upload it for the right card. |
+| `OBJECT_STORE_UNAVAILABLE` | 503 | The object store did not answer (`Retry-After: 5`); nothing changed, the same Idempotency-Key works later (a submit that already stored the clean copy resumes from its recovery point). |
+| `CARD_NOT_ACTIVE` | 409 | Creating an upload for, or confirming one into, a closed or removed card. |
+| `VALIDATION_FAILED` | 400 | Upload: `userCardId` (REQUIRED, UNKNOWN_CARD), `fileName` (1-200), `sizeBytes` (1-10 MB). |
+| `IDEMPOTENCY_KEY_REQUIRED` | 400 | `POST /v1/statements/uploads` and `…/{id}:submit` without the header (`:confirm` takes an optional key). |
+| `NOT_FOUND` | 404 | Unknown or another account's upload; unknown upload `:action`. |
+
+Parser results are not HTTP errors: a statement the ai-parser cannot read leaves the upload `failed` with
+`errorCode` from the parser (`NOT_A_PDF`, `PDF_ENCRYPTED`, `PDF_UNREADABLE`, `TOO_MANY_PAGES`, `NO_TEXT`,
+`UNKNOWN_FORMAT`, `NO_TRANSACTIONS`, `TOO_MANY_LINES`, `BAD_PERIOD`, `UNREADABLE_VALUES`, `FILE_UNAVAILABLE`,
+`FILE_CHANGED`, `FILE_TOO_LARGE`) or from portfolio's own check of the lines (`BAD_LINES`, `FUTURE_DATED_LINES`).

@@ -1,5 +1,6 @@
 package in.dexter.portfolio.config;
 
+import in.dexter.contracts.events.aiparser.StatementParsedV1;
 import in.dexter.contracts.events.catalog.CardPublishedV1;
 import in.dexter.contracts.events.ledger.ExpenseChangedV1;
 import in.dexter.events.InboxPurgeJob;
@@ -9,6 +10,7 @@ import in.dexter.events.consumer.EventConsumer;
 import in.dexter.events.topics.TopicRegistry;
 import in.dexter.portfolio.app.PortfolioEvents;
 import in.dexter.portfolio.app.ProjectionService;
+import in.dexter.portfolio.app.StatementService;
 import in.dexter.idempotency.IdempotencyPurgeJob;
 import java.time.Duration;
 import java.util.List;
@@ -55,9 +57,11 @@ public class PortfolioRelayConfiguration {
     // the sources portfolio consumes, declared exactly as their producers declare them, and the consumers' stages
     topics.compacted(CardPublishedV1.TOPIC);
     topics.main("ledger", "expense");
+    topics.main("ai-parser", "statement");   // P12: the parser has no relay; portfolio declares its output topic
     List<String> stages = EventConsumer.Settings.defaults("x", SCHEMA, "x", List.of("x")).stageNames();
     topics.consumer(CardPublishedV1.TOPIC, ProjectionService.CATALOG_CONSUMER, stages);
     topics.consumer(ExpenseChangedV1.TOPIC, ProjectionService.EXPENSE_CONSUMER, stages);
+    topics.consumer(StatementParsedV1.TOPIC, StatementService.PARSED_CONSUMER, stages);
     EnsureTopics ensureTopics = new EnsureTopics(topics, r.bootstrapServers());
     OutboxRelay.Settings d = OutboxRelay.Settings.defaults(SCHEMA);
     // Library defaults, but maintenance every 10 min (default 1 h) so a failed topic creation is retried soon.

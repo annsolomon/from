@@ -1,0 +1,5 @@
+# Only tool settings: the parser is run from source (python -m dexter_parser) in a venv made by scripts/lib/ai_parser.sh.
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = ["ignore:Using `httpx`:Warning"]

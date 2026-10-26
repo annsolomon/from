@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trail P12 statements</title>
+  <link rel="stylesheet" href="trail.css">
+  <style>
+    table.t { width: 100%; border-collapse: collapse; font: 12px var(--mono); }
+    table.t td, table.t th { border-bottom: 1px solid var(--line, #ddd); padding: 3px 6px; text-align: left; }
+    table.t td.n, table.t th.n { text-align: right; }
+    .st-imported { color: #1a7f37; } .st-duplicate { color: #9a6700; } .st-excluded { color: var(--muted); }
+    .steps button { min-width: 110px; }
+  </style>
+</head>
+<body>
+<main>
+  <section class="card">
+    <h2>P12a · statement upload → scan → ai-parser → review → confirm</h2>
+    <p class="mono" style="color:var(--muted);margin:0">
+      <code>POST /api/v1/statements/uploads</code> (Idempotency-Key) returns a presigned PUT into a quarantine key; the
+      browser PUTs the PDF straight to the object store (S3 identities: unsigned requests are refused);
+      <code>…/{id}:submit</code> (Idempotency-Key, Mode B) scans it (PDF magic, size cap, SHA-256), keeps a clean copy and
+      emits <code>portfolio.statement.submitted</code>; the Python ai-parser redacts card numbers, reads one of three
+      MOCK_ layouts and answers <code>ai-parser.statement.parsed</code>; review the lines, untick any, then
+      <code>:confirm</code> turns them into card transactions (each line once, ever) or <code>:discard</code>.
+      Build a mock statement for the selected card below (its payment row carries a full test card number, which must
+      never come back). Mock mode simulates the pipeline in the page. Testing aid only - deleted in P19.
+    </p>
+  </section>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>1 · Card and a mock statement</h2>
+      <div class="row">
+        <select class="in" id="card" aria-label="card" style="flex:1"></select>
+        <button class="ghost" type="button" id="cards-reload">Reload cards</button>
+      </div>
+      <div class="row">
+        <select class="in" id="fmt" aria-label="layout"><option value="saffron">Saffron (dd/mm/yyyy, Cr)</option>
+          <option value="indus">Indus Valley (pipes, DR/CR)</option><option value="deccan">Deccan (dd Mon yy, D/C)</option></select>
+        <input class="in mono" id="nlines" value="12" title="purchases" style="width:60px">
+        <input class="in mono" id="seed" value="7" title="seed" style="width:60px">
+        <button class="act" type="button" id="build">Build PDF</button>
+        <a id="dl" class="mono" style="display:none">download</a>
+      </div>
+      <table class="t" id="preview"></table>
+    </section>
+    <section class="card">
+      <h2>2 · Upload and submit</h2>
+      <div class="row steps">
+        <button class="act" type="button" id="go">Upload + submit</button>
+        <button class="ghost" type="button" id="s-create">1 create</button>
+        <button class="ghost" type="button" id="s-put">2 PUT</button>
+        <button class="ghost" type="button" id="s-submit">3 submit</button>
+        <button class="ghost" type="button" id="s-replay">submit again (same key)</button>
+        <button class="ghost" type="button" id="s-junk">upload a non-PDF</button>
+      </div>
+      <pre class="out" id="u-out">—</pre>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>3 · Review</h2>
+    <div class="row">
+      <button class="ghost" type="button" id="r-reload">Reload</button>
+      <button class="act" type="button" id="r-confirm">Confirm (unticked lines excluded)</button>
+      <button class="ghost" type="button" id="r-discard">Discard</button>
+    </div>
+    <pre class="out" id="r-head">—</pre>
+    <table class="t" id="lines"></table>
+  </section>
+
+  <section class="card">
+    <h2>My uploads (keyset, newest first)</h2>
+    <div id="u-pager"></div>
+  </section>
+  <div class="grid2">
+    <section class="card" id="tenant"></section>
+    <section class="card" id="events"></section>
+  </div>
+  <section class="card" id="log"></section>
+</main>
+<script src="trail.js"></script>
+<script>
+(async () => {
+  Trail.mountHeader('Statements', 'P12');
+  Trail.mountLog(document.getElementById('log'));
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const rupees = p => p == null ? '—' : '₹' + (p / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const key = () => ({ 'Idempotency-Key': Trail.uuidv4() });
+  const show = (id, v) => { $(id).textContent = typeof v === 'string' ? v : JSON.stringify(v, null, 2); };
+  const pad = n => String(n).padStart(2, '0');
+  const ymd = d => `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
+  const addDays = (d, n) => { const x = new Date(d); x.setUTCDate(x.getUTCDate() + n); return x; };
+  const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  // ---------------------------------------------------------------- mock statements (mirrors ai-parser samples.py)
+  const TEST_PAN = '4111 1111 1111 1111';
+  const MERCHANTS = ['SWIGGY*BANGALORE', 'AMAZON PAY INDIA', 'UBER INDIA SYSTEMS', 'BIGBASKET.COM', 'IRCTC E-TICKETING',
+    'ZOMATO ONLINE ORDER', 'BESCOM ELECTRICITY BILL', 'JIO PREPAID RECHARGE', 'FLIPKART INTERNET', 'HP PETROL PUMP'];
+  const rng = s => () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const kindOf = (d, dir) => {
+    const u = d.toUpperCase();
+    if (dir === 'credit') return /\b(PAYMENT|THANK YOU|AUTOPAY|BBPS)\b/.test(u) ? 'payment' : /\bCASH ?BACK\b/.test(u) ? 'cashback' : 'refund';
+    return /\b(FINANCE CHARGES?|INTEREST)\b/.test(u) ? 'interest' : /\bEMI\b/.test(u) ? 'emi'
+      : /\b(FEES?|GST|IGST|CGST|SGST|SURCHARGE|LATE PAYMENT|OVERLIMIT)\b/.test(u) ? 'fee' : 'purchase';
+  };
+  const rowsFor = (last4, end, n, seed) => {
+    const r = rng(seed * 7919 + Number(last4)); const start = addDays(end, -29); const out = [];
+    for (let i = 0; i < n; i++) out.push({ postedOn: addDays(start, Math.floor(r() * 30)), description: MERCHANTS[Math.floor(r() * MERCHANTS.length)], amountPaise: 5000 + Math.floor(r() * 895000), direction: 'debit' });
+    out.push({ postedOn: addDays(out[0].postedOn, 2) > end ? end : addDays(out[0].postedOn, 2), description: 'REFUND ' + out[0].description, amountPaise: Math.max(Math.floor(out[0].amountPaise / 4), 100), direction: 'credit' });
+    out.push({ postedOn: addDays(start, 3), description: 'ANNUAL FEE', amountPaise: 50000, direction: 'debit' });
+    out.push({ postedOn: addDays(start, 3), description: 'GST ON ANNUAL FEE', amountPaise: 9000, direction: 'debit' });
+    out.push({ postedOn: addDays(start, 10), description: 'CASHBACK CREDIT', amountPaise: 12345, direction: 'credit' });
+    out.push({ postedOn: addDays(start, 5), description: `PAYMENT RECEIVED ${TEST_PAN} THANK YOU`, amountPaise: 100000 + Math.floor(r() * 1900000), direction: 'credit' });
+    out.sort((a, b) => a.postedOn - b.postedOn || (a.description < b.description ? -1 : 1));
+    return { start, rows: out.map((x, i) => ({ ...x, lineNo: i + 1, kind: kindOf(x.description, x.direction) })) };
+  };
+  const inr = p => `${Math.floor(p / 100).toLocaleString('en-US')}.${pad(p % 100)}`;
+  const fmtDate = { saffron: d => `${pad(d.getUTCDate())}/${pad(d.getUTCMonth() + 1)}/${d.getUTCFullYear()}`,
+    indus: d => `${pad(d.getUTCDate())}-${MON[d.getUTCMonth()]}-${d.getUTCFullYear()}`,
+    deccan: d => `${pad(d.getUTCDate())} ${MON[d.getUTCMonth()]} ${String(d.getUTCFullYear()).slice(2)}` };
+  const layout = (fmt, last4, start, end, rows) => {
+    const due = addDays(end, 20); const f = fmtDate[fmt];
+    const deb = rows.filter(x => x.direction === 'debit').reduce((s, x) => s + x.amountPaise, 0);
+    const cre = rows.filter(x => x.direction === 'credit').reduce((s, x) => s + x.amountPaise, 0);
+    const total = Math.max(deb - cre, 0); const min = Math.min(total, Math.max(10000, Math.ceil(total * 5 / 100)));
+    if (fmt === 'saffron') return [[[40, 'Saffron Bank (MOCK) - Credit Card Statement']], [[40, `Card Number: XXXX XXXX XXXX ${last4}`]],
+      [[40, `Statement Period: ${f(start)} to ${f(end)}`]], [[40, `Payment Due Date: ${f(due)}`]],
+      [[40, `Total Amount Due: Rs. ${inr(total)}`], [300, `Minimum Amount Due: Rs. ${inr(min)}`]], [[40, 'Date'], [120, 'Transaction Details'], [440, 'Amount (Rs.)']],
+      ...rows.map(x => [[40, f(x.postedOn)], [120, x.description], [440, inr(x.amountPaise) + (x.direction === 'credit' ? ' Cr' : '')]])];
+    if (fmt === 'indus') return [[[40, 'INDUS VALLEY BANK (MOCK)']], [[40, `Statement for card ending ${last4}`]],
+      [[40, `Billing cycle: ${f(start)} - ${f(end)}`]], [[40, `Due date: ${f(due)}`]],
+      [[40, `Total due: INR ${inr(total)}`], [260, `Min due: INR ${inr(min)}`]], [[40, 'TXN DATE | DESCRIPTION | DR/CR | AMOUNT']],
+      ...rows.map(x => [[40, `${f(x.postedOn)} | ${x.description} | ${x.direction === 'credit' ? 'CR' : 'DR'} | ${inr(x.amountPaise)}`]])];
+    return [[[40, 'Deccan Commercial Bank (MOCK) Card Statement']], [[40, `Primary card: 5123-45XX-XXXX-${last4}`]],
+      [[40, `From ${f(start)} To ${f(end)}`], [300, `Pay by ${f(due)}`]], [[40, `Outstanding INR ${inr(total)}`], [260, `Minimum INR ${inr(min)}`]],
+      ...rows.map(x => [[40, f(x.postedOn)], [110, x.description], [440, inr(x.amountPaise)], [520, x.direction === 'credit' ? 'C' : 'D']])];
+  };
+  // Minimal PDF writer (same object layout as dexter_parser.pdftext.write_pdf): Helvetica, 48 rows a page.
+  const writePdf = rows => {
+    const objs = []; const add = s => { objs.push(s); return objs.length; };
+    const escp = s => s.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
+    const pages = []; for (let i = 0; i < Math.max(rows.length, 1); i += 48) pages.push(rows.slice(i, i + 48));
+    const font = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');
+    const pagesId = objs.length + 1 + 2 * pages.length; const kids = [];
+    for (const pr of pages) {
+      let y = 800; const ops = [];
+      for (const cells of pr) { for (const [x, t] of cells) ops.push(`BT /F1 9 Tf ${x} ${y} Td (${escp(t)}) Tj ET`); y -= 16; }
+      const stream = ops.join('\n'); const c = add(`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`);
+      kids.push(add(`<< /Type /Page /Parent ${pagesId} 0 R /MediaBox [0 0 595 842] /Contents ${c} 0 R /Resources << /Font << /F1 ${font} 0 R >> >> >>`));
+    }
+    add(`<< /Type /Pages /Kids [${kids.map(k => k + ' 0 R').join(' ')}] /Count ${kids.length} >>`);
+    const cat = add(`<< /Type /Catalog /Pages ${pagesId} 0 R >>`);
+    let out = '%PDF-1.4\n'; const offs = [];
+    objs.forEach((o, i) => { offs.push(out.length); out += `${i + 1} 0 obj\n${o}\nendobj\n`; });
+    const xref = out.length;
+    out += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n` + offs.map(o => String(o).padStart(10, '0') + ' 00000 n \n').join('');
+    out += `trailer\n<< /Size ${objs.length + 1} /Root ${cat} 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
+    return Uint8Array.from(out, ch => ch.charCodeAt(0) & 0xff);
+  };
+  const sha256hex = async bytes => {
+    if (globalThis.crypto && crypto.subtle) return [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(b => b.toString(16).padStart(2, '0')).join('');
+    let h = 0x811c9dc5; for (const b of bytes) { h ^= b; h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(16).padStart(64, '0');
+  };
+
+  // ---------------------------------------------------------------- page state
+  let cards = []; let built = null; let upload = null; let submitKey = null;
+  const card = () => cards.find(c => c.id === $('card').value);
+  const istYesterday = () => { const d = new Date(Date.now() + 330 * 60000); return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - 1)); };
+
+  // ---------------------------------------------------------------- mock API (portfolio + object store + parser)
+  let seed = null;
+  try { seed = await Trail.loadSeed(); } catch (e) { show('u-out', 'fixtures missing: ' + e.message); }
+  const uploads = Trail.collection({ rows: [], sortKey: 'createdAt', sortName: 'created_desc', filters: { cardId: (r, v) => r.userCardId === v } });
+  const store = new Map();           // object key -> bytes (the mock object store)
+  const builtBySha = new Map();      // sha -> rows (what the mock "parser" reads from a PDF we built)
+  const linesOf = new Map();         // upload id -> lines
+  const refs = new Set();            // card|day|amount|dir|desc|occurrence already imported as card transactions
+  const auth = req => req.tenant && req.tenant.accountId ? null : Trail.problem(401, 'UNAUTHENTICATED', 'log in as a persona first');
+  const mine = (req, id) => uploads.find(id, req.tenant.accountId);
+  const view = u => ({ ...u, upload: undefined });
+  const refsFor = (cardId, rows) => { const seen = {}; return rows.map(l => { const k = [cardId, l.postedOn, l.amountPaise, l.direction, l.description.toUpperCase().trim()].join('|'); seen[k] = (seen[k] || 0) + 1; return k + '|' + seen[k]; }); };
+  const userCards = () => seed ? seed.userCards.rows() : [];
+  Trail.mock('POST', /^\/api\/v1\/statements\/uploads$/, Trail.idempotent((m, req) => auth(req) || (() => {
+    const b = req.body || {}; const c = userCards().find(x => x.id === b.userCardId && x.accountId === req.tenant.accountId && x.status === 'active');
+    if (!c) return Trail.problem(400, 'VALIDATION_FAILED', 'userCardId', { errors: [{ field: 'userCardId', code: 'UNKNOWN_CARD', message: 'Not one of your cards' }] });
+    const id = Trail.uuidv7(); const qk = `quarantine/${req.tenant.accountId}/${id}.pdf`;
+    const u = uploads.add({ id, accountId: req.tenant.accountId, userCardId: c.id, cardLast4: c.last4, fileName: b.fileName || 'statement.pdf', status: 'awaiting_upload', createdAt: new Date().toISOString(), version: 0, quarantineKey: qk });
+    return Trail.reply(201, { ...view(u), upload: { method: 'PUT', url: 'mock-s3://dexter-statements/' + qk, headers: { 'Content-Type': 'application/pdf' } } }, { Location: '/v1/statements/uploads/' + id });
+  })()));
+  Trail.mockList(/^\/api\/v1\/statements\/uploads$/, uploads);
+  Trail.mock('GET', /^\/api\/v1\/statements\/uploads\/([0-9a-f-]{36})$/, (m, req) => auth(req) || (mine(req, m[1]) ? view(mine(req, m[1])) : Trail.problem(404, 'NOT_FOUND', 'statement upload')));
+  Trail.mock('GET', /^\/api\/v1\/statements\/uploads\/([0-9a-f-]{36})\/lines$/, (m, req) => auth(req) || (() => {
+    if (!mine(req, m[1])) return Trail.problem(404, 'NOT_FOUND', 'statement upload');
+    const all = linesOf.get(m[1]) || []; const lim = Number(req.query.limit || 25);
+    return { data: all.slice(0, lim), page: { limit: lim, hasMore: all.length > lim, nextCursor: null } };
+  })());
+  const parse = async u => {         // the mock ai-parser: redaction + the rows of the PDF we built
+    const bytes = store.get('statements/' + u.accountId + '/' + u.id + '.pdf');
+    const known = builtBySha.get(await sha256hex(bytes));
+    Trail.events.emit('portfolio.statement.submitted', u.id, { uploadId: u.id, userCardId: u.userCardId, fileSha256: u.sha256 }, u.accountId);
+    await new Promise(r => setTimeout(r, 700));
+    if (!known) { Object.assign(u, { status: 'failed', errorCode: 'UNKNOWN_FORMAT', errorDetail: 'not a statement layout this parser knows', parsedAt: new Date().toISOString() }); }
+    else {
+      const rows = known.rows.map(x => ({ ...x, description: x.description.replace(TEST_PAN, 'XXXX XXXX XXXX 1111') }));
+      const r = refsFor(u.userCardId, rows);
+      const lines = rows.map((x, i) => ({ lineNo: x.lineNo, postedOn: x.postedOn, description: x.description, amountPaise: x.amountPaise, direction: x.direction, kind: x.kind, status: refs.has(r[i]) ? 'duplicate' : 'pending', cardTxnId: null, ref: r[i] }));
+      linesOf.set(u.id, lines);
+      Object.assign(u, { status: 'parsed', parsedAt: new Date().toISOString(), parsed: { issuer: known.issuer, format: known.fmt + '-v1', last4: known.last4, cardMatches: known.last4 === u.cardLast4, lineCount: lines.length, redactions: 1, duplicateLines: lines.filter(l => l.status === 'duplicate').length, debitsPaise: rows.filter(x => x.direction === 'debit').reduce((s, x) => s + x.amountPaise, 0), creditsPaise: rows.filter(x => x.direction === 'credit').reduce((s, x) => s + x.amountPaise, 0) } });
+    }
+    Trail.events.emit('ai-parser.statement.parsed', u.id, { uploadId: u.id, status: u.status, errorCode: u.errorCode || null }, u.accountId);
+  };
+  const submitted = new Map();       // tenant|key -> response (Mode B replay)
+  Trail.mock('POST', /^\/api\/v1\/statements\/uploads\/([0-9a-f-]{36}):(submit|confirm|discard)$/, async (m, req) => auth(req) || (async () => {
+    const u = mine(req, m[1]); if (!u) return Trail.problem(404, 'NOT_FOUND', 'statement upload');
+    const k = req.headers['Idempotency-Key'];
+    if (m[2] === 'submit') {
+      if (!k) return Trail.problem(400, 'IDEMPOTENCY_KEY_REQUIRED', 'Idempotency-Key header is required');
+      if (submitted.has(req.tenant.accountId + '|' + k)) return Trail.reply(202, submitted.get(req.tenant.accountId + '|' + k), { 'Idempotent-Replayed': 'true' });
+      if (u.status !== 'awaiting_upload') return Trail.problem(409, 'STATEMENT_WRONG_STATE', 'Cannot submit an upload that is ' + u.status);
+      const bytes = store.get(u.quarantineKey);
+      if (!bytes) return Trail.problem(409, 'STATEMENT_NOT_UPLOADED', 'Upload the file to the upload URL first');
+      const magic = String.fromCharCode(...bytes.slice(0, 5));
+      if (!bytes.length || magic !== '%PDF-') { Object.assign(u, { status: 'failed', errorCode: bytes.length ? 'NOT_A_PDF' : 'EMPTY_FILE' }); store.delete(u.quarantineKey); return Trail.problem(422, 'STATEMENT_FILE_REJECTED', 'Only PDF statements are accepted', { reason: u.errorCode }); }
+      const sha = await sha256hex(bytes);
+      const other = uploads.rows().find(x => x.id !== u.id && x.userCardId === u.userCardId && x.sha256 === sha && ['submitted', 'parsed', 'confirmed'].includes(x.status));
+      if (other) return Trail.problem(409, 'STATEMENT_ALREADY_UPLOADED', 'This file was already uploaded for this card', { uploadId: other.id });
+      store.set('statements/' + u.accountId + '/' + u.id + '.pdf', bytes); store.delete(u.quarantineKey);
+      Object.assign(u, { status: 'submitted', sha256: sha, sizeBytes: bytes.length, submittedAt: new Date().toISOString(), version: u.version + 1 });
+      submitted.set(req.tenant.accountId + '|' + k, view(u)); parse(u);
+      return Trail.reply(202, view(u));
+    }
+    if (m[2] === 'discard') {
+      if (!['awaiting_upload', 'parsed', 'discarded'].includes(u.status)) return Trail.problem(409, 'STATEMENT_WRONG_STATE', 'Cannot discard an upload that is ' + u.status);
+      Object.assign(u, { status: 'discarded', decidedAt: new Date().toISOString() }); return view(u);
+    }
+    if (u.status !== 'parsed') return Trail.problem(409, 'STATEMENT_WRONG_STATE', 'Cannot confirm an upload that is ' + u.status);
+    if (u.parsed.cardMatches === false) return Trail.problem(409, 'STATEMENT_CARD_MISMATCH', 'The statement is for another card');
+    const ex = new Set((req.body && req.body.excludeLines) || []); const res = { imported: 0, duplicates: 0, excluded: 0 };
+    for (const l of linesOf.get(u.id)) {
+      if (ex.has(l.lineNo)) { l.status = 'excluded'; res.excluded++; }
+      else if (refs.has(l.ref)) { l.status = 'duplicate'; res.duplicates++; }
+      else { refs.add(l.ref); l.status = 'imported'; l.cardTxnId = Trail.uuidv7(); res.imported++; Trail.events.emit('portfolio.transaction.recorded', l.cardTxnId, { kind: l.kind, amountPaise: l.amountPaise, source: 'statement' }, u.accountId); }
+    }
+    Object.assign(u, { status: 'confirmed', decidedAt: new Date().toISOString(), result: res, version: u.version + 1 });
+    return view(u);
+  })());
+
+  // ---------------------------------------------------------------- 1: card + mock PDF
+  const loadCards = async () => {
+    const r = await Trail.api('GET', '/api/v1/cards?limit=50');
+    cards = r.status === 200 ? r.data.data.filter(c => c.status === 'active') : [];
+    $('card').innerHTML = cards.map(c => `<option value="${esc(c.id)}">${esc(c.nickname || c.productName || 'card')} ··${esc(c.last4)}</option>`).join('') || '<option value="">(no active cards - log in as a persona)</option>';
+  };
+  $('cards-reload').addEventListener('click', loadCards);
+  $('build').addEventListener('click', async () => {
+    const c = card(); if (!c) { show('u-out', 'pick a card first'); return; }
+    const fmt = $('fmt').value; const end = istYesterday();
+    const { start, rows } = rowsFor(c.last4, end, Math.max(1, Math.min(200, Number($('nlines').value) || 12)), Number($('seed').value) || 7);
+    const bytes = writePdf(layout(fmt, c.last4, start, end, rows));
+    const iso = rows.map(x => ({ ...x, postedOn: ymd(x.postedOn) }));
+    built = { fmt, bytes, rows: iso, last4: c.last4, issuer: { saffron: 'MOCK_SAFFRON', indus: 'MOCK_INDUS', deccan: 'MOCK_DECCAN' }[fmt] };
+    builtBySha.set(await sha256hex(bytes), built);
+    const a = $('dl'); a.href = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' })); a.download = `${fmt}-${ymd(end)}.pdf`; a.style.display = '';
+    a.textContent = `download ${a.download} (${bytes.length} B)`;
+    $('preview').innerHTML = '<tr><th>#</th><th>day</th><th>description</th><th class="n">amount</th><th>kind</th></tr>'
+      + iso.map(x => `<tr><td>${x.lineNo}</td><td>${x.postedOn}</td><td>${esc(x.description)}</td><td class="n">${x.direction === 'credit' ? '−' : ''}${rupees(x.amountPaise)}</td><td>${x.kind}</td></tr>`).join('');
+  });
+
+  // ---------------------------------------------------------------- 2: upload
+  const putFile = async (bytes) => {
+    if (Trail.mode === 'mock') { store.set(upload.quarantineKey || upload.upload.url.replace('mock-s3://dexter-statements/', ''), bytes); return 200; }
+    try { const r = await fetch(upload.upload.url, { method: 'PUT', headers: upload.upload.headers, body: bytes }); return r.status; }
+    catch (e) { return 'network/CORS error: ' + e.message; }
+  };
+  const create = async () => {
+    const c = card(); if (!c) { show('u-out', 'pick a card first'); return null; }
+    const r = await Trail.api('POST', '/api/v1/statements/uploads', { body: { userCardId: c.id, fileName: built ? `${built.fmt}.pdf` : 'statement.pdf' }, headers: key() });
+    show('u-out', { create: r.status, body: r.data }); if (r.status === 201) { upload = r.data; if (Trail.mode === 'mock') upload.quarantineKey = r.data.upload.url.replace('mock-s3://dexter-statements/', ''); }
+    return r.status === 201 ? upload : null;
+  };
+  const submit = async (same) => {
+    if (!upload) { show('u-out', 'create first'); return; }
+    if (!same || !submitKey) submitKey = Trail.uuidv4();
+    const r = await Trail.api('POST', `/api/v1/statements/uploads/${upload.id}:submit`, { headers: { 'Idempotency-Key': submitKey } });
+    show('u-out', { submit: r.status, replayed: r.headers['idempotent-replayed'] || r.headers['Idempotent-Replayed'] || false, body: r.data });
+    if (r.status === 202) poll();
+  };
+  let polling = null;
+  const poll = () => {
+    clearInterval(polling); const until = Date.now() + 90000;
+    polling = setInterval(async () => {
+      const r = await Trail.api('GET', '/api/v1/statements/uploads/' + upload.id);
+      if (r.status === 200 && ['parsed', 'failed'].includes(r.data.status) || Date.now() > until) { clearInterval(polling); review(); uploadsPager.reload(); }
+    }, 1000);
+  };
+  $('s-create').addEventListener('click', create);
+  $('s-put').addEventListener('click', async () => { if (!upload || !built) { show('u-out', 'build a PDF and create an upload first'); return; } show('u-out', { put: await putFile(built.bytes) }); });
+  $('s-submit').addEventListener('click', () => submit(false));
+  $('s-replay').addEventListener('click', () => submit(true));
+  $('s-junk').addEventListener('click', async () => { if (await create()) { await putFile(new TextEncoder().encode('PK\u0003\u0004 not a statement')); await submit(false); } });
+  $('go').addEventListener('click', async () => {
+    if (!built) $('build').click(); await new Promise(r => setTimeout(r, 50));
+    if (!built || !(await create())) return;
+    const st = await putFile(built.bytes); if (st !== 200) { show('u-out', { put: st }); return; }
+    await submit(false);
+  });
+
+  // ---------------------------------------------------------------- 3: review
+  const review = async () => {
+    if (!upload) return;
+    const r = await Trail.api('GET', '/api/v1/statements/uploads/' + upload.id);
+    if (r.status !== 200) { show('r-head', r.data); return; }
+    const u = r.data; const p = u.parsed || {};
+    show('r-head', `${u.status}${u.errorCode ? ' · ' + u.errorCode : ''} · ${u.fileName} · card ··${u.cardLast4 || '?'}`
+      + (u.parsed ? `\n${p.issuer} ${p.format} · statement card ··${p.last4} ${p.cardMatches === false ? '≠ MISMATCH' : '✓'} · ${p.lineCount} lines · ${p.redactions} PAN redacted · ${p.duplicateLines} already imported`
+        + `\ndebits ${rupees(p.debitsPaise)} · credits ${rupees(p.creditsPaise)}${p.totalDuePaise != null ? ' · total due ' + rupees(p.totalDuePaise) + ' · min ' + rupees(p.minDuePaise) + ' · due ' + p.dueDate : ''}` : '')
+      + (u.result ? `\nconfirmed: ${u.result.imported} imported · ${u.result.duplicates} duplicates · ${u.result.excluded} excluded` : ''));
+    const l = await Trail.api('GET', `/api/v1/statements/uploads/${upload.id}/lines?limit=100`);
+    const rows = l.status === 200 ? l.data.data : [];
+    $('lines').innerHTML = '<tr><th>use</th><th>#</th><th>day</th><th>description</th><th class="n">amount</th><th>kind</th><th>status</th></tr>'
+      + rows.map(x => `<tr><td><input type="checkbox" data-line="${x.lineNo}" ${x.status === 'pending' ? 'checked' : 'disabled'}></td><td>${x.lineNo}</td><td>${x.postedOn}</td><td>${esc(x.description)}</td><td class="n">${x.direction === 'credit' ? '−' : ''}${rupees(x.amountPaise)}</td><td>${x.kind}</td><td class="st-${x.status}">${x.status}</td></tr>`).join('');
+    const leak = JSON.stringify(rows).includes(TEST_PAN) || JSON.stringify(rows).includes(TEST_PAN.replace(/ /g, ''));
+    if (leak) show('r-head', $('r-head').textContent + '\n!! a full card number came back - redaction failed');
+  };
+  $('r-reload').addEventListener('click', review);
+  $('r-confirm').addEventListener('click', async () => {
+    if (!upload) return;
+    const ex = [...document.querySelectorAll('#lines input[data-line]')].filter(b => !b.checked && !b.disabled).map(b => Number(b.dataset.line));
+    const r = await Trail.api('POST', `/api/v1/statements/uploads/${upload.id}:confirm`, { body: ex.length ? { excludeLines: ex } : undefined, headers: key() });
+    show('u-out', { confirm: r.status, body: r.data }); review(); uploadsPager.reload();
+  });
+  $('r-discard').addEventListener('click', async () => {
+    if (!upload) return; const r = await Trail.api('POST', `/api/v1/statements/uploads/${upload.id}:discard`);
+    show('u-out', { discard: r.status, body: r.data }); review(); uploadsPager.reload();
+  });
+
+  const uploadsPager = Trail.mountPager($('u-pager'), {
+    path: '/api/v1/statements/uploads',
+    render: u => `<div class="mono">${esc(u.createdAt)} · ${esc(u.status)}${u.errorCode ? ' (' + esc(u.errorCode) + ')' : ''} · ··${esc(u.cardLast4 || '')} · ${esc(u.fileName)}</div>`,
+  });
+  Trail.mountTenantSwitcher($('tenant'), { onSwitch: () => { upload = null; loadCards(); uploadsPager.reload(); } });
+  Trail.mountEvents($('events'));
+  document.addEventListener('trail:mode', () => { loadCards(); uploadsPager.reload(); });
+  loadCards();
+})();
+</script>
+</body>
+</html>

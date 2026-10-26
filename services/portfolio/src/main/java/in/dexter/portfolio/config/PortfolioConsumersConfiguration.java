@@ -1,11 +1,13 @@
 package in.dexter.portfolio.config;
 
+import in.dexter.contracts.events.aiparser.StatementParsedV1;
 import in.dexter.contracts.events.catalog.CardPublishedV1;
 import in.dexter.contracts.events.ledger.ExpenseChangedV1;
 import in.dexter.events.EnvelopeCodec;
 import in.dexter.events.KafkaClients;
 import in.dexter.events.consumer.EventConsumer;
 import in.dexter.portfolio.app.ProjectionService;
+import in.dexter.portfolio.app.StatementService;
 import java.time.Clock;
 import java.util.List;
 import org.apache.kafka.clients.producer.Producer;
@@ -16,8 +18,9 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * Portfolio's event consumers (MASTER_PLAN 6.2, P11), each with retry-1m / retry-10m / DLQ stages:
- * {@code catalog-projection} on {@code dexter.catalog.card.v1} and {@code expense-match} on
- * {@code dexter.ledger.expense.v1}. Off unless {@code dexter.portfolio.consumers.enabled=true}; they start after the
+ * {@code catalog-projection} on {@code dexter.catalog.card.v1}, {@code expense-match} on
+ * {@code dexter.ledger.expense.v1} and (P12) {@code statement-parsed} on {@code dexter.ai-parser.statement.v1}.
+ * Off unless {@code dexter.portfolio.consumers.enabled=true}; they start after the
  * relay (which creates the topics).
  */
 @Configuration(proxyBeanMethods = false)
@@ -26,8 +29,8 @@ public class PortfolioConsumersConfiguration {
   static final String SERVICE = "portfolio";
 
   @Bean
-  SmartLifecycle portfolioConsumers(PortfolioProperties props, ProjectionService projections, EnvelopeCodec codec,
-      Clock clock) {
+  SmartLifecycle portfolioConsumers(PortfolioProperties props, ProjectionService projections,
+      StatementService statements, EnvelopeCodec codec, Clock clock) {
     String bootstrap = props.consumers().bootstrapServers();
     if (bootstrap == null || bootstrap.isBlank()) {
       throw new IllegalStateException("dexter.portfolio.consumers.bootstrap-servers is required");
@@ -39,7 +42,10 @@ public class PortfolioConsumersConfiguration {
     EventConsumer expenses = new EventConsumer(EventConsumer.Settings.defaults(bootstrap, SERVICE,
         ProjectionService.EXPENSE_CONSUMER, List.of(ExpenseChangedV1.TOPIC)), projections::onExpenseEvent, codec,
         producer, clock);
-    return new Consumers(List.of(catalog, expenses), producer);
+    EventConsumer parsed = new EventConsumer(EventConsumer.Settings.defaults(bootstrap, SERVICE,
+        StatementService.PARSED_CONSUMER, List.of(StatementParsedV1.TOPIC)), statements::onParsed, codec, producer,
+        clock);
+    return new Consumers(List.of(catalog, expenses, parsed), producer);
   }
 
   static final class Consumers implements SmartLifecycle {

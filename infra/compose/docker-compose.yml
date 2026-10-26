@@ -89,12 +89,20 @@ services:
     # S3-compatible store (ADR-0003). MinIO community images were deleted from Docker Hub on 2026-09-11.
     image: chrislusf/seaweedfs:4.22
     profiles: [core]
-    command: "server -s3 -dir=/data -ip.bind=0.0.0.0 -master.volumeSizeLimitMB=1024"
+    environment:
+      # P12: S3 identities (ADR-0017). Anonymous requests are refused; services and presigned URLs sign with these.
+      OBJECTSTORE_ACCESS_KEY: ${OBJECTSTORE_ACCESS_KEY:-dexter-dev}
+      OBJECTSTORE_SECRET_KEY: ${OBJECTSTORE_SECRET_KEY:-dexter-dev-objectstore-secret}
+    # The identities file is rendered into /tmp at every start (never persisted in the data volume).
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["sh /opt/dexter/objectstore/render-s3.sh > /tmp/s3.json && exec weed server -s3 -s3.config=/tmp/s3.json -dir=/data -ip.bind=0.0.0.0 -master.volumeSizeLimitMB=1024"]
     ports: ["127.0.0.1:${OBJECTSTORE_PORT:-8333}:8333"]
-    volumes: [s3data:/data]
+    volumes:
+      - s3data:/data
+      - ../objectstore:/opt/dexter/objectstore:ro
     healthcheck:
-      # dev mode has no S3 identities configured -> anonymous ListBuckets returns 200 once the gateway is up
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8333/ || exit 1"]
+      # /healthz answers without credentials (S3 calls themselves need a signature once identities exist)
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8333/healthz || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 18

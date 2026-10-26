@@ -157,6 +157,11 @@ log "# P11 portfolio via gateway (:8080)"
 p11=$(python3 "$ROOT/scripts/lib/p11_smoke.py" "http://localhost:8080" 2>&1); p11rc=$?
 while IFS= read -r line; do log "$line"; done <<< "$p11"
 [[ $p11rc -eq 0 ]] || fail=1
+# ------------------------------------------------------------------ P12: statement uploads + the Python ai-parser
+log "# P12 statements via gateway (:8080) + object store (:8333) + ai-parser (:${PORT_AI_PARSER:-8090})"
+p12=$(python3 "$ROOT/scripts/lib/p12_smoke.py" "http://localhost:8080" 2>&1); p12rc=$?
+while IFS= read -r line; do log "$line"; done <<< "$p12"
+[[ $p12rc -eq 0 ]] || fail=1
 # Outbox -> Kafka (MASTER_PLAN 6.3): every identity event written above is published by the relay within 30 s.
 COMPOSE=(docker compose --env-file "$ROOT/.env" -f "$ROOT/infra/compose/docker-compose.yml")
 outbox() { "${COMPOSE[@]}" exec -T postgres psql -U "${POSTGRES_USER:-postgres}" -d identity -tA -c "$1" 2>/dev/null | tr -d '[:space:]'; }
@@ -210,6 +215,13 @@ for _ in $(seq 1 20); do
 done
 if [[ ${act:-0} -gt 0 ]]; then log "PASS  gateway activity -> Kafka: $act events on dexter.gateway.activity.v1"
 else log "FAIL  gateway activity -> Kafka: no events"; fail=1; fi
+
+# P12: portfolio.statement.submitted (portfolio relay) and ai-parser.statement.parsed (the parser) on their topics
+for t in dexter.portfolio.statement.v1 dexter.ai-parser.statement.v1; do
+  n=$("${COMPOSE[@]}" exec -T kafka /opt/kafka/bin/kafka-get-offsets.sh --bootstrap-server localhost:9092 \
+    --topic "$t" 2>/dev/null | awk -F: '{s+=$3} END {print s+0}')
+  if [[ ${n:-0} -gt 0 ]]; then log "PASS  $t: $n events"; else log "FAIL  $t: no events"; fail=1; fi
+done
 
 log "# summary: $([[ $fail -eq 0 ]] && echo PASS || echo FAIL)"
 exit $fail

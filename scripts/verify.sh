@@ -2,9 +2,10 @@
 # Dexter v2 verification (MASTER_PLAN 10).
 #   ./scripts/verify.sh static   no Maven: forbidden patterns, migration names, RLS gate, skeletons, README,
 #                                trail kit spec (node --test test-ui/tests/pager.spec.js)
-#   ./scripts/verify.sh unit     static + mvn -DskipITs verify
-#   ./scripts/verify.sh full     static + infra up (core) + mvn verify (ITs) + seed medium (generate + load, < 10 min)
-#                                + seed determinism + services + api-smoke + k6 smoke
+#   ./scripts/verify.sh unit     static + mvn -DskipITs verify + ai-parser pytest (venv in .run/venv-ai-parser)
+#   ./scripts/verify.sh full     static + infra up (core) + mvn verify (ITs) + ai-parser pytest + seed medium
+#                                (generate + load, < 10 min) + seed determinism + services (+ ai-parser) + api-smoke
+#                                + k6 smoke
 # Always writes verify-report.md at the repo root. Exit code 0 only when every step passes or is skipped.
 set -uo pipefail
 
@@ -15,6 +16,7 @@ VDIR="$ROOT/target/verify"
 REPORT="$ROOT/verify-report.md"
 COMPOSE=(docker compose --env-file "$ROOT/.env" -f "$ROOT/infra/compose/docker-compose.yml")
 source "$ROOT/scripts/lib/services.sh"
+source "$ROOT/scripts/lib/ai_parser.sh"
 
 case "$MODE" in static|unit|full) ;; *) echo "usage: $0 static|unit|full" >&2; exit 2 ;; esac
 rm -rf "$VDIR"; mkdir -p "$VDIR"
@@ -257,8 +259,13 @@ infra_checks() {
         kafka_ok=1; break; fi
       sleep 3
     done
-    if curl -fsS --max-time 5 -o /dev/null "http://127.0.0.1:${OBJECTSTORE_PORT:-8333}/"; then echo "objectstore: S3 endpoint reachable on :${OBJECTSTORE_PORT:-8333}"
+    local s3="http://127.0.0.1:${OBJECTSTORE_PORT:-8333}"
+    if curl -fsS --max-time 5 -o /dev/null "$s3/healthz"; then echo "objectstore: S3 endpoint up on :${OBJECTSTORE_PORT:-8333}"
     else echo "objectstore: FAIL (S3 endpoint not reachable)"; fail=1; fi
+    # P12 (ADR-0017): S3 identities are on, so anonymous requests are refused (statements must never be public)
+    local anon; anon=$(curl -s --max-time 5 -o /dev/null -w '%{http_code}' -X PUT "$s3/dexter-anon-check")
+    if [[ $anon == 403 ]]; then echo "objectstore: anonymous PUT refused (403) OK"
+    else echo "objectstore: FAIL (anonymous PUT answered $anon, expected 403)"; fail=1; fi
     if [[ $kafka_ok -eq 1 ]]; then echo "kafka: topics API reachable"
     else echo "kafka: FAIL (topics API not reachable within 90s)"; "${COMPOSE[@]}" logs --no-color --tail 30 kafka; fail=1; fi
   } > "$VDIR/infra-checks.txt" 2>&1   # no pipe: fail=1 must survive (a pipeline would run this in a subshell)
@@ -304,6 +311,7 @@ else skip static.compose-config "docker or .env not available"; fi
 
 if [[ $MODE == unit ]]; then
   if command -v mvn >/dev/null; then run_step unit.maven mvn_unit; else record unit.maven FAIL "mvn not found"; fi
+  run_step unit.ai-parser parser_test
 fi
 
 if [[ $MODE == full ]]; then
@@ -323,6 +331,7 @@ if [[ $MODE == full ]]; then
     else skip full.infra-checks "infra not healthy - see full.infra-up.log"; fi
   else record full.infra-up FAIL "docker not found"; fi
   if command -v mvn >/dev/null; then run_step full.maven mvn_full; else record full.maven FAIL "mvn not found"; fi
+  run_step full.ai-parser parser_test
   if grep -q $'full.maven\tPASS' "$VDIR/steps.tsv" && grep -q $'full.infra-up\tPASS' "$VDIR/steps.tsv"; then
     run_step full.seed-medium seed_medium
     run_step full.seed-determinism seed_determinism

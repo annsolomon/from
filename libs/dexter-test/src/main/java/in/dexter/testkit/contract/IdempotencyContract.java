@@ -39,6 +39,18 @@ public abstract class IdempotencyContract {
     return true;
   }
 
+  /**
+   * False for a mutation that writes no event (P12: creating a statement upload; its event comes with
+   * {@code :submit}); the outbox counts are then asserted to stay zero instead of one.
+   */
+  protected boolean writesEvent() {
+    return true;
+  }
+
+  private long expectedEvents() {
+    return writesEvent() ? 1 : 0;
+  }
+
   @Test
   void sameKeyTwiceCreatesOneRowAndReplaysTheResponse() throws Exception {
     UUID a = UUID.randomUUID();
@@ -52,7 +64,7 @@ public abstract class IdempotencyContract {
     assertThat(second.header("Idempotent-Replayed")).isEqualTo("true");
     assertThat(second.header("Location")).isEqualTo(first.header("Location"));
     assertThat(businessRows(a)).isEqualTo(1);
-    assertThat(outboxRows(a)).isEqualTo(1);
+    assertThat(outboxRows(a)).isEqualTo(expectedEvents());
   }
 
   @Test
@@ -98,7 +110,7 @@ public abstract class IdempotencyContract {
       assertThat(bodies).hasSize(1);
     }
     assertThat(businessRows(a)).isEqualTo(1);
-    assertThat(outboxRows(a)).isEqualTo(1);
+    assertThat(outboxRows(a)).isEqualTo(expectedEvents());
   }
 
   @Test

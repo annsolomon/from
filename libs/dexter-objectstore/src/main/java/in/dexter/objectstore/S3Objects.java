@@ -59,6 +59,32 @@ public final class S3Objects {
     return signer.presign(method, publicEndpoint, "/" + bucket + "/" + key, ttl, clock.instant());
   }
 
+  /**
+   * A presigned URL on the internal endpoint (P12: the ai-parser downloads a submitted statement with it; it never
+   * gets object-store credentials of its own).
+   */
+  public URI presignInternal(String method, String key, Duration ttl) {
+    ensureBucket();
+    return signer.presign(method, endpoint, "/" + bucket + "/" + key, ttl, clock.instant());
+  }
+
+  /** Deletes the object; an absent object is not an error (S3 answers 204 either way). */
+  public void delete(String key) {
+    URI url = signer.presign("DELETE", endpoint, "/" + bucket + "/" + key, Duration.ofMinutes(5), clock.instant());
+    try {
+      HttpResponse<Void> r = http.send(HttpRequest.newBuilder(url).timeout(Duration.ofSeconds(10)).DELETE().build(),
+          HttpResponse.BodyHandlers.discarding());
+      if (r.statusCode() / 100 != 2 && r.statusCode() != 404) {
+        throw new IllegalStateException("object store DELETE " + key + " answered " + r.statusCode());
+      }
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new IllegalStateException(e);
+    }
+  }
+
   /** Stores the bytes under {@code key} (overwrites). */
   public void put(String key, byte[] body, String contentType) {
     ensureBucket();

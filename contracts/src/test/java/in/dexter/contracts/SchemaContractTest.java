@@ -12,7 +12,9 @@ import in.dexter.contracts.events.ledger.ExpenseStateV1;
 import in.dexter.contracts.events.ledger.ImportCompletedV1;
 import in.dexter.contracts.events.portfolio.CardChangedV1;
 import in.dexter.contracts.events.portfolio.LinkConfirmedV1;
+import in.dexter.contracts.events.portfolio.StatementSubmittedV1;
 import in.dexter.contracts.events.portfolio.TransactionRecordedV1;
+import in.dexter.contracts.events.aiparser.StatementParsedV1;
 import in.dexter.contracts.events.identity.AccountRegisteredV1;
 import in.dexter.contracts.events.identity.AdminActionV1;
 import in.dexter.contracts.events.identity.AccountVerifiedV1;
@@ -95,6 +97,16 @@ class SchemaContractTest {
     SAMPLES.put("portfolio.link.confirmed.v1.json", new LinkConfirmedV1(
         UUID.fromString("0192f1e2-0000-7000-8000-0000000000f9"), expense,
         UUID.fromString("0192f1e2-0000-7000-8000-0000000000d9"), userCard, "auto", "2026-10-22T10:00:02Z"));
+    UUID upload = UUID.fromString("0192f1e2-0000-7000-8000-0000000000f1");
+    UUID uploadCard = UUID.fromString("0192f1e2-0000-7000-8000-0000000000b1");
+    SAMPLES.put("portfolio.statement.submitted.v1.json", new StatementSubmittedV1(upload, uploadCard, "4321",
+        "http://127.0.0.1:8333/dexter-statements/statements/a/u.pdf?X-Amz-Signature=x", "a".repeat(64), 48_213,
+        "application/pdf", "2026-10-26T16:00:00Z", "2026-10-26T10:00:00Z"));
+    SAMPLES.put("ai-parser.statement.parsed.v1.json", new StatementParsedV1(upload, uploadCard, "parsed", null, null,
+        "rules-1", "saffron-v1", "MOCK_SAFFRON", "4321", "2026-09-06", "2026-10-05", "2026-10-25", 1_234_567L,
+        61_729L, 1, java.util.List.of(new StatementParsedV1.Line(1, "2026-09-07", "SWIGGY*BANGALORE", 123_450, "debit",
+            "purchase"), new StatementParsedV1.Line(2, "2026-09-08", "PAYMENT RECEIVED XXXX XXXX XXXX 1111 THANK YOU",
+            500_000, "credit", "payment")), "2026-10-26T10:00:05Z"));
     SAMPLES.put("ledger.import.completed.v1.json", new ImportCompletedV1(
         UUID.fromString("0192f1e2-0000-7000-8000-0000000000f2"), "completed", 120, 118, 20, 2, null,
         "2026-10-17T12:05:00Z"));

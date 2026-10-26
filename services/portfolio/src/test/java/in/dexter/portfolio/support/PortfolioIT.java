@@ -43,6 +43,8 @@ public abstract class PortfolioIT {
   public static final JdbcClient ADMIN = JdbcClient.create(
       new SimpleDriverDataSource(new org.postgresql.Driver(), DB.url(), "postgres", "postgres"));
   public static final TestJwt IDP = TestJwt.create();
+  /** P12: statement files in memory (no object store in the ITs). */
+  public static final MemoryStatementFiles FILES = new MemoryStatementFiles();
   static final HttpClient HTTP = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
   static final String CURSOR_KEY;
   /** 4 % base points (excluding fuel), 10 % on food.delivery, a point worth 25 paise. */
@@ -75,6 +77,12 @@ public abstract class PortfolioIT {
     JwtVerifier testJwtVerifier() {
       return IDP.verifier("portfolio", Clock.systemUTC());
     }
+
+    @Bean
+    @org.springframework.context.annotation.Primary
+    in.dexter.portfolio.app.StatementFiles testStatementFiles() {
+      return FILES;
+    }
   }
 
   @DynamicPropertySource
@@ -86,6 +94,8 @@ public abstract class PortfolioIT {
     r.add("dexter.portfolio.relay.enabled", () -> "false");
     r.add("dexter.portfolio.consumers.enabled", () -> "false");
     r.add("dexter.portfolio.closer.enabled", () -> "false");
+    // P12: a short Mode B lease so the submit-recovery IT can let it expire
+    r.add("dexter.portfolio.statements.submit-lease", () -> "1s");
   }
 
   /** The catalog products the tests use (idempotent; after Flyway, so call from a test or @BeforeEach). */

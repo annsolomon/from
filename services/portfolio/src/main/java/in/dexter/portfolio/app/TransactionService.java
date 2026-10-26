@@ -102,7 +102,6 @@ public final class TransactionService {
       throw new ValidationException(e);
     }
     Instant postedAt = cmd.postedAt().truncatedTo(ChronoUnit.MICROS);
-    String direction = DEBITS.contains(kind) ? "debit" : "credit";
     IdempotentRequest fingerprint = IdempotentRequest.of("POST", "/v1/cards/" + cardId + "/transactions", cmd, mapper);
     return tx.write(tenant, () -> idempotency.execute(tenant, key, fingerprint, () -> {
       CardRow card = cards.lock(cardId).filter(c -> !c.removed()).orElseThrow(() -> new NotFoundException("card"));
@@ -112,38 +111,53 @@ public final class TransactionService {
       if (clientRef != null && txns.idByClientRef(clientRef).isPresent()) {
         throw new DexterException(PortfolioErrors.CLIENT_REF_TAKEN, "A transaction already has this clientRef");
       }
-      Instant now = now();
-      StatementRow st = statementFor(card, BillingCycle.day(postedAt), now);
-      boolean debit = "debit".equals(direction);
-      txns.addToStatement(st.id(), debit ? amount : 0, debit ? 0 : amount, now);
-      TxnRow t = new TxnRow(Ids.newId(), tenant.accountId(), card.id(), st.id(), postedAt, amount, direction, kind,
-          description, cmd.merchantId(), cmd.categoryPath(), null, clientRef, "manual", now, 0);
-      txns.insert(t);
-      RewardTerms.Earning earned = "purchase".equals(kind)
-          ? Terms.of(cards.product(card.cardProductId()).orElse(null), mapper).earn(amount, cmd.categoryPath(),
-              cmd.merchantId())
-          : RewardTerms.Earning.NONE;
-      if (earned.points() > 0) {
-        rewards.append(new RewardStore.Entry(Ids.newId(), tenant.accountId(), card.id(), "earn", earned.points(),
-            earned.valueMilliPaise(), BillingCycle.day(postedAt).plusMonths(POINTS_LIFETIME_MONTHS), "txn:" + t.id(),
-            t.id(), null, now));
-      }
-      long spend = "purchase".equals(kind) ? amount : "refund".equals(kind) ? -amount : 0;
-      long fees = "fee".equals(kind) || "interest".equals(kind) ? amount : 0;
-      txns.addSavings(tenant.accountId(), card.id(), BillingCycle.day(postedAt).withDayOfMonth(1), spend, 1,
-          earned.valuePaise(), fees);
-      outbox.append(PortfolioEvents.TRANSACTION_RECORDED, tenant.accountId(), t.id(), 0, new TransactionRecordedV1(
-          t.id(), card.id(), st.id(), postedAt.toString(), amount, direction, kind, cmd.merchantId(),
-          cmd.categoryPath(), earned.rewardType(), earned.valuePaise(), earned.points(), now.toString()));
-      matcher.forTransaction(t, now);
+      Recorded r = write(tenant, card, postedAt, amount, kind, description, cmd.merchantId(), cmd.categoryPath(),
+          clientRef, "manual", now());
       if (failNext.getAndSet(false)) {
         throw new IllegalStateException("injected failure after the business write");
       }
-      TxnView.Reward reward = new TxnView.Reward(earned.rewardType(), earned.rateBps(), earned.valuePaise(),
-          earned.points());
-      return new ApiResponse(201, Map.of("Location", "/v1/cards/" + card.id() + "/transactions/" + t.id(), "ETag",
-          "\"0\""), TxnView.of(t, reward));
+      TxnView.Reward reward = new TxnView.Reward(r.earned().rewardType(), r.earned().rateBps(),
+          r.earned().valuePaise(), r.earned().points());
+      return new ApiResponse(201, Map.of("Location", "/v1/cards/" + card.id() + "/transactions/" + r.txn().id(),
+          "ETag", "\"0\""), TxnView.of(r.txn(), reward));
     }));
+  }
+
+  /** What {@link #write} recorded: the transaction and what it earned. */
+  record Recorded(TxnRow txn, RewardTerms.Earning earned) {}
+
+  /**
+   * Writes one card transaction inside the caller's write transaction; the card is locked and active, the input is
+   * valid and the client reference (if any) is free. Moves the cycle's statement, earns rewards on purchases, adds to
+   * the month's savings, appends {@code portfolio.transaction.recorded} and runs the auto-matcher. Manual records
+   * and confirmed statement lines (P12, source {@code statement}) both come through here.
+   */
+  Recorded write(Tenant tenant, CardRow card, Instant postedAt, long amount, String kind, String description,
+      UUID merchantId, String categoryPath, String clientRef, String source, Instant now) {
+    String direction = DEBITS.contains(kind) ? "debit" : "credit";
+    StatementRow st = statementFor(card, BillingCycle.day(postedAt), now);
+    boolean debit = "debit".equals(direction);
+    txns.addToStatement(st.id(), debit ? amount : 0, debit ? 0 : amount, now);
+    TxnRow t = new TxnRow(Ids.newId(), tenant.accountId(), card.id(), st.id(), postedAt, amount, direction, kind,
+        description, merchantId, categoryPath, null, clientRef, source, now, 0);
+    txns.insert(t);
+    RewardTerms.Earning earned = "purchase".equals(kind)
+        ? Terms.of(cards.product(card.cardProductId()).orElse(null), mapper).earn(amount, categoryPath, merchantId)
+        : RewardTerms.Earning.NONE;
+    if (earned.points() > 0) {
+      rewards.append(new RewardStore.Entry(Ids.newId(), tenant.accountId(), card.id(), "earn", earned.points(),
+          earned.valueMilliPaise(), BillingCycle.day(postedAt).plusMonths(POINTS_LIFETIME_MONTHS), "txn:" + t.id(),
+          t.id(), null, now));
+    }
+    long spend = "purchase".equals(kind) ? amount : "refund".equals(kind) ? -amount : 0;
+    long fees = "fee".equals(kind) || "interest".equals(kind) ? amount : 0;
+    txns.addSavings(tenant.accountId(), card.id(), BillingCycle.day(postedAt).withDayOfMonth(1), spend, 1,
+        earned.valuePaise(), fees);
+    outbox.append(PortfolioEvents.TRANSACTION_RECORDED, tenant.accountId(), t.id(), 0, new TransactionRecordedV1(
+        t.id(), card.id(), st.id(), postedAt.toString(), amount, direction, kind, merchantId, categoryPath,
+        earned.rewardType(), earned.valuePaise(), earned.points(), now.toString()));
+    matcher.forTransaction(t, now);
+    return new Recorded(t, earned);
   }
 
   /** The cycle's statement, opened on first use (a concurrent opener wins the insert; we lock its row). */

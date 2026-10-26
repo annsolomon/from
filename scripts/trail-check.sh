@@ -6,7 +6,7 @@ set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
 source scripts/lib/services.sh
-PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html p05-mfa-admin.html p06-gateway.html p07-ledger.html p08-ledger-plus.html p09-catalog.html p10-ingestion.html p11-portfolio.html})
+PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html p05-mfa-admin.html p06-gateway.html p07-ledger.html p08-ledger-plus.html p09-catalog.html p10-ingestion.html p11-portfolio.html p12-statements.html})
 BASE=http://127.0.0.1:8099
 fail=0
 
@@ -145,6 +145,21 @@ if [[ $rp == *'"period":"year"'* && $rp == *'"cards":['* ]]; then printf 'PASS  
 else printf 'FAIL  %-10s %s\n' p11-report "${rp:0:200}"; fail=1; fi
 ls=$(curl -s --max-time 5 -H "Authorization: Bearer $at" "$BASE/api/v1/links/suggestions?limit=10")
 if [[ $ls == *'"page":'* ]]; then printf 'PASS  %-10s %s\n' p11-links 200; else printf 'FAIL  %-10s %s\n' p11-links "${ls:0:200}"; fail=1; fi
+
+# P12: what p12-statements.html Live mode calls as asha (the full upload -> parser -> confirm flow: api-smoke P12)
+rc=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$BASE/api/v1/statements/uploads")
+if [[ $rc == 401 ]]; then printf 'PASS  %-10s %s\n' p12-anon 401; else printf 'FAIL  %-10s %s\n' p12-anon "$rc"; fail=1; fi
+su=$(curl -s --max-time 5 -H "Authorization: Bearer $at" "$BASE/api/v1/statements/uploads?limit=5")
+if [[ $su == *'"page":'* && $su == *'"data":'* ]]; then printf 'PASS  %-10s %s\n' p12-uploads 200
+else printf 'FAIL  %-10s %s\n' p12-uploads "${su:0:200}"; fail=1; fi
+# the browser PUTs the statement straight to the object store: its CORS preflight must allow the trail origin
+pf=$(curl -s -o /dev/null -D - -X OPTIONS "http://127.0.0.1:${OBJECTSTORE_PORT:-8333}/dexter-statements/x.pdf" \
+  -H "Origin: $BASE" -H 'Access-Control-Request-Method: PUT' -H 'Access-Control-Request-Headers: content-type')
+if grep -qi '^access-control-allow-methods:.*PUT' <<< "$pf"; then printf 'PASS  %-10s %s\n' p12-cors PUT
+else printf 'FAIL  %-10s %s\n' p12-cors "$(head -c 200 <<< "$pf")"; fail=1; fi
+if curl -fsS --max-time 5 "http://localhost:${PORT_AI_PARSER:-8090}/health" | grep -q '"state":"consuming"'; then
+  printf 'PASS  %-10s %s\n' p12-parser consuming
+else printf 'FAIL  %-10s %s\n' p12-parser "$(curl -s --max-time 5 "http://localhost:${PORT_AI_PARSER:-8090}/health" | head -c 200)"; fail=1; fi
 
 echo "trail-check: $([[ $fail -eq 0 ]] && echo PASS || echo FAIL)"
 exit $fail

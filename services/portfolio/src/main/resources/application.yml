@@ -71,6 +71,18 @@ dexter:
     closer:
       enabled: true
       interval: 10m
+    # P12 statement uploads: S3-compatible store with identities (ADR-0003/ADR-0017); the ai-parser reads submitted
+    # files through presigned GETs on the internal endpoint.
+    statements:
+      endpoint: http://127.0.0.1:${OBJECTSTORE_PORT:8333}
+      public-endpoint: ${OBJECTSTORE_PUBLIC_URL:http://localhost:${OBJECTSTORE_PORT:8333}}
+      bucket: ${PORTFOLIO_STATEMENT_BUCKET:dexter-statements}
+      access-key: ${OBJECTSTORE_ACCESS_KEY:dexter-dev}
+      secret-key: ${OBJECTSTORE_SECRET_KEY:}
+      max-bytes: 10485760
+      upload-ttl: 15m
+      file-url-ttl: 6h
+      submit-lease: 2m
 
 ---
 spring:
