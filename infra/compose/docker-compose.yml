@@ -94,8 +94,10 @@ services:
       OBJECTSTORE_ACCESS_KEY: ${OBJECTSTORE_ACCESS_KEY:-dexter-dev}
       OBJECTSTORE_SECRET_KEY: ${OBJECTSTORE_SECRET_KEY:-dexter-dev-objectstore-secret}
     # The identities file is rendered into /tmp at every start (never persisted in the data volume).
+    # Every bucket (collection) reserves its own volumes; with 1 GB volumes the free-disk cap on a CI runner left no
+    # room for a third bucket (P12: PUTs to dexter-statements hung). Sparse 256 MB volumes, room for 64.
     entrypoint: ["/bin/sh", "-c"]
-    command: ["sh /opt/dexter/objectstore/render-s3.sh > /tmp/s3.json && exec weed server -s3 -s3.config=/tmp/s3.json -dir=/data -ip.bind=0.0.0.0 -master.volumeSizeLimitMB=1024"]
+    command: ["sh /opt/dexter/objectstore/render-s3.sh > /tmp/s3.json && exec weed server -s3 -s3.config=/tmp/s3.json -dir=/data -ip.bind=0.0.0.0 -master.volumeSizeLimitMB=256 -volume.max=64"]
     ports: ["127.0.0.1:${OBJECTSTORE_PORT:-8333}:8333"]
     volumes:
       - s3data:/data
