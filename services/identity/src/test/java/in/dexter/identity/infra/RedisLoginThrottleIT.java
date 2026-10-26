@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import in.dexter.identity.app.LoginThrottle;
 import in.dexter.identity.domain.ThrottlePolicy;
+import in.dexter.identity.support.IdentityBase;
 import in.dexter.testkit.containers.TestRedis;
 import java.time.Duration;
 import java.time.Instant;
@@ -24,9 +25,11 @@ class RedisLoginThrottleIT {
 
   @BeforeAll
   static void setUp() {
-    TestRedis.applyServiceAcl("identity", "throttle-it-pw");
+    // The same password as the Spring test contexts (IdentityBase): the ACL user is shared in this JVM, and a
+    // different password here broke every cached context that ran after this class (WRONGPASS -> 503 sign-in).
+    TestRedis.applyServiceAcl("identity", IdentityBase.REDIS_PW);
     redis = new StringRedisTemplate(TestRedis.connectionFactory(TestRedis.host(), TestRedis.port(), "identity",
-        "throttle-it-pw"));
+        IdentityBase.REDIS_PW));
     throttle = new RedisLoginThrottle(redis);
   }
 
