@@ -48,14 +48,19 @@ def key(tok):
 
 
 def put(url, data, headers=None):
-    req = urllib.request.Request(url, data=data, method="PUT", headers=headers or {})
-    try:
-        with urllib.request.urlopen(req, timeout=20) as r:
-            return r.status
-    except urllib.error.HTTPError as e:
-        return e.code
-    except Exception:  # noqa: BLE001
-        return 0
+    """The PUT's HTTP status, or 'transport error ...' (retried once: a fresh connection after a reset)."""
+    err = None
+    for _ in range(2):
+        req = urllib.request.Request(url, data=data, method="PUT", headers=headers or {})
+        try:
+            with urllib.request.urlopen(req, timeout=20) as r:
+                return r.status
+        except urllib.error.HTTPError as e:
+            return e.code
+        except Exception as e:  # noqa: BLE001
+            err = "transport error %s: %s" % (type(e).__name__, e)
+            time.sleep(1)
+    return err
 
 
 def upload(tok, card_id, data, name="statement.pdf"):
@@ -129,13 +134,13 @@ def run(asha, ravi, card, last4):
     s2, h2, again = call("POST", GW + "/v1/statements/uploads", body, h1)
     check("same key again: replayed", s2 == 201 and h2.get("idempotent-replayed") == "true"
           and again.get("id") == u["id"], (s2, h2, again))
-    unsigned = u["upload"]["url"].split("?")[0]
-    check("object store refuses an unsigned PUT (403)", put(unsigned, pdf) == 403)
     s, _, d = call("POST", GW + "/v1/statements/uploads/%s:submit" % u["id"], None, key(asha))
     check("submit before the upload: 409 STATEMENT_NOT_UPLOADED", s == 409 and code(d) == "STATEMENT_NOT_UPLOADED",
           (s, d))
     st = put(u["upload"]["url"], pdf, u["upload"]["headers"])
-    check("presigned PUT to the object store: 200", st == 200, st)
+    check("presigned PUT to the object store: 200", st == 200, (st, u["upload"]["url"].split("?")[0]))
+    st = put(u["upload"]["url"].split("?")[0] + ".unsigned", b"%PDF-1.4 x", u["upload"]["headers"])
+    check("object store refuses an unsigned PUT (403)", st == 403, st)
 
     hs = key(asha)
     s, h, d = call("POST", GW + "/v1/statements/uploads/%s:submit" % u["id"], None, hs)
