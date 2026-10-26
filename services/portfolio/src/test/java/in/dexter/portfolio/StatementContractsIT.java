@@ -30,6 +30,8 @@ class StatementContractsIT extends PortfolioIT {
   static final AtomicLong SEED_HOUR = new AtomicLong();
   static final Instant BASE = Instant.parse("2026-02-01T00:00:00Z");
   static final UUID HEAVY = UUID.fromString("0000000a-0000-7000-8000-0000000f00d5");
+  /** The heavy account's card (md5('up-card0')), the one its 3,000 uploads belong to. */
+  static final UUID HEAVY_CARD = UUID.fromString("8f669865-0895-78f3-2592-5a9bb1e47745");
   static volatile boolean bulk;
 
   @Autowired
@@ -55,12 +57,12 @@ class StatementContractsIT extends PortfolioIT {
     }
     ADMIN.sql("INSERT INTO portfolio.user_cards (id, account_id, card_product_id, nickname, last4, network,"
         + " statement_day) SELECT md5('up-card' || g)::uuid, md5('up-acct' || g)::uuid, :p, 'Bulk', '0001', 'visa',"
-        + " 15 FROM generate_series(0, 2000) g ON CONFLICT DO NOTHING").param("p", POINTS_CARD).update();
+        + " 15 FROM generate_series(0, 200) g ON CONFLICT DO NOTHING").param("p", POINTS_CARD).update();
     ADMIN.sql("UPDATE portfolio.user_cards SET account_id = :h WHERE id = md5('up-card0')::uuid").param("h", HEAVY)
         .update();
     ADMIN.sql("""
         INSERT INTO portfolio.statement_uploads (id, account_id, user_card_id, file_name, quarantine_key, created_at)
-        SELECT gen_random_uuid(), md5('up-acct' || (g % 2000 + 1))::uuid, md5('up-card' || (g % 2000 + 1))::uuid,
+        SELECT gen_random_uuid(), md5('up-acct' || (g % 200 + 1))::uuid, md5('up-card' || (g % 200 + 1))::uuid,
                'bulk.pdf', 'q', TIMESTAMPTZ '2025-01-01' + g * interval '7 minutes'
         FROM generate_series(1, 60000) g
         """).update();
@@ -127,10 +129,10 @@ class StatementContractsIT extends PortfolioIT {
               Map.of("__limit", 51))
           .forbidSeqScanOn("statement_uploads").forbidSort().requireIndex("statement_uploads_list").verify());
       tx.read(Tenant.user(HEAVY), () -> PlanAssert.query(jdbc, StatementRepository.list(1).nextPageSql(),
-              Map.of("__limit", 26, "card", UUID.nameUUIDFromBytes(new byte[0]),
+              Map.of("__limit", 26, "card", HEAVY_CARD,
                   "__k0", Sql.ts(Instant.parse("2025-03-01T00:00:00Z")),
                   "__k1", UUID.fromString("ffffffff-ffff-7fff-bfff-ffffffffffff")))
-          .forbidSeqScanOn("statement_uploads").forbidSort().verify());
+          .forbidSeqScanOn("statement_uploads").forbidSort().requireIndex("statement_uploads_list").verify());
     }
   }
 

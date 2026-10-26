@@ -56,7 +56,7 @@ public final class StatementRepository implements StatementStore {
   /** Rows per multi-row INSERT of lines (11 parameters each, well under the 65,535 bind limit). */
   static final int LINE_BATCH = 500;
 
-  /** The account's uploads newest first (statement_uploads_list); mask 1 = one card (statement_uploads_card_list). */
+  /** The account's uploads newest first (statement_uploads_list); mask 1 = one card (same index, card filtered). */
   static KeysetQuery<UploadRow> listQuery(int mask) {
     return KeysetQuery.<UploadRow>builder("created_desc")
         .direction(KeysetQuery.Direction.DESC)

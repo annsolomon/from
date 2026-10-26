@@ -6,7 +6,7 @@
 --
 -- Query -> index (BUILD_README §4, P12)
 --   GET /v1/statements/uploads (newest first)          (account_id, created_at DESC, id DESC)                 statement_uploads_list
---   GET /v1/statements/uploads?cardId= (newest first)  (account_id, user_card_id, created_at DESC, id DESC)   statement_uploads_card_list
+--   GET /v1/statements/uploads?cardId= (newest first)  same index, card as a filter + statistics on (account, card) statement_uploads_list
 --   one live upload per (card, file)                   UNIQUE (account_id, user_card_id, sha256) WHERE live    statement_uploads_same_file
 --   upload by id / lock                                PRIMARY KEY (id)                                       statement_uploads_pkey
 --   parsed header of an upload                         PRIMARY KEY (upload_id)                                parsed_statements_pkey
@@ -44,8 +44,10 @@ CREATE TABLE portfolio.statement_uploads (
   CONSTRAINT statement_uploads_confirmed CHECK ((status = 'confirmed') = (imported_count IS NOT NULL))
 );
 CREATE INDEX statement_uploads_list ON portfolio.statement_uploads (account_id, created_at DESC, id DESC);
-CREATE INDEX statement_uploads_card_list ON portfolio.statement_uploads (account_id, user_card_id, created_at DESC,
-  id DESC);
+-- ?cardId= walks statement_uploads_list and filters by card (an account has a few uploads per card and month); the
+-- statistics stop the planner from multiplying the account and card selectivities into "one row, sort it".
+CREATE STATISTICS portfolio.statement_uploads_card (dependencies, ndistinct) ON account_id, user_card_id
+  FROM portfolio.statement_uploads;
 -- The same file for the same card is live once (a second upload of it is refused; after a discard or a failure it
 -- may be uploaded again).
 CREATE UNIQUE INDEX statement_uploads_same_file ON portfolio.statement_uploads (account_id, user_card_id, sha256)
