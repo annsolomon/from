@@ -1,9 +1,9 @@
 # Dexter v2 — Build README (living handoff)
 
-**Last updated:** 2026-10-22 · **Chat/phase:** P11 DONE · **Model:** Claude Opus 5.5
-**P11 is DONE (2026-10-22).** `verify.sh full` PASS + `trail-check.sh` PASS on a GitHub runner (repo `annsolomon/from`,
-commit `bac4db8`, run 39703341828; reports on branch `verify-reports`). Next chat: **P12** (Portfolio B: calc + parser). Upload `MASTER_PLAN.md`
-+ this README; the code is in the repo (clone it).
+**Last updated:** 2026-10-27 · **Chat/phase:** P12a (statements + ai-parser) · **Model:** Claude Opus 5.5
+**P12a status: see the P12 row below** (CI on GitHub, repo `annsolomon/from`, reports on branch `verify-reports`).
+Next chat: **P12b** (calc library) — needs the old repo zip `dexter-enterprise-java-updated.zip` uploaded (A-68); if
+P12a is not DONE yet, finish its CI first (§2). Upload `MASTER_PLAN.md` + this README; the code is in the repo (clone it).
 
 ## 1. Phase status
 
@@ -21,7 +21,7 @@ commit `bac4db8`, run 39703341828; reports on branch `verify-reports`). Next cha
 | P09 | Catalog A | **DONE** 2026-10-17 | `verify.sh full` PASS + trail-check PASS (CI run 39046289166, git 1135b29): catalog unit 6 + IT 15 (admin draft→publish→version, public keyset/filters/search/potential, RLS 4, projection from the compacted topic = stored snapshot, PlanAssert on 50k cards incl. search inside the owner function), api-smoke P09 15/15 | DoD all ticked (§3) |
 | P10 | Catalog B (ingestion) | **DONE** 2026-10-18 | `verify.sh full` PASS + trail-check PASS (CI run 39109141399, git c68837d): catalog unit 21 + IT 27 (pipeline: unchanged → no item, fee change → one item, approve idempotent sequential + concurrent, supersede/stale/draft-pending; collector: SSRF incl. redirects to private addresses, sitemap politeness, resume from checkpoint, abandoned runs, scheduler; API + permissions; RLS for ingestion tables), objectstore unit 2, api-smoke P10 16/16 (real admin MFA, SeaweedFS snapshot, approve → v2 public) | DoD all ticked (§3) |
 | P11 | Portfolio A | **DONE** 2026-10-22 | `verify.sh full` PASS + trail-check PASS (CI run 39703341828, git bac4db8): portfolio unit 14 (BillingCycle, EmiMath, MatchScore, rewards domain, platform migration, ArchRules) + IT 46 (cards, transactions + statements + closer, links, auto-match accuracy on the seed's 357 merchants: precision 1.000 / recall 1.000 over 400 expenses, projection version guard + Kafka end to end, EMI, rewards + report, RLS proof on 10 tables, PaginationContract 9, IdempotencyContract 2 × 6), api-smoke P11 29/29 (auto-match over real Kafka) | DoD all ticked (§3) |
-| P12 | Portfolio B (calc + parser) | NOT STARTED | — | |
+| P12 | Portfolio B (calc + parser) | **P12a IT-GREEN** (statements + ai-parser); P12b NOT STARTED | CI run 40416356611 (git 29c4146): maven PASS (portfolio unit 18 + IT 68 incl. `StatementsIT` 6, `StatementContractsIT` 15, RLS 10), ai-parser pytest 72/72, trail-check PASS; api-smoke P12 = __SMOKE__ | split A-68: P12b = calc engines, blocked on the old repo zip |
 | P13 | Planning | NOT STARTED | — | |
 | P14 | Reco A | NOT STARTED | — | |
 | P15 | Reco B (optimizer/SSE) | NOT STARTED | — | |
@@ -32,10 +32,25 @@ commit `bac4db8`, run 39703341828; reports on branch `verify-reports`). Next cha
 
 ## 2. In progress (exact stopping point)
 
-- **P11 (2026-10-22): complete.** Nothing in progress. Next action: P12 (verify P11 first, then Portfolio B).
-  P12 starts from: `card_transactions.source` (statement rows land here and reuse `Matcher`), `statements` (upload
-  attaches to a period), `libs/dexter-objectstore` for statement files, `EmiMath`/`BillingCycle` (domain, pure) for
-  the calc engine library, and the `ai-parser` skeleton.
+- **P12a (2026-10-27):** code complete. Evidence: CI run 40416356611 (git `29c4146`) — every Maven module and IT
+  green, ai-parser pytest 72/72, trail-check PASS; the only failure was api-smoke P12 (the presigned PUT from the smoke
+  script raised a transport error on the runner; the same flow passes against SeaweedFS 4.22 with identities in the
+  sandbox). r5 (`92463a7`) makes the smoke report the error and retry once. __R5__
+- **P12b (not started):** port the old calc engines into `libs/portfolio-calc` with the old tests as golden fixtures,
+  `/v1/calc/*` (routes exist: `/v1/calc/**` → portfolio, class `calc`). Needs `dexter-enterprise-java-updated.zip`.
+  P12b starts from: `EmiMath`/`BillingCycle` (portfolio domain, pure), the empty `libs/portfolio-calc` module, the
+  gateway's calc rate limit (60/min per account).
+
+### History (P12a)
+
+- r1 (`2819dda`): all code; CI: static/unit (everything compiles) green; gateway `RateLimitIT` flake (continuous
+  refill let the 61st calc call through on a slow runner) stopped the reactor. r2 (`5ebfed0`): flake fixed; identity
+  `AdminIT` 503s — `RedisLoginThrottleIT` reset the shared Redis ACL user `identity` to its own password, breaking
+  every cached context after it (order-dependent). r3 (`7f58f5f`): shared password; portfolio 66/68 —
+  `PortfolioHealthIT` counted 2 migrations, uploads PlanAssert sorted (planner multiplied account × card
+  selectivities; 30 rows/account made the sort genuinely cheaper). r4 (`29c4146`): statistics on (account, card),
+  card index dropped, 300 uploads/account for the PlanAssert; maven fully green, api-smoke P12 PUT transport error.
+  r5 (`92463a7`): smoke diagnostics + retry.
 
 ### History (P11)
 
@@ -354,6 +369,26 @@ Issues found in P01's own code during self-review and fixed:
 4. The web test asserted an exact `Content-Type`; now a compatible-type check (a charset suffix must not fail it).
 
 ## 4. What exists now
+
+**P12a Statements + ai-parser** — ADR-0017, errors.md "portfolio statements" section, A-68..A-72
+
+| Piece | What it does |
+|---|---|
+| Schema `V202610261000__portfolio_statements` | `statement_uploads` (awaiting_upload → submitted → parsed/failed → confirmed/discarded; quarantine + clean keys, SHA-256, counts; one live upload per card + file), `parsed_statements` (parser header), `parsed_lines` (staged, `client_ref`, pending/imported/duplicate/excluded). FORCE RLS; statistics on (account_id, user_card_id) |
+| `domain` | `StatementScan` (size, `%PDF-` magic, SHA-256), `StatementLines` (line refs with occurrences, checks, 00:00 IST posting) |
+| `app` | `StatementService` (create, `:submit` Mode B with recovery point `scanned`, `onParsed` consumer, review, `:confirm` via `TransactionService.write`, `:discard`), ports `StatementStore`, `StatementFiles`; views `UploadView`, `LineView` |
+| `infra` | `StatementRepository` (keyset lists, multi-row line insert), `objectstore/S3StatementFiles` |
+| `api` | `StatementController` (`/v1/statements/uploads`, `/{id}`, `/{id}/lines`, `/{id}:submit|:confirm|:discard`) |
+| `config` | `dexter.portfolio.statements.*` (10 MB, upload URL 15 min, parser URL 6 h, submit lease 2 min); consumer `statement-parsed`; relay declares `dexter.ai-parser.statement.v1` |
+| `ai-parser/` | Python 3 (FastAPI 0.162, aiokafka 0.14, pypdf 6.21): PDF text, Luhn PAN redaction, `saffron-v1`/`indus-v1`/`deccan-v1` extractors, safe fetch, Kafka worker, `/health`; `samples.py` builds mock statements. Venv `.run/venv-ai-parser`, port 8090 |
+| Contracts | `portfolio.statement.submitted` v1, `ai-parser.statement.parsed` v1 |
+| Infra | SeaweedFS S3 identities (`infra/objectstore/render-s3.sh`), anonymous refused (verify infra-check), `/healthz` healthcheck; `S3Objects.delete`/`presignInternal` |
+| Scripts | `run.sh services` also starts the parser (`run.sh parser` alone); `verify.sh` steps `unit.ai-parser` / `full.ai-parser`; api-smoke P12 (`p12_smoke.py`) + topic offsets; trail-check P12 (anon 401, list, CORS preflight, parser consuming) |
+| Trail | `test-ui/p12-statements.html` (builds mock PDFs in the browser; Mock simulates the pipeline; Live via gateway + object store + parser) |
+| Tests | unit `StatementDomainTest` 4; IT `StatementsIT` 6, `StatementContractsIT` (pagination 9 incl. PlanAssert on 63k uploads, idempotency 6), `PortfolioRlsIT` +1 (3 tables); ai-parser pytest 72 (redaction, 3 layouts exact, multi-page, contract validation of emitted events, fetch rules, worker) |
+
+**Query→Index (P12a):** uploads list (+ `?cardId=` as filter) → `statement_uploads_list`; same live file →
+`statement_uploads_same_file`; lines → `parsed_lines_pkey`; duplicate check → `card_transactions_client_ref`.
 
 **P11 Portfolio A (DONE)** — ADR-0016, errors.md portfolio section
 
@@ -887,6 +922,14 @@ Croma Online vs label Croma).
   - The breached list holds the ≈ 9.1k NCSC top-100k entries that are ≥ 10 characters; no online HIBP k-anonymity
     check (offline by plan).
   - (P05 resolved: lockout, `mfa_enrolled`/`amr` real.)
+- **P12a statements:**
+  - No antivirus scan (magic + size + hash only); scanned PDFs without a text layer fail as `NO_TEXT` (no OCR/LLM yet).
+  - The three layouts are fictional MOCK_ issuers; real bank formats need their own extractors.
+  - Statement payment status (paid / partially_paid / overdue) is still not derived from confirmed payments.
+  - One dev S3 identity for all services; per-service identities and bucket policies are P19.
+  - Files are deleted best effort after the decision; a stale quarantine object (never submitted) has no cleanup job.
+  - Live trail: the browser PUT needs SeaweedFS's default permissive CORS (trail-check asserts it).
+  - P12b (calc engines) not started (A-68).
 - **P11 portfolio A:**
   - Statements are generated from recorded transactions only; payments (status paid/partially_paid/overdue) are not
     tracked until statement upload (P12).
@@ -1085,6 +1128,7 @@ press **Lab status / start**, then **Get a valid token**. (After a manual `run.s
 
 ## 10. Changelog (one line per response)
 
+- 2026-10-27 P12a r1–r5: statement uploads (schema, Mode B submit, consumer, review, confirm via the manual record path), Python ai-parser (redaction, 3 layouts, Kafka worker), S3 identities, contracts, smoke/trail/trail-check, ADR-0017, A-68..A-72; fixed pre-existing flakes (gateway RateLimitIT refill, identity Redis ACL password reset). __CHANGELOG__
 - 2026-10-22 P11 r1–r5: portfolio schema (cards, statements, transactions, links, EMI, points ledger, savings, two projections) with FORCE RLS, billing cycles + closer, rewards on catalog terms, auto-match (MatchScore + both-direction matcher via Kafka), EMI math, report, ADR-0016, A-62..A-67, p11 page/smoke/trail-check, gateway ResilienceIT flake fixed. CI run 39703341828: verify full + trail-check PASS → **P11 DONE**.
 - 2026-10-18 P10 r1–r3: ingestion schema + RLS (INGESTOR), SSRF-safe fetcher, pattern extractor, field diff, resumable runs + scheduler + politeness, review queue + idempotent approve via the promoter, draft discard, dexter-objectstore library, ADR-0015, A-57..A-61, p10 page/fixture/smoke/trail-check. CI run 39109141399: verify full + trail-check PASS → **P10 DONE**.
 - 2026-10-17 P09 r1–r2: catalog schema (issuers, cards, drafts, immutable versions, rules with EXCLUDE, milestones, offers) with FORCE RLS, public reads (keyset, filters, detail ETag, search via owner function, potential, offers), editor admin (drafts, publish/retire, offers), outbox relay + catalog events/contracts, projection IT, 50k PlanAssert, ADR-0014, A-52..A-56, p09 page/smoke/trail-check. CI run 39046289166: verify full + trail-check PASS → **P09 DONE**.
