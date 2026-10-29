@@ -6,7 +6,7 @@ set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
 source scripts/lib/services.sh
-PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html p05-mfa-admin.html p06-gateway.html p07-ledger.html p08-ledger-plus.html p09-catalog.html p10-ingestion.html p11-portfolio.html p12-statements.html})
+PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html p05-mfa-admin.html p06-gateway.html p07-ledger.html p08-ledger-plus.html p09-catalog.html p10-ingestion.html p11-portfolio.html p12-statements.html p12-calc.html})
 BASE=http://127.0.0.1:8099
 fail=0
 
@@ -160,6 +160,26 @@ else printf 'FAIL  %-10s %s\n' p12-cors "$(head -c 200 <<< "$pf")"; fail=1; fi
 if curl -fsS --max-time 5 "http://localhost:${PORT_AI_PARSER:-8090}/health" | grep -q '"state":"consuming"'; then
   printf 'PASS  %-10s %s\n' p12-parser consuming
 else printf 'FAIL  %-10s %s\n' p12-parser "$(curl -s --max-time 5 "http://localhost:${PORT_AI_PARSER:-8090}/health" | head -c 200)"; fail=1; fi
+
+# P12b: what p12-calc.html Live mode calls as asha. The numbers are the ported golden fixtures (ADR-0018): Live
+# must answer exactly what the page's Mock mode replays, or the page is lying about the engines.
+calcpost() {  # body path
+  curl -s --max-time 30 -H "Authorization: Bearer $at" -H 'Content-Type: application/json' -d "$1" "$BASE/api/v1/calc/$2"
+}
+rc=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 -X POST -H 'Content-Type: application/json' \
+  -d '{"principalPaise":100000,"annualRateBps":1500,"tenureMonths":12}' "$BASE/api/v1/calc/emi")
+if [[ $rc == 401 ]]; then printf 'PASS  %-10s %s\n' p12-calc-anon 401
+else printf 'FAIL  %-10s %s\n' p12-calc-anon "$rc"; fail=1; fi
+ce=$(calcpost '{"principalPaise":10000000,"annualRateBps":1500,"tenureMonths":12,"processingFeePaise":19900,"firstDueDate":"2026-11-05"}' emi)
+if [[ $ce == *'"emiPaise":902583'* && $ce == *'"totalInterestPaise":830997'* ]]; then printf 'PASS  %-10s %s\n' p12-calc-emi 200
+else printf 'FAIL  %-10s %s\n' p12-calc-emi "${ce:0:200}"; fail=1; fi
+cm=$(calcpost '{"terms":{"aprBps":4200,"cashAdvanceAprBps":4200,"paymentAllocationOrder":["retail_purchases","finance_charges","fees"]},"minimumDueTerms":{"formulaType":"HIGHER_OF","percentBps":500,"flatAmountPaise":20000},"startingPrincipalPaise":1000000,"cycleLengthDays":30}' scenarios/minimum-payment)
+if [[ $cm == *'"cyclesToPayoff":141'* && $cm == *'"totalExtraPaidPaise":3082088'* ]]; then printf 'PASS  %-10s %s\n' p12-calc-min 141
+else printf 'FAIL  %-10s %s\n' p12-calc-min "${cm:0:200}"; fail=1; fi
+cx=$(calcpost '{"terms":{"aprBps":3600,"cashAdvanceAprBps":3600,"paymentAllocationOrder":["finance_charges","retail_purchases"]},"minimumDueTerms":{"formulaType":"HIGHER_OF","percentBps":500,"flatAmountPaise":20000},"currentBalancePaise":600000,"cycleLengthDays":30,"targetCycles":[3,6,12]}' exit-paths)
+if [[ $cx == *'"requiredPaymentPerCyclePaise":214101'* && $cx == *'"recommendedPath":"targeted_payoff_3cycles"'* ]]; then
+  printf 'PASS  %-10s %s\n' p12-calc-exit 200
+else printf 'FAIL  %-10s %s\n' p12-calc-exit "${cx:0:200}"; fail=1; fi
 
 echo "trail-check: $([[ $fail -eq 0 ]] && echo PASS || echo FAIL)"
 exit $fail

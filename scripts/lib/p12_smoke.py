@@ -7,6 +7,11 @@ create an upload (Idempotency-Key, replay) -> anonymous PUT refused (403) -> pre
 transactions, source statement) -> confirm again 409 -> the same statement in the Indus and Deccan layouts imports
 only the line left out (everything else is a duplicate) -> the same file again 409 -> a non-PDF 422 -> an unknown
 layout fails as UNKNOWN_FORMAT -> isolation (ravi 404, anonymous 401); the smoke card is removed at the end.
+
+Then P12b (`calc`): every /v1/calc/* endpoint, asserted against the old repo's golden-fixture values in paise
+(ADR-0018) - EMI, one cycle's ledger, minimum due, late fee + RBI stage, utilization, custom fees, the four
+scenarios (incl. the 141-cycle minimum-only case), avalanche vs snowball, exit paths - plus POST-only, token-only,
+the same answer twice and for another account (nothing is stored), and every cap refusing rather than computing.
 Prints PASS/FAIL; exit 1 on failure.
 
 Usage: p12_smoke.py http://localhost:8080
@@ -216,6 +221,158 @@ def run(asha, ravi, card, last4):
     check("ravi reads asha's upload: 404", s == 404, (s, d))
     s, _, d = call("GET", GW + "/v1/statements/uploads?limit=5", headers=bearer(asha))
     check("asha's uploads: keyset page", s == 200 and "page" in d and d["data"], (s, d))
+
+    calc(asha, ravi)
+
+
+# --------------------------------------------------------------------------------------------- P12b: /v1/calc/*
+
+TERMS_42 = {"aprBps": 4200, "cashAdvanceAprBps": 4200,
+            "paymentAllocationOrder": ["retail_purchases", "cash_advances"]}
+HIGHER_OF = {"formulaType": "HIGHER_OF", "percentBps": 500, "flatAmountPaise": 20000}
+TIERS = [{"minOutstandingPaise": 0, "maxOutstandingPaise": 10000, "lateFeePaise": 0},
+         {"minOutstandingPaise": 100100, "maxOutstandingPaise": 500000, "lateFeePaise": 60000}]
+FEES = [{"id": "f1", "name": "Annual", "appliesTo": "ONCE", "amountType": "FLAT", "flatPaise": 50000},
+        {"id": "f2", "name": "Service", "appliesTo": "EVERY_CYCLE", "amountType": "PERCENT", "percentBps": 200}]
+
+
+def calc(asha, ravi):
+    """The ported engines behind /v1/calc/* (ADR-0018). Expected values are the old repo's golden fixtures in paise,
+    the same ones libs/portfolio-calc asserts as a unit: here they must survive the gateway and the JSON contract.
+    Note every call is a plain bearer POST - no Idempotency-Key, because calc stores nothing."""
+    def post(path, body, tok=asha):
+        return call("POST", GW + "/v1/calc" + path, body, bearer(tok) if tok else None)
+
+    s, _, d = post("/emi", {"principalPaise": 100000, "annualRateBps": 1500, "tenureMonths": 12}, None)
+    check("calc without a token: 401 at the edge", s == 401, (s, d))
+    s, _, d = call("GET", GW + "/v1/calc/emi", headers=bearer(asha))
+    check("calc is POST only: GET is 405", s == 405 and code(d) == "METHOD_NOT_ALLOWED", (s, d))
+
+    s, _, d = post("/emi", {"principalPaise": 10000000, "annualRateBps": 1500, "tenureMonths": 12,
+                            "processingFeePaise": 19900, "firstDueDate": "2026-11-05"})
+    check("emi: Rs 9,025.83 x 12 on Rs 1,00,000 at 15 %", s == 200 and d.get("emiPaise") == 902583
+          and d.get("totalInterestPaise") == 830997 and len(d.get("installments") or []) == 12
+          and d["installments"][11]["outstandingAfterPaise"] == 0, (s, d))
+
+    ledger_body = {"terms": TERMS_42, "cycleStart": "2026-01-01", "cycleEnd": "2026-01-30", "transactions": [
+        {"date": "2026-01-01", "type": "PURCHASE", "amountPaise": 500000, "bucket": "retail_purchases",
+         "referenceNumber": "TXN-1"},
+        {"date": "2026-01-10", "type": "PAYMENT", "amountPaise": 200000}]}
+    s, _, d = post("/ledger", ledger_body)
+    check("ledger: Rs 124.27 interest, Rs 3,000 carried", s == 200 and d.get("totalInterestPaise") == 12427
+          and len(d.get("closingLots") or []) == 1 and d["closingLots"][0]["remainingPaise"] == 300000, (s, d))
+
+    s, _, d = post("/minimum-due", {
+        "terms": {"formulaType": "FINANCE_CHARGE_CONDITIONAL", "flatFloorPaise": 20000,
+                  "retailCashPercentBps": 500, "roundUpToNearestPaise": 1000},
+        "retailCashOutstandingPaise": 800000, "financeChargesPaise": 15000, "gstAmountPaise": 2700,
+        "totalAmountDuePaise": 817700})
+    check("minimum due: blended 5 % beats the finance charge -> Rs 437", s == 200
+          and d.get("minimumDuePaise") == 43700, (s, d))
+
+    s, _, d = post("/late-fee", {"outstandingBalancePaise": 320000, "daysOverdue": 15, "tiers": TIERS})
+    check("late fee: Rs 600 + GST, SMA-0 and reported", s == 200 and d.get("lateFeePaise") == 60000
+          and d.get("gstOnLateFeePaise") == 10800 and d["delinquency"]["stage"] == "SMA_0"
+          and d["delinquency"]["reportedToBureaus"], (s, d))
+
+    s, _, d = post("/utilization", {"spentPaise": 12000000, "creditLimitPaise": 10000000,
+                                    "overlimitFee": {"percentBps": 250, "flatMinimumPaise": 55000}})
+    check("utilization: 120 %, over by Rs 20,000, flat Rs 550 fee wins", s == 200
+          and d["utilization"]["utilizationBps"] == 12000 and d["utilization"]["overLimitPaise"] == 2000000
+          and d["utilization"]["availableCreditPaise"] == 0 and d.get("overlimitFeePaise") == 55000, (s, d))
+
+    s, _, d = post("/custom-fees", {"fees": FEES, "balancePaise": 1000000, "cycleNumber": 1})
+    check("custom fees cycle 1: Rs 700 + Rs 126 GST, 2 lines", s == 200 and d.get("totalPaise") == 70000
+          and d.get("gstPaise") == 12600 and len(d.get("breakdown") or []) == 2, (s, d))
+    s, _, d = post("/custom-fees", {"fees": FEES, "balancePaise": 1000000, "cycleNumber": 2})
+    check("custom fees cycle 2: the one-off is skipped", s == 200 and d.get("totalPaise") == 20000
+          and len(d.get("breakdown") or []) == 1, (s, d))
+
+    s, _, d = post("/scenarios/full-payment", {"statementBalancePaise": 500000, "customFees": [FEES[0]]})
+    check("full payment: Rs 5,590 all in, grace kept", s == 200 and d.get("totalCostPaise") == 559000
+          and d.get("gracePreservedNextCycle") is True, (s, d))
+
+    s, _, d = post("/scenarios/partial-payment", {
+        "terms": {"aprBps": 4200, "cashAdvanceAprBps": 4200, "paymentAllocationOrder": ["retail_purchases"]},
+        "transactions": [{"date": "2026-01-01", "type": "PURCHASE", "amountPaise": 500000}],
+        "cycleStart": "2026-01-01", "cycleEnd": "2026-01-30", "paymentPaise": 200000})
+    check("partial payment: statement Rs 5,172.60, Rs 3,000 carried, grace lost", s == 200
+          and d.get("scenario") == "partial_payment" and d.get("statementBalancePaise") == 517260
+          and d.get("carriedPrincipalIntoNextCyclePaise") == 300000
+          and d.get("gracePreservedNextCycle") is False, (s, d))
+
+    s, _, d = post("/scenarios/no-payment", {
+        "terms": {"aprBps": 4200, "cashAdvanceAprBps": 4200, "paymentAllocationOrder": ["retail_purchases"]},
+        "statementBalancePaise": 500000, "cycleLengthDays": 30, "lateFeeTiers": TIERS})
+    p = (d or {}).get("projections") or []
+    check("no payment: Rs 172.60 by day 30, Rs 6,319.02 and SMA-2 by day 90", s == 200 and len(p) == 3
+          and p[0]["interestAccruedPaise"] == 17260 and p[0]["totalOutstandingPaise"] == 591167
+          and p[2]["totalOutstandingPaise"] == 631902 and p[2]["delinquencyStage"]["stage"] == "SMA_2", (s, d))
+
+    minimum_body = {"terms": {"aprBps": 4200, "cashAdvanceAprBps": 4200, "paymentAllocationOrder":
+                              ["retail_purchases", "finance_charges", "fees"]},
+                    "minimumDueTerms": HIGHER_OF, "startingPrincipalPaise": 1000000, "cycleLengthDays": 30}
+    s, _, d = post("/scenarios/minimum-payment", minimum_body)
+    check("minimum only: the 141-cycle case, Rs 30,820.88 extra", s == 200 and d.get("cyclesToPayoff") == 141
+          and d.get("totalInterestPaidPaise") == 2611942 and d.get("totalGstPaidPaise") == 470146
+          and d.get("totalExtraPaidPaise") == 3082088 and len(d.get("amortizationTable") or []) == 141
+          and d.get("infiniteDebtWarning") is False, (s, d))
+    s, _, again = post("/scenarios/minimum-payment", minimum_body)
+    check("the same request twice: the same answer (stateless, no key needed)", s == 200 and again == d, s)
+    s, _, other = post("/scenarios/minimum-payment", minimum_body, ravi)
+    check("ravi gets the same answer (no tenant data in calc)", s == 200 and other == d, s)
+
+    s, _, d = post("/scenarios/minimum-payment", {
+        "terms": {"aprBps": 4200, "cashAdvanceAprBps": 4200,
+                  "paymentAllocationOrder": ["retail_purchases", "finance_charges"]},
+        "minimumDueTerms": {"formulaType": "FLAT", "flatAmountPaise": 10000},
+        "startingPrincipalPaise": 5000000, "cycleLengthDays": 30})
+    check("a minimum below the interest: never clears, caught on cycle 1", s == 200
+          and d.get("infiniteDebtWarning") is True and d.get("cyclesToPayoff") is None
+          and len(d.get("amortizationTable") or []) == 1, (s, d))
+
+    cards = [{"id": "a", "name": "A", "balancePaise": 1000000, "aprBps": 4200, "minimumDuePaise": 50000},
+             {"id": "b", "name": "B", "balancePaise": 500000, "aprBps": 1800, "minimumDuePaise": 25000}]
+    s, _, d = post("/repayment-path", {"cards": cards, "monthlyBudgetPaise": 300000})
+    check("repayment path: avalanche saves Rs 444.50 over snowball", s == 200
+          and d.get("recommendedStrategy") == "avalanche"
+          and d["avalanche"]["totalInterestPaidPaise"] == 149911
+          and d["snowball"]["totalInterestPaidPaise"] == 194361
+          and d.get("interestSavingsWithBestStrategyPaise") == 44450, (s, d))
+    s, _, d = post("/repayment-path", {"cards": cards, "monthlyBudgetPaise": 70000})
+    check("repayment path: a budget under the minimums is infeasible, not simulated", s == 200
+          and d.get("feasible") is False and "less than total minimum due" in (d.get("message") or ""), (s, d))
+
+    exit_body = {"terms": {"aprBps": 3600, "cashAdvanceAprBps": 3600,
+                           "paymentAllocationOrder": ["finance_charges", "retail_purchases"]},
+                 "minimumDueTerms": HIGHER_OF, "currentBalancePaise": 600000, "cycleLengthDays": 30,
+                 "targetCycles": [3, 6, 12]}
+    s, _, d = post("/exit-paths", exit_body)
+    paths = (d or {}).get("targetedPaths") or []
+    check("exit paths: Rs 2,141.01 a cycle clears Rs 6,000 in 3, Rs 423.80 of interest", s == 200
+          and len(paths) == 3 and paths[0]["requiredPaymentPerCyclePaise"] == 214101
+          and paths[0]["cyclesToDebtFree"] == 3 and paths[0]["totalInterestAndGstPaise"] == 42380
+          and d["continueMinimum"]["totalExtraPaidPaise"] == 761255
+          and d.get("recommendedPath") == "targeted_payoff_3cycles", (s, d))
+    s, _, d = post("/exit-paths", dict(exit_body, currentBalancePaise=0))
+    check("a zero balance has nothing to exit from", s == 200 and "already zero" in (d.get("message") or "")
+          and not d.get("targetedPaths"), (s, d))
+
+    # ---- the caps: refused, not computed
+    s, _, d = post("/exit-paths", dict(exit_body, targetCycles=[1, 2, 3, 4, 5, 6, 12, 24]))
+    check("8 target cycles: 400 VALIDATION_FAILED", s == 400 and code(d) == "VALIDATION_FAILED"
+          and any(e.get("field") == "targetCycles" for e in (d.get("errors") or [])), (s, d))
+    s, _, d = post("/ledger", dict(ledger_body, terms=dict(TERMS_42, aprBps=20000)))
+    check("200 % APR: 400", s == 400 and code(d) == "VALIDATION_FAILED", (s, d))
+    s, _, d = post("/ledger", dict(ledger_body, cycleEnd="2027-06-01"))
+    check("an 18-month cycle: 400", s == 400 and code(d) == "VALIDATION_FAILED", (s, d))
+    s, _, d = post("/ledger", dict(ledger_body, transactions=[
+        {"date": "2026-01-01", "type": "PURCHASE", "amountPaise": 100} for _ in range(501)]))
+    check("501 transactions: 400", s == 400 and code(d) == "VALIDATION_FAILED", (s, d))
+    big = [{"date": "2026-01-01", "type": "PURCHASE", "amountPaise": 100, "bucket": "retail_purchases",
+            "referenceNumber": "TXN-" + "0" * 50 + str(i)} for i in range(700)]
+    s, _, d = post("/ledger", dict(ledger_body, transactions=big))
+    check("a body over 64 KB: 413 PAYLOAD_TOO_LARGE", s == 413 and code(d) == "PAYLOAD_TOO_LARGE", (s, d))
 
 
 if __name__ == "__main__":

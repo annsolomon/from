@@ -23,6 +23,8 @@
 #   P11: portfolio via the gateway (scripts/lib/p11_smoke.py): add card (replay, 409, unknown product) -> card
 #        transaction -> ledger expense -> auto-match suggestion over Kafka -> confirm; statements, EMI + schedule,
 #        rewards, monthly report, cross-tenant 404; the smoke card is removed.
+#   P12: statement upload -> real ai-parser over Kafka -> review -> confirm, and /v1/calc/* against the ported
+#        golden fixtures (scripts/lib/p12_smoke.py).
 # Later phases append their checks below the P00 block. Output also goes to $SMOKE_OUT if set.
 set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -157,8 +159,8 @@ log "# P11 portfolio via gateway (:8080)"
 p11=$(python3 "$ROOT/scripts/lib/p11_smoke.py" "http://localhost:8080" 2>&1); p11rc=$?
 while IFS= read -r line; do log "$line"; done <<< "$p11"
 [[ $p11rc -eq 0 ]] || fail=1
-# ------------------------------------------------------------------ P12: statement uploads + the Python ai-parser
-log "# P12 statements via gateway (:8080) + object store (:8333) + ai-parser (:${PORT_AI_PARSER:-8090})"
+# ------------------------------------------------------------------ P12: statement uploads + ai-parser + /v1/calc/*
+log "# P12 statements via gateway (:8080) + object store (:8333) + ai-parser (:${PORT_AI_PARSER:-8090}), then calc"
 p12=$(python3 "$ROOT/scripts/lib/p12_smoke.py" "http://localhost:8080" 2>&1); p12rc=$?
 while IFS= read -r line; do log "$line"; done <<< "$p12"
 [[ $p12rc -eq 0 ]] || fail=1

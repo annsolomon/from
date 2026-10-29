@@ -13,5 +13,10 @@
   <packaging>jar</packaging>
   <name>portfolio-calc</name>
   <description>Pure-Java calc engines, no Spring. Built in P12.</description>
-  <!-- P00: empty skeleton. Must never depend on Spring. -->
+  <!-- P12b: ported from the old repo's card-portfolio-service calc package (ADR-0018). Must never depend on
+       Spring, nor on any other Dexter module: the engines are pure functions over paise. -->
+  <dependencies>
+    <dependency><groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId><scope>test</scope></dependency>
+    <dependency><groupId>org.assertj</groupId><artifactId>assertj-core</artifactId><scope>test</scope></dependency>
+  </dependencies>
 </project>

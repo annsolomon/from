@@ -8,6 +8,7 @@ import in.dexter.events.OutboxWriter;
 import in.dexter.idempotency.IdempotencyEngine;
 import in.dexter.portfolio.app.CardService;
 import in.dexter.portfolio.app.CardStore;
+import in.dexter.portfolio.app.CalcService;
 import in.dexter.portfolio.app.EmiService;
 import in.dexter.portfolio.app.EmiStore;
 import in.dexter.portfolio.app.LinkService;
@@ -105,6 +106,12 @@ public class PortfolioConfiguration {
   EmiService emiService(TenantTx tx, IdempotencyEngine idempotency, CardRepository cards, TransactionStore txns,
       EmiStore plans, JsonMapper mapper, Clock clock) {
     return new EmiService(tx, idempotency, cards, txns, plans, mapper, clock);
+  }
+
+  /** P12b: /v1/calc is stateless — the calc library plus validation, no store and no transaction. */
+  @Bean
+  CalcService calcService(Clock clock) {
+    return new CalcService(clock);
   }
 
   @Bean

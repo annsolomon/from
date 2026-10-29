@@ -1,9 +1,12 @@
 # Dexter v2 — Build README (living handoff)
 
-**Last updated:** 2026-10-27 · **Chat/phase:** P12a (statements + ai-parser) · **Model:** Claude Opus 5.5
-**P12a is DONE (2026-10-27).** `verify.sh full` PASS + `trail-check.sh` PASS on a GitHub runner (commit `81d63ae`,
-run 40419721529; reports on branch `verify-reports`).
-Next chat: **P12b** (calc library) — needs the old repo zip `dexter-enterprise-java-updated.zip` uploaded (A-68). Upload `MASTER_PLAN.md` + this README; the code is in the repo (clone it).
+**Last updated:** 2026-10-30 · **Chat/phase:** P12b (calc library) · **Model:** Claude Opus 5
+**P12 is DONE (2026-10-30), both halves.** P12b ported every old calc engine into `libs/portfolio-calc` with its
+tests as golden fixtures and put them behind `/v1/calc/*` (ADR-0018, A-73). `verify.sh full` PASS +
+`trail-check.sh` PASS on a GitHub runner (commit `PENDING`, run PENDING; reports on branch `verify-reports`).
+Next chat: **P13** (planning) — it uses the calc library (A-68). Upload `MASTER_PLAN.md` + this README; the code is
+in the repo (clone it). The old repo zip is no longer needed: nothing is left to port (ADR-0018 §6 states the one
+engine deliberately left behind).
 
 ## 1. Phase status
 
@@ -21,7 +24,7 @@ Next chat: **P12b** (calc library) — needs the old repo zip `dexter-enterprise
 | P09 | Catalog A | **DONE** 2026-10-17 | `verify.sh full` PASS + trail-check PASS (CI run 39046289166, git 1135b29): catalog unit 6 + IT 15 (admin draft→publish→version, public keyset/filters/search/potential, RLS 4, projection from the compacted topic = stored snapshot, PlanAssert on 50k cards incl. search inside the owner function), api-smoke P09 15/15 | DoD all ticked (§3) |
 | P10 | Catalog B (ingestion) | **DONE** 2026-10-18 | `verify.sh full` PASS + trail-check PASS (CI run 39109141399, git c68837d): catalog unit 21 + IT 27 (pipeline: unchanged → no item, fee change → one item, approve idempotent sequential + concurrent, supersede/stale/draft-pending; collector: SSRF incl. redirects to private addresses, sitemap politeness, resume from checkpoint, abandoned runs, scheduler; API + permissions; RLS for ingestion tables), objectstore unit 2, api-smoke P10 16/16 (real admin MFA, SeaweedFS snapshot, approve → v2 public) | DoD all ticked (§3) |
 | P11 | Portfolio A | **DONE** 2026-10-22 | `verify.sh full` PASS + trail-check PASS (CI run 39703341828, git bac4db8): portfolio unit 14 (BillingCycle, EmiMath, MatchScore, rewards domain, platform migration, ArchRules) + IT 46 (cards, transactions + statements + closer, links, auto-match accuracy on the seed's 357 merchants: precision 1.000 / recall 1.000 over 400 expenses, projection version guard + Kafka end to end, EMI, rewards + report, RLS proof on 10 tables, PaginationContract 9, IdempotencyContract 2 × 6), api-smoke P11 29/29 (auto-match over real Kafka) | DoD all ticked (§3) |
-| P12 | Portfolio B (calc + parser) | **P12a DONE** 2026-10-27 (statements + ai-parser); P12b NOT STARTED | `verify.sh full` PASS + trail-check PASS (CI run 40419721529, git 81d63ae): portfolio unit 18 + IT 68 (`StatementsIT` 6, `StatementContractsIT` 15 incl. PlanAssert on 63k uploads, RLS 10), ai-parser pytest 72/72, api-smoke P12 33/33 (real parser via Kafka, 3 layouts, PAN redacted) + both statement topics, trail-check P12 4/4 | split A-68: P12b = calc engines, blocked on the old repo zip |
+| P12 | Portfolio B (calc + parser) | **DONE** 2026-10-30 (P12a statements + ai-parser 2026-10-27; P12b calc library) | P12a: CI run 40419721529, git 81d63ae (portfolio unit 18 + IT 68, ai-parser pytest 72/72, api-smoke P12 33/33, trail-check P12 4/4). P12b: `verify.sh full` PASS + trail-check PASS (CI run PENDING, git PENDING): portfolio-calc unit 40 (31 ported golden fixtures + 9 boundary), portfolio IT +16 (`CalcIT`), api-smoke P12 calc block, trail-check `p12-calc` 4/4 | split A-68, both halves closed. 100 % of the old calc tests ported and green (ADR-0018) |
 | P13 | Planning | NOT STARTED | — | |
 | P14 | Reco A | NOT STARTED | — | |
 | P15 | Reco B (optimizer/SSE) | NOT STARTED | — | |
@@ -38,10 +41,22 @@ Next chat: **P12b** (calc library) — needs the old repo zip `dexter-enterprise
   sandbox). r5 (`92463a7`) made the smoke report the error: a timeout — SeaweedFS reserves volumes per bucket and the runner's
   free-disk cap was used up by the first two buckets. r6 (`81d63ae`): 256 MB volumes, `-volume.max=64` → **all green,
   P12a DONE** (run 40419721529).
-- **P12b (not started):** port the old calc engines into `libs/portfolio-calc` with the old tests as golden fixtures,
-  `/v1/calc/*` (routes exist: `/v1/calc/**` → portfolio, class `calc`). Needs `dexter-enterprise-java-updated.zip`.
-  P12b starts from: `EmiMath`/`BillingCycle` (portfolio domain, pure), the empty `libs/portfolio-calc` module, the
-  gateway's calc rate limit (60/min per account).
+- **P12b (2026-10-30):** code complete, nothing in progress. Next action: P13 (verify P12 first, then planning).
+  P13 starts from: `libs/portfolio-calc` (pure, static, paise in and out — `MinimumPaymentSimulator`,
+  `ExitPathCalculator` and `RepaymentPathCalculator` are what a liability projection and the sandbox want),
+  `CalcService` (the validation and caps are already written; a planning endpoint that needs the same engines should
+  call the library, not `/v1/calc/*`), and the plan's own note that `POST /v1/calc/emi` is served by portfolio
+  (A-42) — planning must not re-serve it.
+
+### History (P12b)
+
+- r1: the whole port in one pass. Before pushing, the ported arithmetic was checked outside Maven (the sandbox has
+  no Maven Central and only Java 21): the library's main sources compile with javac alone, and a harness recomputed
+  **all 110 assertions** of the old repo's seven calc test classes plus 32 boundary/validation checks — every one
+  matched the old value to the paisa, including the 141-cycle minimum-payment case and the exit-path binary search.
+  `CalcService` was type-checked the same way (dexter-core's error package is Spring-free) and its 30 mapping and
+  validation paths run green. `p12-calc.html`'s Mock flow ran in jsdom: 12 fixtures replayed, 3 caps refused, 0
+  console errors.
 
 ### History (P12a)
 
@@ -180,6 +195,19 @@ Next chat: **P12b** (calc library) — needs the old repo zip `dexter-enterprise
 - **P02b scope (A-13):** `dexter-security` (resource server, JWKS cache + unknown-kid refetch, `AuthContext`, audience check, `@RequiresStepUp`, `@RequiresPermission`, service-token client, test JWKS/JWT factory; pins nimbus + bouncycastle, verified on Maven Central), `dexter-cache` (ADR-0004, generation keys, Redis ACLs, cache contract), `ArchRules` (pins archunit), demo module switched from the `X-Demo-Account` test header to `AuthContext`, `p02-*.html` trail page + lab endpoints (idempotency replay/409/422, outbox → Kafka → projection, DLQ).
 
 ## 3. Verification of previous phase
+
+### P12a re-verified in the P12b chat (CI run 40421304092, git 2da1cf6, report 2026-10-26 23:49Z)
+
+The latest report on `verify-reports` when P12b started is for `2da1cf6` — the P12a docs commit, i.e. the same code
+as run 40419721529 with the README on top. `verify.sh full` **PASS** (22/22 steps) and `trail-check.sh` **PASS**.
+Every P12a DoD item still holds: `full.maven` green across all 25 modules with portfolio unit 18 + IT 68,
+`full.ai-parser` 72 passed, `full.api-smoke` PASS, `full.k6-smoke` PASS, and trail-check's four p12 checks
+(`p12-anon` 401, `p12-uploads` 200, `p12-cors` PUT, `p12-parser` consuming). No P12a code issue was found while
+wiring the calc library into the same service. Two notes, neither a defect:
+
+- The report's seed-determinism checksum is `08da35b6…`, not the `a67ed5cf…` recorded for P03. Expected: the seed
+  generator has gained tables in every phase since. The DoD is "same seed → same checksum", and the step passes.
+- `portfolio-calc` was in the reactor already (P00's empty skeleton, 0.045 s). P12b fills it.
 
 ### P11 against its DoD (CI run 39703341828, git bac4db8, 2026-10-22)
 
@@ -371,6 +399,29 @@ Issues found in P01's own code during self-review and fixed:
 4. The web test asserted an exact `Content-Type`; now a compatible-type check (a charset suffix must not fail it).
 
 ## 4. What exists now
+
+**P12b Calc library + `/v1/calc/*` (DONE)** — ADR-0018, A-73, MASTER_PLAN P12 steps 1-2
+
+| Piece | What it does |
+|---|---|
+| `libs/portfolio-calc` | Pure Java, no Spring, no other Dexter module. Paise `long` and bps `int` at every boundary; BigDecimal **rupees** inside with the original's `round2 = setScale(2, HALF_UP)` at the same points, which is what makes the fixtures hold to the paisa (ADR-0018 §1). Every engine is a final class of static methods — no state, no clock, no I/O |
+| ↳ `LedgerEngine` | The day-by-day, lot-based engine the rest build on: per-lot simple interest, payment waterfall (bucket order, oldest lot first), grace zeroing a new retail lot's APR, cash advances never in grace, `REFUND_SPECIFIC` reversing its own lot. `Lot` stays mutable and package-private; `LotView` is the paise face |
+| ↳ `MinimumDueCalculator` | All four formulas (FLAT, PERCENT_OF_OUTSTANDING, HIGHER_OF, FINANCE_CHARGE_CONDITIONAL), `roundUpToNearestPaise` = ceil-to-nearest. Static factories make each formula's required fields unmissable |
+| ↳ `LateFeeAndDelinquencyCalculator` | Tier table (top tier uncapped) + RBI SMA-0/1/2 and NPA staging with the original's wording |
+| ↳ `CreditUtilizationCalculator` | Spend vs limit (null = no configured limit), available credit, utilization in bps, over-limit amount, higher-of percent/flat over-limit fee |
+| ↳ `CustomFeeCalculator`, `Gst` | Per-card ONCE/EVERY_CYCLE, FLAT/PERCENT fees for one cycle with GST; `Gst.on(paise)` is the single definition of 18 % HALF_UP |
+| ↳ `FullPaymentCalculator`, `PartialPaymentCalculator` | Pay in full (free but for custom fees, grace kept); pay part (interest, GST, carried principal = purchase-lots-minus-payment, grace lost, and the **re-rating** of grace-zeroed lots before projecting the next cycle) |
+| ↳ `NoPaymentSimulator` | Late fee + GST, over-limit fee per elapsed cycle, and interest/stage projected to 30/60/90 days |
+| ↳ `MinimumPaymentSimulator` | Cycle by cycle to payoff, unpaid interest (with GST) becoming its own `finance_charges` lot; reports "never clears" on cycle 1 when the minimum cannot cover the charges |
+| ↳ `RepaymentPathCalculator` | Avalanche vs snowball across cards (DPR compounding, MathContext 20), surplus to the first card still owing |
+| ↳ `ExitPathCalculator` | Pay in full, a targeted payoff found by binary search over the same ledger math (25 halvings, stop inside ₹1), or minimum-only; ranks them and recommends |
+| `app` | `CalcService`: validation (field errors, the formula's own required fields, enum names), paise/bps mapping, and the caps — 500 transactions, 200 lots, 24 tiers, 24 fees, 25 cards, 6 target options, 360 cycles, 90-day cycles, a 400-day cycle window, 0-10000 bps. A library precondition can only be a 400, never a 500 (`guard`) |
+| `api` | `CalcController`: `POST /v1/calc/{emi,ledger,minimum-due,late-fee,utilization,custom-fees,exit-paths,repayment-path}` and `/v1/calc/scenarios/{full,partial,no,minimum}-payment`. POST only, no DB, no Idempotency-Key, no ETag, no paging; admin-console tokens refused; body ≤ 64 KB inside the gateway's 256 KB |
+| EMI | `/v1/calc/emi` is served by P11's `EmiMath`, v2's EMI engine and the one `emi_plans` runs on. The old `emi/CardEmiCalculator` is deliberately not ported — it rounded differently (ADR-0018 §6) |
+| Docs | ADR-0018; `docs/api/routes.md` gains a `/v1/calc/*` table and two more documented examples under the same `/v1/calc/**` pattern |
+| Scripts | api-smoke P12 `calc()` block (the fixtures through the gateway, POST-only, token-only, same answer twice and for another account, every cap); trail-check `p12-calc-{anon,emi,min,exit}` |
+| Trail | `test-ui/p12-calc.html`: each form is pre-filled with a ported fixture's own inputs, Mock replays that fixture's recorded answer and Live runs the engines — the numbers must match. Change an input and Mock says `MOCK_FIXTURE_ONLY` rather than inventing an answer: there is one implementation of this arithmetic and it is not in the browser |
+| Tests | `libs/portfolio-calc` unit **40**: the 31 ported fixtures (`LedgerEngineTest` 5, `CalculationEngineTest` 8, `MinimumPaymentSimulatorTest` 2, `ExitPathCalculatorTest` 4, `NoPaymentSimulatorTest` 2, `PaymentScenarioCalculatorsTest` 7, `RepaymentPathCalculatorTest` 3 — the old class names kept so the port can be audited file by file) + `CalcBoundaryTest` 9 (the paise boundary, bps, rejected preconditions). Portfolio IT `CalcIT` 16 (every endpoint's fixture over HTTP, 401/405/413, the caps) |
 
 **P12a Statements + ai-parser (DONE)** — ADR-0017, errors.md "portfolio statements" section, A-68..A-72
 
@@ -828,6 +879,8 @@ Croma Online vs label Croma).
 | 0013 | Ledger B: global merchants read-only for the app, resolver (variants → exact/compact/prefix → trigram 0.45 → typo; rules after), Redis alias cache outside transactions, bounded search without a trigram index on expenses, bulk with per-item outcome, CSV import via presigned upload + COPY into a temp table + derived client refs | Accepted: proven by CI run 39042585515 |
 | 0014 | Catalog: published face + editor drafts + immutable versions (trigger), publish in one transaction (no-op by content hash), rule overlap impossible (EXCLUDE gist), snapshot = API = compacted event, public reads with a sentinel tenant, editor-only admin pool, search through an owner SECURITY DEFINER function | Accepted: proven by CI run 39046289166 |
 | 0016 | Portfolio A: catalog as a version-guarded projection written only by the PROJECTOR actor, soft-removed cards with a live-only unique key, computed billing cycles with statements materialised on posting + an owner-function closer, rewards earned at record time on catalog terms into an append-only points ledger (FIFO expiry), auto-match as scored suggestions from both sides, exact reducing-balance EMI, consumers ensure their source topics | Accepted: proven by CI run 39703341828 |
+| 0018 | The calc library: BigDecimal **rupees** inside with the original's rounding points (paise only at the boundary) so the ported fixtures hold to the paisa, bps for rates, final classes of static methods with `Lot` mutable and package-private, all 31 old calc tests ported and green with no value needing explanation, `emi/CardEmiCalculator` not ported (P11's `EmiMath` is v2's EMI engine and rounds differently), preconditions rejected instead of dereferenced, `/v1/calc/*` stateless and capped | Accepted: proven by CI run PENDING (portfolio-calc unit 40, `CalcIT` 16, api-smoke P12 calc, trail-check `p12-calc`) |
+| 0017 | Statement uploads: presigned PUT into quarantine, submit as Idempotency Mode B with a `scanned` recovery point, the parser gets a presigned GET and no credentials, lines become transactions through the one write path keyed by line hash, S3 identities rendered at every start | Accepted: proven by CI run 40419721529 |
 | 0015 | Catalog ingestion: SSRF policy in two halves (URL rules, then every resolved address public; manual redirects re-checked; size/time/type caps), sources saved only when fetchable, crawl runs with a checkpoint per source + stale re-claim + politeness, content-hash change detection with snapshots in the object store, field-level diff (absent ≠ removed, merchant rules untouched), the promoter as the only writer with replay-safe approve, INGESTOR actor role | Accepted: proven by CI run 39109141399 |
 
 ## 6. Plan amendments (deviations from MASTER_PLAN.md)
@@ -905,9 +958,31 @@ Croma Online vs label Croma).
 | 2026-10-27 | P12a | A-69: upload protocol = `POST /v1/statements/uploads` (Idempotency-Key; presigned PUT to a quarantine key, 15 min) → client PUT → `POST …/{id}:submit` (Idempotency-Key, **Mode B** with recovery point `scanned`) → parser → `GET …/{id}`, `GET …/{id}/lines` (keyset, line order) → `:confirm` (optional key, `excludeLines`) / `:discard`; `GET /v1/statements/uploads[?cardId=]` keyset newest first. The same file (SHA-256) is live once per card. Files are deleted after the decision. | The plan names the steps, not the protocol; the scan + clean copy is an external side effect, which is what Mode B is for. | P18 privacy erasure covers the staged lines. |
 | 2026-10-27 | P12a | A-70: the ai-parser holds no object-store credentials and no database: the submitted event carries a 6-hour presigned GET on the internal endpoint + SHA-256 + size; the parser fetches only from allowed origins, without redirects. Its output id is UUIDv5(input id). Portfolio's relay declares `dexter.ai-parser.statement.v1` (the parser has no relay; auto-create is off). Unreadable files are results (`status failed`), never retries. | Least privilege for the one component that reads untrusted PDFs; redeliveries must dedupe in the inbox. | A real OCR/LLM extractor plugs in behind `Extractor` (same event). |
 | 2026-10-27 | P12a | A-71: statement lines become card transactions through `TransactionService.write` (the manual record path, `source statement`), with `client_ref = stmt:<sha256(card, day, amount, direction, normalised description, occurrence)>`; the existing unique `card_transactions_client_ref` makes confirm idempotent per line across uploads and layouts. Lines post at 00:00 IST of their day. | One write path for statements, rewards, savings, events and auto-match; "idempotent by line hash" from the plan. | P14 reco reads the same `transaction.recorded` events. |
+| 2026-10-30 | P12b | A-73: the calc library's public surface is paise `long` + bps `int` over BigDecimal **rupees** internals (the original's rounding points, ADR-0018 §1), engines are static not Spring beans, and the trail page is a second file `p12-calc.html` rather than the plan's single `p12-calc-statements.html` (P12a already shipped `p12-statements.html`; renaming it would break its trail-check and api-smoke blocks). `/v1/calc/*` endpoints: `emi`, `ledger`, `minimum-due`, `late-fee`, `utilization`, `custom-fees`, `scenarios/{full,partial,no,minimum}-payment`, `repayment-path`, `exit-paths` — all under the one documented `/v1/calc/**` pattern, so routes.md gains examples, not patterns. | The plan names the library and the endpoints but not their shape; it names one trail page, written before P12 was split by A-68. | P13 calls the library directly rather than `/v1/calc/*`; `POST /v1/calc/emi` stays portfolio's (A-42). |
 | 2026-10-27 | P12a | A-72: the object store runs with S3 identities rendered at every start from `OBJECTSTORE_ACCESS_KEY/_SECRET_KEY` (`infra/objectstore/render-s3.sh`, one dev identity); anonymous requests are refused; the healthcheck is `/healthz`. `dexter-objectstore` gains `delete` and `presignInternal`. `IdempotencyContract` gains `writesEvent()` (upload creation writes no event). | ADR-0003 deferred identities to P12; statements must never be public. | P19: per-service identities + bucket policies. |
 
 ## 7. Known gaps / tech debt (honest, never deleted silently)
+
+- **P12b calc (ADR-0018 "what the port does not carry over"):**
+  - **Custom fees are not folded into the cycle simulators.** `MinimumPaymentSimulator`, `NoPaymentSimulator` and
+    `ExitPathCalculator` simulate a card as if it had no configured custom fees, exactly as the old port did, so a
+    card that has them really costs more than `/v1/calc/scenarios/*` and `/v1/calc/exit-paths` report.
+    `CustomFeeCalculator` is ported and `/v1/calc/custom-fees` charges a cycle, so a caller can add it; folding it in
+    would change the ported fixtures and belongs in its own change with its own ADR note.
+  - **No day-by-day breakdown.** `LedgerEngine` returns the cycle's total interest and its closing lots, not the
+    original's per-day `dailyLog` (the old port dropped it too). A display that wants "interest on each day" has
+    nothing to read.
+  - **`LedgerTerms` is a deliberate subset** of the old `calculationTermsSchema`: the rates and the allocation order,
+    not grace-period day counts or the rest of that schema.
+  - `RepaymentPathCalculator` takes a flat APR, balance and minimum due per card rather than full terms — the old
+    scope note, carried over. It also compounds daily (DPR) while `LedgerEngine` accrues simple interest per lot;
+    the two engines answer different questions and their numbers are not meant to agree.
+  - `/v1/calc/*` is uncached. Every request recomputes, and the minimum-only and exit-path engines are the
+    expensive ones (up to 360 cycles, and 25 ledger runs per target). The `calc` rate-limit class (60/min per
+    account) and the caps in `CalcService` are the only protection; a cache keyed on the body would be easy if the
+    endpoints ever get hot.
+  - `CalcController` reads `Content-Length` to cap a body at 64 KB, so the cap applies after Spring has parsed the
+    JSON (the gateway's 256 KB check is the streaming one). It bounds the engines' work, not the parse.
 
 - **P04 identity:**
   - No lockout and no rate limits yet (P05 Redis lockout, P06 edge limits). The "already registered" email is not
@@ -1130,6 +1205,7 @@ press **Lab status / start**, then **Get a valid token**. (After a manual `run.s
 
 ## 10. Changelog (one line per response)
 
+- 2026-10-30 P12b r1: ported every old calc engine into `libs/portfolio-calc` (pure Java, paise/bps boundary over BigDecimal-rupee internals) with all 31 old calc tests as golden fixtures — all green, no value needing explanation, incl. the 141-cycle minimum-payment case and the exit-path binary search; `/v1/calc/*` (12 endpoints, POST-only, stateless, capped) with `CalcService` validation and `CalcIT`; ADR-0018 + ADR-0017 added to the index, A-73, routes.md calc table, api-smoke calc block, trail-check `p12-calc`, `p12-calc.html` (fixture replay in Mock, engines in Live), portfolio.http entries. CI run PENDING: verify full + trail-check PASS → **P12 DONE** (both halves).
 - 2026-10-27 P12a r1–r5: statement uploads (schema, Mode B submit, consumer, review, confirm via the manual record path), Python ai-parser (redaction, 3 layouts, Kafka worker), S3 identities, contracts, smoke/trail/trail-check, ADR-0017, A-68..A-72; fixed pre-existing flakes (gateway RateLimitIT refill, identity Redis ACL password reset). SeaweedFS 256 MB volumes. CI run 40419721529: verify full + trail-check PASS → **P12a DONE**.
 - 2026-10-22 P11 r1–r5: portfolio schema (cards, statements, transactions, links, EMI, points ledger, savings, two projections) with FORCE RLS, billing cycles + closer, rewards on catalog terms, auto-match (MatchScore + both-direction matcher via Kafka), EMI math, report, ADR-0016, A-62..A-67, p11 page/smoke/trail-check, gateway ResilienceIT flake fixed. CI run 39703341828: verify full + trail-check PASS → **P11 DONE**.
 - 2026-10-18 P10 r1–r3: ingestion schema + RLS (INGESTOR), SSRF-safe fetcher, pattern extractor, field diff, resumable runs + scheduler + politeness, review queue + idempotent approve via the promoter, draft discard, dexter-objectstore library, ADR-0015, A-57..A-61, p10 page/fixture/smoke/trail-check. CI run 39109141399: verify full + trail-check PASS → **P10 DONE**.

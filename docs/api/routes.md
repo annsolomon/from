@@ -85,6 +85,8 @@ breaker (Resilience4j, per service) and a 10 s response timeout.
 | `/v1/rewards/**` | `GET /v1/rewards/balance` | portfolio | token | read | P11 |
 | `/v1/statements/**` | `POST /v1/statements/uploads` | portfolio | token | write | P12 |
 | `/v1/calc/**` | `POST /v1/calc/emi` | portfolio | token | calc | P12 |
+| `/v1/calc/**` | `POST /v1/calc/exit-paths` | portfolio | token | calc | P12 |
+| `/v1/calc/**` | `POST /v1/calc/scenarios/minimum-payment` | portfolio | token | calc | P12 |
 | `/v1/budgets` | `GET /v1/budgets` | planning | token | read | P13 |
 | `/v1/budgets/**` | `GET /v1/budgets/status` | planning | token | read | P13 |
 | `/v1/liabilities` | `POST /v1/liabilities` | planning | token | write | P13 |
@@ -121,6 +123,27 @@ breaker (Resilience4j, per service) and a 10 s response timeout.
 | Pattern | Example | Service | Access | Class | Phase |
 |---|---|---|---|---|---|
 | `/_dev/p04/**` (dev) | `POST /_dev/p04/keys/rotate` | identity | public | write | P04 |
+
+## `/v1/calc/*` (P12b, portfolio)
+
+Stateless, POST only, no database, no idempotency key, no ETag: every answer is a pure function of the body
+(ADR-0018). Money is paise and rates are basis points throughout. A body is at most 64 KB (the service's own cap,
+inside the gateway's 256 KB), and each endpoint bounds its lists and cycle counts — `CalcService` holds the numbers.
+
+| Path | Engine |
+|---|---|
+| `POST /v1/calc/emi` | EMI quote and schedule (P11's `EmiMath`, the engine `emi_plans` uses) |
+| `POST /v1/calc/ledger` | one cycle's interest, lot by lot, and its closing lots |
+| `POST /v1/calc/minimum-due` | the four minimum-due formulas |
+| `POST /v1/calc/late-fee` | the late-fee tier table plus RBI SMA/NPA staging |
+| `POST /v1/calc/utilization` | spend against the limit, and the over-limit fee |
+| `POST /v1/calc/custom-fees` | configured per-card fees for one cycle, with GST |
+| `POST /v1/calc/scenarios/full-payment` | pay the statement in full |
+| `POST /v1/calc/scenarios/partial-payment` | pay part of it: interest, carried principal, grace lost |
+| `POST /v1/calc/scenarios/no-payment` | ignore it: fees and staging at 30/60/90 days |
+| `POST /v1/calc/scenarios/minimum-payment` | minimum-only, cycle by cycle, to payoff or to divergence |
+| `POST /v1/calc/repayment-path` | avalanche against snowball across cards |
+| `POST /v1/calc/exit-paths` | pay in full, a targeted payoff, or minimum-only |
 
 ## Not routed (on purpose)
 

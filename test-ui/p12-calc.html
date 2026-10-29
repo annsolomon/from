@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trail P12 calc</title>
+  <link rel="stylesheet" href="trail.css">
+  <style>
+    table.t { width: 100%; border-collapse: collapse; font: 12px var(--mono); }
+    table.t td, table.t th { border-bottom: 1px solid var(--line, #ddd); padding: 3px 6px; text-align: left; }
+    table.t td.n, table.t th.n { text-align: right; }
+    .big { font: 600 15px var(--mono); }
+    .warn { color: #9a6700; }
+    .fix { color: #1a7f37; }
+    .in.s { width: 90px; }
+  </style>
+</head>
+<body>
+<main>
+  <section class="card">
+    <h2>P12b · the ported calc engines behind <code>/v1/calc/*</code></h2>
+    <p class="mono" style="color:var(--muted);margin:0">
+      Every engine from the old repo's <code>portfolio/calc</code> package, ported to
+      <code>libs/portfolio-calc</code> with its tests as golden fixtures (ADR-0018): paise and basis points in and
+      out, BigDecimal rupees and the original's rounding inside. The endpoints are <code>POST</code> only, hold no
+      state and touch no database, so there is no Idempotency-Key, no ETag and no paging — the rate-limit class is
+      <code>calc</code> (60 a minute per account).
+      <strong>Every form below is pre-filled with a ported fixture's own inputs.</strong> Mock mode replays that
+      fixture's recorded answer; Live mode runs the real engines through the gateway. The numbers must be identical
+      — that is the point of the page. Change an input and Mock mode says so rather than inventing an answer: there
+      is one implementation of this arithmetic and it is not in the browser. Testing aid only - deleted in P19.
+    </p>
+  </section>
+
+  <section class="card" id="tenant"></section>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>1 · EMI quote <span class="mono" style="color:var(--muted)">/v1/calc/emi</span></h2>
+      <p class="mono" style="color:var(--muted);margin:.2em 0">
+        P11's <code>EmiMath</code> — v2's EMI engine, the one <code>emi_plans</code> runs on (ADR-0018 §6).
+      </p>
+      <div class="row">
+        <input class="in s mono" id="e-principal" value="10000000" title="principalPaise">
+        <input class="in s mono" id="e-rate" value="1500" title="annualRateBps">
+        <input class="in s mono" id="e-months" value="12" title="tenureMonths">
+        <input class="in s mono" id="e-fee" value="19900" title="processingFeePaise">
+        <input class="in mono" id="e-due" value="2026-11-05" title="firstDueDate" style="width:120px">
+        <button class="act" type="button" id="e-go">Quote</button>
+      </div>
+      <div id="e-head" class="big"></div>
+      <div id="e-out"></div>
+    </section>
+
+    <section class="card">
+      <h2>2 · One cycle <span class="mono" style="color:var(--muted)">/v1/calc/ledger</span></h2>
+      <p class="mono" style="color:var(--muted);margin:.2em 0">
+        ₹5,000 bought on 1 Jan at 42 %, ₹2,000 paid on the 10th, cycle to the 30th: 9 days on ₹5,000 then 21 on
+        ₹3,000 — a payment applies before that day's interest.
+      </p>
+      <div class="row">
+        <input class="in s mono" id="l-apr" value="4200" title="aprBps">
+        <input class="in s mono" id="l-buy" value="500000" title="purchase paise">
+        <input class="in s mono" id="l-pay" value="200000" title="payment paise">
+        <button class="act" type="button" id="l-go">Accrue</button>
+      </div>
+      <div id="l-head" class="big"></div>
+      <div id="l-out"></div>
+    </section>
+
+    <section class="card">
+      <h2>3 · Minimum due, late fee, utilization</h2>
+      <div class="row steps">
+        <button class="act" type="button" id="m-go">Minimum due</button>
+        <button class="act" type="button" id="f-go">Late fee + RBI stage</button>
+        <button class="act" type="button" id="u-go">Utilization</button>
+        <button class="act" type="button" id="c-go">Custom fees</button>
+      </div>
+      <div id="m-head" class="big"></div>
+      <div id="m-out"></div>
+    </section>
+
+    <section class="card">
+      <h2>4 · The four scenarios <span class="mono" style="color:var(--muted)">/v1/calc/scenarios/*</span></h2>
+      <div class="row steps">
+        <button class="act" type="button" id="s-full">Pay in full</button>
+        <button class="act" type="button" id="s-partial">Pay part</button>
+        <button class="act" type="button" id="s-none">Pay nothing</button>
+        <button class="act" type="button" id="s-min">Minimum only</button>
+      </div>
+      <p class="mono" style="color:var(--muted);margin:.2em 0">
+        Minimum-only on ₹10,000 at 42 % is the 141-cycle case the plan names: ₹30,820.88 of interest and GST to
+        clear a ₹10,000 balance.
+      </p>
+      <div id="s-head" class="big"></div>
+      <div id="s-out"></div>
+    </section>
+
+    <section class="card">
+      <h2>5 · Ways out <span class="mono" style="color:var(--muted)">/v1/calc/exit-paths</span></h2>
+      <p class="mono" style="color:var(--muted);margin:.2em 0">
+        ₹6,000 at 36 %: the smallest flat payment that clears it in 3 cycles is found by binary search over the same
+        ledger math, not a closed-form shortcut.
+      </p>
+      <div class="row steps">
+        <button class="act" type="button" id="x-go">Exit paths</button>
+        <button class="act" type="button" id="r-go">Avalanche vs snowball</button>
+      </div>
+      <div id="x-head" class="big"></div>
+      <div id="x-out"></div>
+    </section>
+
+    <section class="card">
+      <h2>6 · Limits</h2>
+      <p class="mono" style="color:var(--muted);margin:.2em 0">
+        The engines loop over days, cycles and lots, so the service bounds every list and count and caps a body at
+        64 KB (inside the gateway's 256 KB). These must be refused, not computed. With no persona selected every
+        endpoint answers 401 — the route is token-only. In Mock mode these three come back
+        <code>MOCK_FIXTURE_ONLY</code> (the mock replays fixtures and nothing else); switch to Live to see the
+        service's own 400 with the field that was out of range.
+      </p>
+      <div class="row steps">
+        <button class="ghost" type="button" id="b-cycles">8 target cycles</button>
+        <button class="ghost" type="button" id="b-apr">200 % APR</button>
+        <button class="ghost" type="button" id="b-window">18-month cycle</button>
+      </div>
+      <div id="b-out"></div>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>Requests</h2>
+    <div id="log"></div>
+  </section>
+</main>
+<script src="trail.js"></script>
+<script>
+(() => {
+  Trail.mountHeader('Calc', 'P12');
+  Trail.mountLog(document.getElementById('log'));
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const rs = p => '₹' + (p / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const show = (el, v) => { $(el).innerHTML = '<pre class="mono">' + esc(JSON.stringify(v, null, 2)) + '</pre>'; };
+  const head = (el, html) => { $(el).innerHTML = html; };
+
+  // ---- the ported fixtures: inputs the page sends, and the answer the port is pinned to (ADR-0018).
+  // Mock mode replays `out`; Live must return the same numbers.
+  const TERMS = (apr, ...buckets) => ({ aprBps: apr, cashAdvanceAprBps: apr, paymentAllocationOrder: buckets });
+  const TIERS = [
+    { minOutstandingPaise: 0, maxOutstandingPaise: 10000, lateFeePaise: 0 },
+    { minOutstandingPaise: 100100, maxOutstandingPaise: 500000, lateFeePaise: 60000 },
+  ];
+  const FEES = [
+    { id: 'f1', name: 'Annual', appliesTo: 'ONCE', amountType: 'FLAT', flatPaise: 50000 },
+    { id: 'f2', name: 'Service', appliesTo: 'EVERY_CYCLE', amountType: 'PERCENT', percentBps: 200 },
+  ];
+  const HIGHER_OF = { formulaType: 'HIGHER_OF', percentBps: 500, flatAmountPaise: 20000 };
+
+  const F = {
+    emi: {
+      path: '/emi',
+      body: () => ({ principalPaise: +$('e-principal').value, annualRateBps: +$('e-rate').value,
+        tenureMonths: +$('e-months').value, processingFeePaise: +$('e-fee').value, firstDueDate: $('e-due').value }),
+      out: { emiPaise: 902583, totalInterestPaise: 830997, totalGstPaise: 153162, installments: [
+        { number: 1, dueDate: '2026-11-05', principalPaise: 777583, interestPaise: 125000, gstPaise: 26082,
+          totalPaise: 948565, outstandingAfterPaise: 9222417 },
+        { number: 12, dueDate: '2027-10-05', principalPaise: 891441, interestPaise: 11143, gstPaise: 2006,
+          totalPaise: 904590, outstandingAfterPaise: 0 }] },
+    },
+    ledger: {
+      path: '/ledger',
+      body: () => ({ terms: TERMS(+$('l-apr').value, 'retail_purchases', 'cash_advances'),
+        transactions: [
+          { date: '2026-01-01', type: 'PURCHASE', amountPaise: +$('l-buy').value, bucket: 'retail_purchases', referenceNumber: 'TXN-1' },
+          { date: '2026-01-10', type: 'PAYMENT', amountPaise: +$('l-pay').value }],
+        cycleStart: '2026-01-01', cycleEnd: '2026-01-30' }),
+      out: { totalInterestPaise: 12427, closingLots: [
+        { date: '2026-01-01', bucket: 'retail_purchases', remainingPaise: 300000, aprBps: 4200, referenceNumber: 'TXN-1' }] },
+    },
+    minimumDue: {
+      path: '/minimum-due',
+      body: () => ({ terms: { formulaType: 'FINANCE_CHARGE_CONDITIONAL', flatFloorPaise: 20000,
+        retailCashPercentBps: 500, roundUpToNearestPaise: 1000 },
+        retailCashOutstandingPaise: 800000, financeChargesPaise: 15000, gstAmountPaise: 2700,
+        totalAmountDuePaise: 817700 }),
+      out: { minimumDuePaise: 43700 },
+    },
+    lateFee: {
+      path: '/late-fee',
+      body: () => ({ outstandingBalancePaise: 320000, daysOverdue: 15, tiers: TIERS }),
+      out: { lateFeePaise: 60000, gstOnLateFeePaise: 10800, delinquency: { stage: 'SMA_0',
+        label: 'Up to 30 days overdue — flagged as Special Mention Account', reportedToBureaus: true, severelyDamaging: false } },
+    },
+    utilization: {
+      path: '/utilization',
+      body: () => ({ spentPaise: 12000000, creditLimitPaise: 10000000,
+        overlimitFee: { percentBps: 250, flatMinimumPaise: 55000 } }),
+      out: { utilization: { creditLimitConfigured: true, creditLimitPaise: 10000000, spentPaise: 12000000,
+        availableCreditPaise: 0, utilizationBps: 12000, overLimit: true, overLimitPaise: 2000000 },
+        overlimitFeePaise: 55000 },
+    },
+    customFees: {
+      path: '/custom-fees',
+      body: () => ({ fees: FEES, balancePaise: 1000000, cycleNumber: 1 }),
+      out: { totalPaise: 70000, gstPaise: 12600, breakdown: [
+        { id: 'f1', name: 'Annual', amountPaise: 50000 }, { id: 'f2', name: 'Service', amountPaise: 20000 }] },
+    },
+    full: {
+      path: '/scenarios/full-payment',
+      body: () => ({ statementBalancePaise: 500000, customFees: [FEES[0]] }),
+      out: { paymentPaise: 500000, customFeesPaise: 50000, gstOnCustomFeesPaise: 9000,
+        customFeesBreakdown: [{ id: 'f1', name: 'Annual', amountPaise: 50000 }], totalCostPaise: 559000,
+        gracePreservedNextCycle: true,
+        verdict: 'Balance itself costs nothing extra — but ₹590.00 in configured custom fees still applies.' },
+    },
+    partial: {
+      path: '/scenarios/partial-payment',
+      body: () => ({ terms: TERMS(4200, 'retail_purchases'),
+        transactions: [{ date: '2026-01-01', type: 'PURCHASE', amountPaise: 500000 }],
+        cycleStart: '2026-01-01', cycleEnd: '2026-01-30', paymentPaise: 200000 }),
+      out: { scenario: 'partial_payment', paymentPaise: 200000, statementBalancePaise: 517260,
+        interestChargedThisCyclePaise: 17260, gstOnInterestThisCyclePaise: 3107,
+        carriedPrincipalIntoNextCyclePaise: 300000, gracePreservedNextCycle: false,
+        nextCycleInterestIfNoFurtherPaymentPaise: null,
+        verdict: 'Carrying ₹3000.00 forward costs ₹172.60 interest this cycle.' },
+    },
+    none: {
+      path: '/scenarios/no-payment',
+      body: () => ({ terms: TERMS(4200, 'retail_purchases'), statementBalancePaise: 500000,
+        cycleLengthDays: 30, lateFeeTiers: TIERS }),
+      out: { statementBalancePaise: 500000, lateFeePaise: 60000, gstOnLateFeePaise: 10800, overLimitPaise: 0,
+        overlimitFeeImmediatePaise: 0, projections: [
+          { daysOverdue: 30, interestAccruedPaise: 17260, overlimitFeesAccruedPaise: 0, totalOutstandingPaise: 591167,
+            delinquencyStage: { stage: 'SMA_0' } },
+          { daysOverdue: 60, interestAccruedPaise: 34521, overlimitFeesAccruedPaise: 0, totalOutstandingPaise: 611535,
+            delinquencyStage: { stage: 'SMA_1' } },
+          { daysOverdue: 90, interestAccruedPaise: 51781, overlimitFeesAccruedPaise: 0, totalOutstandingPaise: 631902,
+            delinquencyStage: { stage: 'SMA_2' } }] },
+    },
+    min: {
+      path: '/scenarios/minimum-payment',
+      body: () => ({ terms: TERMS(4200, 'retail_purchases', 'finance_charges', 'fees'),
+        minimumDueTerms: HIGHER_OF, startingPrincipalPaise: 1000000, cycleLengthDays: 30 }),
+      out: { startingPrincipalPaise: 1000000, cyclesToPayoff: 141, infiniteDebtWarning: false,
+        totalInterestPaidPaise: 2611942, totalGstPaidPaise: 470146, totalOverlimitFeesPaidPaise: 0,
+        totalExtraPaidPaise: 3082088,
+        amortizationTable: [{ cycle: 1, openingPrincipalPaise: 1000000, financeChargesPaise: 34521, gstPaise: 6214,
+          overlimitFeePaise: 0, overLimitPaise: 0, minimumDuePaise: 50000, paymentPaise: 50000,
+          closingPrincipalPaise: 990735, infiniteDebtWarningRow: false }],
+        verdict: 'Paying only the minimum takes 141 billing cycles and costs ₹30820.88 extra in interest + GST.' },
+    },
+    exit: {
+      path: '/exit-paths',
+      body: () => ({ terms: TERMS(3600, 'finance_charges', 'retail_purchases'), minimumDueTerms: HIGHER_OF,
+        currentBalancePaise: 600000, cycleLengthDays: 30, targetCycles: [3, 6, 12] }),
+      out: { feasible: true, balancePaise: 600000, payInFullNow: { amountRequiredPaise: 600000, totalCostPaise: 600000 },
+        targetedPaths: [
+          { targetCycles: 3, feasible: true, requiredPaymentPerCyclePaise: 214101, cyclesToDebtFree: 3,
+            totalInterestAndGstPaise: 42380, totalCostPaise: 642380 },
+          { targetCycles: 6, feasible: true, requiredPaymentPerCyclePaise: 112598, cyclesToDebtFree: 6,
+            totalInterestAndGstPaise: 75404, totalCostPaise: 675404 },
+          { targetCycles: 12, feasible: true, requiredPaymentPerCyclePaise: 62089, cyclesToDebtFree: 12,
+            totalInterestAndGstPaise: 144633, totalCostPaise: 744633 }],
+        continueMinimum: { feasible: true, cyclesToDebtFree: 62, totalCostPaise: 1361255,
+          totalExtraPaidPaise: 761255 },
+        recommendedPath: 'targeted_payoff_3cycles' },
+    },
+    repayment: {
+      path: '/repayment-path',
+      body: () => ({ monthlyBudgetPaise: 300000, cards: [
+        { id: 'a', name: 'A', balancePaise: 1000000, aprBps: 4200, minimumDuePaise: 50000 },
+        { id: 'b', name: 'B', balancePaise: 500000, aprBps: 1800, minimumDuePaise: 25000 }] }),
+      out: { feasible: true, recommendedStrategy: 'avalanche',
+        avalanche: { monthsToDebtFree: 6, totalInterestPaidPaise: 149911, paymentOrder: ['A', 'B'] },
+        snowball: { monthsToDebtFree: 6, totalInterestPaidPaise: 194361, paymentOrder: ['B', 'A'] },
+        interestSavingsWithBestStrategyPaise: 44450 },
+    },
+  };
+
+  // Mock mode: replay the fixture when the body is the fixture's own, and refuse to invent anything else.
+  const canonical = {};
+  for (const [k, f] of Object.entries(F)) canonical[k] = JSON.stringify(f.body());
+  for (const [k, f] of Object.entries(F)) {
+    Trail.mock('POST', new RegExp('^/api/v1/calc' + f.path.replace(/\//g, '\\/') + '$'), (m, req) => {
+      if (!req.tenant || !req.tenant.accountId) {
+        return Trail.problem(401, 'UNAUTHENTICATED', 'log in as a persona first');
+      }
+      if (JSON.stringify(req.body) !== canonical[k]) {
+        return Trail.problem(400, 'MOCK_FIXTURE_ONLY',
+          'Mock mode only replays this fixture’s own inputs — switch to Live to run the engines.');
+      }
+      return { ...f.out, _fixture: true };
+    });
+  }
+
+  const run = async (key, headEl, outEl, render) => {
+    const f = F[key];
+    const r = await Trail.api('POST', '/api/v1/calc' + f.path, { body: f.body() });
+    show(outEl, r.data);
+    if (r.status !== 200) {
+      head(headEl, '<span class="warn">' + esc(r.status + ' ' + ((r.data && r.data.code) || '')) + '</span>');
+      return null;
+    }
+    const tag = r.data && r.data._fixture ? ' <span class="fix mono">(replayed fixture)</span>' : '';
+    head(headEl, render(r.data) + tag);
+    return r.data;
+  };
+
+  $('e-go').addEventListener('click', () => run('emi', 'e-head', 'e-out',
+    d => esc(rs(d.emiPaise)) + ' a month · interest ' + esc(rs(d.totalInterestPaise))));
+  $('l-go').addEventListener('click', () => run('ledger', 'l-head', 'l-out',
+    d => 'interest ' + esc(rs(d.totalInterestPaise)) + ' · carried '
+      + esc(rs((d.closingLots[0] || {}).remainingPaise || 0))));
+  $('m-go').addEventListener('click', () => run('minimumDue', 'm-head', 'm-out',
+    d => 'minimum due ' + esc(rs(d.minimumDuePaise))));
+  $('f-go').addEventListener('click', () => run('lateFee', 'm-head', 'm-out',
+    d => 'late fee ' + esc(rs(d.lateFeePaise)) + ' + GST ' + esc(rs(d.gstOnLateFeePaise))
+      + ' · ' + esc(d.delinquency.stage)));
+  $('u-go').addEventListener('click', () => run('utilization', 'm-head', 'm-out',
+    d => (d.utilization.utilizationBps / 100).toFixed(2) + '% used · over by '
+      + esc(rs(d.utilization.overLimitPaise)) + ' · fee ' + esc(rs(d.overlimitFeePaise))));
+  $('c-go').addEventListener('click', () => run('customFees', 'm-head', 'm-out',
+    d => 'fees ' + esc(rs(d.totalPaise)) + ' + GST ' + esc(rs(d.gstPaise))));
+
+  $('s-full').addEventListener('click', () => run('full', 's-head', 's-out',
+    d => 'costs ' + esc(rs(d.totalCostPaise)) + ' · grace kept'));
+  $('s-partial').addEventListener('click', () => run('partial', 's-head', 's-out',
+    d => 'statement ' + esc(rs(d.statementBalancePaise)) + ' · carried '
+      + esc(rs(d.carriedPrincipalIntoNextCyclePaise)) + ' · grace lost'));
+  $('s-none').addEventListener('click', () => run('none', 's-head', 's-out',
+    d => 'at 90 days ' + esc(rs(d.projections[2].totalOutstandingPaise)) + ' · '
+      + esc(d.projections[2].delinquencyStage.stage)));
+  $('s-min').addEventListener('click', () => run('min', 's-head', 's-out',
+    d => d.infiniteDebtWarning ? '<span class="warn">never clears</span>'
+      : d.cyclesToPayoff + ' cycles · ' + esc(rs(d.totalExtraPaidPaise)) + ' extra'));
+
+  $('x-go').addEventListener('click', () => run('exit', 'x-head', 'x-out', d => {
+    const t = d.targetedPaths[0];
+    return esc(rs(t.requiredPaymentPerCyclePaise)) + '/cycle clears it in ' + t.cyclesToDebtFree
+      + ' · minimum-only costs ' + esc(rs(d.continueMinimum.totalExtraPaidPaise));
+  }));
+  $('r-go').addEventListener('click', () => run('repayment', 'x-head', 'x-out',
+    d => d.feasible ? esc(d.recommendedStrategy) + ' saves ' + esc(rs(d.interestSavingsWithBestStrategyPaise))
+      : '<span class="warn">' + esc(d.message) + '</span>'));
+
+  // ---- limits: these must come back refused
+  const refused = async (label, path, body) => {
+    const r = await Trail.api('POST', '/api/v1/calc' + path, { body });
+    const ok = r.status >= 400 && r.status < 500;
+    $('b-out').innerHTML = '<pre class="mono">' + esc(label + ': ' + r.status + ' '
+      + ((r.data && r.data.code) || '') + (ok ? ' (refused, as it must be)' : ' (NOT refused)')) + '\n'
+      + esc(JSON.stringify(r.data, null, 2)) + '</pre>';
+  };
+  $('b-cycles').addEventListener('click', () => refused('8 target cycles', '/exit-paths',
+    { ...F.exit.body(), targetCycles: [1, 2, 3, 4, 5, 6, 12, 24] }));
+  $('b-apr').addEventListener('click', () => refused('200 % APR', '/ledger',
+    { ...F.ledger.body(), terms: TERMS(20000, 'retail_purchases') }));
+  $('b-window').addEventListener('click', () => refused('18-month cycle', '/ledger',
+    { ...F.ledger.body(), cycleEnd: '2027-06-01' }));
+
+  // Only the personas are needed here (calc holds no data of its own), but they come from the same seed fixtures.
+  (async () => {
+    try {
+      await Trail.loadSeed();
+    } catch (e) {
+      $('b-out').innerHTML = '<pre class="mono">' + esc('fixtures missing: ' + e.message) + '</pre>';
+    }
+    Trail.mountTenantSwitcher($('tenant'));
+  })();
+})();
+</script>
+</body>
+</html>

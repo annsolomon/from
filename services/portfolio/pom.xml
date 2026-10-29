@@ -32,6 +32,8 @@
     <dependency><groupId>in.dexter</groupId><artifactId>dexter-contracts</artifactId></dependency>
     <!-- P12: statement files (S3 presigning + object client) -->
     <dependency><groupId>in.dexter</groupId><artifactId>dexter-objectstore</artifactId></dependency>
+    <!-- P12b: the ported calc engines behind /v1/calc/* (pure Java, no Spring; ADR-0018) -->
+    <dependency><groupId>in.dexter</groupId><artifactId>portfolio-calc</artifactId></dependency>
     <dependency>
       <!-- DataSource (Hikari) + JdbcClient. No JPA (MASTER_PLAN 3, enforcer bans it). -->
       <groupId>org.springframework.boot</groupId>
