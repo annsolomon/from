@@ -1,7 +1,8 @@
 # ADR-0018: The calc library — porting the old engines, and the paise boundary
 
-- Status: Accepted (P12b). Proof: `libs/portfolio-calc` unit tests (the 31 ported golden fixtures plus 9 boundary
-  tests), `CalcIT`, api-smoke P12 calc block, trail-check `p12-calc`.
+- Status: Accepted (P12b; proven by CI run 40962182275, git dfea70c). Proof: `libs/portfolio-calc` unit 40/0/0/0
+  (the 31 ported golden fixtures plus 9 boundary tests), `CalcIT` 16, api-smoke P12 calc block 27/27, trail-check
+  `p12-calc` 4/4.
 - Context: MASTER_PLAN P12 step 1 asks for **every** old calc engine (§12's list) ported to pure Java in
   `libs/portfolio-calc`, paise `long` at the boundaries and BigDecimal internally "with the same rounding the old
   verified code used", **all** the old tests carried over as golden fixtures with their values converted to paise,
