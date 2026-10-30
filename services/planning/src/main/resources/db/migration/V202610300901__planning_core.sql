@@ -110,6 +110,10 @@ CREATE TABLE planning.liabilities (
   tenure_months   integer     NOT NULL CHECK (tenure_months BETWEEN 1 AND 480),
   start_date      date        NOT NULL,
   emi_paise       bigint      NOT NULL CHECK (emi_paise > 0),
+  -- the schedule's own totals, stored with it: the last instalment is the balancing one, so emi x tenure
+  -- overstates the interest by the rounding adjustment (ADR-0019 decision 7)
+  total_interest_paise bigint NOT NULL CHECK (total_interest_paise >= 0),
+  total_payable_paise  bigint NOT NULL CHECK (total_payable_paise > 0),
   status          text        NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'closed')),
   created_at      timestamptz NOT NULL DEFAULT now(),
   updated_at      timestamptz NOT NULL DEFAULT now(),

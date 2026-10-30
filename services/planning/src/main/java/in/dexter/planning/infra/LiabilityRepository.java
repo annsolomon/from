@@ -20,11 +20,12 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 /** Liabilities and their schedules (RLS: the tenant's rows). */
 public final class LiabilityRepository implements LiabilityStore {
   static final String COLS = "id, account_id, kind, lender, principal_paise, apr_bps, tenure_months, start_date,"
-      + " emi_paise, status, created_at, updated_at, version";
+      + " emi_paise, total_interest_paise, total_payable_paise, status, created_at, updated_at, version";
   static final RowMapper<LiabilityRow> LIABILITY = (rs, n) -> new LiabilityRow(Rows.uuid(rs, "id"),
       Rows.uuid(rs, "account_id"), rs.getString("kind"), rs.getString("lender"), rs.getLong("principal_paise"),
       rs.getInt("apr_bps"), rs.getInt("tenure_months"), Rows.date(rs, "start_date"), rs.getLong("emi_paise"),
-      rs.getString("status"), Rows.instant(rs, "created_at"), Rows.instant(rs, "updated_at"), rs.getInt("version"));
+      rs.getLong("total_interest_paise"), rs.getLong("total_payable_paise"), rs.getString("status"),
+      Rows.instant(rs, "created_at"), Rows.instant(rs, "updated_at"), rs.getInt("version"));
   static final String SCH_COLS = "liability_id, installment_no, due_on, principal_paise, interest_paise,"
       + " total_paise, outstanding_after_paise";
   static final RowMapper<InstallmentRow> INSTALLMENT = (rs, n) -> new InstallmentRow(
@@ -71,10 +72,12 @@ public final class LiabilityRepository implements LiabilityStore {
     m.put("tenure", l.tenureMonths());
     m.put("start", l.startDate());
     m.put("emi", l.emiPaise());
+    m.put("interest", l.totalInterestPaise());
+    m.put("payable", l.totalPayablePaise());
     m.put("status", l.status());
     m.put("now", Sql.ts(l.createdAt()));
     jdbc.sql("INSERT INTO planning.liabilities (" + COLS + ") VALUES (:id, :a, :kind, :lender, :principal, :apr,"
-        + " :tenure, :start, :emi, :status, :now, :now, 0)").params(m).update();
+        + " :tenure, :start, :emi, :interest, :payable, :status, :now, :now, 0)").params(m).update();
     for (InstallmentRow i : schedule) {
       jdbc.sql("INSERT INTO planning.liability_schedule (" + SCH_COLS + ", account_id) VALUES (:l, :no, :due, :p,"
               + " :i, :t, :out, :a)")

@@ -188,7 +188,8 @@
       { number: 11, principalPaise: 870981, interestPaise: 17507, totalPaise: 888488, outstandingAfterPaise: 879688 },
       { number: 12, principalPaise: 879688, interestPaise: 8797, totalPaise: 888485, outstandingAfterPaise: 0 },
     ] };
-  const CAR_FIXTURE = { principalPaise: 50000000, aprBps: 1000, tenureMonths: 60, emiPaise: 1062352 };
+  const CAR_FIXTURE = { principalPaise: 50000000, aprBps: 1000, tenureMonths: 60, emiPaise: 1062352,
+    totalInterestPaise: 13741138 };  // the schedule's own sum (its last instalment is 1062370)
   const FIXTURES = [EMI_FIXTURE, CAR_FIXTURE];
   const fixtureFor = t => FIXTURES.find(f => f.principalPaise === t.principalPaise && f.aprBps === t.aprBps
     && f.tenureMonths === t.tenureMonths);

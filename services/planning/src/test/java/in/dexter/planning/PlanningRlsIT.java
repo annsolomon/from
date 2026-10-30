@@ -17,8 +17,9 @@ class PlanningRlsIT extends PlanningIT {
 
   /** A liability of the tenant parameter, for its schedule rows. */
   static final String LIABILITY = "WITH l AS (INSERT INTO planning.liabilities (id, account_id, kind, lender,"
-      + " principal_paise, apr_bps, tenure_months, start_date, emi_paise) VALUES (gen_random_uuid(), ?, 'loan',"
-      + " 'x', 1000000, 1200, 12, DATE '2026-01-01', 88849) RETURNING id, account_id)";
+      + " principal_paise, apr_bps, tenure_months, start_date, emi_paise, total_interest_paise,"
+      + " total_payable_paise) VALUES (gen_random_uuid(), ?, 'loan', 'x', 1000000, 1200, 12, DATE '2026-01-01',"
+      + " 88849, 66185, 1066185) RETURNING id, account_id)";
 
   static RlsProofKit kit(String table, String insert, String move) {
     return new RlsProofKit(DBX, table, insert, move);
@@ -48,8 +49,9 @@ class PlanningRlsIT extends PlanningIT {
   @Test
   void liabilities() throws Exception {
     kit("liabilities", "INSERT INTO planning.liabilities (id, account_id, kind, lender, principal_paise, apr_bps,"
-        + " tenure_months, start_date, emi_paise) VALUES (gen_random_uuid(), ?, 'loan', 'x', 1000000, 1200, 12,"
-        + " DATE '2026-01-01', 88849)", "UPDATE planning.liabilities SET account_id = ?").proveAll();
+        + " tenure_months, start_date, emi_paise, total_interest_paise, total_payable_paise)"
+        + " VALUES (gen_random_uuid(), ?, 'loan', 'x', 1000000, 1200, 12, DATE '2026-01-01', 88849, 66185,"
+        + " 1066185)", "UPDATE planning.liabilities SET account_id = ?").proveAll();
   }
 
   @Test

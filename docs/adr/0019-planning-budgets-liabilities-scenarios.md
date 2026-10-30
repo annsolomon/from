@@ -47,8 +47,11 @@
    `budget-service` golden of ₹8,884.88 to the paisa, which is why planning has no EMI of its own (and why ADR-0018
    §6's reasoning — one answer to one question — applies here too). The schedule is what the terms implied on the day
    the liability was recorded and is never rewritten, so a rate change is a new liability rather than a silent
-   re-rate. A loan carries no GST; the GST a credit-card EMI does carry is modelled where those plans live, in
-   portfolio's `emi_plans`.
+   re-rate. Its **totals are stored with it** (`total_interest_paise`, `total_payable_paise`) rather than
+   recomputed as `emi x tenure - principal`: the last instalment is the balancing one, so the product
+   overstates the interest by the rounding adjustment (3 paise on the Rs 1,00,000 golden, 661853 not 661856),
+   and a total that contradicts the schedule the same API returns is worse than an extra column. A loan carries no
+   GST; the GST a credit-card EMI does carry is modelled where those plans live, in portfolio's `emi_plans`.
 8. **A scenario is a copy, not a view.** Saving one copies the account's active budgets and liabilities into
    `base_snapshot`; evaluating applies the saved adjustments to that copy. Closing a real liability afterwards does
    not change what the scenario answers. The four adjustments (`setMonthlyIncome`, `setBudgetLimit`,

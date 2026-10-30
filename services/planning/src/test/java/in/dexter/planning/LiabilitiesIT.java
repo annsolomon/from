@@ -28,8 +28,11 @@ class LiabilitiesIT extends PlanningIT {
     assertThat(l.get("startDate").asString()).isEqualTo("2026-02-01");
     assertThat(l.get("lastDueDate").asString()).isEqualTo("2027-01-01");
     assertThat(l.get("status").asString()).isEqualTo("active");
-    assertThat(l.get("totalPayablePaise").asLong())
-        .isEqualTo(10_000_000L + l.get("totalInterestPaise").asLong());
+    // the schedule's own sums, not emi x tenure: the last instalment is the balancing one, 3 paise lighter
+    assertThat(l.get("totalInterestPaise").asLong()).isEqualTo(661_853L);
+    assertThat(l.get("totalPayablePaise").asLong()).isEqualTo(10_661_853L);
+    assertThat(l.get("totalInterestPaise").asLong())
+        .as("emi x tenure would overstate it").isNotEqualTo(888_488L * 12 - 10_000_000L);
     assertThat(created.header("ETag")).isEqualTo("\"0\"");
     String id = l.get("id").asString();
 

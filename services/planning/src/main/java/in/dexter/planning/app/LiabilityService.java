@@ -55,10 +55,9 @@ public final class LiabilityService {
       int tenureMonths, LocalDate startDate, LocalDate lastDueDate, long emiPaise, long totalInterestPaise,
       long totalPayablePaise, String status, Instant createdAt, Instant updatedAt, int version) {
     static LiabilityView of(LiabilityRow l) {
-      long interest = l.emiPaise() * l.tenureMonths() - l.principalPaise();
       return new LiabilityView(l.id(), l.kind(), l.lender(), l.principalPaise(), l.aprBps(), l.tenureMonths(),
-          l.startDate(), l.startDate().plusMonths(l.tenureMonths() - 1L), l.emiPaise(), Math.max(0, interest),
-          l.principalPaise() + Math.max(0, interest), l.status(), l.createdAt(), l.updatedAt(), l.version());
+          l.startDate(), l.startDate().plusMonths(l.tenureMonths() - 1L), l.emiPaise(), l.totalInterestPaise(),
+          l.totalPayablePaise(), l.status(), l.createdAt(), l.updatedAt(), l.version());
     }
   }
 
@@ -115,7 +114,8 @@ public final class LiabilityService {
     return tx.write(tenant, () -> idempotency.execute(tenant, key, fingerprint, () -> {
       Instant now = now();
       LiabilityRow l = new LiabilityRow(Ids.newId(), tenant.accountId(), kind, lender, principal, apr, tenure,
-          start, schedule.emiPaise(), "active", now, now, 0);
+          start, schedule.emiPaise(), schedule.totalInterestPaise(), schedule.totalPayablePaise(), "active",
+          now, now, 0);
       List<InstallmentRow> rows = new ArrayList<>(schedule.installments().size());
       for (LiabilityMath.Installment i : schedule.installments()) {
         rows.add(new InstallmentRow(l.id(), i.number(), i.dueOn(), i.principalPaise(), i.interestPaise(),
@@ -186,7 +186,8 @@ public final class LiabilityService {
       }
       Instant now = now();
       LiabilityRow updated = new LiabilityRow(l.id(), l.accountId(), l.kind(), lender, l.principalPaise(),
-          l.aprBps(), l.tenureMonths(), l.startDate(), l.emiPaise(), status, l.createdAt(), now, l.version() + 1);
+          l.aprBps(), l.tenureMonths(), l.startDate(), l.emiPaise(), l.totalInterestPaise(), l.totalPayablePaise(),
+          status, l.createdAt(), now, l.version() + 1);
       liabilities.update(updated);
       publish(updated, now);
       return LiabilityView.of(updated);
@@ -202,7 +203,8 @@ public final class LiabilityService {
       }
       Instant now = now();
       LiabilityRow closed = new LiabilityRow(l.id(), l.accountId(), l.kind(), l.lender(), l.principalPaise(),
-          l.aprBps(), l.tenureMonths(), l.startDate(), l.emiPaise(), "closed", l.createdAt(), now, l.version() + 1);
+          l.aprBps(), l.tenureMonths(), l.startDate(), l.emiPaise(), l.totalInterestPaise(), l.totalPayablePaise(),
+          "closed", l.createdAt(), now, l.version() + 1);
       liabilities.update(closed);
       publish(closed, now);
     });
