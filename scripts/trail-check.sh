@@ -192,12 +192,22 @@ pday=$(TZ=Asia/Kolkata date +%Y-%m-%d)
 # at zero (planning does not backfill), so only the expense recorded below counts towards it.
 pcat=health
 pexp=health.doctor
+# An idempotent create replays its stored response, which the engine keeps as jsonb and reads back with
+# `::text` - so Postgres renders it with a space after each colon. Parse the JSON instead of matching substrings.
+jget() {  # <json on stdin> <field> [field...] -> the values, space-separated ("" if the body is not that shape)
+  python3 -c '
+import json, sys
+d = json.load(sys.stdin)
+print(" ".join(str(d[f]) for f in sys.argv[1:]))
+' "$@" 2>/dev/null
+}
 pb=$(curl -s --max-time 10 -H "Authorization: Bearer $at" -H 'Content-Type: application/json' \
   -H "Idempotency-Key: $(cat /proc/sys/kernel/random/uuid)" \
   -d "{\"name\":\"trail-check\",\"period\":\"monthly\",\"categoryPath\":\"$pcat\",\"limitPaise\":200000,\"startsOn\":\"${pday%-*}-01\"}" \
   "$BASE/api/v1/budgets")
-bid=$(sed -n 's/.*"id":"\([0-9a-f-]*\)".*/\1/p' <<< "$pb")
-if [[ -n $bid && $pb == *'"status":"active"'* && $pb == *'"alertThresholds":[50,80,100]'* ]]; then
+bid=$(jget id <<< "$pb")
+bshape=$(jget status alertThresholds limitPaise <<< "$pb")
+if [[ -n $bid && $bshape == "active [50, 80, 100] 200000" ]]; then
   printf 'PASS  %-10s %s\n' p13-budget 201
 else printf 'FAIL  %-10s %s\n' p13-budget "${pb:0:200}"; fail=1; fi
 curl -s -o /dev/null --max-time 10 -H "Authorization: Bearer $at" -H 'Content-Type: application/json' \
@@ -223,25 +233,38 @@ pl=$(curl -s --max-time 10 -H "Authorization: Bearer $at" -H 'Content-Type: appl
   -H "Idempotency-Key: $(cat /proc/sys/kernel/random/uuid)" \
   -d '{"kind":"loan","lender":"Trail bank","principalPaise":10000000,"aprBps":1200,"tenureMonths":12,"startDate":"2026-11-01"}' \
   "$BASE/api/v1/liabilities")
-lid=$(sed -n 's/.*"id":"\([0-9a-f-]*\)".*/\1/p' <<< "$pl")
-if [[ $pl == *'"emiPaise":888488'* && $pl == *'"totalInterestPaise":661853'* ]]; then
-  printf 'PASS  %-10s %s\n' p13-emi 888488
+lid=$(jget id <<< "$pl")
+lemi=$(jget emiPaise totalInterestPaise totalPayablePaise <<< "$pl")
+if [[ $lemi == "888488 661853 10661853" ]]; then printf 'PASS  %-10s %s\n' p13-emi 888488
 else printf 'FAIL  %-10s %s\n' p13-emi "${pl:0:200}"; fail=1; fi
+# the schedule is where those stored totals came from: 12 rows summing back to the principal, closing at zero
 ps=$(curl -s --max-time 10 -H "Authorization: Bearer $at" "$BASE/api/v1/liabilities/$lid/schedule?limit=24")
-if [[ $ps == *'"interestPaise":100000'* && $ps == *'"outstandingAfterPaise":0'* ]]; then
-  printf 'PASS  %-10s %s\n' p13-schedule 12
+psum=$(printf '%s' "$ps" | python3 -c '
+import json, sys
+rows = json.load(sys.stdin)["data"]
+print(len(rows), sum(i["principalPaise"] for i in rows), sum(i["interestPaise"] for i in rows),
+      rows[-1]["outstandingAfterPaise"])
+' 2>/dev/null)
+if [[ $psum == "12 10000000 661853 0" ]]; then printf 'PASS  %-10s %s\n' p13-schedule "$psum"
 else printf 'FAIL  %-10s %s\n' p13-schedule "${ps:0:200}"; fail=1; fi
 pc=$(curl -s --max-time 10 -H "Authorization: Bearer $at" -H 'Content-Type: application/json' \
   -H "Idempotency-Key: $(cat /proc/sys/kernel/random/uuid)" \
   -d '{"name":"trail-check","monthlyIncomePaise":10000000,"adjustments":[]}' "$BASE/api/v1/scenarios")
-sid=$(sed -n 's/.*"id":"\([0-9a-f-]*\)".*/\1/p' <<< "$pc")
+sid=$(jget id <<< "$pc")
 curl -s -o /dev/null --max-time 10 -X PATCH -H "Authorization: Bearer $at" -H 'Content-Type: application/json' \
   -H 'If-Match: "0"' \
   -d '{"adjustments":[{"kind":"addLiability","lender":"Car loan","principalPaise":50000000,"aprBps":1000,"tenureMonths":60}]}' \
   "$BASE/api/v1/scenarios/$sid"
 pe=$(curl -s --max-time 10 -X POST -H "Authorization: Bearer $at" "$BASE/api/v1/scenarios/$sid:evaluate")
-if [[ $pe == *'"deltaPaise":1062352'* && $pe == *'"monthlyIncomePaise":10000000'* ]]; then
-  printf 'PASS  %-10s %s\n' p13-scenario 1062352
+# the delta is the shared engine's instalment; the surplus is checked as an invariant, not a magnitude, so other
+# budgets this account happens to have (api-smoke runs first against the same stack) cannot make it flap
+pev=$(printf '%s' "$pe" | python3 -c '
+import json, sys
+d = json.load(sys.stdin)
+print(d["deltaPaise"], d["monthlyIncomePaise"],
+      d["surplusAfterPaise"] == d["monthlyIncomePaise"] - d["monthlyOutgoAfterPaise"])
+' 2>/dev/null)
+if [[ $pev == "1062352 10000000 True" ]]; then printf 'PASS  %-10s %s\n' p13-scenario 1062352
 else printf 'FAIL  %-10s %s\n' p13-scenario "${pe:0:200}"; fail=1; fi
 
 echo "trail-check: $([[ $fail -eq 0 ]] && echo PASS || echo FAIL)"
