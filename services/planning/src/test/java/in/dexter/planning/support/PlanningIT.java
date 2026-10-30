@@ -222,6 +222,14 @@ public abstract class PlanningIT {
         .param("k", account.toString()).param("t", eventType).query(String.class).list();
   }
 
+  /**
+   * The {@code data} of one event type for one account, oldest first — parsed, because the stored payload is
+   * {@code jsonb} and Postgres renders it with a space after each colon, which a substring assertion would miss.
+   */
+  public static List<JsonNode> outboxData(UUID account, String eventType) {
+    return outbox(account, eventType).stream().map(p -> JSON.readTree(p).get("data")).toList();
+  }
+
   public static long outboxRows(UUID account, String eventType) {
     return ADMIN.sql("SELECT count(1) FROM planning.outbox WHERE message_key = :k AND event_type = :t")
         .param("k", account.toString()).param("t", eventType).query(Long.class).single();

@@ -50,10 +50,11 @@ class LiabilitiesIT extends PlanningIT {
         .as("the schedule closes at zero").isZero();
     assertThat(rest.json().get("page").get("hasMore").asBoolean()).isFalse();
 
-    List<String> events = outbox(a, "planning.liability.changed");
+    List<JsonNode> events = outboxData(a, "planning.liability.changed");
     assertThat(events).hasSize(1);
-    assertThat(events.get(0)).contains("\"emiPaise\":888488").contains("\"status\":\"active\"")
-        .contains("\"lender\":\"HDFC Bank\"");
+    assertThat(events.get(0).get("emiPaise").asLong()).isEqualTo(888_488L);
+    assertThat(events.get(0).get("status").asString()).isEqualTo("active");
+    assertThat(events.get(0).get("lender").asString()).isEqualTo("HDFC Bank");
   }
 
   @Test

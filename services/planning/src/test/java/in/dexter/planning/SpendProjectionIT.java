@@ -8,6 +8,7 @@ import in.dexter.planning.support.PlanningIT;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import tools.jackson.databind.JsonNode;
 
 /**
  * The budget-spend projection (MASTER_PLAN P13): ledger expense events become a delta per matching budget and
@@ -121,8 +122,10 @@ class SpendProjectionIT extends PlanningIT {
     spend.onExpenseEvent(Events.created(a, UUID.randomUUID(), Events.state(500_000L, "2026-01-02", "food.dining")));
     assertThat(alerted(b, "2026-01-01")).containsExactly(50);
     assertThat(outbox(a, "planning.budget.threshold-crossed")).hasSize(1);
-    assertThat(outbox(a, "planning.budget.threshold-crossed").get(0))
-        .contains("\"threshold\":50").contains("\"usedBps\":5000").contains("\"periodStart\":\"2026-01-01\"");
+    JsonNode crossed = outboxData(a, "planning.budget.threshold-crossed").get(0);
+    assertThat(crossed.get("threshold").asInt()).isEqualTo(50);
+    assertThat(crossed.get("usedBps").asInt()).isEqualTo(5000);
+    assertThat(crossed.get("periodStart").asString()).isEqualTo("2026-01-01");
 
     // a little more: still only 50 % has been reached, and it does not alert again
     spend.onExpenseEvent(Events.created(a, UUID.randomUUID(), Events.state(100_000L, "2026-01-03", "food.dining")));
