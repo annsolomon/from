@@ -42,7 +42,8 @@ public final class BudgetRepository implements BudgetStore {
       Rows.date(rs, "period_start"), rs.getLong("spent_paise"), rs.getLong("projected_version"),
       Rows.instant(rs, "updated_at"));
 
-  static final KeysetQuery<BudgetRow> LIST = KeysetQuery.<BudgetRow>builder("created_desc")
+  /** A tenant's budgets newest first ({@code budgets_list}); public so `BudgetsPaginationContractIT` can plan it. */
+  public static final KeysetQuery<BudgetRow> LIST = KeysetQuery.<BudgetRow>builder("created_desc")
       .direction(KeysetQuery.Direction.DESC)
       .key("created_at", KeyType.TIMESTAMPTZ)
       .key("id", KeyType.UUID)

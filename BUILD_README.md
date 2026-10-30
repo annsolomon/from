@@ -1039,6 +1039,15 @@ Croma Online vs label Croma).
 
 ## 7. Known gaps / tech debt (honest, never deleted silently)
 
+- **`verify-full.yml` reported trail-check green no matter what, until P13 r3.** The step ran
+  `./scripts/trail-check.sh 2>&1 | tee …`, so without `pipefail` it took `tee`'s exit status: `steps.trail.outcome`
+  was always `success`, which made `RUN.txt`'s `trail_check=` line and the workflow's final gate meaningless. Found
+  in run 41027321123, where `trail-check.txt` ends `FAIL: could not start core/services/trail` and `RUN.txt` still
+  said `trail_check=success`. Fixed with `set -o pipefail`. Every earlier phase's "trail-check PASS" was read from
+  the **contents** of `trail-check.txt` (the per-check `PASS` lines), not from that flag, so the recorded evidence
+  stands — but the gate was not enforcing it, and a trail-check failure in P00-P12 could in principle have been
+  missed if nobody read the log. The reports are all still on the branch's history if any of it needs re-checking.
+
 - **P13 planning (ADR-0019 "what this phase does not do"):**
   - **`GET /v1/budgets/category-potential` is not built** (A-75). The plan lists it as a cached read-through to
     catalog's "potential" endpoint; it needs a service-to-service call and a cache entry of its own and answers a
@@ -1299,6 +1308,8 @@ press **Lab status / start**, then **Get a valid token**. (After a manual `run.s
 
 ## 10. Changelog (one line per response)
 
+- 2026-10-30 P13 r3: `BudgetRepository.LIST` made public (the only compile error in run 41027321123 — `BudgetsPaginationContractIT` plan-asserts it from another package, as portfolio's `TransactionRepository.LIST` is public for the same reason), and fixed a latent CI bug the run exposed: `verify-full.yml` piped trail-check into `tee` without `pipefail`, so the step always reported success and `RUN.txt`'s `trail_check=` was never a real gate (§7).
+- 2026-10-30 P13 r2: `MiniSchema` supports JSON Schema `format: "date"` (planning's two event schemas carry date-only fields; the minimal validator had only ever needed `uuid` and `date-time` and threw on anything else). Both schemas re-checked against their records offline.
 - 2026-10-30 P13 r1: re-verified P12 from the latest report on `verify-reports` (run 40964375106, git `372af62`: verify full 22/22 + trail-check 29/29 PASS), then built planning — two migrations (platform + 6 core tables, all FORCE RLS), a pure domain (`BudgetPeriods`, `BudgetMath`, `Categories`, `LiabilityMath`, `ScenarioMath`), `BudgetService`/`SpendService`/`LiabilityService`/`ScenarioService`, repositories with the `GREATEST(0, …)` upsert on both branches, three controllers, two events + schemas, 14 test classes (incl. `SpendPropertyIT`'s 600-op projection property, the 23:30-IST month-end case, thresholds once per period, RLS on 6 tables, pagination + idempotency contracts), ADR-0019, A-74 (`EmiMath` moved into `libs/portfolio-calc`), A-75, A-76, errors.md + routes.md, `p13-planning.html` (57/57 in jsdom), `p13_smoke.py`, trail-check `p13-*`, `planning.http`. Pushed for CI.
 - 2026-10-30 P12b r1: ported every old calc engine into `libs/portfolio-calc` (pure Java, paise/bps boundary over BigDecimal-rupee internals) with all 31 old calc tests as golden fixtures — all green, no value needing explanation, incl. the 141-cycle minimum-payment case and the exit-path binary search; `/v1/calc/*` (12 endpoints, POST-only, stateless, capped) with `CalcService` validation and `CalcIT`; ADR-0018 + ADR-0017 added to the index, A-73, routes.md calc table, api-smoke calc block, trail-check `p12-calc`, `p12-calc.html` (fixture replay in Mock, engines in Live), portfolio.http entries. CI run 40962182275 (first run, nothing to fix): verify full 22/22 + trail-check PASS → **P12 DONE** (both halves).
 - 2026-10-27 P12a r1–r5: statement uploads (schema, Mode B submit, consumer, review, confirm via the manual record path), Python ai-parser (redaction, 3 layouts, Kafka worker), S3 identities, contracts, smoke/trail/trail-check, ADR-0017, A-68..A-72; fixed pre-existing flakes (gateway RateLimitIT refill, identity Redis ACL password reset). SeaweedFS 256 MB volumes. CI run 40419721529: verify full + trail-check PASS → **P12a DONE**.

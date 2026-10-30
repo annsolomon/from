@@ -34,7 +34,10 @@ jobs:
       - name: trail-check.sh
         id: trail
         continue-on-error: true
-        run: ./scripts/trail-check.sh 2>&1 | tee target/verify/trail-check.txt
+        # pipefail, or the step takes tee's exit status and trail-check can never fail the run.
+        run: |
+          set -o pipefail
+          ./scripts/trail-check.sh 2>&1 | tee target/verify/trail-check.txt
       - name: print report and failing logs
         if: always()
         run: |
