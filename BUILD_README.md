@@ -1,11 +1,12 @@
 # Dexter v2 — Build README (living handoff)
 
 **Last updated:** 2026-10-30 · **Chat/phase:** P13 (planning) · **Model:** Claude Opus 5
-**P13 is code complete and pushed; the CI evidence is being read.** Budgets whose per-period spend is maintained
-from `ledger.expense.*` as a delta through the inbox, thresholds that alert once per period, liabilities on the
-shared EMI engine, and copy-on-read what-if scenarios (ADR-0019, A-74/A-75). P12 was re-verified first from the
-latest report on `verify-reports` (run 40964375106, git `372af62`): `verify.sh full` **PASS** 22/22 +
-`trail-check.sh` **PASS** — §3.
+**P13 is DONE (2026-10-30).** Budgets whose per-period spend is maintained from `ledger.expense.*` as a delta with
+the inbox as the exactly-once guard, thresholds that alert once per period, liabilities on the shared EMI engine,
+and copy-on-read what-if scenarios (ADR-0019, A-74..A-77). `verify.sh full` **PASS 22/22** + `trail-check.sh`
+**PASS 80/80** on a GitHub runner (commit `d03ca6b`, run 41096207559; reports on branch `verify-reports`):
+planning unit 28 + IT 53, api-smoke 407 PASS / 0 FAIL with 79 of them P13's, trail-check `p13-*` 6/6.
+P12 was re-verified first from the then-latest report (run 40964375106, git `372af62`) — §3.
 Next chat: **P14** (reco A). Upload `MASTER_PLAN.md` + this README; the code is in the repo (clone it). The old
 repo zip is not needed: nothing is left to port (ADR-0018 §6 states the one engine deliberately left behind).
 
@@ -26,7 +27,7 @@ repo zip is not needed: nothing is left to port (ADR-0018 §6 states the one eng
 | P10 | Catalog B (ingestion) | **DONE** 2026-10-18 | `verify.sh full` PASS + trail-check PASS (CI run 39109141399, git c68837d): catalog unit 21 + IT 27 (pipeline: unchanged → no item, fee change → one item, approve idempotent sequential + concurrent, supersede/stale/draft-pending; collector: SSRF incl. redirects to private addresses, sitemap politeness, resume from checkpoint, abandoned runs, scheduler; API + permissions; RLS for ingestion tables), objectstore unit 2, api-smoke P10 16/16 (real admin MFA, SeaweedFS snapshot, approve → v2 public) | DoD all ticked (§3) |
 | P11 | Portfolio A | **DONE** 2026-10-22 | `verify.sh full` PASS + trail-check PASS (CI run 39703341828, git bac4db8): portfolio unit 14 (BillingCycle, EmiMath, MatchScore, rewards domain, platform migration, ArchRules) + IT 46 (cards, transactions + statements + closer, links, auto-match accuracy on the seed's 357 merchants: precision 1.000 / recall 1.000 over 400 expenses, projection version guard + Kafka end to end, EMI, rewards + report, RLS proof on 10 tables, PaginationContract 9, IdempotencyContract 2 × 6), api-smoke P11 29/29 (auto-match over real Kafka) | DoD all ticked (§3) |
 | P12 | Portfolio B (calc + parser) | **DONE** 2026-10-30 (P12a statements + ai-parser 2026-10-27; P12b calc library) | P12a: CI run 40419721529, git 81d63ae (portfolio unit 18 + IT 68, ai-parser pytest 72/72, api-smoke P12 33/33, trail-check P12 4/4). P12b: `verify.sh full` PASS 22/22 + trail-check PASS (CI run 40962182275, git dfea70c, first run green): `libs/portfolio-calc` unit 40/0/0/0 (31 ported golden fixtures + 9 boundary), portfolio IT 84 (68 + `CalcIT` 16) + unit 18, api-smoke P12 calc 27/27, trail-check `p12-calc` 4/4 | split A-68, both halves closed. 100 % of the old calc tests ported and green (ADR-0018) |
-| P13 | Planning | **IT-GREEN (pushed, CI evidence pending)** | sandbox: `verify.sh static` PASS 10/10; planning domain proved outside Maven (84 checks over `BudgetPeriods`, `BudgetMath`, `LiabilityMath`, `ScenarioMath`, `Categories`), `p13-planning.html` Mock flow 57/57 in jsdom with 0 console errors | ADR-0019, A-74 (`EmiMath` moved into `libs/portfolio-calc`), A-75 (`/v1/budgets/category-potential` deferred) |
+| P13 | Planning | **DONE** 2026-10-30 | `verify.sh full` PASS 22/22 + `trail-check.sh` PASS (CI run 41096207559, git `d03ca6b`): planning unit 28 + IT 53 (budgets, spend projection incl. the 23:30-IST month end and thresholds once per period, `SpendPropertyIT` 600 random ops vs a recomputed SUM, liabilities + schedule, scenarios, RLS proof on 6 tables, PaginationContract 9, IdempotencyContract 2 × 6), `libs/portfolio-calc` unit 44 (40 + `EmiMathTest` 4 after A-74), api-smoke 407 PASS / 0 FAIL (79 P13: budgets fed by real ledger events over Kafka, planning outbox → `dexter.planning.{budget,liability}.v1`, `budget-spend` inbox 18 events), trail-check `p13-{anon,budget,spend,emi,schedule,scenario}` 6/6 | ADR-0019, A-74 (`EmiMath` moved into `libs/portfolio-calc`), A-75 (`/v1/budgets/category-potential` deferred), A-76 (routes/patchable fields), A-77 (`threshold-crossed`, not `threshold_crossed`). DoD all ticked (§3) |
 | P14 | Reco A | NOT STARTED | — | |
 | P15 | Reco B (optimizer/SSE) | NOT STARTED | — | |
 | P16 | Billing | NOT STARTED | — | |
@@ -42,16 +43,11 @@ repo zip is not needed: nothing is left to port (ADR-0018 §6 states the one eng
   sandbox). r5 (`92463a7`) made the smoke report the error: a timeout — SeaweedFS reserves volumes per bucket and the runner's
   free-disk cap was used up by the first two buckets. r6 (`81d63ae`): 256 MB volumes, `-volume.max=64` → **all green,
   P12a DONE** (run 40419721529).
-- **P13 (2026-10-30):** code complete and pushed. **Next action: read the CI run for the P13 commit, fix until
-  `verify.sh full` + `trail-check.sh` pass, then record the run id here, in §1 and in ADR-0019's Proof line and
-  mark P13 DONE.** Nothing is half-written: schema, domain, app, infra, api, config, contracts, 14 test classes,
-  the trail page, `p13_smoke.py`, the trail-check block, `planning.http`, ADR-0019, errors.md and routes.md are all
-  in. What could not be run in the sandbox (no Maven Central, Java 21 only, no Docker) is every Spring/Testcontainers
-  test — that is what the CI run has to confirm. The two most likely first failures, with their fixes:
-  - a Jackson 3 accessor name on a `JsonNode` (this repo is `tools.jackson.*`: `isString()/asString()/asLong()/
-    asInt()/asBoolean()`, never `stringValue()`), and
-  - an `ArchRules` violation if anything Spring- or Jackson-shaped slipped into `in.dexter.planning.domain` (it is
-    checked to be pure; `ScenarioMath` sees records, never `JsonNode`).
+- **P13 (2026-10-30):** done, nothing in progress. Next action: **P14 (reco A)** — verify P13 from the latest
+  report on `verify-reports` first, then build. P14 starts from: `libs/portfolio-calc` for any arithmetic it needs
+  (A-74 put `EmiMath` there too), planning's `/v1/budgets/status` shape if a recommendation wants to reason about
+  headroom, and the one P13 endpoint left unbuilt — `GET /v1/budgets/category-potential` (A-75), which is a cached
+  read-through to catalog's potential endpoint and may belong with reco's own catalog reads.
 - **P12b (2026-10-30):** done, nothing in progress. P13 started from: `libs/portfolio-calc` (pure, static, paise in
   and out — `MinimumPaymentSimulator`, `ExitPathCalculator` and `RepaymentPathCalculator` are what a liability
   projection and the sandbox want), `CalcService` (its validation and caps were already written; a planning
@@ -219,6 +215,24 @@ repo zip is not needed: nothing is left to port (ADR-0018 §6 states the one eng
 - **P02b scope (A-13):** `dexter-security` (resource server, JWKS cache + unknown-kid refetch, `AuthContext`, audience check, `@RequiresStepUp`, `@RequiresPermission`, service-token client, test JWKS/JWT factory; pins nimbus + bouncycastle, verified on Maven Central), `dexter-cache` (ADR-0004, generation keys, Redis ACLs, cache contract), `ArchRules` (pins archunit), demo module switched from the `X-Demo-Account` test header to `AuthContext`, `p02-*.html` trail page + lab endpoints (idempotency replay/409/422, outbox → Kafka → projection, DLQ).
 
 ## 3. Verification of previous phase
+
+### P13 against its DoD (CI run 41096207559, git d03ca6b, 2026-10-30)
+
+| DoD / requirement | Result | Evidence |
+|---|---|---|
+| IT-GREEN | PASS | `full.maven`: all 25 modules SUCCESS; `services/planning` unit 28 + IT 53, `libs/portfolio-calc` unit 44 |
+| Budgets: weekly / monthly / custom, a category subtree or all spend, thresholds | PASS | `BudgetPeriodsTest` (weekly every 7 days; monthly anchored on `starts_on` and clamped — 31 Jan → 28 Feb → 31 Mar; custom one window), `BudgetsIT` 6 (create/validate/patch/end, `BUDGET_NOT_ACTIVE` on an ended budget, admin token refused, cross-tenant 404), api-smoke: six threshold values refused, period not patchable, pause not back-filling |
+| Spend kept up to date **from ledger events**, as a delta per matching budget | PASS | `SpendProjectionIT` 10 (subtree match, sibling not counted, edit settling both sides, delete subtracting, floor at zero) and end to end through real Kafka in api-smoke: `budget-spend inbox: 18 ledger events consumed`, the bar moving after `POST /v1/expenses` |
+| **Projection equals a recomputed SUM** | PASS | `SpendPropertyIT`: 600 random creates / edits / deletes / restores, then every stored `budget_period_spend` row compared with an independently recomputed sum |
+| Exactly-once under replay | PASS | The inbox row written in the same transaction is the guard; ADR-0019 §1 records why the plan's per-row `projected_version` compare would be **wrong** (one period row aggregates many expenses with independent version sequences) and the column is kept but unused for skipping |
+| An expense at 23:30 IST on the 31st lands in that month | PASS | `SpendProjectionIT` + api-smoke `23:30 IST on the 2026-09-30 counts in that month, not the next` — the ledger stamps the Asia/Kolkata day (`ExpenseStateV1.day`) and planning does not re-derive it |
+| A threshold alerts at most once per period | PASS | Primary key on (account, budget, period, threshold), inserted `ON CONFLICT DO NOTHING` with the event published only when that insert won; asserted in `SpendProjectionIT` (spend rising past 50/80/100 then rising again → still 3 events) and in api-smoke |
+| Liabilities: ₹8,884.88 on the shared engine, with a schedule | PASS | `LiabilitiesIT` + api-smoke: ₹1,00,000 at 12 % over 12 months = 888488 paise, 12 instalments in order, principal summing back to 10000000, interest to 661853, closing at zero. `EmiMath` moved into `libs/portfolio-calc` (A-74) so planning has no EMI of its own |
+| Scenarios are copy-on-read | PASS | `ScenariosIT` 4 + api-smoke: the snapshot's own budgets and liabilities are copied in, a hypothetical loan costs 1062352 a month from the same engine, an adjustment the snapshot cannot satisfy is 422 `SCENARIO_ADJUSTMENT_INVALID`, and closing the real liability afterwards leaves the answer unchanged |
+| RLS, pagination and idempotency contracts | PASS | `PlanningRlsIT` 6 (all six tables; `budget_alerts_sent` and `liability_schedule` are append-only, so the kit's move case is `null` as portfolio's points ledger does), `BudgetsPaginationContractIT` 9 incl. the `budgets_list` plan assertion, `IdempotencyContractsIT` 2 × 6 (a budget writes no event, a liability does) |
+| Trail page exercised | PASS | trail-check `p13-{anon,budget,spend,emi,schedule,scenario}` 6/6 — a budget created, a real ledger expense moving its spend to 180000 / 9000 bps with 50 and 80 alerted, the EMI golden with its stored totals, the schedule summed, the scenario's delta. Mock flow run in jsdom (57/57, 0 console errors); Mock does the budget bookkeeping for real and replays recorded EMI fixtures rather than reimplementing the engine |
+| `POST /v1/calc/emi` stays portfolio's (A-42) | PASS | Planning calls the library directly; it serves no `/v1/calc/*` route and makes no HTTP call to portfolio for arithmetic (`RouteTable`, ADR-0019 §9) |
+| **Not built:** `GET /v1/budgets/category-potential` | — | A-75 and §7: the one P13 endpoint deliberately left out (a cached read-through to catalog's potential endpoint). Nothing else in P13 depends on it |
 
 ### P12 re-verified in the P13 chat (latest report on `verify-reports`: CI run 40964375106, git 372af62, 2026-10-29 22:25Z)
 
@@ -454,7 +468,7 @@ Issues found in P01's own code during self-review and fixed:
 
 ## 4. What exists now
 
-**P13 Planning: budgets, liabilities, scenarios (IT-GREEN, CI pending)** — ADR-0019, A-74/A-75, MASTER_PLAN P13
+**P13 Planning: budgets, liabilities, scenarios (DONE)** — ADR-0019, A-74/A-75, MASTER_PLAN P13
 
 | Piece | What it does |
 |---|---|
@@ -952,7 +966,7 @@ Croma Online vs label Croma).
 | 0014 | Catalog: published face + editor drafts + immutable versions (trigger), publish in one transaction (no-op by content hash), rule overlap impossible (EXCLUDE gist), snapshot = API = compacted event, public reads with a sentinel tenant, editor-only admin pool, search through an owner SECURITY DEFINER function | Accepted: proven by CI run 39046289166 |
 | 0016 | Portfolio A: catalog as a version-guarded projection written only by the PROJECTOR actor, soft-removed cards with a live-only unique key, computed billing cycles with statements materialised on posting + an owner-function closer, rewards earned at record time on catalog terms into an append-only points ledger (FIFO expiry), auto-match as scored suggestions from both sides, exact reducing-balance EMI, consumers ensure their source topics | Accepted: proven by CI run 39703341828 |
 | 0018 | The calc library: BigDecimal **rupees** inside with the original's rounding points (paise only at the boundary) so the ported fixtures hold to the paisa, bps for rates, final classes of static methods with `Lot` mutable and package-private, all 31 old calc tests ported and green with no value needing explanation, `emi/CardEmiCalculator` not ported (P11's `EmiMath` is v2's EMI engine and rounds differently), preconditions rejected instead of dereferenced, `/v1/calc/*` stateless and capped | Accepted: proven by CI run 40962182275 (portfolio-calc unit 40, `CalcIT` 16, api-smoke P12 calc 27, trail-check `p12-calc` 4) |
-| 0019 | Planning: a budget's per-period spend maintained as a delta from `ledger.expense.*` with the **inbox** as the exactly-once guard (a per-row `projected_version` compare would be wrong — one period row aggregates many expenses with independent version sequences), an edit settling both sides from `before`/`after`, no backfill so a new budget starts at zero and the row floors there, periods repeating from `starts_on` on the ledger's own IST day, a threshold alerting once per period enforced by a primary key, liabilities on the shared `EmiMath` with the schedule written once, and scenarios as a copy of the account rather than a live view | Accepted (P13): proof pending the P13 CI run |
+| 0019 | Planning: a budget's per-period spend maintained as a delta from `ledger.expense.*` with the **inbox** as the exactly-once guard (a per-row `projected_version` compare would be wrong — one period row aggregates many expenses with independent version sequences), an edit settling both sides from `before`/`after`, no backfill so a new budget starts at zero and the row floors there, periods repeating from `starts_on` on the ledger's own IST day, a threshold alerting once per period enforced by a primary key, liabilities on the shared `EmiMath` with the schedule written once, and scenarios as a copy of the account rather than a live view | Accepted: proven by CI run 41096207559 (planning unit 28 + IT 53, api-smoke P13 79, trail-check `p13` 6) |
 | 0017 | Statement uploads: presigned PUT into quarantine, submit as Idempotency Mode B with a `scanned` recovery point, the parser gets a presigned GET and no credentials, lines become transactions through the one write path keyed by line hash, S3 identities rendered at every start | Accepted: proven by CI run 40419721529 |
 | 0015 | Catalog ingestion: SSRF policy in two halves (URL rules, then every resolved address public; manual redirects re-checked; size/time/type caps), sources saved only when fetchable, crawl runs with a checkpoint per source + stale re-claim + politeness, content-hash change detection with snapshots in the object store, field-level diff (absent ≠ removed, merchant rules untouched), the promoter as the only writer with replay-safe approve, INGESTOR actor role | Accepted: proven by CI run 39109141399 |
 
@@ -1309,6 +1323,7 @@ press **Lab status / start**, then **Get a valid token**. (After a manual `run.s
 
 ## 10. Changelog (one line per response)
 
+- 2026-10-30 P13 r9: **green** — CI run 41096207559 (git `d03ca6b`): `verify.sh full` PASS 22/22 + `trail-check.sh` PASS 80/80, api-smoke 407 PASS / 0 FAIL (79 of them P13's), `p13-*` 6/6 → **P13 DONE**. §1, §3 (the DoD table), §4, the ADR index and ADR-0019's Status all carry the run id.
 - 2026-10-30 P13 r8: **`verify.sh full` PASS 22/22** (run 41094104336) — every module, every IT, the whole P13 api-smoke block, seed, k6. The only failure left was `trail-check.sh`'s own p13 block: it matched substrings like `"emiPaise":888488` against an **idempotent create's replayed response**, which the engine stores as `jsonb` and reads back with `::text`, so Postgres renders it with a space after each colon — and `sed`-extracting the id the same way yielded nothing, which cascaded into `/v1/liabilities/schedule` and `/v1/scenarios/:evaluate` being called with an empty id. The block now parses the JSON (a small `jget` helper), checks the schedule by summing its rows back to the principal, and tests the scenario's surplus as an invariant rather than a magnitude so other budgets on the account cannot make it flap.
 - 2026-10-30 P13 r7: the whole P13 smoke passes bar one check, which found a real inconsistency rather than a test problem: `LiabilityView` derived `totalInterestPaise` as `emiPaise × tenureMonths − principalPaise` (661856) while the stored schedule's own interest sums to 661853 — the last instalment is the balancing one, 3 paise lighter. The same API returned both figures. The schedule's totals are now **stored with it** (`total_interest_paise`, `total_payable_paise`, written from `LiabilityMath.Schedule` at creation) and the view exposes them; the IT pins 661853/10661853 and asserts the product would have been wrong. ADR-0019 §7 records why, and the trail page's car-loan fixture gained its real total too.
 - 2026-10-30 P13 r6: every Maven module green (planning 53/53) and the P13 smoke's first 18 checks pass; the rest failed because the **ledger refuses a category outside its visible tree** (`UNKNOWN_CATEGORY`, `ExpenseService.requireCategory`) and the smoke invented `smokep13_<rand>`. I had read `CategoryPaths` (the syntax helper) and taken paths to be free-form — they are not. The smoke and the trail-check block now use seeded paths under `health` (the one root no other smoke block writes to, so its budget counts only this run's expenses), and the no-category budget is asserted as a delta from its creation because every expense on the account counts towards it.

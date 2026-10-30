@@ -1,6 +1,7 @@
 # ADR-0019: Planning — budget spend as deltas, liabilities on the shared EMI engine, copy-on-read scenarios
 
-- Status: Accepted (P13). Proof: planning unit tests (domain), `SpendProjectionIT`, `SpendPropertyIT`, `BudgetsIT`,
+- Status: Accepted (P13), proven by CI run 41096207559 (git `d03ca6b`): `verify.sh full` PASS 22/22 +
+  `trail-check.sh` PASS. Proof: planning unit tests (domain), `SpendProjectionIT`, `SpendPropertyIT`, `BudgetsIT`,
   `LiabilitiesIT`, `ScenariosIT`, `PlanningRlsIT`, `BudgetsPaginationContractIT`, `IdempotencyContractsIT`,
   api-smoke P13, trail-check `p13`.
 - Context: MASTER_PLAN P13 asks for budgets with per-period spend kept up to date from ledger events "with a delta
