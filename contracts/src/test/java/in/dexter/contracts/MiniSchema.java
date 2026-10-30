@@ -1,6 +1,7 @@
 package in.dexter.contracts;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -82,6 +83,7 @@ final class MiniSchema {
               }
             }
             case "date-time" -> Instant.parse(s);
+            case "date" -> LocalDate.parse(s);
             default -> throw new IllegalArgumentException("unsupported format " + f);
           }
         } catch (IllegalArgumentException | DateTimeParseException e) {
