@@ -188,7 +188,10 @@ rc=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$BASE/api/v1/budgets/s
 if [[ $rc == 401 ]]; then printf 'PASS  %-10s %s\n' p13-anon 401
 else printf 'FAIL  %-10s %s\n' p13-anon "$rc"; fail=1; fi
 pday=$(TZ=Asia/Kolkata date +%Y-%m-%d)
-pcat="trailcheck.t$(date +%s)"  # unique: a budget created now starts at zero, so only this run's expense counts
+# The ledger refuses a category outside its visible tree, so these are seeded paths. A budget created now starts
+# at zero (planning does not backfill), so only the expense recorded below counts towards it.
+pcat=health
+pexp=health.doctor
 pb=$(curl -s --max-time 10 -H "Authorization: Bearer $at" -H 'Content-Type: application/json' \
   -H "Idempotency-Key: $(cat /proc/sys/kernel/random/uuid)" \
   -d "{\"name\":\"trail-check\",\"period\":\"monthly\",\"categoryPath\":\"$pcat\",\"limitPaise\":200000,\"startsOn\":\"${pday%-*}-01\"}" \
@@ -199,7 +202,7 @@ if [[ -n $bid && $pb == *'"status":"active"'* && $pb == *'"alertThresholds":[50,
 else printf 'FAIL  %-10s %s\n' p13-budget "${pb:0:200}"; fail=1; fi
 curl -s -o /dev/null --max-time 10 -H "Authorization: Bearer $at" -H 'Content-Type: application/json' \
   -H "Idempotency-Key: $(cat /proc/sys/kernel/random/uuid)" \
-  -d "{\"amountPaise\":180000,\"occurredAt\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"merchant\":\"Trail cafe\",\"categoryPath\":\"$pcat\",\"paymentMethod\":\"upi\"}" \
+  -d "{\"amountPaise\":180000,\"occurredAt\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"merchant\":\"Trail cafe\",\"categoryPath\":\"$pexp\",\"paymentMethod\":\"upi\"}" \
   "$BASE/api/v1/expenses"
 spent=""
 for _ in $(seq 1 30); do

@@ -29,8 +29,15 @@ import p04_smoke as p4  # noqa: E402
 GW = sys.argv[1].rstrip("/")
 call, check, code, bearer = p4.call, p4.check, p4.code, p4.bearer
 IST = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
-# a category root of this run's own: nothing else in the smoke writes to it
-ROOT = "smokep13_%d" % random.randint(1, 999999)
+# The ledger refuses a category that is not in its visible tree (UNKNOWN_CATEGORY), so these are seeded paths.
+# `health` is the root no other smoke block writes to (P07/P08/P11 use food.* and travel.*), so the budget on it
+# counts only this run's expenses; the no-category budget is asserted as a delta instead, because every expense on
+# the account counts towards it.
+ROOT = "health"
+SUB = "health.doctor"
+DEEPER = "health.pharmacy"
+OTHER = "personal.salon"
+LATE = "health.fitness"   # the month-end case: last month's day is outside the other budgets' windows anyway
 
 
 def login(email, pw):
@@ -143,47 +150,52 @@ def main():
     check("the period ends on the last day of the month", cur and cur["periodEnd"][:7] == cur["periodStart"][:7]
           and cur["daysInPeriod"] in (28, 29, 30, 31), cur)
 
-    # a second budget with no category at all: every expense counts towards it
+    # a second budget with no category at all: every expense on the account counts towards it, including any from
+    # an earlier smoke block still in flight, so this one is asserted as a delta from the moment it was created
     s, _, allspend = budget(asha, name="Smoke all spend", categoryPath=None, limitPaise=1_000_000)
     check("a budget with no category: 201, all spend", s == 201 and allspend.get("categoryPath") is None, (s, allspend))
     aid = allspend.get("id")
+    base = (status(asha, aid) or {}).get("spentPaise", 0)
 
     # ---- the ledger -> Kafka -> the delta
-    s, e1 = expense(asha, 60_000, ROOT + ".dining")
-    check("an expense in the ledger: 201", s == 201, (s, e1))
+    s, e1 = expense(asha, 60_000, SUB)
+    if not check("an expense in the ledger: 201", s == 201, (s, e1)):
+        return
     cur = status(asha, bid, want=60_000)
     check("a subtree expense counts: Rs 600 of Rs 2,000, 3000 bps", cur and cur["spentPaise"] == 60_000
           and cur["usedBps"] == 3000 and cur["remainingPaise"] == 140_000 and not cur["overLimit"], cur)
     check("no threshold crossed at 30 %", cur and cur["thresholdsCrossed"] == [], cur)
-    check("the all-spend budget counted it too", (status(asha, aid, want=60_000) or {}).get("spentPaise") == 60_000,
-          status(asha, aid))
+    check("the all-spend budget counted it too",
+          (status(asha, aid, want=base + 60_000) or {}).get("spentPaise") == base + 60_000, status(asha, aid))
 
-    s, e2 = expense(asha, 40_000, "transport.fuel")
+    s, e2 = expense(asha, 40_000, OTHER)
     check("an expense in another root: 201", s == 201, (s, e2))
     check("a sibling category does not count towards the subtree budget",
-          (status(asha, aid, want=100_000) or {}).get("spentPaise") == 100_000
+          (status(asha, aid, want=base + 100_000) or {}).get("spentPaise") == base + 100_000
           and (status(asha, bid) or {}).get("spentPaise") == 60_000,
           (status(asha, aid), status(asha, bid)))
 
     # cross 50 % and 80 % in one go: 600 -> 1,700
-    s, e3 = expense(asha, 110_000, ROOT + ".dining.coffee")
+    s, e3 = expense(asha, 110_000, DEEPER)
     cur = status(asha, bid, want=170_000)
-    check("a deeper subtree counts: Rs 1,700, 8500 bps", s == 201 and cur and cur["spentPaise"] == 170_000
-          and cur["usedBps"] == 8500, (s, cur))
+    check("another child of the same root counts: Rs 1,700, 8500 bps", s == 201 and cur
+          and cur["spentPaise"] == 170_000 and cur["usedBps"] == 8500, (s, cur))
     check("50 % and 80 % crossed, 100 % not", cur and cur["thresholdsCrossed"] == [50, 80], cur)
 
     # over the limit, then another expense: no threshold alerts twice in a period
-    s, e4 = expense(asha, 60_000, ROOT + ".dining")
+    s, e4 = expense(asha, 60_000, SUB)
     cur = status(asha, bid, want=230_000)
     check("over the limit: remaining is negative, overLimit true", cur and cur["remainingPaise"] == -30_000
           and cur["overLimit"] and cur["thresholdsCrossed"] == [50, 80, 100], cur)
-    s, e5 = expense(asha, 10_000, ROOT + ".dining")
+    s, e5 = expense(asha, 10_000, SUB)
     cur = status(asha, bid, want=240_000)
     check("a threshold alerts once per period, not again", cur and cur["thresholdsCrossed"] == [50, 80, 100], cur)
     check("the projection is at least the spend", cur and cur["projectedSpendPaise"] >= cur["spentPaise"]
           and cur["projectedOverspendPaise"] == max(0, cur["projectedSpendPaise"] - cur["limitPaise"]), cur)
 
     # ---- an edit settles both sides, a delete floors at zero
+    if not check("the expenses to edit and delete were created", bool(e5.get("id") and e4.get("id")), (e4, e5)):
+        return
     s, h, _ = call("GET", GW + "/v1/expenses/" + e5["id"], headers=bearer(asha))
     s, _, d = call("PATCH", GW + "/v1/expenses/" + e5["id"], {"amountPaise": 30_000},
                    bearer(asha, **{"If-Match": h.get("etag", '"0"')}), content_type="application/merge-patch+json")
@@ -191,7 +203,7 @@ def main():
     check("an edited amount settles both sides: Rs 2,600", s == 200 and cur and cur["spentPaise"] == 260_000,
           (s, cur))
     s, h, _ = call("GET", GW + "/v1/expenses/" + e5["id"], headers=bearer(asha))
-    s, _, d = call("PATCH", GW + "/v1/expenses/" + e5["id"], {"categoryPath": "transport.fuel"},
+    s, _, d = call("PATCH", GW + "/v1/expenses/" + e5["id"], {"categoryPath": OTHER},
                    bearer(asha, **{"If-Match": h.get("etag", '"1"')}), content_type="application/merge-patch+json")
     cur = status(asha, bid, want=230_000)
     check("moving an expense out of the category subtracts it", s == 200 and cur
@@ -204,11 +216,11 @@ def main():
     # ---- 23:30 IST on the last day of the month lands in that month (the ledger stamps the local day)
     first = today().replace(day=1)
     last_prev = first - datetime.timedelta(days=1)
-    s, _, back = budget(asha, name="Smoke last day", categoryPath=ROOT + ".night",
+    s, _, back = budget(asha, name="Smoke last day", categoryPath=LATE,
                         startsOn=last_prev.replace(day=1).isoformat(), limitPaise=500_000)
     if check("a budget covering last month: 201", s == 201, (s, back)):
         late = datetime.datetime.combine(last_prev, datetime.time(23, 30), IST)
-        s, el = expense(asha, 50_000, ROOT + ".night", occurred=late.astimezone(datetime.timezone.utc)
+        s, el = expense(asha, 50_000, LATE, occurred=late.astimezone(datetime.timezone.utc)
                         .isoformat().replace("+00:00", "Z"))
         # today is in the newer period, so last month's spend shows up in the history rather than in `current`
         end = time.time() + 30
@@ -225,20 +237,20 @@ def main():
               (s, rows))
 
     # ---- a paused budget stops tracking; an ended one is read-only
-    base = (status(asha, aid) or {}).get("spentPaise")
+    before_pause = (status(asha, aid) or {}).get("spentPaise")
     s, h, _ = call("GET", GW + "/v1/budgets/" + aid, headers=bearer(asha))
     s, _, d = call("PATCH", GW + "/v1/budgets/" + aid, {"status": "paused"},
                    bearer(asha, **{"If-Match": h.get("etag")}), content_type="application/merge-patch+json")
     check("pausing a budget: 200", s == 200 and d.get("status") == "paused", (s, d))
     check("a paused budget is not in /status", status(asha, aid) is None, status(asha, aid))
-    expense(asha, 20_000, "transport.fuel")
+    expense(asha, 20_000, OTHER)
     time.sleep(3)
     s, h, d = call("GET", GW + "/v1/budgets/" + aid, headers=bearer(asha))
     s, _, d = call("PATCH", GW + "/v1/budgets/" + aid, {"status": "active"},
                    bearer(asha, **{"If-Match": h.get("etag")}), content_type="application/merge-patch+json")
     resumed = (status(asha, aid) or {}).get("spentPaise")
-    check("resuming it does not pick up the Rs 200 spent while it was paused", s == 200 and resumed == base,
-          (s, base, resumed))
+    check("resuming it does not pick up the Rs 200 spent while it was paused", s == 200
+          and resumed == before_pause, (s, before_pause, resumed))
 
     s, _, d = call("PATCH", GW + "/v1/budgets/" + bid, {"limitPaise": 300_000}, bearer(asha),
                    content_type="application/merge-patch+json")
