@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.dexter.in/events/planning.budget.threshold_crossed.v1.json",
-  "title": "planning.budget.threshold_crossed v1 - a budget's spend reached one of its alert thresholds, once per period (topic dexter.planning.budget.v1, key = account id).",
+  "$id": "https://schemas.dexter.in/events/planning.budget.threshold-crossed.v1.json",
+  "title": "planning.budget.threshold-crossed v1 - a budget's spend reached one of its alert thresholds, once per period (topic dexter.planning.budget.v1, key = account id).",
   "type": "object",
   "additionalProperties": false,
   "required": [

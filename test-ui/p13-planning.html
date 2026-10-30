@@ -30,7 +30,7 @@
       Spend is never entered here: the <strong>ledger</strong> publishes <code>ledger.expense.created</code> and
       planning's consumer applies a delta to every budget the expense matches, in the period its Asia/Kolkata day
       falls in — so add an expense below and watch the bar move. Each alert threshold fires at most once per period
-      (<code>planning.budget.threshold_crossed</code>). A liability's schedule comes from the shared EMI engine, the
+      (<code>planning.budget.threshold-crossed</code>). A liability's schedule comes from the shared EMI engine, the
       same one behind <code>/v1/calc/emi</code>. A scenario is a <em>copy</em> of the account taken when it was
       saved, so evaluating it tomorrow still answers the question it was saved to ask. Testing aid only — deleted in
       P19.
@@ -254,7 +254,7 @@
         for (const t of b.alertThresholds) {
           if (M.spend.get(k) * 100 >= b.limitPaise * t && !sent.includes(t)) {
             sent.push(t); // the primary key on (account, budget, period, threshold): once per period
-            Trail.events.emit('planning.budget.threshold_crossed', b.id, { budgetId: b.id, name: b.name,
+            Trail.events.emit('planning.budget.threshold-crossed', b.id, { budgetId: b.id, name: b.name,
               threshold: t, periodStart: start, spentPaise: M.spend.get(k), limitPaise: b.limitPaise }, accountId);
           }
         }

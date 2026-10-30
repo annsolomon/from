@@ -133,8 +133,9 @@ class BudgetsIT extends PlanningIT {
   @Test
   void anonymousAndAdminTokensAreRefused() {
     assertThat(send("GET", "/v1/budgets", null, null).status()).isEqualTo(401);
+    // the admin console's token carries scope "admin" — that is what Callers.user refuses (as portfolio does)
     Res admin = send("GET", "/v1/budgets", null, null, "Authorization",
-        "Bearer " + IDP.admin(UUID.randomUUID()).audience("planning").sign());
+        "Bearer " + IDP.admin(UUID.randomUUID(), "SUPPORT").scope("admin").audience("planning").sign());
     assertThat(admin.status()).isEqualTo(403);
     assertThat(admin.code()).isEqualTo("USER_TOKEN_REQUIRED");
   }

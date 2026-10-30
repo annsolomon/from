@@ -42,7 +42,7 @@ class PlanningRlsIT extends PlanningIT {
   void budgetAlertsSent() throws Exception {
     kit("budget_alerts_sent", BUDGET + " INSERT INTO planning.budget_alerts_sent (account_id, budget_id,"
         + " period_start, threshold, spent_paise) SELECT account_id, id, DATE '2026-01-01', 50, 50000 FROM b",
-        "UPDATE planning.budget_alerts_sent SET account_id = ?").proveAll();
+        null).proveAll(); // append-only: the app role has no UPDATE, so there is no row to move
   }
 
   @Test
@@ -57,7 +57,7 @@ class PlanningRlsIT extends PlanningIT {
     kit("liability_schedule", LIABILITY + " INSERT INTO planning.liability_schedule (liability_id, account_id,"
         + " installment_no, due_on, principal_paise, interest_paise, total_paise, outstanding_after_paise)"
         + " SELECT id, account_id, 1, DATE '2026-01-01', 78849, 10000, 88849, 921151 FROM l",
-        "UPDATE planning.liability_schedule SET account_id = ?").proveAll();
+        null).proveAll(); // written once and never rewritten (ADR-0019 §7): the app role has no UPDATE
   }
 
   @Test

@@ -120,30 +120,30 @@ class SpendProjectionIT extends PlanningIT {
     // to half the limit: 50 % alerts
     spend.onExpenseEvent(Events.created(a, UUID.randomUUID(), Events.state(500_000L, "2026-01-02", "food.dining")));
     assertThat(alerted(b, "2026-01-01")).containsExactly(50);
-    assertThat(outbox(a, "planning.budget.threshold_crossed")).hasSize(1);
-    assertThat(outbox(a, "planning.budget.threshold_crossed").get(0))
+    assertThat(outbox(a, "planning.budget.threshold-crossed")).hasSize(1);
+    assertThat(outbox(a, "planning.budget.threshold-crossed").get(0))
         .contains("\"threshold\":50").contains("\"usedBps\":5000").contains("\"periodStart\":\"2026-01-01\"");
 
     // a little more: still only 50 % has been reached, and it does not alert again
     spend.onExpenseEvent(Events.created(a, UUID.randomUUID(), Events.state(100_000L, "2026-01-03", "food.dining")));
     assertThat(alerted(b, "2026-01-01")).containsExactly(50);
-    assertThat(outbox(a, "planning.budget.threshold_crossed")).hasSize(1);
+    assertThat(outbox(a, "planning.budget.threshold-crossed")).hasSize(1);
 
     // past 80 % and past the limit: both remaining thresholds alert, once each
     spend.onExpenseEvent(Events.created(a, UUID.randomUUID(), Events.state(500_000L, "2026-01-04", "food.dining")));
     assertThat(alerted(b, "2026-01-01")).containsExactly(50, 80, 100);
-    assertThat(outbox(a, "planning.budget.threshold_crossed")).hasSize(3);
+    assertThat(outbox(a, "planning.budget.threshold-crossed")).hasSize(3);
 
     // spend coming back down and going up again does not re-alert
     UUID expense = UUID.randomUUID();
     spend.onExpenseEvent(Events.created(a, expense, Events.state(100_000L, "2026-01-05", "food.dining")));
     spend.onExpenseEvent(Events.deleted(a, expense, 1, Events.state(100_000L, "2026-01-05", "food.dining")));
-    assertThat(outbox(a, "planning.budget.threshold_crossed")).hasSize(3);
+    assertThat(outbox(a, "planning.budget.threshold-crossed")).hasSize(3);
 
     // the next period starts clean
     spend.onExpenseEvent(Events.created(a, UUID.randomUUID(), Events.state(600_000L, "2026-02-02", "food.dining")));
     assertThat(alerted(b, "2026-02-01")).containsExactly(50);
-    assertThat(outbox(a, "planning.budget.threshold_crossed")).hasSize(4);
+    assertThat(outbox(a, "planning.budget.threshold-crossed")).hasSize(4);
   }
 
   @Test

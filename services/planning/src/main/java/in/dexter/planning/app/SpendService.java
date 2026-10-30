@@ -24,7 +24,7 @@ import tools.jackson.databind.ObjectMapper;
 
 /**
  * Keeps every budget period's spend up to date from {@code ledger.expense.*} (MASTER_PLAN P13), and raises
- * {@code planning.budget.threshold_crossed} the first time a period reaches one of its thresholds.
+ * {@code planning.budget.threshold-crossed} the first time a period reaches one of its thresholds.
  *
  * <p>Each event is applied as a <em>delta per matching budget</em>: the {@code before} state is subtracted from the
  * budgets and period it counted under and the {@code after} state is added to the budgets and period it counts under

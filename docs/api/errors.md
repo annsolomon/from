@@ -260,4 +260,4 @@ Parser results are not HTTP errors: a statement the ai-parser cannot read leaves
 | `NOT_FOUND` | 404 | Unknown or another account's budget, liability or scenario (RLS: they do not exist for the caller); unknown scenario `:action`. |
 
 A threshold alert is not an HTTP error: crossing one writes a row in `planning.budget_alerts_sent` and publishes
-`planning.budget.threshold_crossed` once per threshold per period, which the notification service consumes.
+`planning.budget.threshold-crossed` once per threshold per period, which the notification service consumes.

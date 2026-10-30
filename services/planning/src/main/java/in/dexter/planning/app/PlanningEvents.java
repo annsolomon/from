@@ -9,7 +9,7 @@ import java.util.List;
 public final class PlanningEvents {
   /** A threshold reached for the first time in a period; the notification service consumes it (MASTER_PLAN P13). */
   public static final EventType<BudgetThresholdCrossedV1> BUDGET_THRESHOLD_CROSSED = EventType.of("planning",
-      "budget", "threshold_crossed", BudgetThresholdCrossedV1.VERSION, BudgetThresholdCrossedV1.class);
+      "budget", "threshold-crossed", BudgetThresholdCrossedV1.VERSION, BudgetThresholdCrossedV1.class);
   /** A liability recorded, re-termed or closed. */
   public static final EventType<LiabilityChangedV1> LIABILITY_CHANGED =
       EventType.of("planning", "liability", "changed", LiabilityChangedV1.VERSION, LiabilityChangedV1.class);
