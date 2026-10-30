@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dexter.in/events/planning.liability.changed.v1.json",
+  "title": "planning.liability.changed v1 - a liability was recorded, re-termed or closed (topic dexter.planning.liability.v1, key = account id).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "liabilityId",
+    "kind",
+    "lender",
+    "principalPaise",
+    "aprBps",
+    "tenureMonths",
+    "startDate",
+    "emiPaise",
+    "status",
+    "version",
+    "changedAt"
+  ],
+  "properties": {
+    "liabilityId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "loan",
+        "card_emi",
+        "bnpl",
+        "other"
+      ]
+    },
+    "lender": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "principalPaise": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "aprBps": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "tenureMonths": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "startDate": {
+      "description": "the first instalment's due date",
+      "type": "string",
+      "format": "date"
+    },
+    "emiPaise": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "closed"
+      ]
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "changedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

@@ -6,7 +6,7 @@ set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
 source scripts/lib/services.sh
-PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html p05-mfa-admin.html p06-gateway.html p07-ledger.html p08-ledger-plus.html p09-catalog.html p10-ingestion.html p11-portfolio.html p12-statements.html p12-calc.html})
+PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html p05-mfa-admin.html p06-gateway.html p07-ledger.html p08-ledger-plus.html p09-catalog.html p10-ingestion.html p11-portfolio.html p12-statements.html p12-calc.html p13-planning.html})
 BASE=http://127.0.0.1:8099
 fail=0
 
@@ -180,6 +180,66 @@ cx=$(calcpost '{"terms":{"aprBps":3600,"cashAdvanceAprBps":3600,"paymentAllocati
 if [[ $cx == *'"requiredPaymentPerCyclePaise":214101'* && $cx == *'"recommendedPath":"targeted_payoff_3cycles"'* ]]; then
   printf 'PASS  %-10s %s\n' p12-calc-exit 200
 else printf 'FAIL  %-10s %s\n' p12-calc-exit "${cx:0:200}"; fail=1; fi
+
+# P13: what p13-planning.html Live mode drives. The page's claim is that an expense recorded in the LEDGER moves a
+# planning budget bar, so this walks the whole path - budget, expense, outbox, relay, Kafka, consumer - and then
+# the shared EMI engine's golden figure (Rs 8,884.88) through /v1/liabilities.
+rc=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$BASE/api/v1/budgets/status")
+if [[ $rc == 401 ]]; then printf 'PASS  %-10s %s\n' p13-anon 401
+else printf 'FAIL  %-10s %s\n' p13-anon "$rc"; fail=1; fi
+pday=$(TZ=Asia/Kolkata date +%Y-%m-%d)
+pcat="trailcheck.t$(date +%s)"  # unique: a budget created now starts at zero, so only this run's expense counts
+pb=$(curl -s --max-time 10 -H "Authorization: Bearer $at" -H 'Content-Type: application/json' \
+  -H "Idempotency-Key: $(cat /proc/sys/kernel/random/uuid)" \
+  -d "{\"name\":\"trail-check\",\"period\":\"monthly\",\"categoryPath\":\"$pcat\",\"limitPaise\":200000,\"startsOn\":\"${pday%-*}-01\"}" \
+  "$BASE/api/v1/budgets")
+bid=$(sed -n 's/.*"id":"\([0-9a-f-]*\)".*/\1/p' <<< "$pb")
+if [[ -n $bid && $pb == *'"status":"active"'* && $pb == *'"alertThresholds":[50,80,100]'* ]]; then
+  printf 'PASS  %-10s %s\n' p13-budget 201
+else printf 'FAIL  %-10s %s\n' p13-budget "${pb:0:200}"; fail=1; fi
+curl -s -o /dev/null --max-time 10 -H "Authorization: Bearer $at" -H 'Content-Type: application/json' \
+  -H "Idempotency-Key: $(cat /proc/sys/kernel/random/uuid)" \
+  -d "{\"amountPaise\":180000,\"occurredAt\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"merchant\":\"Trail cafe\",\"categoryPath\":\"$pcat\",\"paymentMethod\":\"upi\"}" \
+  "$BASE/api/v1/expenses"
+spent=""
+for _ in $(seq 1 30); do
+  st=$(curl -s --max-time 5 -H "Authorization: Bearer $at" "$BASE/api/v1/budgets/status")
+  spent=$(printf '%s' "$st" | python3 -c '
+import json, sys
+for r in json.load(sys.stdin):
+    if r["budget"]["id"] == sys.argv[1] and r.get("current"):
+        c = r["current"]
+        print(c["spentPaise"], c["usedBps"], ",".join(map(str, c["thresholdsCrossed"])))
+' "$bid" 2>/dev/null)
+  [[ $spent == 180000* ]] && break
+  sleep 1
+done
+if [[ $spent == "180000 9000 50,80" ]]; then printf 'PASS  %-10s %s\n' p13-spend "$spent"
+else printf 'FAIL  %-10s %s\n' p13-spend "want '180000 9000 50,80' got '$spent'"; fail=1; fi
+pl=$(curl -s --max-time 10 -H "Authorization: Bearer $at" -H 'Content-Type: application/json' \
+  -H "Idempotency-Key: $(cat /proc/sys/kernel/random/uuid)" \
+  -d '{"kind":"loan","lender":"Trail bank","principalPaise":10000000,"aprBps":1200,"tenureMonths":12,"startDate":"2026-11-01"}' \
+  "$BASE/api/v1/liabilities")
+lid=$(sed -n 's/.*"id":"\([0-9a-f-]*\)".*/\1/p' <<< "$pl")
+if [[ $pl == *'"emiPaise":888488'* && $pl == *'"totalInterestPaise":661853'* ]]; then
+  printf 'PASS  %-10s %s\n' p13-emi 888488
+else printf 'FAIL  %-10s %s\n' p13-emi "${pl:0:200}"; fail=1; fi
+ps=$(curl -s --max-time 10 -H "Authorization: Bearer $at" "$BASE/api/v1/liabilities/$lid/schedule?limit=24")
+if [[ $ps == *'"interestPaise":100000'* && $ps == *'"outstandingAfterPaise":0'* ]]; then
+  printf 'PASS  %-10s %s\n' p13-schedule 12
+else printf 'FAIL  %-10s %s\n' p13-schedule "${ps:0:200}"; fail=1; fi
+pc=$(curl -s --max-time 10 -H "Authorization: Bearer $at" -H 'Content-Type: application/json' \
+  -H "Idempotency-Key: $(cat /proc/sys/kernel/random/uuid)" \
+  -d '{"name":"trail-check","monthlyIncomePaise":10000000,"adjustments":[]}' "$BASE/api/v1/scenarios")
+sid=$(sed -n 's/.*"id":"\([0-9a-f-]*\)".*/\1/p' <<< "$pc")
+curl -s -o /dev/null --max-time 10 -X PATCH -H "Authorization: Bearer $at" -H 'Content-Type: application/json' \
+  -H 'If-Match: "0"' \
+  -d '{"adjustments":[{"kind":"addLiability","lender":"Car loan","principalPaise":50000000,"aprBps":1000,"tenureMonths":60}]}' \
+  "$BASE/api/v1/scenarios/$sid"
+pe=$(curl -s --max-time 10 -X POST -H "Authorization: Bearer $at" "$BASE/api/v1/scenarios/$sid:evaluate")
+if [[ $pe == *'"deltaPaise":1062352'* && $pe == *'"monthlyIncomePaise":10000000'* ]]; then
+  printf 'PASS  %-10s %s\n' p13-scenario 1062352
+else printf 'FAIL  %-10s %s\n' p13-scenario "${pe:0:200}"; fail=1; fi
 
 echo "trail-check: $([[ $fail -eq 0 ]] && echo PASS || echo FAIL)"
 exit $fail

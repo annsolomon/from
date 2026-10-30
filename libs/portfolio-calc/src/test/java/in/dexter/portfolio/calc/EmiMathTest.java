@@ -1,12 +1,27 @@
-package in.dexter.portfolio.domain;
+package in.dexter.portfolio.calc;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 
-/** Reducing-balance EMI with GST on interest and the processing fee (pure, exact). */
+/**
+ * Reducing-balance EMI with GST on interest and the processing fee (pure, exact). Written in P11 for portfolio and
+ * moved here with the engine in P13 (A-74), plus the old repo's {@code budget-service} golden fixtures, which
+ * MASTER_PLAN §12 assigns to P13 and which this engine satisfies unchanged.
+ */
 class EmiMathTest {
+
+  @Test
+  void matchesTheBudgetServiceReferenceOfEightThousandEightHundredAndEightyFour() {
+    // Golden fixture ported from the old repo's budget-service EmiCalculatorTest (MASTER_PLAN §12, P13):
+    // Rs 1,00,000 at 12 % a year over 12 months is the textbook case, independently verified there as
+    // EMI = Rs 8,884.88. This engine returns it to the paisa, so planning needs no EMI of its own (ADR-0019).
+    assertThat(EmiMath.emi(10_000_000, 1200, 12)).isEqualTo(888_488);
+
+    // its second case: zero interest splits the principal evenly
+    assertThat(EmiMath.emi(1_200_000, 0, 12)).isEqualTo(100_000);
+  }
 
   @Test
   void aStandardEmiMatchesThePublishedFormula() {

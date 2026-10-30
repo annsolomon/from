@@ -10,6 +10,8 @@ import in.dexter.contracts.events.catalog.OfferChangedV1;
 import in.dexter.contracts.events.ledger.ExpenseChangedV1;
 import in.dexter.contracts.events.ledger.ExpenseStateV1;
 import in.dexter.contracts.events.ledger.ImportCompletedV1;
+import in.dexter.contracts.events.planning.BudgetThresholdCrossedV1;
+import in.dexter.contracts.events.planning.LiabilityChangedV1;
 import in.dexter.contracts.events.portfolio.CardChangedV1;
 import in.dexter.contracts.events.portfolio.LinkConfirmedV1;
 import in.dexter.contracts.events.portfolio.StatementSubmittedV1;
@@ -110,6 +112,13 @@ class SchemaContractTest {
     SAMPLES.put("ledger.import.completed.v1.json", new ImportCompletedV1(
         UUID.fromString("0192f1e2-0000-7000-8000-0000000000f2"), "completed", 120, 118, 20, 2, null,
         "2026-10-17T12:05:00Z"));
+    // P13 planning
+    SAMPLES.put("planning.budget.threshold_crossed.v1.json", new BudgetThresholdCrossedV1(
+        UUID.fromString("0192f1e2-0000-7000-8000-000000000d01"), "Eating out", "monthly", "food.dining",
+        "2026-10-01", 80, 1_000_000L, 812_500L, 8125, "2026-10-21T09:15:00Z"));
+    SAMPLES.put("planning.liability.changed.v1.json", new LiabilityChangedV1(
+        UUID.fromString("0192f1e2-0000-7000-8000-000000000d02"), "loan", "HDFC Bank", 10_000_000L, 1200, 12,
+        "2026-11-01", 888_488L, "active", 0, "2026-10-21T09:20:00Z"));
   }
 
   static JsonNode schema(String file) throws IOException {

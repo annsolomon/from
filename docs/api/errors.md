@@ -245,3 +245,19 @@ Parser results are not HTTP errors: a statement the ai-parser cannot read leaves
 `errorCode` from the parser (`NOT_A_PDF`, `PDF_ENCRYPTED`, `PDF_UNREADABLE`, `TOO_MANY_PAGES`, `NO_TEXT`,
 `UNKNOWN_FORMAT`, `NO_TRANSACTIONS`, `TOO_MANY_LINES`, `BAD_PERIOD`, `UNREADABLE_VALUES`, `FILE_UNAVAILABLE`,
 `FILE_CHANGED`, `FILE_TOO_LARGE`) or from portfolio's own check of the lines (`BAD_LINES`, `FUTURE_DATED_LINES`).
+
+### planning (P13, `PlanningErrors` + core codes)
+
+| Code | Status | When |
+|---|---|---|
+| `USER_TOKEN_REQUIRED` | 403 | Any planning endpoint called with an admin-console or service token: a budget, a liability and a scenario all belong to an end-user account. |
+| `BUDGET_NOT_ACTIVE` | 409 | `PATCH /v1/budgets/{id}` on an ended budget. An ended budget is read-only — its periods and alerts stay for the history — so a new one is created rather than reopened. |
+| `LIABILITY_NOT_ACTIVE` | 409 | `PATCH /v1/liabilities/{id}` that changes the status of a closed liability (a closed one cannot be reopened; its schedule is what the terms implied when it was recorded). |
+| `SCENARIO_ADJUSTMENT_INVALID` | 422 | An adjustment the evaluator cannot apply to the scenario's snapshot: an unknown `kind`, or a `budgetId`/`liabilityId` the snapshot does not contain. The snapshot is a copy taken when the scenario was saved, so an id that exists in the account today may not be in it. |
+| `VALIDATION_FAILED` | 400 | Budget: `name`, `period` (weekly/monthly/custom), `categoryPath` (an ltree path like `food.dining`), `limitPaise`, `alertThresholds` (1-5 percentages, 1-500), `startsOn`, `endsOn` (on or after `startsOn`; REQUIRED for a custom period), PATCH `status` (active/paused/ended); liability: `kind` (loan/card_emi/bnpl/other), `lender`, `principalPaise`, `aprBps` (0-6000), `tenureMonths` (1-480), `startDate`, PATCH `status` (closed); scenario: `name`, `monthlyIncomePaise`, `adjustments` (at most 20, each with a `kind`). |
+| `IDEMPOTENCY_KEY_REQUIRED` | 400 | `POST /v1/budgets`, `/v1/liabilities` and `/v1/scenarios` without the header. `{id}:evaluate` takes no key: it stores nothing. |
+| `IF_MATCH_REQUIRED` / `VERSION_CONFLICT` | 428 / 412 | `PATCH /v1/budgets/{id}`, `/v1/liabilities/{id}` or `/v1/scenarios/{id}` without / with a stale ETag. |
+| `NOT_FOUND` | 404 | Unknown or another account's budget, liability or scenario (RLS: they do not exist for the caller); unknown scenario `:action`. |
+
+A threshold alert is not an HTTP error: crossing one writes a row in `planning.budget_alerts_sent` and publishes
+`planning.budget.threshold_crossed` once per threshold per period, which the notification service consumes.

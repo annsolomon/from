@@ -145,6 +145,33 @@ inside the gateway's 256 KB), and each endpoint bounds its lists and cycle count
 | `POST /v1/calc/repayment-path` | avalanche against snowball across cards |
 | `POST /v1/calc/exit-paths` | pay in full, a targeted payoff, or minimum-only |
 
+## `/v1/budgets`, `/v1/liabilities`, `/v1/scenarios` (P13, planning)
+
+Money is paise and rates are basis points, as everywhere. Days are the account's local days (Asia/Kolkata): the
+ledger stamps every expense with its IST day and planning puts it in the period that day falls in (ADR-0019).
+
+| Path | What it does |
+|---|---|
+| `POST /v1/budgets` | create a budget (Idempotency-Key): a period (weekly/monthly/custom), an optional category, a limit and its alert thresholds |
+| `GET /v1/budgets` | the account's budgets, newest first (keyset) |
+| `GET /v1/budgets/status` | every active budget with its current period: spent, remaining, used in bps, the run-rate projection and the thresholds reached |
+| `GET /v1/budgets/{id}` | one budget (ETag) |
+| `GET /v1/budgets/{id}/history` | that budget's periods, newest first (keyset) |
+| `PATCH /v1/budgets/{id}` | If-Match: name, limit, rollover, thresholds, endsOn, status |
+| `DELETE /v1/budgets/{id}` | end it; its periods and alerts stay |
+| `POST /v1/liabilities` | record a liability (Idempotency-Key): the instalment and the whole schedule are computed once by the shared EMI engine and stored |
+| `GET /v1/liabilities` / `GET /v1/liabilities/{id}` | the account's liabilities (keyset) and one of them (ETag) |
+| `GET /v1/liabilities/{id}/schedule` | its instalments in order (keyset) |
+| `PATCH /v1/liabilities/{id}` | If-Match: lender, status |
+| `DELETE /v1/liabilities/{id}` | close it; the schedule stays as recorded |
+| `POST /v1/scenarios` | save a what-if (Idempotency-Key): the account's active budgets and liabilities are copied in |
+| `GET /v1/scenarios` / `GET /v1/scenarios/{id}` | the account's scenarios (keyset) and one of them (ETag) |
+| `PATCH /v1/scenarios/{id}` | If-Match: name, adjustments. The snapshot is never re-taken |
+| `POST /v1/scenarios/{id}:evaluate` | apply the adjustments to the snapshot; stores nothing, so no key |
+
+`POST /v1/calc/emi` is **portfolio's** (A-42): one owner per path, and the EMI engine is a shared library
+(`libs/portfolio-calc`, A-74) that planning calls directly rather than over HTTP.
+
 ## Not routed (on purpose)
 
 - `/oauth2/token` (service client credentials) and `/internal/**`: service-to-service only, never at the edge.

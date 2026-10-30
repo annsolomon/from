@@ -37,7 +37,7 @@ import in.dexter.portfolio.calc.RepaymentPathCalculator;
 import in.dexter.portfolio.calc.RepaymentPathCalculator.BestPathResult;
 import in.dexter.portfolio.calc.RepaymentPathCalculator.CardBalance;
 import in.dexter.portfolio.calc.TransactionType;
-import in.dexter.portfolio.domain.EmiMath;
+import in.dexter.portfolio.calc.EmiMath;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;

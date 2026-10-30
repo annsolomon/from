@@ -18,7 +18,7 @@ import in.dexter.portfolio.app.CardStore.CardRow;
 import in.dexter.portfolio.app.EmiStore.Installment;
 import in.dexter.portfolio.app.EmiStore.Plan;
 import in.dexter.portfolio.domain.BillingCycle;
-import in.dexter.portfolio.domain.EmiMath;
+import in.dexter.portfolio.calc.EmiMath;
 import in.dexter.portfolio.domain.PortfolioErrors;
 import java.time.Clock;
 import java.time.Instant;

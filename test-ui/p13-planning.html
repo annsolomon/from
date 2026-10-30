@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dexter trail · P13 planning</title>
+  <link rel="stylesheet" href="trail.css">
+  <style>
+    .bar { position: relative; height: 20px; background: var(--line); border-radius: 3px; overflow: hidden; }
+    .bar > span { position: absolute; top: 0; bottom: 0; left: 0; background: var(--ok); }
+    .bar.w > span { background: var(--warn); }
+    .bar.o > span { background: var(--bad); }
+    .bar > em { position: absolute; top: 0; right: 0; bottom: 0; left: 0; font-family: var(--mono);
+      font-size: 11px; font-style: normal; text-align: center; line-height: 20px; color: var(--panel);
+      text-shadow: 0 0 4px rgba(0,0,0,.55); }
+    .bud { margin: 10px 0; }
+    .bud h3 { font-size: 13px; margin: 0 0 3px; font-weight: 600; }
+    .sub { color: var(--muted); font-family: var(--mono); font-size: 11px; font-weight: 400; }
+    .in.s { width: 92px; }
+    .in.m { width: 124px; }
+    pre.out { white-space: pre-wrap; max-height: 240px; overflow: auto; }
+  </style>
+</head>
+<body>
+<main>
+  <section class="card">
+    <h2>P13 · budgets, liabilities and what-if scenarios</h2>
+    <p class="mono" style="color:var(--muted);margin:0">
+      A budget has a period (weekly, monthly, or one custom window), an optional category subtree and a limit.
+      Spend is never entered here: the <strong>ledger</strong> publishes <code>ledger.expense.created</code> and
+      planning's consumer applies a delta to every budget the expense matches, in the period its Asia/Kolkata day
+      falls in — so add an expense below and watch the bar move. Each alert threshold fires at most once per period
+      (<code>planning.budget.threshold_crossed</code>). A liability's schedule comes from the shared EMI engine, the
+      same one behind <code>/v1/calc/emi</code>. A scenario is a <em>copy</em> of the account taken when it was
+      saved, so evaluating it tomorrow still answers the question it was saved to ask. Testing aid only — deleted in
+      P19.
+    </p>
+  </section>
+
+  <section class="card" id="tenant"></section>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>1 · Budgets <span class="sub">POST /v1/budgets</span></h2>
+      <div class="row">
+        <input class="in" id="b-name" value="Eating out" aria-label="name" style="flex:1;min-width:140px">
+        <select class="in" id="b-period" aria-label="period">
+          <option value="monthly">monthly</option>
+          <option value="weekly">weekly</option>
+          <option value="custom">custom</option>
+        </select>
+      </div>
+      <div class="row">
+        <input class="in mono" id="b-cat" value="food.dining" aria-label="categoryPath"
+               placeholder="categoryPath (blank = all spend)" style="flex:1;min-width:140px">
+        <input class="in s mono" id="b-limit" value="2000" aria-label="limit in rupees">
+        <input class="in m mono" id="b-start" aria-label="startsOn">
+        <button class="act" type="button" id="b-add">Create</button>
+      </div>
+      <p class="mono" style="color:var(--muted);margin:4px 0 0">
+        Thresholds default to 50, 80 and 100 %. A monthly budget repeats on its <code>startsOn</code> day of the
+        month, clamped in a short one.
+      </p>
+      <pre class="out mono" id="b-out">—</pre>
+    </section>
+
+    <section class="card">
+      <h2>2 · Spend something <span class="sub">POST /v1/expenses (ledger)</span></h2>
+      <p class="mono" style="color:var(--muted);margin:0 0 4px">
+        This writes to the <em>ledger</em>, not to planning. Live: the row goes out through the outbox, the relay
+        and Kafka, so the bars catch up a moment later — the page polls <code>/v1/budgets/status</code> for a few
+        seconds rather than claiming they already have.
+      </p>
+      <div class="row">
+        <input class="in s mono" id="e-amount" value="600" aria-label="amount in rupees">
+        <input class="in mono" id="e-cat" value="food.dining" aria-label="categoryPath" style="flex:1;min-width:120px">
+        <input class="in" id="e-merchant" value="Trail cafe" aria-label="merchant" style="flex:1;min-width:120px">
+        <button class="act" type="button" id="e-add">Spend it</button>
+      </div>
+      <pre class="out mono" id="e-out">—</pre>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>3 · Where every budget stands <span class="sub">GET /v1/budgets/status</span></h2>
+    <div class="row">
+      <button class="ghost" type="button" id="s-reload">Refresh</button>
+      <span class="mono" id="s-note" style="color:var(--muted)"></span>
+    </div>
+    <div id="s-bars"></div>
+    <pre class="out mono" id="s-out">—</pre>
+  </section>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>4 · Liabilities <span class="sub">POST /v1/liabilities</span></h2>
+      <p class="mono" style="color:var(--muted);margin:0 0 4px">
+        ₹1,00,000 at 12 % over 12 months is the golden figure P13 inherits from the old
+        <code>budget-service</code>: <strong>₹8,884.88</strong> a month.
+      </p>
+      <div class="row">
+        <input class="in" id="l-lender" value="HDFC Bank" aria-label="lender" style="flex:1;min-width:120px">
+        <input class="in s mono" id="l-principal" value="100000" aria-label="principal in rupees">
+        <input class="in s mono" id="l-apr" value="1200" aria-label="aprBps">
+        <input class="in s mono" id="l-tenure" value="12" aria-label="tenureMonths">
+        <input class="in m mono" id="l-start" aria-label="startDate">
+        <button class="act" type="button" id="l-add">Record</button>
+      </div>
+      <div id="l-head" class="mono">—</div>
+      <div class="scroll" id="l-sched"></div>
+      <pre class="out mono" id="l-out">—</pre>
+    </section>
+
+    <section class="card">
+      <h2>5 · What if? <span class="sub">POST /v1/scenarios</span></h2>
+      <p class="mono" style="color:var(--muted);margin:0 0 4px">
+        Saving copies this account's active budgets and liabilities in. Evaluating applies the adjustments to that
+        copy — closing a real liability afterwards does not change the answer.
+      </p>
+      <div class="row">
+        <input class="in" id="x-name" value="Can I take a car loan?" aria-label="name" style="flex:1;min-width:140px">
+        <input class="in s mono" id="x-income" value="100000" aria-label="monthly income in rupees">
+        <button class="act" type="button" id="x-save">Save a copy of today</button>
+      </div>
+      <div class="row">
+        <input class="in" id="x-lender" value="Car loan" aria-label="lender" style="flex:1;min-width:120px">
+        <input class="in s mono" id="x-principal" value="500000" aria-label="principal in rupees">
+        <input class="in s mono" id="x-apr" value="1000" aria-label="aprBps">
+        <input class="in s mono" id="x-tenure" value="60" aria-label="tenureMonths">
+        <button class="act" type="button" id="x-eval">Add it and evaluate</button>
+      </div>
+      <div id="x-head" class="mono">—</div>
+      <pre class="out mono" id="x-out">—</pre>
+    </section>
+  </div>
+
+  <section class="card" id="events"></section>
+
+  <section class="card">
+    <h2>Requests</h2>
+    <div id="log" class="log"></div>
+  </section>
+</main>
+<script src="trail.js"></script>
+<script>
+(() => {
+  Trail.mountHeader('Planning', 'P13');
+  Trail.mountLog(document.getElementById('log'));
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const rs = p => '₹' + (p / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const out = (id, v) => { $(id).textContent = typeof v === 'string' ? v : JSON.stringify(v, null, 2); };
+  const paise = id => Math.round(Number($(id).value) * 100);
+  const ymd = d => d.toISOString().slice(0, 10);
+  /** The account's local day, the stamp the ledger puts on every expense (ADR-0019 section 5). */
+  const istDay = instant => ymd(new Date(Date.parse(instant) + 330 * 60000));
+  const today = () => istDay(new Date().toISOString());
+  const key = () => ({ 'Idempotency-Key': Trail.uuidv4() });
+  const addMonths = (day, n) => {
+    const d = new Date(day + 'T00:00:00Z');
+    const x = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + n, 1));
+    const last = new Date(Date.UTC(x.getUTCFullYear(), x.getUTCMonth() + 1, 0)).getUTCDate();
+    x.setUTCDate(Math.min(d.getUTCDate(), last));
+    return ymd(x);
+  };
+  $('b-start').value = today().slice(0, 8) + '01';
+  $('l-start').value = addMonths(today().slice(0, 8) + '01', 1);
+
+  // ------------------------------------------------------------------ Mock mode
+  // Budget bookkeeping is addition and a period lookup, so Mock does it for real - including the consumer, which
+  // listens to the seed's ledger.expense.created exactly as the Live consumer listens to Kafka. The EMI engine is
+  // NOT reimplemented here: a liability or a hypothetical loan replays a recorded fixture (printed from
+  // LiabilityMath itself) and answers MOCK_FIXTURE_ONLY for any other terms. One implementation of that
+  // arithmetic, in Java - the same rule p12-calc.html follows.
+  const M = { budgets: [], spend: new Map(), alerts: new Map(), liabilities: [], scenarios: [] };
+  const EMI_FIXTURE = { principalPaise: 10000000, aprBps: 1200, tenureMonths: 12, emiPaise: 888488,
+    totalInterestPaise: 661853, installments: [
+      { number: 1, principalPaise: 788488, interestPaise: 100000, totalPaise: 888488, outstandingAfterPaise: 9211512 },
+      { number: 2, principalPaise: 796373, interestPaise: 92115, totalPaise: 888488, outstandingAfterPaise: 8415139 },
+      { number: 3, principalPaise: 804337, interestPaise: 84151, totalPaise: 888488, outstandingAfterPaise: 7610802 },
+      { number: 4, principalPaise: 812380, interestPaise: 76108, totalPaise: 888488, outstandingAfterPaise: 6798422 },
+      { number: 5, principalPaise: 820504, interestPaise: 67984, totalPaise: 888488, outstandingAfterPaise: 5977918 },
+      { number: 6, principalPaise: 828709, interestPaise: 59779, totalPaise: 888488, outstandingAfterPaise: 5149209 },
+      { number: 7, principalPaise: 836996, interestPaise: 51492, totalPaise: 888488, outstandingAfterPaise: 4312213 },
+      { number: 8, principalPaise: 845366, interestPaise: 43122, totalPaise: 888488, outstandingAfterPaise: 3466847 },
+      { number: 9, principalPaise: 853820, interestPaise: 34668, totalPaise: 888488, outstandingAfterPaise: 2613027 },
+      { number: 10, principalPaise: 862358, interestPaise: 26130, totalPaise: 888488, outstandingAfterPaise: 1750669 },
+      { number: 11, principalPaise: 870981, interestPaise: 17507, totalPaise: 888488, outstandingAfterPaise: 879688 },
+      { number: 12, principalPaise: 879688, interestPaise: 8797, totalPaise: 888485, outstandingAfterPaise: 0 },
+    ] };
+  const CAR_FIXTURE = { principalPaise: 50000000, aprBps: 1000, tenureMonths: 60, emiPaise: 1062352 };
+  const FIXTURES = [EMI_FIXTURE, CAR_FIXTURE];
+  const fixtureFor = t => FIXTURES.find(f => f.principalPaise === t.principalPaise && f.aprBps === t.aprBps
+    && f.tenureMonths === t.tenureMonths);
+  const fixtureOnly = what => Trail.problem(400, 'MOCK_FIXTURE_ONLY', 'Mock mode replays recorded ' + what
+    + ' fixtures only (₹1,00,000 at 12 % over 12 months, or ₹5,00,000 at 10 % over 60) — switch to'
+    + ' Live to run the EMI engine on other terms.');
+  const need = req => (req.tenant ? null : Trail.problem(401, 'UNAUTHENTICATED', 'log in as a persona first'));
+  const mine = req => M.budgets.filter(b => b.accountId === req.tenant.accountId);
+  const page = rows => ({ data: rows, page: { limit: 25, hasMore: false, nextCursor: null } });
+
+  /** The period a day falls in, the rule BudgetPeriods applies; null outside the budget's window. */
+  const periodStart = (b, day) => {
+    if (day < b.startsOn || (b.endsOn && day > b.endsOn)) return null;
+    if (b.period === 'custom') return b.startsOn;
+    if (b.period === 'weekly') {
+      const weeks = Math.floor((Date.parse(day) - Date.parse(b.startsOn)) / (7 * 86400000));
+      return ymd(new Date(Date.parse(b.startsOn) + weeks * 7 * 86400000));
+    }
+    let n = 0;
+    while (addMonths(b.startsOn, n + 1) <= day) n++;
+    return addMonths(b.startsOn, n);
+  };
+  const periodEnd = (b, start) => {
+    if (b.period === 'custom') return b.endsOn;
+    if (b.period === 'weekly') return ymd(new Date(Date.parse(start) + 6 * 86400000));
+    let n = 0;
+    while (addMonths(b.startsOn, n) < start) n++;
+    return ymd(new Date(Date.parse(addMonths(b.startsOn, n + 1)) - 86400000));
+  };
+  const matches = (budgetPath, expensePath) => !budgetPath || expensePath === budgetPath
+    || String(expensePath || '').startsWith(budgetPath + '.');
+  const dayCount = (from, to) => Math.round((Date.parse(to) - Date.parse(from)) / 86400000) + 1;
+  const slot = (b, start) => b.id + '|' + start;
+
+  const statusOf = b => {
+    const start = periodStart(b, today());
+    if (!start) return { budget: b, current: null };
+    const end = periodEnd(b, start);
+    const spent = M.spend.get(slot(b, start)) || 0;
+    const inPeriod = dayCount(start, end);
+    const elapsed = Math.min(inPeriod, dayCount(start, today()));
+    const projected = Math.round(spent * inPeriod / elapsed);
+    return { budget: b, current: { periodStart: start, periodEnd: end, limitPaise: b.limitPaise,
+      spentPaise: spent, remainingPaise: b.limitPaise - spent,
+      usedBps: Math.round(spent * 10000 / b.limitPaise), overLimit: spent > b.limitPaise,
+      projectedSpendPaise: projected, projectedOverspendPaise: Math.max(0, projected - b.limitPaise),
+      daysElapsed: elapsed, daysInPeriod: inPeriod,
+      thresholdsCrossed: (M.alerts.get(slot(b, start)) || []).slice().sort((x, y) => x - y) } };
+  };
+
+  /** Mock-mode consumer: the delta planning's budget-spend consumer applies when a ledger event arrives. */
+  const applyExpense = (accountId, before, after) => {
+    const touch = (e, sign) => {
+      if (!e) return;
+      for (const b of M.budgets.filter(x => x.accountId === accountId && x.status === 'active')) {
+        if (!matches(b.categoryPath, e.categoryPath)) continue;
+        const start = periodStart(b, e.day);
+        if (!start) continue;
+        const k = slot(b, start);
+        M.spend.set(k, Math.max(0, (M.spend.get(k) || 0) + sign * e.amountPaise));
+        if (sign < 0) continue;
+        const sent = M.alerts.get(k) || [];
+        for (const t of b.alertThresholds) {
+          if (M.spend.get(k) * 100 >= b.limitPaise * t && !sent.includes(t)) {
+            sent.push(t); // the primary key on (account, budget, period, threshold): once per period
+            Trail.events.emit('planning.budget.threshold_crossed', b.id, { budgetId: b.id, name: b.name,
+              threshold: t, periodStart: start, spentPaise: M.spend.get(k), limitPaise: b.limitPaise }, accountId);
+          }
+        }
+        M.alerts.set(k, sent);
+      }
+    };
+    const shape = x => x && { amountPaise: x.amountPaise, categoryPath: x.categoryPath || 'general',
+      day: x.day || istDay(x.occurredAt) };
+    touch(shape(before), -1);
+    touch(shape(after), 1);
+  };
+  Trail.events.on(ev => {
+    if (!String(ev.type).startsWith('ledger.expense.') || !ev.data) return;
+    applyExpense(ev.accountId, ev.data.before, ev.data.after);
+  });
+
+  Trail.mock('POST', /^\/api\/v1\/budgets$/, Trail.idempotent((m, req) => need(req) || (() => {
+    const b = req.body || {};
+    const errors = [];
+    if (!b.name) errors.push({ field: 'name', code: 'REQUIRED', message: 'a budget has a name' });
+    if (!['weekly', 'monthly', 'custom'].includes(b.period)) {
+      errors.push({ field: 'period', code: 'ENUM', message: 'weekly, monthly or custom' });
+    }
+    if (!Number.isInteger(b.limitPaise) || b.limitPaise <= 0) {
+      errors.push({ field: 'limitPaise', code: 'POSITIVE', message: 'a budget limit is positive' });
+    }
+    if (b.period === 'custom' && !b.endsOn) {
+      errors.push({ field: 'endsOn', code: 'REQUIRED', message: 'a custom period needs an end' });
+    }
+    if (errors.length) return Trail.problem(400, 'VALIDATION_FAILED', 'Request validation failed', { errors });
+    const now = new Date().toISOString();
+    const row = { id: Trail.uuidv7(), accountId: req.tenant.accountId, name: b.name, period: b.period,
+      categoryPath: b.categoryPath || null, limitPaise: b.limitPaise, rollover: !!b.rollover,
+      alertThresholds: [...new Set(b.alertThresholds || [50, 80, 100])].sort((x, y) => x - y),
+      startsOn: b.startsOn || today(), endsOn: b.endsOn || null, status: 'active',
+      createdAt: now, updatedAt: now, version: 0 };
+    M.budgets.push(row);
+    return Trail.reply(201, row, { location: '/v1/budgets/' + row.id, etag: '"0"' });
+  })()));
+  Trail.mock('GET', /^\/api\/v1\/budgets\/status$/, (m, req) => need(req)
+    || mine(req).filter(b => b.status === 'active').map(statusOf));
+  Trail.mock('GET', /^\/api\/v1\/budgets$/, (m, req) => need(req) || page(mine(req)));
+
+  Trail.mock('POST', /^\/api\/v1\/liabilities$/, Trail.idempotent((m, req) => need(req) || (() => {
+    const b = req.body || {};
+    const f = fixtureFor(b);
+    if (!f) return fixtureOnly('liability');
+    const now = new Date().toISOString();
+    const interest = f.totalInterestPaise !== undefined ? f.totalInterestPaise
+      : f.emiPaise * f.tenureMonths - f.principalPaise;
+    const row = { id: Trail.uuidv7(), accountId: req.tenant.accountId, kind: b.kind || 'loan', lender: b.lender,
+      principalPaise: f.principalPaise, aprBps: f.aprBps, tenureMonths: f.tenureMonths,
+      startDate: b.startDate, lastDueDate: addMonths(b.startDate, f.tenureMonths - 1), emiPaise: f.emiPaise,
+      totalInterestPaise: interest, totalPayablePaise: f.principalPaise + interest, status: 'active',
+      createdAt: now, updatedAt: now, version: 0, fixture: true };
+    M.liabilities.push(row);
+    Trail.events.emit('planning.liability.changed', row.id, { liabilityId: row.id, kind: row.kind,
+      status: 'active', emiPaise: row.emiPaise, version: 0 }, row.accountId);
+    return Trail.reply(201, row, { location: '/v1/liabilities/' + row.id, etag: '"0"' });
+  })()));
+  Trail.mock('GET', /^\/api\/v1\/liabilities\/([0-9a-f-]{36})\/schedule$/, (m, req) => need(req) || (() => {
+    const l = M.liabilities.find(x => x.id === m[1] && x.accountId === req.tenant.accountId);
+    if (!l) return Trail.problem(404, 'NOT_FOUND', 'liability not found');
+    const f = fixtureFor(l);
+    if (!f || !f.installments) return fixtureOnly('schedule');
+    return page(f.installments.map(i => ({ number: i.number, dueOn: addMonths(l.startDate, i.number - 1),
+      principalPaise: i.principalPaise, interestPaise: i.interestPaise, totalPaise: i.totalPaise,
+      outstandingAfterPaise: i.outstandingAfterPaise })));
+  })());
+  Trail.mock('GET', /^\/api\/v1\/liabilities$/, (m, req) => need(req)
+    || page(M.liabilities.filter(l => l.accountId === req.tenant.accountId)));
+
+  const snapshot = (req, incomePaise) => ({ monthlyIncomePaise: incomePaise,
+    budgets: mine(req).filter(b => b.status === 'active')
+      .map(b => ({ id: b.id, name: b.name, limitPaise: b.limitPaise })),
+    liabilities: M.liabilities.filter(l => l.accountId === req.tenant.accountId && l.status === 'active')
+      .map(l => ({ id: l.id, lender: l.lender, emiPaise: l.emiPaise })) });
+  /** Refuses what the snapshot cannot satisfy, as ScenarioMath does (SCENARIO_ADJUSTMENT_INVALID). */
+  const checkAdjustments = (snap, adjustments) => {
+    for (const a of adjustments || []) {
+      if (a.kind === 'setMonthlyIncome') continue;
+      if (a.kind === 'setBudgetLimit') {
+        if (!snap.budgets.some(b => b.id === a.budgetId)) {
+          return Trail.problem(422, 'SCENARIO_ADJUSTMENT_INVALID', 'the snapshot has no budget ' + a.budgetId);
+        }
+        continue;
+      }
+      if (a.kind === 'removeLiability') {
+        if (!snap.liabilities.some(l => l.id === a.liabilityId)) {
+          return Trail.problem(422, 'SCENARIO_ADJUSTMENT_INVALID', 'the snapshot has no liability ' + a.liabilityId);
+        }
+        continue;
+      }
+      if (a.kind === 'addLiability') {
+        if (!fixtureFor(a)) return fixtureOnly('scenario');
+        continue;
+      }
+      return Trail.problem(422, 'SCENARIO_ADJUSTMENT_INVALID', 'unknown adjustment kind ' + a.kind);
+    }
+    return null;
+  };
+  Trail.mock('POST', /^\/api\/v1\/scenarios$/, Trail.idempotent((m, req) => need(req) || (() => {
+    const b = req.body || {};
+    if (!b.name) {
+      return Trail.problem(400, 'VALIDATION_FAILED', 'Request validation failed',
+        { errors: [{ field: 'name', code: 'REQUIRED', message: 'a scenario has a name' }] });
+    }
+    const snap = snapshot(req, b.monthlyIncomePaise || 0);
+    const bad = checkAdjustments(snap, b.adjustments);
+    if (bad) return bad;
+    const now = new Date().toISOString();
+    const row = { id: Trail.uuidv7(), accountId: req.tenant.accountId, name: b.name, baseSnapshot: snap,
+      adjustments: b.adjustments || [], createdAt: now, updatedAt: now, version: 0 };
+    M.scenarios.push(row);
+    return Trail.reply(201, row, { location: '/v1/scenarios/' + row.id, etag: '"0"' });
+  })()));
+  Trail.mock('PATCH', /^\/api\/v1\/scenarios\/([0-9a-f-]{36})$/, (m, req) => need(req) || (() => {
+    const s = M.scenarios.find(x => x.id === m[1] && x.accountId === req.tenant.accountId);
+    if (!s) return Trail.problem(404, 'NOT_FOUND', 'scenario not found');
+    const im = Object.keys(req.headers || {}).find(k => k.toLowerCase() === 'if-match');
+    if (!im) return Trail.problem(428, 'IF_MATCH_REQUIRED', 'If-Match header is required');
+    if (Number(String(req.headers[im]).slice(1, -1)) !== s.version) {
+      return Trail.problem(412, 'VERSION_CONFLICT', 'Resource version conflict');
+    }
+    const b = req.body || {};
+    if (b.adjustments) {
+      const bad = checkAdjustments(s.baseSnapshot, b.adjustments);
+      if (bad) return bad;
+      s.adjustments = b.adjustments;
+    }
+    if (b.name) s.name = b.name;
+    s.version += 1;
+    s.updatedAt = new Date().toISOString();
+    return Trail.reply(200, s, { etag: '"' + s.version + '"' });
+  })());
+  Trail.mock('POST', /^\/api\/v1\/scenarios\/([0-9a-f-]{36}):evaluate$/, (m, req) => need(req) || (() => {
+    const s = M.scenarios.find(x => x.id === m[1] && x.accountId === req.tenant.accountId);
+    if (!s) return Trail.problem(404, 'NOT_FOUND', 'scenario not found');
+    const snap = s.baseSnapshot;
+    const lines = snap.budgets.map(b => ({ kind: 'budget', id: b.id, label: b.name, monthlyPaise: b.limitPaise,
+      added: false })).concat(snap.liabilities.map(l => ({ kind: 'liability', id: l.id, label: l.lender,
+      monthlyPaise: l.emiPaise, added: false })));
+    const before = lines.reduce((t, x) => t + x.monthlyPaise, 0);
+    let income = snap.monthlyIncomePaise;
+    for (const a of s.adjustments) {
+      if (a.kind === 'setMonthlyIncome') income = a.amountPaise;
+      if (a.kind === 'setBudgetLimit') {
+        lines.find(x => x.kind === 'budget' && x.id === a.budgetId).monthlyPaise = a.limitPaise;
+      }
+      if (a.kind === 'removeLiability') {
+        lines.splice(lines.findIndex(x => x.kind === 'liability' && x.id === a.liabilityId), 1);
+      }
+      if (a.kind === 'addLiability') {
+        lines.push({ kind: 'liability', id: null, label: a.lender, monthlyPaise: fixtureFor(a).emiPaise,
+          added: true });
+      }
+    }
+    const after = lines.reduce((t, x) => t + x.monthlyPaise, 0);
+    return { scenarioId: s.id, name: s.name, monthlyIncomePaise: income, monthlyOutgoBeforePaise: before,
+      monthlyOutgoAfterPaise: after, deltaPaise: after - before,
+      surplusBeforePaise: snap.monthlyIncomePaise - before, surplusAfterPaise: income - after,
+      feasible: income - after >= 0, lines, fixture: true };
+  })());
+  Trail.mock('GET', /^\/api\/v1\/scenarios$/, (m, req) => need(req)
+    || page(M.scenarios.filter(s => s.accountId === req.tenant.accountId)));
+
+  // ------------------------------------------------------------------ the page
+  const bar = row => {
+    const b = row.budget;
+    const head = `<h3>${esc(b.name)} <span class="sub">${esc(b.categoryPath || 'all spend')} · `
+      + `${esc(b.period)} · limit ${esc(rs(b.limitPaise))}</span></h3>`;
+    if (!row.current) {
+      return `<div class="bud">${head}<div class="sub">outside its window — no current period</div></div>`;
+    }
+    const c = row.current;
+    const cls = c.overLimit ? 'o' : c.usedBps >= 8000 ? 'w' : '';
+    return `<div class="bud">${head}
+      <div class="bar ${cls}"><span style="width:${Math.min(100, c.usedBps / 100)}%"></span>
+        <em>${esc(rs(c.spentPaise))} of ${esc(rs(c.limitPaise))} · ${(c.usedBps / 100).toFixed(1)}%</em></div>
+      <div class="sub">${esc(c.periodStart)} → ${esc(c.periodEnd)} · day ${c.daysElapsed} of
+        ${c.daysInPeriod} · at this rate ${esc(rs(c.projectedSpendPaise))}${c.projectedOverspendPaise > 0
+          ? ', ' + esc(rs(c.projectedOverspendPaise)) + ' over' : ''}${c.thresholdsCrossed.length
+          ? ' · alerted at ' + c.thresholdsCrossed.join(', ') + '%' : ''}</div></div>`;
+  };
+  const refresh = async () => {
+    const r = await Trail.api('GET', '/api/v1/budgets/status');
+    out('s-out', r.data === null ? '(no body)' : r.data);
+    if (r.status !== 200 || !Array.isArray(r.data)) { $('s-bars').innerHTML = ''; return null; }
+    $('s-bars').innerHTML = r.data.length ? r.data.map(bar).join('')
+      : '<div class="sub">no active budgets — create one above</div>';
+    return r.data;
+  };
+  const spentTotal = rows => (rows || []).reduce((t, x) => t + (x.current ? x.current.spentPaise : 0), 0);
+
+  $('b-add').addEventListener('click', async () => {
+    const period = $('b-period').value;
+    const body = { name: $('b-name').value, period, categoryPath: $('b-cat').value.trim() || null,
+      limitPaise: paise('b-limit'), startsOn: $('b-start').value };
+    if (period === 'custom') body.endsOn = ymd(new Date(Date.parse($('b-start').value) + 29 * 86400000));
+    const r = await Trail.api('POST', '/api/v1/budgets', { body, headers: key() });
+    out('b-out', r.data);
+    if (r.status === 201) await refresh();
+  });
+
+  $('e-add').addEventListener('click', async () => {
+    const body = { amountPaise: paise('e-amount'), occurredAt: new Date().toISOString(),
+      merchant: $('e-merchant').value, categoryPath: $('e-cat').value.trim(), paymentMethod: 'upi' };
+    const before = spentTotal(await refresh());
+    const r = await Trail.api('POST', '/api/v1/expenses', { body, headers: key() });
+    out('e-out', r.data);
+    if (r.status !== 201) return;
+    $('s-note').textContent = 'expense recorded — waiting for the event to reach planning…';
+    for (let i = 0; i < 12; i++) {
+      if (spentTotal(await refresh()) > before) { $('s-note').textContent = 'budget spend updated'; return; }
+      await new Promise(done => setTimeout(done, 500));
+    }
+    $('s-note').textContent = 'no change — does the expense match an active budget and its current period?';
+  });
+
+  $('s-reload').addEventListener('click', refresh);
+
+  $('l-add').addEventListener('click', async () => {
+    const body = { kind: 'loan', lender: $('l-lender').value, principalPaise: paise('l-principal'),
+      aprBps: Number($('l-apr').value), tenureMonths: Number($('l-tenure').value), startDate: $('l-start').value };
+    const r = await Trail.api('POST', '/api/v1/liabilities', { body, headers: key() });
+    out('l-out', r.data);
+    $('l-sched').innerHTML = '';
+    if (r.status !== 201) {
+      $('l-head').textContent = r.status + ' ' + ((r.data && r.data.code) || '');
+      return;
+    }
+    const l = r.data;
+    $('l-head').innerHTML = `<strong>${esc(rs(l.emiPaise))}</strong> a month for ${l.tenureMonths} months · `
+      + `interest ${esc(rs(l.totalInterestPaise))} · payable ${esc(rs(l.totalPayablePaise))}`
+      + (l.fixture ? ' <span class="ok">(replayed fixture)</span>' : '');
+    const s = await Trail.api('GET', '/api/v1/liabilities/' + l.id + '/schedule?limit=24');
+    if (s.status !== 200 || !s.data || !s.data.data) { out('l-out', s.data); return; }
+    $('l-sched').innerHTML = '<table><tr><th>#</th><th>due</th><th>principal</th><th>interest</th>'
+      + '<th>instalment</th><th>outstanding</th></tr>'
+      + s.data.data.map(i => `<tr><td class="mono">${i.number}</td><td class="mono">${esc(i.dueOn)}</td>`
+        + `<td class="mono">${esc(rs(i.principalPaise))}</td><td class="mono">${esc(rs(i.interestPaise))}</td>`
+        + `<td class="mono">${esc(rs(i.totalPaise))}</td>`
+        + `<td class="mono">${esc(rs(i.outstandingAfterPaise))}</td></tr>`).join('') + '</table>';
+  });
+
+  let scenario = null;
+  $('x-save').addEventListener('click', async () => {
+    const body = { name: $('x-name').value, monthlyIncomePaise: paise('x-income'), adjustments: [] };
+    const r = await Trail.api('POST', '/api/v1/scenarios', { body, headers: key() });
+    out('x-out', r.data);
+    if (r.status !== 201) { $('x-head').textContent = r.status + ' ' + ((r.data && r.data.code) || ''); return; }
+    scenario = r.data;
+    const s = scenario.baseSnapshot;
+    $('x-head').textContent = 'copied in: ' + s.budgets.length + ' budget(s), ' + s.liabilities.length
+      + ' liability(ies), income ' + rs(s.monthlyIncomePaise);
+  });
+  $('x-eval').addEventListener('click', async () => {
+    if (!scenario) { $('x-head').textContent = 'save a copy of today first'; return; }
+    const adjustments = [{ kind: 'addLiability', lender: $('x-lender').value, principalPaise: paise('x-principal'),
+      aprBps: Number($('x-apr').value), tenureMonths: Number($('x-tenure').value) }];
+    const p = await Trail.api('PATCH', '/api/v1/scenarios/' + scenario.id,
+      { body: { adjustments }, headers: { 'If-Match': '"' + scenario.version + '"' } });
+    if (p.status !== 200) {
+      out('x-out', p.data);
+      $('x-head').textContent = p.status + ' ' + ((p.data && p.data.code) || '');
+      return;
+    }
+    scenario = p.data;
+    const r = await Trail.api('POST', '/api/v1/scenarios/' + scenario.id + ':evaluate');
+    out('x-out', r.data);
+    if (r.status !== 200) { $('x-head').textContent = r.status + ' ' + ((r.data && r.data.code) || ''); return; }
+    const d = r.data;
+    $('x-head').innerHTML = `${esc(rs(d.deltaPaise))} a month more · surplus ${esc(rs(d.surplusBeforePaise))}`
+      + ` → ${esc(rs(d.surplusAfterPaise))} · <span class="${d.feasible ? 'ok' : 'bad'}">`
+      + (d.feasible ? 'it fits' : 'it does not fit') + '</span>'
+      + (d.fixture ? ' <span class="ok">(replayed fixture)</span>' : '');
+  });
+
+  const reset = () => { scenario = null; $('x-head').textContent = '—'; $('s-note').textContent = ''; };
+  Trail.mountEvents($('events'), { livePath: '/api/_dev/outbox/recent' });
+  document.addEventListener('trail:mode', () => { reset(); refresh(); });
+  (async () => {
+    try {
+      await Trail.loadSeed();
+    } catch (e) {
+      out('b-out', 'fixtures missing: ' + e.message + ' - run ./scripts/seed.sh fixtures');
+    }
+    Trail.mountTenantSwitcher($('tenant'), { onSwitch: () => { reset(); refresh(); } });
+    refresh();
+  })();
+})();
+</script>
+</body>
+</html>

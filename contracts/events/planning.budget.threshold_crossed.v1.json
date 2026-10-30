@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dexter.in/events/planning.budget.threshold_crossed.v1.json",
+  "title": "planning.budget.threshold_crossed v1 - a budget's spend reached one of its alert thresholds, once per period (topic dexter.planning.budget.v1, key = account id).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "budgetId",
+    "name",
+    "period",
+    "categoryPath",
+    "periodStart",
+    "threshold",
+    "limitPaise",
+    "spentPaise",
+    "usedBps",
+    "crossedAt"
+  ],
+  "properties": {
+    "budgetId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "period": {
+      "type": "string",
+      "enum": [
+        "weekly",
+        "monthly",
+        "custom"
+      ]
+    },
+    "categoryPath": {
+      "description": "null when the budget is on total spend",
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 200
+    },
+    "periodStart": {
+      "description": "the first local day of the period the threshold was reached in",
+      "type": "string",
+      "format": "date"
+    },
+    "threshold": {
+      "description": "the percentage of the limit that was reached",
+      "type": "integer",
+      "minimum": 1
+    },
+    "limitPaise": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "spentPaise": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "usedBps": {
+      "description": "spend against the limit in basis points; 10000 is exactly on the limit",
+      "type": "integer",
+      "minimum": 0
+    },
+    "crossedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

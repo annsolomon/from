@@ -25,6 +25,9 @@
 #        rewards, monthly report, cross-tenant 404; the smoke card is removed.
 #   P12: statement upload -> real ai-parser over Kafka -> review -> confirm, and /v1/calc/* against the ported
 #        golden fixtures (scripts/lib/p12_smoke.py).
+#   P13: planning via the gateway (scripts/lib/p13_smoke.py): budgets, a ledger expense moving the budget's spend
+#        through Kafka (subtree match, edit, delete, 23:30 IST on a month end, thresholds once per period, pause),
+#        liabilities on the shared EMI engine (₹8,884.88) with the schedule, and copy-on-read scenarios.
 # Later phases append their checks below the P00 block. Output also goes to $SMOKE_OUT if set.
 set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -164,6 +167,11 @@ log "# P12 statements via gateway (:8080) + object store (:8333) + ai-parser (:$
 p12=$(python3 "$ROOT/scripts/lib/p12_smoke.py" "http://localhost:8080" 2>&1); p12rc=$?
 while IFS= read -r line; do log "$line"; done <<< "$p12"
 [[ $p12rc -eq 0 ]] || fail=1
+# ------------------------------------------------------------------ P13: planning through the gateway
+log "# P13 planning via gateway (:8080): budgets fed by ledger events over Kafka, liabilities, scenarios"
+p13=$(python3 "$ROOT/scripts/lib/p13_smoke.py" "http://localhost:8080" 2>&1); p13rc=$?
+while IFS= read -r line; do log "$line"; done <<< "$p13"
+[[ $p13rc -eq 0 ]] || fail=1
 # Outbox -> Kafka (MASTER_PLAN 6.3): every identity event written above is published by the relay within 30 s.
 COMPOSE=(docker compose --env-file "$ROOT/.env" -f "$ROOT/infra/compose/docker-compose.yml")
 outbox() { "${COMPOSE[@]}" exec -T postgres psql -U "${POSTGRES_USER:-postgres}" -d identity -tA -c "$1" 2>/dev/null | tr -d '[:space:]'; }
@@ -224,6 +232,26 @@ for t in dexter.portfolio.statement.v1 dexter.ai-parser.statement.v1; do
     --topic "$t" 2>/dev/null | awk -F: '{s+=$3} END {print s+0}')
   if [[ ${n:-0} -gt 0 ]]; then log "PASS  $t: $n events"; else log "FAIL  $t: no events"; fail=1; fi
 done
+
+# P13: planning's own outbox drains, and the budget thresholds crossed above reach dexter.planning.budget.v1
+pp=x; ppub=0
+for _ in $(seq 1 30); do
+  pp=$("${COMPOSE[@]}" exec -T postgres psql -U "${POSTGRES_USER:-postgres}" -d planning -tA -c "SELECT count(*) FROM planning.outbox WHERE published_at IS NULL" 2>/dev/null | tr -d '[:space:]')
+  ppub=$("${COMPOSE[@]}" exec -T postgres psql -U "${POSTGRES_USER:-postgres}" -d planning -tA -c "SELECT count(*) FROM planning.outbox WHERE published_at IS NOT NULL AND event_type LIKE 'planning.%'" 2>/dev/null | tr -d '[:space:]')
+  [[ $pp == 0 && ${ppub:-0} -gt 0 ]] && break
+  sleep 1
+done
+if [[ $pp == 0 && ${ppub:-0} -gt 0 ]]; then log "PASS  planning outbox -> Kafka: $ppub events published, 0 pending"
+else log "FAIL  planning outbox -> Kafka: pending=$pp published=$ppub"; fail=1; fi
+for t in dexter.planning.budget.v1 dexter.planning.liability.v1; do
+  n=$("${COMPOSE[@]}" exec -T kafka /opt/kafka/bin/kafka-get-offsets.sh --bootstrap-server localhost:9092 \
+    --topic "$t" 2>/dev/null | awk -F: '{s+=$3} END {print s+0}')
+  if [[ ${n:-0} -gt 0 ]]; then log "PASS  $t: $n events"; else log "FAIL  $t: no events"; fail=1; fi
+done
+# the budget-spend consumer's inbox proves the ledger events were consumed exactly once
+inbox=$("${COMPOSE[@]}" exec -T postgres psql -U "${POSTGRES_USER:-postgres}" -d planning -tA -c "SELECT count(*) FROM planning.inbox WHERE consumer = 'budget-spend'" 2>/dev/null | tr -d '[:space:]')
+if [[ ${inbox:-0} -gt 0 ]]; then log "PASS  budget-spend inbox: $inbox ledger events consumed"
+else log "FAIL  budget-spend inbox: no ledger events consumed"; fail=1; fi
 
 log "# summary: $([[ $fail -eq 0 ]] && echo PASS || echo FAIL)"
 exit $fail

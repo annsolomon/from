@@ -1,4 +1,4 @@
-package in.dexter.portfolio.domain;
+package in.dexter.portfolio.calc;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -13,6 +13,11 @@ import java.util.List;
  * outstanding × r (HALF_EVEN), its principal the EMI minus that interest; the last instalment takes the remaining
  * principal so the schedule repays P exactly. GST applies to interest (and the processing fee, which the first
  * instalment carries). Pure, exact decimal arithmetic.
+ *
+ * <p>Built in P11 as portfolio's EMI domain and moved into this library in P13 (A-74), unchanged, because planning's
+ * liability schedules and its sandbox need the same engine: a second EMI implementation would mean two answers to
+ * one question, which is the reasoning ADR-0018 §6 already applied to the old repo's {@code CardEmiCalculator}. It
+ * also satisfies P13's named golden fixture, the old {@code budget-service} reference of ₹8,884.88.
  */
 public final class EmiMath {
   static final MathContext MC = new MathContext(34, RoundingMode.HALF_EVEN);

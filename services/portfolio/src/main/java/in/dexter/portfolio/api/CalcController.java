@@ -11,7 +11,7 @@ import in.dexter.portfolio.calc.MinimumPaymentSimulator.MinimumPaymentResult;
 import in.dexter.portfolio.calc.NoPaymentSimulator.NoPaymentResult;
 import in.dexter.portfolio.calc.PartialPaymentCalculator.PartialPaymentResult;
 import in.dexter.portfolio.calc.RepaymentPathCalculator.BestPathResult;
-import in.dexter.portfolio.domain.EmiMath;
+import in.dexter.portfolio.calc.EmiMath;
 import in.dexter.security.AuthContext;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
