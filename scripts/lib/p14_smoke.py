@@ -160,23 +160,25 @@ def main():
     s, _, d = call("GET", GW + "/v1/recommendations?cardProductIds=" + many, headers=bearer(asha))
     check("more than 50 ids is 400", s == 400, (s, d))
 
-    # ---- a held card is marked, not hidden
-    s, _, cards = call("GET", GW + "/v1/cards?limit=1", headers=bearer(asha))
-    held_product = None
-    if s == 200 and (cards.get("data") or []):
-        held_product = cards["data"][0].get("cardProductId")
-    if check("asha holds a seeded card to check against", bool(held_product), cards):
-        end = time.time() + 30
-        marked = None
-        while time.time() < end:
-            _, view = reco(asha)
-            rows = (view.get("recommended") or []) + (view.get("notRecommended") or [])
-            marked = next((c for c in rows if c["cardProductId"] == held_product), None)
-            if marked and marked["held"]:
-                break
-            time.sleep(1)
-        check("the card asha holds is marked held, not removed from the ranking",
-              bool(marked) and marked["held"] is True, marked)
+    # ---- a held card is marked, not hidden. A card can only be ranked if reco has its terms, and reco's catalog
+    # projection is fed by catalog's own events - so the cards it can rank are the ones this run published (P10
+    # approves one), not the 40 the seed wrote straight into catalog's tables. The card to check is therefore one
+    # asha holds that is ALSO a candidate, not whichever card her portfolio happens to list first.
+    s, _, cards = call("GET", GW + "/v1/cards?limit=50", headers=bearer(asha))
+    hers = {c.get("cardProductId") for c in (cards.get("data") or [])} if s == 200 else set()
+    end = time.time() + 30
+    held_rows = []
+    while time.time() < end:
+        _, view = reco(asha)
+        rows = (view.get("recommended") or []) + (view.get("notRecommended") or [])
+        held_rows = [c for c in rows if c["cardProductId"] in hers]
+        if held_rows and all(c["held"] for c in held_rows):
+            break
+        time.sleep(1)
+    if check("asha holds a card reco carries in its catalog projection", bool(held_rows),
+             {"products asha holds": len(hers), "of them scored": len(held_rows)}):
+        check("every card asha holds is marked held, not removed from the ranking",
+              all(c["held"] is True for c in held_rows), held_rows)
 
     # ---- isolation
     s, mine = reco(asha)
