@@ -1,8 +1,10 @@
 # ADR-0020: Reco A — spend as a rebuilt window, the 60/40 blend with its arithmetic exposed, and a debounced recompute
 
-- Status: Accepted (P14). Proof: reco unit tests (`SavingsTest`, `RulesTest`, `ScorerTest`, `ExpenseFitTest`,
-  `WindowsAndHashTest`), `SpendProfileIT`, `ProjectionsIT`, `DebounceIT`, `RecommendationsIT`, `RecoRlsIT`,
-  `PlatformMigrationTest`, api-smoke P14, trail-check `p14`.
+- Status: Accepted (P14), proved by CI run 41226988389 (git `88a3cb8`): `verify.sh full` PASS 22/22 and
+  `trail-check.sh` PASS. Proof: reco unit 41 (`SavingsTest`, `RulesTest`, `ScorerTest`, `ExpenseFitTest`,
+  `WindowsAndHashTest`, `PlatformMigrationTest`, `RecoArchitectureTest`) + IT 37 (`SpendProfileIT`,
+  `ProjectionsIT`, `DebounceIT`, `RecommendationsIT`, `RecoRlsIT`, `RecoHealthIT`), api-smoke 37 P14 checks of
+  444 PASS / 0 FAIL, trail-check `p14-{anon,cold,profile,blend,explain,badids}` 6/6.
 - Context: MASTER_PLAN P14 asks for a spend profile built from ledger events, held-card and catalog projections, a
   per-card savings figure net of the fee after a waiver probability, an expense-fit component, a configurable
   **60/40** blend, explainability (per-category breakdown, caps hit, fee impact, top reasons), a debounced
