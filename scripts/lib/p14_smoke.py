@@ -54,6 +54,18 @@ def reco(tok, query=""):
     return s, d
 
 
+def wait_held(tok, product, want, seconds=30):
+    """The ranking's row for `product` once its `held` flag is `want` (or after the wait, for the failure message)."""
+    end = time.time() + seconds
+    while True:
+        _, d = reco(tok)
+        rows = (d.get("recommended") or []) + (d.get("notRecommended") or [])
+        row = next((c for c in rows if c["cardProductId"] == product), None)
+        if (row and row["held"] is want) or time.time() > end:
+            return row
+        time.sleep(1)
+
+
 def wait_for_spend(tok, want, seconds=45):
     """The ranking once the spend profile shows `want` paise a month (or after the wait)."""
     end = time.time() + seconds
@@ -160,25 +172,24 @@ def main():
     s, _, d = call("GET", GW + "/v1/recommendations?cardProductIds=" + many, headers=bearer(asha))
     check("more than 50 ids is 400", s == 400, (s, d))
 
-    # ---- a held card is marked, not hidden. A card can only be ranked if reco has its terms, and reco's catalog
-    # projection is fed by catalog's own events - so the cards it can rank are the ones this run published (P10
-    # approves one), not the 40 the seed wrote straight into catalog's tables. The card to check is therefore one
-    # asha holds that is ALSO a candidate, not whichever card her portfolio happens to list first.
-    s, _, cards = call("GET", GW + "/v1/cards?limit=50", headers=bearer(asha))
-    hers = {c.get("cardProductId") for c in (cards.get("data") or [])} if s == 200 else set()
-    end = time.time() + 30
-    held_rows = []
-    while time.time() < end:
-        _, view = reco(asha)
-        rows = (view.get("recommended") or []) + (view.get("notRecommended") or [])
-        held_rows = [c for c in rows if c["cardProductId"] in hers]
-        if held_rows and all(c["held"] for c in held_rows):
-            break
-        time.sleep(1)
-    if check("asha holds a card reco carries in its catalog projection", bool(held_rows),
-             {"products asha holds": len(hers), "of them scored": len(held_rows)}):
-        check("every card asha holds is marked held, not removed from the ranking",
-              all(c["held"] is True for c in held_rows), held_rows)
+    # ---- a held card is marked, not hidden. Reco learns both halves of this from events: a card is rankable only
+    # if catalog published it (P10 approves one; the seed writes catalog's tables directly and emits nothing), and
+    # it is held only if portfolio said so (likewise - asha's seeded cards produced no event, and P11 adds then
+    # removes its own). So asking about a card asha already holds proves nothing; this adds the holding itself and
+    # watches the flag follow the event, both ways.
+    product = rec[0]["cardProductId"]
+    last4 = "%04d" % random.randint(0, 9999)
+    body = {"cardProductId": product, "last4": last4, "statementDay": 5, "dueOffsetDays": 20,
+            "nickname": "Smoke P14 " + last4}
+    s, _, mine_card = call("POST", GW + "/v1/cards", body, key(asha))
+    if check("asha adds the card reco ranks: 201", s == 201, (s, mine_card)):
+        row = wait_held(asha, product, True)
+        check("the card asha holds is marked held, not removed from the ranking",
+              bool(row) and row["held"] is True, row)
+        s, _, d = call("DELETE", GW + "/v1/cards/" + mine_card["id"], headers=bearer(asha))
+        if check("asha removes it again: 204", s == 204, (s, d)):
+            row = wait_held(asha, product, False)
+            check("and it is no longer held, still ranked", bool(row) and row["held"] is False, row)
 
     # ---- isolation
     s, mine = reco(asha)

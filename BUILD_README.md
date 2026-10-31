@@ -1118,6 +1118,18 @@ Croma Online vs label Croma).
     logged every time; `attempts` is recorded but not yet used to delay it.
   - **`GET /v1/budgets/category-potential` is still unbuilt** (A-75, inherited from P13) — still a catalog question,
     still waiting for whichever phase wants it.
+  - **Reco knows nothing about seeded data, because the seed emits no events.** It writes every service's tables
+    directly and writes no outbox rows, so no `catalog.card.published` and no `portfolio.card.added` is ever
+    published for the 40 seeded products or the demo users' seeded cards. Reco's projections therefore hold only
+    what a run itself publishes: `catalog_cards_proj` gets P10's one approved card (`trail-check` says so out loud —
+    `p14-cold 1 cards`) and `held_cards_proj` gets only cards added through the API during the run. The engine and
+    its contracts are proved by the ITs, which publish their own events, so this is a demo-and-smoke limitation
+    rather than a product one — but it cost two rounds to see: the P14 smoke first asked whether asha's *first*
+    card was marked held (r2), then whether a card she *already holds* was (r3), and both are unanswerable because
+    reco was never told she holds anything. It now adds the holding itself and watches the flag follow the event
+    both ways (r4). P15 leans harder on the catalog, so the fix belongs there or in the seed: either seed reco's
+    projections directly or have the seed write outbox rows for its catalog and card data and let the relays
+    publish them.
 
 - **`verify-full.yml` reported trail-check green no matter what, until P13 r3.** The step ran
   `./scripts/trail-check.sh 2>&1 | tee …`, so without `pipefail` it took `tee`'s exit status: `steps.trail.outcome`
