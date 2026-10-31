@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dexter.in/events/reco.recommendation.updated.v1.json",
+  "title": "reco.recommendation.updated v1 - a recompute produced a different recommendation for this account (topic dexter.reco.recommendation.v1, key = account id).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "accountId",
+    "stateHash",
+    "topCardProductId",
+    "topSlug",
+    "topAnnualSavingsPaise",
+    "topScoreBps",
+    "recommendedCount",
+    "notRecommendedCount",
+    "computedAt"
+  ],
+  "properties": {
+    "accountId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "stateHash": {
+      "description": "the fingerprint of the inputs the result was computed from",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "topCardProductId": {
+      "description": "null when nothing cleared the threshold",
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    },
+    "topSlug": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 120
+    },
+    "topAnnualSavingsPaise": {
+      "type": "integer"
+    },
+    "topScoreBps": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "recommendedCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "notRecommendedCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "computedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

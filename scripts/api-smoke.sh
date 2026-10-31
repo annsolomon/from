@@ -28,6 +28,9 @@
 #   P13: planning via the gateway (scripts/lib/p13_smoke.py): budgets, a ledger expense moving the budget's spend
 #        through Kafka (subtree match, edit, delete, 23:30 IST on a month end, thresholds once per period, pause),
 #        liabilities on the shared EMI engine (₹8,884.88) with the schedule, and copy-on-read scenarios.
+#   P14: reco via the gateway (scripts/lib/p14_smoke.py): a ledger expense becoming a spend profile over Kafka and
+#        moving the ranking, the 60/40 blend on every row, explain's arithmetic adding up line by line, the subset
+#        form, a held card marked not hidden, and the state-hash cache.
 # Later phases append their checks below the P00 block. Output also goes to $SMOKE_OUT if set.
 set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -172,6 +175,11 @@ log "# P13 planning via gateway (:8080): budgets fed by ledger events over Kafka
 p13=$(python3 "$ROOT/scripts/lib/p13_smoke.py" "http://localhost:8080" 2>&1); p13rc=$?
 while IFS= read -r line; do log "$line"; done <<< "$p13"
 [[ $p13rc -eq 0 ]] || fail=1
+# ------------------------------------------------------------------ P14: reco through the gateway
+log "# P14 reco via gateway (:8080): the spend profile from ledger events, the 60/40 ranking, explainability"
+p14=$(python3 "$ROOT/scripts/lib/p14_smoke.py" "http://localhost:8080" 2>&1); p14rc=$?
+while IFS= read -r line; do log "$line"; done <<< "$p14"
+[[ $p14rc -eq 0 ]] || fail=1
 # Outbox -> Kafka (MASTER_PLAN 6.3): every identity event written above is published by the relay within 30 s.
 COMPOSE=(docker compose --env-file "$ROOT/.env" -f "$ROOT/infra/compose/docker-compose.yml")
 outbox() { "${COMPOSE[@]}" exec -T postgres psql -U "${POSTGRES_USER:-postgres}" -d identity -tA -c "$1" 2>/dev/null | tr -d '[:space:]'; }

@@ -13,6 +13,7 @@ import in.dexter.contracts.events.ledger.ImportCompletedV1;
 import in.dexter.contracts.events.planning.BudgetThresholdCrossedV1;
 import in.dexter.contracts.events.planning.LiabilityChangedV1;
 import in.dexter.contracts.events.portfolio.CardChangedV1;
+import in.dexter.contracts.events.reco.RecommendationUpdatedV1;
 import in.dexter.contracts.events.portfolio.LinkConfirmedV1;
 import in.dexter.contracts.events.portfolio.StatementSubmittedV1;
 import in.dexter.contracts.events.portfolio.TransactionRecordedV1;
@@ -119,6 +120,12 @@ class SchemaContractTest {
     SAMPLES.put("planning.liability.changed.v1.json", new LiabilityChangedV1(
         UUID.fromString("0192f1e2-0000-7000-8000-000000000d02"), "loan", "HDFC Bank", 10_000_000L, 1200, 12,
         "2026-11-01", 888_488L, "active", 0, "2026-10-21T09:20:00Z"));
+    // P14 reco
+    SAMPLES.put("reco.recommendation.updated.v1.json", new RecommendationUpdatedV1(
+        UUID.fromString("0192f1e2-0000-7000-8000-000000000e01"),
+        "3f0c1b6d2a94e7580c13bb47aa29e6f1b8d450723ce9a1f6284db35c907e4a18",
+        UUID.fromString("0192f1e2-0000-7000-8000-000000000e02").toString(), "mock-saffron-millennia-cashback",
+        660_000L, 8400, 3, 2, "2026-10-31T09:15:00Z"));
   }
 
   static JsonNode schema(String file) throws IOException {

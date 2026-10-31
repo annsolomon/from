@@ -6,6 +6,20 @@ spring:
       enabled: true
   main:
     banner-mode: "off"
+  # P14: runtime pool = reco_app (RLS-bound, NOBYPASSRLS). Passwords come from the environment (.env in dev).
+  datasource:
+    url: jdbc:postgresql://${DEXTER_PG_HOST:127.0.0.1}:${POSTGRES_PORT:5432}/reco?ApplicationName=reco
+    username: reco_app
+    password: ${PG_PW_RECO_APP:${PG_PW_APP:}}
+    hikari:
+      maximum-pool-size: ${RECO_DB_POOL:20}
+      connection-timeout: 5000
+  # Migrations run as the schema owner (MASTER_PLAN 3.1); the app role has no DDL rights.
+  flyway:
+    user: reco_owner
+    password: ${PG_PW_RECO_OWNER:${PG_PW_OWNER:}}
+    schemas: reco
+    clean-disabled: true
 
 server:
   port: ${PORT_RECO:8086}
@@ -29,6 +43,37 @@ logging:
   pattern:
     # X-Request-Id on every console line (dexter-web RequestIdFilter puts it in the MDC)
     level: "%5p [%X{requestId:-}]"
+
+dexter:
+  db:
+    schema: reco
+  # Every request needs a user token from identity (audience "reco").
+  security:
+    jwks-uri: ${IDENTITY_JWKS_URI:http://127.0.0.1:${PORT_IDENTITY:8081}/.well-known/jwks.json}
+    issuer: ${IDENTITY_ISSUER:https://identity.dexter.internal}
+    audience: reco
+  reco:
+    # the 60/40 blend (MASTER_PLAN P14) and the not-recommended threshold, both configurable
+    scoring:
+      savings-weight-bps: ${RECO_SAVINGS_WEIGHT_BPS:6000}
+      threshold-bps: ${RECO_THRESHOLD_BPS:2000}
+    # the debounced recompute: an account quiet for `debounce` is claimed with SKIP LOCKED, `batch` at a time
+    sweeper:
+      enabled: ${RECO_SWEEPER_ENABLED:true}
+      debounce: ${RECO_SWEEPER_DEBOUNCE:3s}
+      batch: ${RECO_SWEEPER_BATCH:200}
+      every: ${RECO_SWEEPER_EVERY:1s}
+      history-retention: ${RECO_HISTORY_RETENTION:180d}
+    relay:
+      enabled: ${RECO_RELAY_ENABLED:true}
+      url: jdbc:postgresql://${DEXTER_PG_HOST:127.0.0.1}:${POSTGRES_PORT:5432}/reco?ApplicationName=reco-relay
+      username: reco_relay
+      password: ${PG_PW_RECO_RELAY:${PG_PW_RELAY:}}
+      bootstrap-servers: ${KAFKA_BOOTSTRAP:127.0.0.1:${KAFKA_PORT:9092}}
+    # spend-profile (ledger), held-cards (portfolio), catalog-rules (the compacted catalog topic)
+    consumers:
+      enabled: ${RECO_CONSUMERS_ENABLED:true}
+      bootstrap-servers: ${KAFKA_BOOTSTRAP:127.0.0.1:${KAFKA_PORT:9092}}
 
 ---
 spring:

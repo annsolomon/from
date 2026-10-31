@@ -1,4 +1,4 @@
-package in.dexter.portfolio.domain;
+package in.dexter.portfolio.calc;
 
 import java.util.List;
 import java.util.UUID;

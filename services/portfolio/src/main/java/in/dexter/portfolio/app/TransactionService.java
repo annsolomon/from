@@ -20,7 +20,7 @@ import in.dexter.portfolio.app.TransactionStore.StatementRow;
 import in.dexter.portfolio.app.TransactionStore.TxnRow;
 import in.dexter.portfolio.domain.BillingCycle;
 import in.dexter.portfolio.domain.PortfolioErrors;
-import in.dexter.portfolio.domain.RewardTerms;
+import in.dexter.portfolio.calc.RewardTerms;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;

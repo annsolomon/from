@@ -172,6 +172,22 @@ ledger stamps every expense with its IST day and planning puts it in the period 
 `POST /v1/calc/emi` is **portfolio's** (A-42): one owner per path, and the EMI engine is a shared library
 (`libs/portfolio-calc`, A-74) that planning calls directly rather than over HTTP.
 
+## `/v1/recommendations` (P14, reco)
+
+Reads only — a recommendation is never submitted. The recompute is event-driven (a sweeper claims an account once
+its events have gone quiet) or happens inside the read when the stored result's state hash no longer matches the
+inputs, so a read is always current (ADR-0020). Money is paise, scores are basis points of 1.
+
+| Path | What it does |
+|---|---|
+| `GET /v1/recommendations` | every published card scored against the account's spend profile: `recommended` sorted by the blended score, plus the `notRecommended` bucket for a card below the threshold or one that costs more than it earns. A card the account holds is marked `held`, not dropped |
+| `GET /v1/recommendations?cardProductIds=a,b` | score only those products (at most 50), for ranking a search result. Never cached: a different question from "what should I get" |
+| `GET /v1/recommendations/explain/{cardProductId}` | the arithmetic: one line per category root (the rule that earned, the share of the root it was credited with, the spend considered, what it earned, whether a cap bound it), the fee after its waiver probability, the milestone, the reward rate per root and the top reasons |
+
+The blend is **60 % rupees saved, 40 % expense fit**, configurable (`dexter.reco.scoring.savings-weight-bps`), and
+every response reports the weight and threshold it used. Reco holds no spend of its own: the profile comes from
+`ledger.expense.*`, the held cards from `portfolio.card.*` and the card terms from the compacted catalog topic.
+
 ## Not routed (on purpose)
 
 - `/oauth2/token` (service client credentials) and `/internal/**`: service-to-service only, never at the edge.

@@ -2,6 +2,7 @@ package in.dexter.portfolio.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import in.dexter.portfolio.calc.RewardTerms;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;

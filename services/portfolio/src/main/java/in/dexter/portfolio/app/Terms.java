@@ -1,6 +1,6 @@
 package in.dexter.portfolio.app;
 
-import in.dexter.portfolio.domain.RewardTerms;
+import in.dexter.portfolio.calc.RewardTerms;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;

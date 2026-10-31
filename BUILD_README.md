@@ -1,14 +1,13 @@
 # Dexter v2 — Build README (living handoff)
 
-**Last updated:** 2026-10-30 · **Chat/phase:** P13 (planning) · **Model:** Claude Opus 5
-**P13 is DONE (2026-10-30).** Budgets whose per-period spend is maintained from `ledger.expense.*` as a delta with
-the inbox as the exactly-once guard, thresholds that alert once per period, liabilities on the shared EMI engine,
-and copy-on-read what-if scenarios (ADR-0019, A-74..A-77). `verify.sh full` **PASS 22/22** + `trail-check.sh`
-**PASS 80/80** on a GitHub runner (commit `d03ca6b`, run 41096207559; reports on branch `verify-reports`):
-planning unit 28 + IT 53, api-smoke 407 PASS / 0 FAIL with 79 of them P13's, trail-check `p13-*` 6/6.
-P12 was re-verified first from the then-latest report (run 40964375106, git `372af62`) — §3.
-Next chat: **P14** (reco A). Upload `MASTER_PLAN.md` + this README; the code is in the repo (clone it). The old
-repo zip is not needed: nothing is left to port (ADR-0018 §6 states the one engine deliberately left behind).
+**Last updated:** 2026-10-31 · **Chat/phase:** P14 (reco A) · **Model:** Claude Opus 5
+**P14 is code complete and pushed; the CI evidence is being read.** The spend profile rebuilt from
+`ledger.expense.*`, held-card and catalog projections, the 60/40 savings-and-fit blend with its arithmetic exposed
+through `/explain`, and a debounced `SKIP LOCKED` recompute that publishes only when the answer moved
+(ADR-0020, A-78..A-83). P13 was re-verified first from the latest report on `verify-reports` (run 41098423318, git
+`85bf6b3`): `verify.sh full` **PASS** 22/22 + `trail-check.sh` **PASS** — §3.
+Next chat: **P15** (reco B: wallet optimizer, best-card-now, SSE). Upload `MASTER_PLAN.md` + this README; the code
+is in the repo (clone it). The old repo zip is not needed: nothing is left to port (ADR-0018 §6).
 
 ## 1. Phase status
 
@@ -28,7 +27,7 @@ repo zip is not needed: nothing is left to port (ADR-0018 §6 states the one eng
 | P11 | Portfolio A | **DONE** 2026-10-22 | `verify.sh full` PASS + trail-check PASS (CI run 39703341828, git bac4db8): portfolio unit 14 (BillingCycle, EmiMath, MatchScore, rewards domain, platform migration, ArchRules) + IT 46 (cards, transactions + statements + closer, links, auto-match accuracy on the seed's 357 merchants: precision 1.000 / recall 1.000 over 400 expenses, projection version guard + Kafka end to end, EMI, rewards + report, RLS proof on 10 tables, PaginationContract 9, IdempotencyContract 2 × 6), api-smoke P11 29/29 (auto-match over real Kafka) | DoD all ticked (§3) |
 | P12 | Portfolio B (calc + parser) | **DONE** 2026-10-30 (P12a statements + ai-parser 2026-10-27; P12b calc library) | P12a: CI run 40419721529, git 81d63ae (portfolio unit 18 + IT 68, ai-parser pytest 72/72, api-smoke P12 33/33, trail-check P12 4/4). P12b: `verify.sh full` PASS 22/22 + trail-check PASS (CI run 40962182275, git dfea70c, first run green): `libs/portfolio-calc` unit 40/0/0/0 (31 ported golden fixtures + 9 boundary), portfolio IT 84 (68 + `CalcIT` 16) + unit 18, api-smoke P12 calc 27/27, trail-check `p12-calc` 4/4 | split A-68, both halves closed. 100 % of the old calc tests ported and green (ADR-0018) |
 | P13 | Planning | **DONE** 2026-10-30 | `verify.sh full` PASS 22/22 + `trail-check.sh` PASS (CI run 41096207559, git `d03ca6b`): planning unit 28 + IT 53 (budgets, spend projection incl. the 23:30-IST month end and thresholds once per period, `SpendPropertyIT` 600 random ops vs a recomputed SUM, liabilities + schedule, scenarios, RLS proof on 6 tables, PaginationContract 9, IdempotencyContract 2 × 6), `libs/portfolio-calc` unit 44 (40 + `EmiMathTest` 4 after A-74), api-smoke 407 PASS / 0 FAIL (79 P13: budgets fed by real ledger events over Kafka, planning outbox → `dexter.planning.{budget,liability}.v1`, `budget-spend` inbox 18 events), trail-check `p13-{anon,budget,spend,emi,schedule,scenario}` 6/6 | ADR-0019, A-74 (`EmiMath` moved into `libs/portfolio-calc`), A-75 (`/v1/budgets/category-potential` deferred), A-76 (routes/patchable fields), A-77 (`threshold-crossed`, not `threshold_crossed`). DoD all ticked (§3) |
-| P14 | Reco A | NOT STARTED | — | |
+| P14 | Reco A | **IT-GREEN (pushed, CI evidence pending)** | sandbox: `verify.sh static` PASS 10/10; the pure engine proved outside Maven (**123 checks** — 71 on the engine, 52 replaying every assertion the new unit tests make), `p14-reco.html` Mock flow 43/43 in jsdom with 0 console errors, the platform-migration recipe reproduced byte for byte | ADR-0020, A-78 (spend_profile rebuilt from a per-month table), A-79 (card terms + rules as two projections), A-80 (`window_code`), A-81 (the root/depth share assumption), A-82 (`RewardTerms` moved into `libs/portfolio-calc`), A-83 (no catalog fan-out) |
 | P15 | Reco B (optimizer/SSE) | NOT STARTED | — | |
 | P16 | Billing | NOT STARTED | — | |
 | P17 | Commerce | NOT STARTED | — | |
@@ -43,11 +42,23 @@ repo zip is not needed: nothing is left to port (ADR-0018 §6 states the one eng
   sandbox). r5 (`92463a7`) made the smoke report the error: a timeout — SeaweedFS reserves volumes per bucket and the runner's
   free-disk cap was used up by the first two buckets. r6 (`81d63ae`): 256 MB volumes, `-volume.max=64` → **all green,
   P12a DONE** (run 40419721529).
-- **P13 (2026-10-30):** done, nothing in progress. Next action: **P14 (reco A)** — verify P13 from the latest
-  report on `verify-reports` first, then build. P14 starts from: `libs/portfolio-calc` for any arithmetic it needs
-  (A-74 put `EmiMath` there too), planning's `/v1/budgets/status` shape if a recommendation wants to reason about
-  headroom, and the one P13 endpoint left unbuilt — `GET /v1/budgets/category-potential` (A-75), which is a cached
-  read-through to catalog's potential endpoint and may belong with reco's own catalog reads.
+- **P14 (2026-10-31):** code complete and pushed. **Next action: read the CI run for the P14 commit, fix until
+  `verify.sh full` + `trail-check.sh` pass, then record the run id here, in §1 and in ADR-0020's Status line and
+  mark P14 DONE.** Nothing is half-written: two migrations, the pure engine, three projections, the sweeper, the
+  API, config/relay/consumers, 12 test classes (5 unit + 7 IT), `p14-reco.html`, `p14_smoke.py`, the trail-check
+  block, `reco.http`, ADR-0020, errors.md and routes.md are all in. What could not be run in the sandbox (no Maven
+  Central, Java 21 only, no Docker) is every Spring/Testcontainers test — that is what the CI run has to confirm.
+  The likeliest first failures, with their fixes:
+  - a Jackson 3 accessor name on a `JsonNode` (this repo is `tools.jackson.*`: `isString()/asString()/asLong()/
+    asInt()/asBoolean()`, never `stringValue()`), and a `jsonb` column read back with `::text` before parsing —
+    the P13 lesson that cost three runs;
+  - `reco`'s pom switched from the arch-only `dexter-test` (everything excluded) to the full kit, so a
+    Testcontainers/Kafka class on the test classpath could change the Spring test context;
+  - an `ArchRules` violation if anything Spring- or Jackson-shaped slipped into `in.dexter.reco.domain` (it is
+    checked to be pure; `CardTermsMapper` in `app` is where the milestone JSON is parsed for exactly that reason).
+- **P13 (2026-10-30):** done. P14 built on: `libs/portfolio-calc` (A-82 moved `RewardTerms` there beside
+  `EmiMath`), the ledger/portfolio/catalog event contracts, and the one P13 endpoint still unbuilt —
+  `GET /v1/budgets/category-potential` (A-75), which is a catalog question and is still open for P15.
 - **P12b (2026-10-30):** done, nothing in progress. P13 started from: `libs/portfolio-calc` (pure, static, paise in
   and out — `MinimumPaymentSimulator`, `ExitPathCalculator` and `RepaymentPathCalculator` are what a liability
   projection and the sandbox want), `CalcService` (its validation and caps were already written; a planning
@@ -215,6 +226,17 @@ repo zip is not needed: nothing is left to port (ADR-0018 §6 states the one eng
 - **P02b scope (A-13):** `dexter-security` (resource server, JWKS cache + unknown-kid refetch, `AuthContext`, audience check, `@RequiresStepUp`, `@RequiresPermission`, service-token client, test JWKS/JWT factory; pins nimbus + bouncycastle, verified on Maven Central), `dexter-cache` (ADR-0004, generation keys, Redis ACLs, cache contract), `ArchRules` (pins archunit), demo module switched from the `X-Demo-Account` test header to `AuthContext`, `p02-*.html` trail page + lab endpoints (idempotency replay/409/422, outbox → Kafka → projection, DLQ).
 
 ## 3. Verification of previous phase
+
+### P13 re-verified in the P14 chat (latest report on `verify-reports`: CI run 41098423318, git 85bf6b3, 2026-10-30)
+
+The newest report on the branch when P14 started is for `85bf6b3` — the P13 docs commit, i.e. run 41096207559's
+code with the README evidence on top. `verify.sh full` **PASS** (22/22) and `trail-check.sh` **PASS**, and that
+second flag now means something: P13 r3 fixed the missing `pipefail` that had made it unconditional (§7). Every
+P13 DoD item in the table below still holds at that commit: all 25 reactor modules SUCCESS,
+`services/planning` unit **28** + IT **53**, `libs/portfolio-calc` unit **44**, api-smoke **407 PASS / 0 FAIL**
+with 79 of them P13's, trail-check `p13-{anon,budget,spend,emi,schedule,scenario}` **6/6**. One note, not a defect:
+the report counts 14 migrations and 5 RLS-gated sets; P14 adds reco's two, which is why this chat's `static` run
+reports 16 and 6.
 
 ### P13 against its DoD (CI run 41096207559, git d03ca6b, 2026-10-30)
 
@@ -467,6 +489,24 @@ Issues found in P01's own code during self-review and fixed:
 4. The web test asserted an exact `Content-Type`; now a compatible-type check (a charset suffix must not fail it).
 
 ## 4. What exists now
+
+**P14 Reco A: spend profile, scoring, explainability (IT-GREEN, CI pending)** — ADR-0020, A-78..A-83, MASTER_PLAN P14
+
+| Piece | What it does |
+|---|---|
+| Schema `V202610311000__platform` | Reco's copy of the platform tables, generated by the same recipe (outbox, inbox, idempotency, actor roles, `reco_owner/_app/_relay/_admin/_readonly`) — verified to reproduce `SqlTemplates.renderAll("reco")` byte for byte, which `PlatformMigrationTest` then asserts |
+| Schema `V202610311001__reco_core` | `spend_month` (the exact per-month deltas), `spend_profile` (the three windows the scorer reads), `held_cards_proj`, `catalog_cards_proj` + `catalog_rules_proj` (global, written by the PROJECTOR actor), `rec_state` (the three high-water marks, `dirty` + `dirty_since`, a partial index for the claim), `recommendations` (the latest result by `state_hash`), `recommendation_history` (monthly partitions, 180-day retention). Every per-tenant table ENABLE + FORCE RLS; the two global ones are read by all tenants and written only under `is_projector()` |
+| `domain` (pure, no Spring) | `SpendVector` (monthly paise per category root), `CardTerms` (+ `Rule`, `Milestone`, with the cap-period conversion), `Rules` (which rule earns on a root, the depth share, and the earning arithmetic **delegated to the shared `RewardTerms`**), `Savings` (per-root lines, cap binding, the fee-waiver ramp, milestones), `ExpenseFit` (how well the rewards sit where the money goes), `Scorer` (the 60/40 blend, the ranking, the not-recommended bucket), `Reasons` (the plain sentences), `Windows` (3m/6m/12m in local months), `StateHash` (the input fingerprint incl. the engine version), `RecoErrors` |
+| `app` | `ProjectionService` (the three consumers), `RecommendationService` (the read path, the recompute, `/explain`), `Sweeper` (claim → recompute → publish-if-changed), `RecoStore` (one port), `CardTermsMapper` (the only place the milestone JSON is parsed, so the domain stays Jackson-free), `RecoEvents` |
+| `infra` | `RecoRepository`: the `GREATEST(0, …)` delta upsert on **both** branches (the P07/A-47 lesson), the window rebuild, both projections through the library's `ProjectionVersionGuard`, and `claimDirty` — a CTE with `FOR UPDATE SKIP LOCKED` that clears `dirty` in the same UPDATE so two sweepers cannot claim one account |
+| `api` | `RecommendationController`: `GET /v1/recommendations`, `?cardProductIds=` (≤ 50), `GET /v1/recommendations/explain/{cardProductId}`. Reads only — there is nothing to POST |
+| `config` | `dexter.reco.scoring.{savings-weight-bps,threshold-bps}` (the blend, configurable as the plan asks), `dexter.reco.sweeper.{debounce,batch,every,history-retention}`, the relay (which also keeps `recommendation_history`'s partitions, since `create_partitions_ahead` is granted to `reco_relay` alone), and the three consumers |
+| Shared arithmetic | `RewardTerms` **moved** from `services/portfolio/…/domain` into `libs/portfolio-calc` (A-82) so reco earns exactly what portfolio earns for the same card: `rateBps` is a value rate for points too, rounded down to whole points. Reco's first draft had invented "points per ₹100" — `RulesTest` now pins the agreement |
+| Contracts | `reco.recommendation.updated.v1` (+ its JSON schema, registered in `SchemaContractTest`): the headline and the `stateHash`, published only when a recompute changed the answer |
+| Docs | ADR-0020 (13 decisions + what the phase does not do); errors.md gains a reco section; routes.md gains the `/v1/recommendations` table |
+| Scripts | `scripts/lib/p14_smoke.py` wired into api-smoke (a ledger expense becoming a profile over Kafka and moving the ranking, the blend on every row, explain's arithmetic adding up, the subset form, a held card marked, the state-hash cache, isolation) plus reco's outbox/topic/inbox checks; trail-check `p14-{anon,cold,profile,blend,explain,badids}` |
+| Trail | `test-ui/p14-reco.html`: add an expense and the ranking moves, with savings/fit/blend bars per card, the reasons, the not-recommended bucket, a held-card filter, and `/explain`'s line-by-line table. Mock does the projections and the blend for real (they are arithmetic) over the seed's own catalog fixtures, so the cards ranked are the ones `p09-catalog.html` lists |
+| Tests | unit: `SavingsTest`, `RulesTest`, `ScorerTest`, `ExpenseFitTest`, `WindowsAndHashTest`, `PlatformMigrationTest`. IT: `SpendProfileIT` (incl. 150 random ops vs a recomputed sum), `ProjectionsIT` (stale versions ignored, rules replaced per version), `DebounceIT` (**50 events → 1 recompute and 1 event**, an unchanged recompute silent, the debounce holding a busy account, the batch cap), `RecommendationsIT` (the ranking over HTTP, freshness after a changed profile and after a republished card, the subset, `/explain`, 404, cold account, RLS, admin refused), `RecoRlsIT` (6 tables), `RecoHealthIT` |
 
 **P13 Planning: budgets, liabilities, scenarios (DONE)** — ADR-0019, A-74/A-75, MASTER_PLAN P13
 
@@ -966,6 +1006,7 @@ Croma Online vs label Croma).
 | 0014 | Catalog: published face + editor drafts + immutable versions (trigger), publish in one transaction (no-op by content hash), rule overlap impossible (EXCLUDE gist), snapshot = API = compacted event, public reads with a sentinel tenant, editor-only admin pool, search through an owner SECURITY DEFINER function | Accepted: proven by CI run 39046289166 |
 | 0016 | Portfolio A: catalog as a version-guarded projection written only by the PROJECTOR actor, soft-removed cards with a live-only unique key, computed billing cycles with statements materialised on posting + an owner-function closer, rewards earned at record time on catalog terms into an append-only points ledger (FIFO expiry), auto-match as scored suggestions from both sides, exact reducing-balance EMI, consumers ensure their source topics | Accepted: proven by CI run 39703341828 |
 | 0018 | The calc library: BigDecimal **rupees** inside with the original's rounding points (paise only at the boundary) so the ported fixtures hold to the paisa, bps for rates, final classes of static methods with `Lot` mutable and package-private, all 31 old calc tests ported and green with no value needing explanation, `emi/CardEmiCalculator` not ported (P11's `EmiMath` is v2's EMI engine and rounds differently), preconditions rejected instead of dereferenced, `/v1/calc/*` stateless and capped | Accepted: proven by CI run 40962182275 (portfolio-calc unit 40, `CalcIT` 16, api-smoke P12 calc 27, trail-check `p12-calc` 4) |
+| 0020 | Reco A: a rolling spend window **rebuilt** from exact per-month deltas (a window cannot be incremented — an expense leaves it because time passed), the inbox as the exactly-once guard for spend while the per-aggregate projections are version-guarded, `rateBps` as a value rate shared with portfolio rather than reimplemented (A-82), the root/depth share as one explicit assumption reported in every explanation, a fee-waiver **ramp** so a recommendation cannot flip on a rupee, savings normalized against the best candidate, no catalog fan-out (the read notices through the state hash), and a state hash of the **inputs** including the engine's own version | Accepted (P14): proof pending the P14 CI run |
 | 0019 | Planning: a budget's per-period spend maintained as a delta from `ledger.expense.*` with the **inbox** as the exactly-once guard (a per-row `projected_version` compare would be wrong — one period row aggregates many expenses with independent version sequences), an edit settling both sides from `before`/`after`, no backfill so a new budget starts at zero and the row floors there, periods repeating from `starts_on` on the ledger's own IST day, a threshold alerting once per period enforced by a primary key, liabilities on the shared `EmiMath` with the schedule written once, and scenarios as a copy of the account rather than a live view | Accepted: proven by CI run 41096207559 (planning unit 28 + IT 53, api-smoke P13 79, trail-check `p13` 6) |
 | 0017 | Statement uploads: presigned PUT into quarantine, submit as Idempotency Mode B with a `scanned` recovery point, the parser gets a presigned GET and no credentials, lines become transactions through the one write path keyed by line hash, S3 identities rendered at every start | Accepted: proven by CI run 40419721529 |
 | 0015 | Catalog ingestion: SSRF policy in two halves (URL rules, then every resolved address public; manual redirects re-checked; size/time/type caps), sources saved only when fetchable, crawl runs with a checkpoint per source + stale re-claim + politeness, content-hash change detection with snapshots in the object store, field-level diff (absent ≠ removed, merchant rules untouched), the promoter as the only writer with replay-safe approve, INGESTOR actor role | Accepted: proven by CI run 39109141399 |
@@ -1049,10 +1090,33 @@ Croma Online vs label Croma).
 | 2026-10-30 | P13 | A-74: `EmiMath` (and its test) **moved** from `services/portfolio/…/domain` into `libs/portfolio-calc` as `in.dexter.portfolio.calc.EmiMath`; portfolio's three import sites were rewritten. Planning calls it directly through `LiabilityMath`. | P13's named golden is the old `budget-service` EMI of ₹8,884.88, which `EmiMath` reproduces to the paisa; a second implementation in planning would be a second answer to one question (the ADR-0018 §6 reasoning). | Any later service needing an instalment uses the library, never an HTTP call. |
 | 2026-10-30 | P13 | A-75: `GET /v1/budgets/category-potential` is **not** built in P13; the other planning endpoints are. | It is a cached read-through to catalog's potential endpoint — a service-to-service call plus a cache entry of its own, answering a catalog question. Nothing else in P13 depends on it. | Whichever phase adds it picks it up deliberately (§7). |
 | 2026-10-30 | P13 | A-76: planning's endpoints and shapes: budgets `POST/GET /v1/budgets`, `GET /v1/budgets/status` (the bars), `GET/PATCH/DELETE /v1/budgets/{id}`, `GET /v1/budgets/{id}/history`; liabilities the same five plus `GET …/{id}/schedule`; scenarios `POST/GET /v1/scenarios`, `GET/PATCH /v1/scenarios/{id}`, `POST /v1/scenarios/{id}:evaluate`. Patchable: a budget's `name`, `limitPaise`, `rollover`, `alertThresholds`, `endsOn`, `status`; a liability's `lender` and `status` only. `DELETE` ends a budget / closes a liability (status, not a row removal) and is idempotent. The four scenario adjustments are `setMonthlyIncome`, `setBudgetLimit`, `addLiability`, `removeLiability`, refused with 422 `SCENARIO_ADJUSTMENT_INVALID` when the snapshot cannot satisfy them. | The plan names the capabilities, not the routes or which fields may change after the fact; `period`, `categoryPath` and `starts_on` are not patchable because they decide what the already-stored periods mean. | The sandbox UI in P15 reads the same scenario shape. |
+| 2026-10-31 | P14 | A-78: the plan's `spend_profile` is **derived**, not maintained in place: a new `spend_month (account, category_root, month)` table takes the deltas and the three windows are recomputed for the touched root from it on every event. | A rolling window cannot be maintained by deltas alone — an expense leaves the 12m window because time passed, not because an event arrived, so an incremented row would drift upward forever. The plan's table keeps its shape, columns and meaning. | P15's optimizer reads the same windows. |
+| 2026-10-31 | P14 | A-79: the plan's one `catalog_rules_proj` becomes **two** projections: `catalog_cards_proj` (fee, waiver, milestone, status, version) and `catalog_rules_proj` (one row per reward rule). | The scorer needs the card's own terms as well as its rules, and a row per rule means it reads them without parsing JSON per card. A new catalog version replaces a card's rules wholesale, because a version brings new rule ids. | — |
+| 2026-10-31 | P14 | A-80: the plan's `window` column is `window_code`; the API field stays `window`. | `WINDOW` is a reserved word in Postgres, so an unquoted `window` column is a syntax error and a quoted one is a trap in every later query. | — |
+| 2026-10-31 | P14 | A-81: the spend profile is per category **root**, while a catalog rule can be written four labels deep, so `Rules.share` credits a rule at depth 0-1 with 100 % of its root, depth 2 with 40 %, depth 3 with 20 % and depth 4 with 10 %. Every explanation reports the `shareBps` it used. | The profile would otherwise have to carry every category the catalog can name. The assumption is in one function, stated in the response rather than hidden, and conservative (a deeper rule is credited with less). | **P15's optimizer has the per-category detail and supersedes it** — the share is an approximation for ranking whole cards, not for "best card now". |
+| 2026-10-31 | P14 | A-82: `RewardTerms` **moved** from `services/portfolio/…/domain` into `libs/portfolio-calc` as `in.dexter.portfolio.calc.RewardTerms`; portfolio's two import sites were rewritten and reco earns through it. | Reco's first draft read `rateBps` as "points per ₹100"; portfolio has meant "a value rate, rounded down to whole points" since P11 (ADR-0014 §5), so the two services would have reported different rupees for the same card. Same remedy as `EmiMath` for planning (A-74), same reason: one answer to one question. | Any later service scoring a card uses the library, never its own copy. |
+| 2026-10-31 | P14 | A-83: a catalog change does **not** mark every account dirty. `rec_state.dirty` is set only by the per-account streams (ledger, portfolio); the read path computes the current state hash and recomputes that one account when it differs. | One republished card would otherwise enqueue a recompute for the whole user base for a change most accounts cannot see. The read stays cached and always current, which is also what makes "freshness correctness" testable. | P15's SSE pushes from the sweeper, so a catalog change still reaches a connected client on their next read or event. |
 | 2026-10-30 | P13 | A-77: the event the plan calls `planning.budget.threshold_crossed` is published as **`planning.budget.threshold-crossed`** (hyphen, not underscore); the schema file, `BudgetThresholdCrossedV1.TYPE` and the docs all use the hyphen. | `Topics.name` (P02, ADR-0006) validates every service/aggregate/action segment against `[a-z][a-z0-9-]{0,39}`, so `EventType.of` throws on an underscore — it is the first two-word action in the system, and the library's own rule is dashes. Found by the P13 CI run: the static initializer of `PlanningEvents` threw, which surfaced as a 500 on `POST /v1/liabilities` and a `NoClassDefFoundError` in the consumer. | Any later two-word action uses a dash too. |
 | 2026-10-27 | P12a | A-72: the object store runs with S3 identities rendered at every start from `OBJECTSTORE_ACCESS_KEY/_SECRET_KEY` (`infra/objectstore/render-s3.sh`, one dev identity); anonymous requests are refused; the healthcheck is `/healthz`. `dexter-objectstore` gains `delete` and `presignInternal`. `IdempotencyContract` gains `writesEvent()` (upload creation writes no event). | ADR-0003 deferred identities to P12; statements must never be public. | P19: per-service identities + bucket policies. |
 
 ## 7. Known gaps / tech debt (honest, never deleted silently)
+
+- **P14 reco (ADR-0020 "what this phase does not do"):**
+  - **Merchant-level rules are scored as the category rule they sit under.** A rule can carry a `merchantId` and the
+    projection stores it, but the spend profile has no merchant dimension, so a merchant-specific reward is not
+    distinguished. The data to do better belongs with P15's best-card-now, which is asked about one merchant at a
+    time.
+  - **A `txn`-period cap is left unapplied**, because converting it to a monthly ceiling needs a transaction count
+    the profile does not carry. Every affected line reports `capNotConvertible: true` rather than inventing a
+    number — so a card with only per-transaction caps is scored slightly generously, and says so.
+  - **The root/depth share (A-81) is an assumption, not a measurement.** A card whose only food benefit is on
+    `food.dining` is credited with 40 % of the account's `food` spend. P15's optimizer supersedes it.
+  - **`StateHash.ENGINE_VERSION` must be bumped whenever the scoring arithmetic changes**, or every stored result
+    will be served as fresh after the change. Nothing enforces this; it is a comment and this line.
+  - **The sweeper has no backoff beyond `attempts`.** A persistently failing account is re-claimed every pass and
+    logged every time; `attempts` is recorded but not yet used to delay it.
+  - **`GET /v1/budgets/category-potential` is still unbuilt** (A-75, inherited from P13) — still a catalog question,
+    still waiting for whichever phase wants it.
 
 - **`verify-full.yml` reported trail-check green no matter what, until P13 r3.** The step ran
   `./scripts/trail-check.sh 2>&1 | tee …`, so without `pipefail` it took `tee`'s exit status: `steps.trail.outcome`
@@ -1323,6 +1387,7 @@ press **Lab status / start**, then **Get a valid token**. (After a manual `run.s
 
 ## 10. Changelog (one line per response)
 
+- 2026-10-31 P14 r1: re-verified P13 from the latest report on `verify-reports` (run 41098423318, git `85bf6b3`: verify full 22/22 + trail-check PASS), then built reco A — two migrations (7 tables, FORCE RLS, monthly history partitions), the pure engine (`SpendVector`, `CardTerms`, `Rules`, `Savings`, `ExpenseFit`, `Scorer`, `Reasons`, `Windows`, `StateHash`), three projections with the inbox guarding spend and `ProjectionVersionGuard` guarding the per-aggregate ones, the `SKIP LOCKED` sweeper, `GET /v1/recommendations{,?cardProductIds=,/explain/{id}}`, the relay + three consumers, 12 test classes, ADR-0020, A-78..A-83, errors.md + routes.md, `p14-reco.html` (43/43 in jsdom), `p14_smoke.py`, trail-check `p14-*`, `reco.http`. Proved outside Maven first: **123 checks** (71 engine + 52 replaying every new unit-test assertion). `RewardTerms` moved into `libs/portfolio-calc` (A-82) after finding reco had invented a second meaning for `rateBps`. Pushed for CI.
 - 2026-10-30 P13 r9: **green** — CI run 41096207559 (git `d03ca6b`): `verify.sh full` PASS 22/22 + `trail-check.sh` PASS 80/80, api-smoke 407 PASS / 0 FAIL (79 of them P13's), `p13-*` 6/6 → **P13 DONE**. §1, §3 (the DoD table), §4, the ADR index and ADR-0019's Status all carry the run id.
 - 2026-10-30 P13 r8: **`verify.sh full` PASS 22/22** (run 41094104336) — every module, every IT, the whole P13 api-smoke block, seed, k6. The only failure left was `trail-check.sh`'s own p13 block: it matched substrings like `"emiPaise":888488` against an **idempotent create's replayed response**, which the engine stores as `jsonb` and reads back with `::text`, so Postgres renders it with a space after each colon — and `sed`-extracting the id the same way yielded nothing, which cascaded into `/v1/liabilities/schedule` and `/v1/scenarios/:evaluate` being called with an empty id. The block now parses the JSON (a small `jget` helper), checks the schedule by summing its rows back to the principal, and tests the scenario's surplus as an invariant rather than a magnitude so other budgets on the account cannot make it flap.
 - 2026-10-30 P13 r7: the whole P13 smoke passes bar one check, which found a real inconsistency rather than a test problem: `LiabilityView` derived `totalInterestPaise` as `emiPaise × tenureMonths − principalPaise` (661856) while the stored schedule's own interest sums to 661853 — the last instalment is the balancing one, 3 paise lighter. The same API returned both figures. The schedule's totals are now **stored with it** (`total_interest_paise`, `total_payable_paise`, written from `LiabilityMath.Schedule` at creation) and the view exposes them; the IT pins 661853/10661853 and asserts the product would have been wrong. ADR-0019 §7 records why, and the trail page's car-loan fixture gained its real total too.

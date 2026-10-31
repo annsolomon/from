@@ -6,7 +6,7 @@ set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
 source scripts/lib/services.sh
-PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html p05-mfa-admin.html p06-gateway.html p07-ledger.html p08-ledger-plus.html p09-catalog.html p10-ingestion.html p11-portfolio.html p12-statements.html p12-calc.html p13-planning.html})
+PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html p05-mfa-admin.html p06-gateway.html p07-ledger.html p08-ledger-plus.html p09-catalog.html p10-ingestion.html p11-portfolio.html p12-statements.html p12-calc.html p13-planning.html p14-reco.html})
 BASE=http://127.0.0.1:8099
 fail=0
 
@@ -266,6 +266,74 @@ print(d["deltaPaise"], d["monthlyIncomePaise"],
 ' 2>/dev/null)
 if [[ $pev == "1062352 10000000 True" ]]; then printf 'PASS  %-10s %s\n' p13-scenario 1062352
 else printf 'FAIL  %-10s %s\n' p13-scenario "${pe:0:200}"; fail=1; fi
+
+# P14: what p14-reco.html Live mode drives. The page's claim is that an expense recorded in the LEDGER moves the
+# ranking, so this walks the whole path - expense, outbox, relay, Kafka, the spend-profile consumer, the sweeper -
+# and then checks that the explanation's arithmetic adds up rather than just that it answered.
+rc=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$BASE/api/v1/recommendations")
+if [[ $rc == 401 ]]; then printf 'PASS  %-10s %s\n' p14-anon 401
+else printf 'FAIL  %-10s %s\n' p14-anon "$rc"; fail=1; fi
+# gifts / gifts.donations: seeded paths no other check writes to, so this run's profile is its own
+qcat=gifts
+qexp=gifts.donations
+q0=$(curl -s --max-time 10 -H "Authorization: Bearer $at" "$BASE/api/v1/recommendations")
+qbase=$(printf '%s' "$q0" | python3 -c '
+import json, sys
+d = json.load(sys.stdin)
+print(d["monthlySpendPaise"], len(d["recommended"]) + len(d["notRecommended"]), d["savingsWeightBps"])
+' 2>/dev/null)
+read -r qspend qcards qweight <<< "$qbase"
+if [[ ${qcards:-0} -gt 0 && ${qweight:-0} == 6000 ]]; then
+  printf 'PASS  %-10s %s\n' p14-cold "$qcards cards, 60/40"
+else printf 'FAIL  %-10s %s\n' p14-cold "${q0:0:200}"; fail=1; fi
+curl -s -o /dev/null --max-time 10 -H "Authorization: Bearer $at" -H 'Content-Type: application/json' \
+  -H "Idempotency-Key: $(cat /proc/sys/kernel/random/uuid)" \
+  -d "{\"amountPaise\":800000,\"occurredAt\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"merchant\":\"Trail gift shop\",\"categoryPath\":\"$qexp\",\"paymentMethod\":\"upi\"}" \
+  "$BASE/api/v1/expenses"
+want=$(( ${qspend:-0} + 800000 ))
+qmoved=""
+for _ in $(seq 1 45); do
+  qmoved=$(curl -s --max-time 5 -H "Authorization: Bearer $at" "$BASE/api/v1/recommendations" | python3 -c '
+import json, sys
+d = json.load(sys.stdin)
+print(d["monthlySpendPaise"], d["spendByRoot"].get("'"$qcat"'", 0), len(d["recommended"]))
+' 2>/dev/null)
+  [[ $qmoved == "$want "* ]] && break
+  sleep 1
+done
+read -r qtotal qroot qrec <<< "$qmoved"
+if [[ ${qtotal:-0} == "$want" && ${qroot:-0} -ge 800000 && ${qrec:-0} -gt 0 ]]; then
+  printf 'PASS  %-10s %s\n' p14-profile "$qmoved"
+else printf 'FAIL  %-10s %s\n' p14-profile "want '$want <root> >0' got '$qmoved'"; fail=1; fi
+# the blend on every row, and the explanation of the top card adding up
+qtop=$(curl -s --max-time 10 -H "Authorization: Bearer $at" "$BASE/api/v1/recommendations" | python3 -c '
+import json, sys
+d = json.load(sys.stdin)
+rows = d["recommended"] + d["notRecommended"]
+blend = all(c["scoreBps"] == (c["savingsBps"] * 6000 + c["fitBps"] * 4000) // 10000 for c in rows)
+sorted_ok = all(d["recommended"][i - 1]["scoreBps"] >= d["recommended"][i]["scoreBps"]
+                for i in range(1, len(d["recommended"])))
+print(d["recommended"][0]["cardProductId"] if d["recommended"] else "", blend, sorted_ok)
+' 2>/dev/null)
+read -r qcard qblend qsorted <<< "$qtop"
+if [[ -n $qcard && $qblend == True && $qsorted == True ]]; then
+  printf 'PASS  %-10s %s\n' p14-blend "60/40 on every row, sorted"
+else printf 'FAIL  %-10s %s\n' p14-blend "card='$qcard' blend=$qblend sorted=$qsorted"; fail=1; fi
+qx=$(curl -s --max-time 10 -H "Authorization: Bearer $at" "$BASE/api/v1/recommendations/explain/$qcard" \
+  | python3 -c '
+import json, sys
+e = json.load(sys.stdin)
+adds_up = e["annualSavingsPaise"] == (e["annualRewardPaise"] - e["fee"]["expectedFeePaise"]
+                                     + e["milestone"]["annualValuePaise"])
+lines_sum = sum(l["annualRewardPaise"] for l in e["lines"]) == e["annualRewardPaise"]
+print(adds_up, lines_sum, 0 <= e["fee"]["waiverProbabilityBps"] <= 10000)
+' 2>/dev/null)
+if [[ $qx == "True True True" ]]; then printf 'PASS  %-10s %s\n' p14-explain "arithmetic adds up"
+else printf 'FAIL  %-10s %s\n' p14-explain "$qx"; fail=1; fi
+qs=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 -H "Authorization: Bearer $at" \
+  "$BASE/api/v1/recommendations?cardProductIds=not-a-uuid")
+if [[ $qs == 400 ]]; then printf 'PASS  %-10s %s\n' p14-badids 400
+else printf 'FAIL  %-10s %s\n' p14-badids "$qs"; fail=1; fi
 
 echo "trail-check: $([[ $fail -eq 0 ]] && echo PASS || echo FAIL)"
 exit $fail

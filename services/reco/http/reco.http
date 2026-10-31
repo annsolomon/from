@@ -7,3 +7,42 @@ GET http://localhost:8086/actuator/health/liveness
 
 ### reco prometheus
 GET http://localhost:8086/actuator/prometheus
+
+### ---- P14 (ADR-0020): the recommendation and its explanation. Every route needs a USER token: sign in via
+### identity.http (POST /v1/auth/login) and paste the accessToken below. There is nothing to POST - the recompute
+### is event-driven (the sweeper) or happens inside the read when the inputs have moved.
+@token = PASTE_AN_ACCESS_TOKEN
+@cardProductId = PASTE_A_CARD_PRODUCT_ID
+
+### recommendations: the ranking, plus the cards that did not clear the threshold.
+### `recommended` is sorted by the blended score (60 % rupees saved, 40 % expense fit). A card you already hold is
+### marked `held: true` rather than dropped, because "you already have the best card for this" is worth seeing.
+### `fresh` is always true: a read recomputes when the stored result's state hash no longer matches the inputs.
+GET http://localhost:8086/v1/recommendations
+Authorization: Bearer {{token}}
+X-Request-Id: manual-reco-list
+
+### recommendations: score only these products - for ranking a search result rather than the whole catalog.
+### A subset is never cached: it is a different question from "what should I get".
+GET http://localhost:8086/v1/recommendations?cardProductIds={{cardProductId}}
+Authorization: Bearer {{token}}
+X-Request-Id: manual-reco-subset
+
+### explain: the arithmetic behind one card, not a number.
+### `lines` is one row per category root: the rule that earned, the share of the root it was credited with
+### (Rules.share, A-81), the spend considered, what it earned, and whether a cap bound it. `fee` carries the annual
+### fee, the waiver threshold and the probability the account's spend clears it. `milestone` is counted only when
+### the spend reaches it. savings = rewards - expected fee + milestone.
+GET http://localhost:8086/v1/recommendations/explain/{{cardProductId}}
+Authorization: Bearer {{token}}
+X-Request-Id: manual-reco-explain
+
+### explain: a product the catalog projection does not have as published -> 404 CARD_NOT_IN_CATALOG
+GET http://localhost:8086/v1/recommendations/explain/00000000-0000-7000-8000-000000000000
+Authorization: Bearer {{token}}
+X-Request-Id: manual-reco-explain-404
+
+### an admin-console token cannot act as a user -> 403 USER_TOKEN_REQUIRED
+GET http://localhost:8086/v1/recommendations
+Authorization: Bearer PASTE_AN_ADMIN_TOKEN
+X-Request-Id: manual-reco-admin-refused

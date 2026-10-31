@@ -261,3 +261,20 @@ Parser results are not HTTP errors: a statement the ai-parser cannot read leaves
 
 A threshold alert is not an HTTP error: crossing one writes a row in `planning.budget_alerts_sent` and publishes
 `planning.budget.threshold-crossed` once per threshold per period, which the notification service consumes.
+
+### reco (P14, `RecoErrors` + core codes)
+
+| Code | Status | When |
+|---|---|---|
+| `USER_TOKEN_REQUIRED` | 403 | Any reco endpoint called with an admin-console or service token: a recommendation is about one end-user account's spend. |
+| `CARD_NOT_IN_CATALOG` | 404 | `GET /v1/recommendations/explain/{cardProductId}` for a product the catalog projection does not hold as published — a retired card, a draft, or an id that was never a card. The projection is fed by the compacted catalog topic, so a card published seconds ago may not have arrived yet. |
+| `INVALID_ID` | 400 | A `cardProductIds` entry that is not a UUID. |
+| `VALIDATION_FAILED` | 400 | More than 50 `cardProductIds` (the parameter is for ranking a search result, not the catalog). |
+| `NOT_FOUND` | 404 | An unknown path under `/v1/recommendations`. |
+
+There is nothing to POST: a recommendation is never submitted. The recompute is event-driven — the projections mark
+an account dirty and a sweeper claims it once it has been quiet — or happens inside the read when the stored
+result's state hash no longer matches the inputs, so a read is always current and never 409s.
+
+A recomputed result that is **unchanged** is not an error and not an event: equal state hash means equal inputs, so
+`reco.recommendation.updated` is published only when the answer actually moved.

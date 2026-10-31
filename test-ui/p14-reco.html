@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dexter trail · P14 reco</title>
+  <link rel="stylesheet" href="trail.css">
+  <style>
+    .rec { border: 1px solid var(--line); border-radius: 6px; padding: 10px; margin: 8px 0; background: var(--bg); }
+    .rec.top { border-color: var(--ok); }
+    .rec h3 { margin: 0 0 4px; font-size: 14px; }
+    .rec h3 small { color: var(--muted); font-weight: 400; margin-left: 6px; font-family: var(--mono); }
+    .bars { display: grid; grid-template-columns: 52px 1fr 62px; gap: 6px; align-items: center;
+      font-family: var(--mono); font-size: 11px; margin-top: 4px; }
+    .bar { height: 12px; background: var(--line); border-radius: 2px; overflow: hidden; }
+    .bar > span { display: block; height: 100%; background: var(--accent); }
+    .bar.s > span { background: var(--ok); }
+    .bar.f > span { background: var(--warn); }
+    ul.why { margin: 6px 0 0; padding-left: 18px; font-size: 13px; }
+    ul.why li { margin: 2px 0; }
+    .sub { color: var(--muted); font-family: var(--mono); font-size: 11px; font-weight: 400; }
+    .in.s { width: 92px; }
+    .chip { display: inline-block; border: 1px solid var(--line); border-radius: 10px; padding: 1px 8px;
+      font-family: var(--mono); font-size: 11px; margin-right: 4px; }
+    .chip.held { border-color: var(--ok); color: var(--ok); }
+    pre.out { white-space: pre-wrap; max-height: 240px; overflow: auto; }
+    table.spend td.n, table.spend th.n { text-align: right; }
+  </style>
+</head>
+<body>
+<main>
+  <section class="card">
+    <h2>P14 · the recommendation, and why</h2>
+    <p class="mono" style="color:var(--muted);margin:0">
+      Reco holds no spend of its own. It projects three streams — <code>ledger.expense.*</code> into a spend
+      profile, <code>portfolio.card.*</code> into the cards you hold, and the compacted catalog topic into card
+      terms and reward rules — and scores every published card against the profile: <strong>60 %</strong> on the
+      rupees it would save you, <strong>40 %</strong> on how well its rewards sit where you actually spend. Add an
+      expense below and the ranking moves. A card that would cost more than it earns goes in the
+      <em>not recommended</em> bucket however good its fit. Testing aid only — deleted in P19.
+    </p>
+  </section>
+
+  <section class="card" id="tenant"></section>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>1 · Spend something <span class="sub">POST /v1/expenses (ledger)</span></h2>
+      <p class="mono" style="color:var(--muted);margin:0 0 4px">
+        This writes to the <em>ledger</em>. Live: the event travels through the outbox, the relay and Kafka, and a
+        sweeper recomputes the account about three seconds after it goes quiet — so the page polls rather than
+        claiming the ranking has already moved.
+      </p>
+      <div class="row">
+        <input class="in s mono" id="e-amount" value="8000" aria-label="amount in rupees">
+        <input class="in mono" id="e-cat" value="food.dining" aria-label="categoryPath" style="flex:1;min-width:120px">
+        <input class="in" id="e-merchant" value="Trail diner" aria-label="merchant" style="flex:1;min-width:120px">
+        <button class="act" type="button" id="e-add">Spend it</button>
+      </div>
+      <div class="row">
+        <button class="ghost" type="button" id="e-travel">+ ₹6,000 travel.air</button>
+        <button class="ghost" type="button" id="e-fuel">+ ₹3,000 fuel.petrol</button>
+        <span class="sub" id="e-note"></span>
+      </div>
+      <pre class="out mono" id="e-out">—</pre>
+    </section>
+
+    <section class="card">
+      <h2>2 · The spend profile <span class="sub">the scorer's only view of you</span></h2>
+      <p class="mono" style="color:var(--muted);margin:0 0 4px">
+        Monthly averages per category <em>root</em> over the 3-month window. A rolling window cannot be kept by
+        deltas alone, so the deltas land in a per-month table and the windows are rebuilt from it.
+      </p>
+      <div id="p-table"></div>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>3 · Recommended <span class="sub">GET /v1/recommendations</span></h2>
+    <div class="row">
+      <button class="ghost" type="button" id="r-reload">Refresh</button>
+      <label class="sub"><input type="checkbox" id="r-held"> show only cards I hold</label>
+      <span class="sub" id="r-meta"></span>
+    </div>
+    <div id="r-list"></div>
+    <h2 style="margin-top:14px">Not recommended <span class="sub">below the threshold, or it loses money</span></h2>
+    <div id="r-no"></div>
+    <pre class="out mono" id="r-out">—</pre>
+  </section>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>4 · Why? <span class="sub">GET /v1/recommendations/explain/{cardProductId}</span></h2>
+      <p class="mono" style="color:var(--muted);margin:0 0 4px">
+        Pick a card above to see the arithmetic: what each category root earns, which caps bound it, the fee after
+        its waiver probability, and the milestone.
+      </p>
+      <div id="x-head" class="mono">—</div>
+      <div class="scroll" id="x-lines"></div>
+      <pre class="out mono" id="x-out">—</pre>
+    </section>
+
+    <section class="card">
+      <h2>5 · Cards you hold <span class="sub">projected from portfolio</span></h2>
+      <p class="mono" style="color:var(--muted);margin:0 0 4px">
+        Add a card on <a href="p11-portfolio.html">p11-portfolio.html</a> and it appears here through
+        <code>portfolio.card.added</code> — a held card is marked in the ranking rather than hidden from it, because
+        "you already have the best card for this" is an answer worth seeing.
+      </p>
+      <div id="h-list" class="mono">—</div>
+    </section>
+  </div>
+
+  <section class="card" id="events"></section>
+
+  <section class="card">
+    <h2>Requests</h2>
+    <div id="log" class="log"></div>
+  </section>
+</main>
+<script src="trail.js"></script>
+<script>
+(() => {
+  Trail.mountHeader('Reco', 'P14');
+  Trail.mountLog(document.getElementById('log'));
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const rs = p => '₹' + Math.round(p / 100).toLocaleString('en-IN');
+  const rs2 = p => '₹' + (p / 100).toLocaleString('en-IN', { minimumFractionDigits: 2,
+    maximumFractionDigits: 2 });
+  const pct = bps => (bps / 100).toFixed(bps % 100 === 0 ? 0 : 1) + '%';
+  const out = (id, v) => { $(id).textContent = typeof v === 'string' ? v : JSON.stringify(v, null, 2); };
+  const paise = id => Math.round(Number($(id).value) * 100);
+  const key = () => ({ 'Idempotency-Key': Trail.uuidv4() });
+  const root = path => String(path || 'general').split('.')[0];
+
+  // ---------------------------------------------------------------- Mock mode
+  // The projections and the blend are arithmetic, so Mock does them for real - including the rebuild of the
+  // windows from a per-month table, which is the part worth seeing. The card terms come from the seed's catalog
+  // fixtures, so the cards ranked here are the same ones p09-catalog.html lists.
+  const M = { month: new Map(), held: new Map(), cards: [], computed: null, hash: null };
+  const WEIGHT_BPS = 6000;
+  const THRESHOLD_BPS = 2000;
+  const need = req => (req.tenant ? null : Trail.problem(401, 'UNAUTHENTICATED', 'log in as a persona first'));
+  const istDay = instant => new Date(Date.parse(instant) + 330 * 60000).toISOString().slice(0, 10);
+  const monthOf = day => day.slice(0, 8) + '01';
+  const today = () => istDay(new Date().toISOString());
+
+  /** The 3m window: this month and the two before it. */
+  const windowMonths = n => {
+    const d = new Date(today() + 'T00:00:00Z');
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      out.push(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() - i, 1)).toISOString().slice(0, 10));
+    }
+    return out;
+  };
+
+  /** Monthly averages per root over the window, divided by the months that contributed (not by the window). */
+  const profile = account => {
+    const months = windowMonths(3);
+    const totals = new Map();
+    const counts = new Map();
+    for (const [k, v] of M.month) {
+      const [acct, r, m] = k.split('|');
+      if (acct !== account || !months.includes(m) || v <= 0) continue;
+      totals.set(r, (totals.get(r) || 0) + v);
+      counts.set(r, (counts.get(r) || 0) + 1);
+    }
+    const avg = new Map();
+    for (const [r, total] of totals) avg.set(r, Math.floor(total / counts.get(r)));
+    return new Map([...avg].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])));
+  };
+
+  const addSpend = (account, rootName, month, delta) => {
+    const k = account + '|' + rootName + '|' + month;
+    M.month.set(k, Math.max(0, (M.month.get(k) || 0) + delta));
+  };
+
+  // ---- the engine, the same rules the Java domain applies
+  const SHARE_BPS_BY_DEPTH = [10000, 10000, 4000, 2000, 1000];
+  const ruleRoot = r => (r.categoryPath ? r.categoryPath.split('.')[0] : null);
+  const depth = r => (r.categoryPath ? r.categoryPath.split('.').length : 0);
+  const share = (r, rootName) => {
+    if (ruleRoot(r) && ruleRoot(r) !== rootName) return 0;
+    for (const ex of r.excludedPaths || []) {
+      if (ex && ex.indexOf('.') < 0 && ex === rootName) return 0;
+    }
+    return SHARE_BPS_BY_DEPTH[Math.min(depth(r), SHARE_BPS_BY_DEPTH.length - 1)];
+  };
+  const bestRule = (rules, rootName) => {
+    let best = null;
+    for (const r of rules) {
+      if (!share(r, rootName)) continue;
+      if (!best || depth(r) > depth(best)
+        || (depth(r) === depth(best) && (r.priority || 0) > (best.priority || 0))
+        || (depth(r) === depth(best) && (r.priority || 0) === (best.priority || 0) && r.rateBps > best.rateBps)) {
+        best = r;
+      }
+    }
+    return best;
+  };
+  /** rateBps is a VALUE rate for points too (portfolio's RewardTerms), with whole-point rounding. */
+  const rewardPaise = (r, spendPaise) => {
+    if (spendPaise <= 0 || !r.rateBps) return 0;
+    if (spendPaise < (r.minTxnPaise || 0)) return 0;
+    const valueMilli = Math.floor(spendPaise * r.rateBps * 1000 / 10000);
+    const pv = r.pointValueMilliPaise || 0;
+    if (r.rewardType !== 'cashback' && pv > 0) return Math.floor(Math.floor(valueMilli / pv) * pv / 1000);
+    return Math.floor(valueMilli / 1000);
+  };
+  const monthlyCap = r => {
+    if (r.capPaise == null) return null;
+    if (r.capPeriod === 'txn') return null;
+    if (r.capPeriod === 'quarter') return Math.floor(r.capPaise / 3);
+    if (r.capPeriod === 'year') return Math.floor(r.capPaise / 12);
+    return r.capPaise;
+  };
+  const waiverBps = (waiver, annualSpend) => {
+    if (!waiver || annualSpend <= 0) return 0;
+    const half = Math.floor(waiver / 2);
+    if (annualSpend >= waiver) return 10000;
+    if (annualSpend <= half) return 0;
+    return Math.floor((annualSpend - half) * 10000 / (waiver - half));
+  };
+  const savingsOf = (card, spend) => {
+    const lines = [];
+    let rewards = 0;
+    for (const [rootName, monthly] of spend) {
+      const r = bestRule(card.rules || [], rootName);
+      if (!r) continue;
+      const sh = share(r, rootName);
+      const considered = Math.floor(monthly * sh / 10000);
+      let reward = rewardPaise(r, considered);
+      if (!reward) continue;
+      const cap = monthlyCap(r);
+      let capBound = false;
+      if (cap != null && reward > cap) { reward = cap; capBound = true; }
+      rewards += reward * 12;
+      lines.push({ categoryRoot: rootName, ruleId: r.id, rewardType: r.rewardType, rateBps: r.rateBps,
+        shareBps: sh, monthlySpendPaise: monthly, annualSpendConsideredPaise: considered * 12,
+        annualRewardPaise: reward * 12, capBound, annualCapPaise: cap == null ? null : cap * 12,
+        capNotConvertible: r.capPaise != null && cap == null });
+    }
+    let monthlyTotal = 0;
+    for (const v of spend.values()) monthlyTotal += v;
+    const wb = waiverBps(card.feeWaiverSpendPaise, monthlyTotal * 12);
+    const expectedFee = card.annualFeePaise - Math.floor(card.annualFeePaise * wb / 10000);
+    let ms = { annualValuePaise: 0, reached: false, monthlyThresholdPaise: 0, monthlyShortfallPaise: 0 };
+    if (card.milestone) {
+      const per = card.milestone.period;
+      const div = per === 'quarter' ? 3 : per === 'year' ? 12 : 1;
+      const threshold = Math.floor(card.milestone.spendThresholdPaise / div);
+      const reached = monthlyTotal >= threshold;
+      ms = { annualValuePaise: reached ? Math.floor(card.milestone.benefitValuePaise / div) * 12 : 0, reached,
+        monthlyThresholdPaise: threshold, monthlyShortfallPaise: reached ? 0 : threshold - monthlyTotal };
+    }
+    return { annualRewardPaise: rewards,
+      fee: { annualFeePaise: card.annualFeePaise, waiverSpendPaise: card.feeWaiverSpendPaise || null,
+        waiverProbabilityBps: wb, expectedFeePaise: expectedFee },
+      milestone: ms, annualSavingsPaise: rewards - expectedFee + ms.annualValuePaise, lines };
+  };
+  const rewardVector = (card, spend) => {
+    const v = {};
+    for (const [rootName, monthly] of spend) {
+      const r = bestRule(card.rules || [], rootName);
+      if (!r) { v[rootName] = 0; continue; }
+      const considered = Math.floor(Math.max(1, monthly) * share(r, rootName) / 10000);
+      v[rootName] = Math.min(10000, Math.floor(rewardPaise(r, considered) * 10000 / Math.max(1, monthly)));
+    }
+    return v;
+  };
+  const fitBps = (card, spend) => {
+    let total = 0;
+    for (const v of spend.values()) total += v;
+    if (!total) return 0;
+    const vec = rewardVector(card, spend);
+    const best = Math.max(0, ...Object.values(vec));
+    if (!best) return 0;
+    let weighted = 0;
+    for (const [rootName, monthly] of spend) weighted += Math.floor(monthly * (vec[rootName] || 0) / best);
+    return Math.min(10000, Math.floor(weighted * 10000 / total));
+  };
+  const reasonsOf = (card, sv, spend, fit) => {
+    if (!spend.size) return ['No spend recorded yet, so this is based on the card’s terms alone.'];
+    const out = [];
+    const top = sv.lines.slice().sort((a, b) => b.annualRewardPaise - a.annualRewardPaise)[0];
+    if (top && top.annualRewardPaise > 0) {
+      out.push('Earns ' + rs2(top.annualRewardPaise) + ' a year on your ' + top.categoryRoot + ' spend at '
+        + pct(top.rateBps) + (top.rewardType === 'cashback' ? ' cashback' : ' in ' + top.rewardType) + '.');
+    }
+    const capped = sv.lines.find(l => l.capBound);
+    if (capped) {
+      out.push('The ' + capped.categoryRoot + ' reward is capped at ' + rs2(capped.annualCapPaise)
+        + ' a year, which your spend reaches.');
+    }
+    if (sv.fee.annualFeePaise > 0) {
+      if (sv.fee.waiverProbabilityBps >= 10000) {
+        out.push('Your spend clears the ' + rs2(sv.fee.waiverSpendPaise) + ' waiver, so the '
+          + rs2(sv.fee.annualFeePaise) + ' fee is not counted.');
+      } else if (sv.fee.waiverProbabilityBps > 0) {
+        out.push('The ' + rs2(sv.fee.annualFeePaise) + ' fee is counted at '
+          + pct(10000 - sv.fee.waiverProbabilityBps) + ', since your spend is near the waiver.');
+      } else {
+        out.push('Costs ' + rs2(sv.fee.annualFeePaise) + ' a year, which this spend does not waive.');
+      }
+    }
+    if (sv.milestone.annualValuePaise > 0) {
+      out.push('Reaches its milestone, worth ' + rs2(sv.milestone.annualValuePaise) + ' a year.');
+    } else if (sv.milestone.monthlyShortfallPaise > 0 && out.length < 4) {
+      out.push('Its milestone needs ' + rs2(sv.milestone.monthlyShortfallPaise)
+        + ' more a month, so it is not counted.');
+    }
+    if (out.length < 4 && fit < 3000) out.push('Its rewards sit mostly outside where you spend.');
+    return out.slice(0, 4);
+  };
+  const rank = (account, only) => {
+    const spend = profile(account);
+    const held = new Set([...M.held.values()].filter(h => h.accountId === account).map(h => h.cardProductId));
+    let cards = M.cards;
+    if (only && only.length) cards = cards.filter(c => only.includes(c.cardProductId));
+    const scored = cards.map(c => {
+      const sv = savingsOf(c, spend);
+      return { card: c, sv, fit: fitBps(c, spend) };
+    });
+    const bestSavings = Math.max(0, ...scored.map(s => s.sv.annualSavingsPaise));
+    const rows = scored.map(s => {
+      const savingsBps = bestSavings <= 0 ? 0
+        : Math.max(0, Math.min(10000, Math.floor(s.sv.annualSavingsPaise * 10000 / bestSavings)));
+      return { cardProductId: s.card.cardProductId, slug: s.card.slug, name: s.card.name,
+        issuerCode: s.card.issuerCode, held: held.has(s.card.cardProductId),
+        annualSavingsPaise: s.sv.annualSavingsPaise, savingsBps, fitBps: s.fit,
+        scoreBps: Math.floor((savingsBps * WEIGHT_BPS + s.fit * (10000 - WEIGHT_BPS)) / 10000),
+        reasons: reasonsOf(s.card, s.sv, spend, s.fit), _savings: s.sv, _vector: rewardVector(s.card, spend) };
+    });
+    rows.sort((a, b) => b.scoreBps - a.scoreBps || b.annualSavingsPaise - a.annualSavingsPaise
+      || String(a.slug).localeCompare(String(b.slug)));
+    const yes = rows.filter(r => r.scoreBps >= THRESHOLD_BPS && r.annualSavingsPaise > 0);
+    const no = rows.filter(r => !(r.scoreBps >= THRESHOLD_BPS && r.annualSavingsPaise > 0));
+    const spendByRoot = {};
+    for (const [k, v] of spend) spendByRoot[k] = v;
+    let monthlyTotal = 0;
+    for (const v of spend.values()) monthlyTotal += v;
+    return { window: '3m', monthlySpendPaise: monthlyTotal, spendByRoot, savingsWeightBps: WEIGHT_BPS,
+      thresholdBps: THRESHOLD_BPS, computedAt: new Date().toISOString(), fresh: true,
+      recommended: yes, notRecommended: no };
+  };
+
+  // the catalog projection, from the seed's own catalog fixtures
+  const loadCards = seed => {
+    M.cards = (seed.catalog ? seed.catalog.rows() : []).filter(c => !c.status || c.status === 'published')
+      .map(c => ({ cardProductId: c.id, slug: c.slug, name: c.name, issuerCode: c.issuerCode,
+        annualFeePaise: c.annualFeePaise || 0, feeWaiverSpendPaise: c.feeWaiverSpendPaise || null,
+        milestone: c.milestone || null,
+        rules: (c.rules || []).map(r => ({ id: r.id, categoryPath: r.categoryPath,
+          rewardType: r.rewardType || 'cashback', rateBps: r.rateBps,
+          pointValueMilliPaise: r.pointValueMilliPaise || 0, capPaise: r.capPaise == null ? null : r.capPaise,
+          capPeriod: r.capPeriod || null, minTxnPaise: r.minTxnPaise || 0,
+          excludedPaths: r.excludedPaths || [], priority: r.priority || 0 })) }));
+  };
+
+  // the consumers: the seed's POST /api/v1/expenses emits ledger.expense.created, p11 emits portfolio.card.*
+  Trail.events.on(ev => {
+    if (String(ev.type).startsWith('ledger.expense.') && ev.data) {
+      const before = ev.data.before;
+      const after = ev.data.after;
+      if (before) addSpend(ev.accountId, root(before.categoryPath), monthOf(istDay(before.occurredAt)),
+        -before.amountPaise);
+      if (after) addSpend(ev.accountId, root(after.categoryPath), monthOf(istDay(after.occurredAt)),
+        after.amountPaise);
+    }
+    if (ev.type === 'portfolio.card.added' && ev.data) {
+      M.held.set(ev.data.userCardId, { accountId: ev.accountId, cardProductId: ev.data.cardProductId });
+    }
+    if (ev.type === 'portfolio.card.removed' && ev.data) {
+      M.held.delete(ev.data.userCardId);
+    }
+  });
+
+  Trail.mock('GET', /^\/api\/v1\/recommendations$/, (m, req) => need(req) || (() => {
+    const only = (req.query.cardProductIds || '').split(',').filter(Boolean);
+    if (only.length > 50) return Trail.problem(400, 'VALIDATION_FAILED', 'At most 50 cardProductIds');
+    if (only.some(x => !/^[0-9a-f-]{36}$/i.test(x))) return Trail.problem(400, 'INVALID_ID', 'Not an id');
+    return rank(req.tenant.accountId, only);
+  })());
+  Trail.mock('GET', /^\/api\/v1\/recommendations\/explain\/([0-9a-f-]{36})$/, (m, req) => need(req) || (() => {
+    const full = rank(req.tenant.accountId, []);
+    const row = full.recommended.concat(full.notRecommended).find(r => r.cardProductId === m[1]);
+    if (!row) return Trail.problem(404, 'CARD_NOT_IN_CATALOG', 'No published card ' + m[1]);
+    return { cardProductId: row.cardProductId, slug: row.slug, name: row.name, issuerCode: row.issuerCode,
+      held: row.held, window: '3m', monthlySpendPaise: full.monthlySpendPaise,
+      annualRewardPaise: row._savings.annualRewardPaise, annualSavingsPaise: row.annualSavingsPaise,
+      savingsBps: row.savingsBps, fitBps: row.fitBps, scoreBps: row.scoreBps,
+      recommended: full.recommended.some(r => r.cardProductId === m[1]), fee: row._savings.fee,
+      milestone: row._savings.milestone, lines: row._savings.lines, rewardRateBpsByRoot: row._vector,
+      reasons: row.reasons, computedAt: new Date().toISOString() };
+  })());
+
+  // ---------------------------------------------------------------- the page
+  const spendTable = view => {
+    const roots = Object.entries(view.spendByRoot || {});
+    if (!roots.length) {
+      $('p-table').innerHTML = '<div class="sub">no spend in the window yet — add an expense</div>';
+      return;
+    }
+    $('p-table').innerHTML = '<table class="spend"><tr><th>root</th><th class="n">monthly average</th>'
+      + '<th class="n">share</th></tr>'
+      + roots.map(([r, v]) => `<tr><td class="mono">${esc(r)}</td><td class="n mono">${esc(rs2(v))}</td>`
+        + `<td class="n mono">${view.monthlySpendPaise ? pct(Math.round(v * 10000 / view.monthlySpendPaise))
+          : '0%'}</td></tr>`).join('')
+      + `<tr><td class="mono"><strong>total</strong></td><td class="n mono"><strong>`
+      + `${esc(rs2(view.monthlySpendPaise))}</strong></td><td></td></tr></table>`;
+  };
+
+  const cardBlock = (c, top) => `
+    <div class="rec ${top ? 'top' : ''}" data-card="${esc(c.cardProductId)}">
+      <h3>${esc(c.name)} <small>${esc(c.issuerCode)} · ${esc(c.slug)}</small>
+        ${c.held ? '<span class="chip held">you hold this</span>' : ''}</h3>
+      <div class="mono" style="font-size:13px">${c.annualSavingsPaise >= 0 ? 'saves' : 'costs'}
+        <strong>${esc(rs(Math.abs(c.annualSavingsPaise)))}</strong> a year
+        <span class="sub">· score ${pct(c.scoreBps)}</span></div>
+      <div class="bars">
+        <span>savings</span><div class="bar s"><span style="width:${c.savingsBps / 100}%"></span></div>
+        <span>${pct(c.savingsBps)}</span>
+        <span>fit</span><div class="bar f"><span style="width:${c.fitBps / 100}%"></span></div>
+        <span>${pct(c.fitBps)}</span>
+        <span>blend</span><div class="bar"><span style="width:${c.scoreBps / 100}%"></span></div>
+        <span>${pct(c.scoreBps)}</span>
+      </div>
+      <ul class="why">${(c.reasons || []).map(r => '<li>' + esc(r) + '</li>').join('')}</ul>
+      <button class="ghost" type="button" data-explain="${esc(c.cardProductId)}">Why?</button>
+    </div>`;
+
+  let lastTotal = null;
+  const refresh = async () => {
+    const r = await Trail.api('GET', '/api/v1/recommendations');
+    out('r-out', r.data === null ? '(no body)' : r.data);
+    if (r.status !== 200 || !r.data || !r.data.recommended) {
+      $('r-list').innerHTML = '';
+      $('r-no').innerHTML = '';
+      $('p-table').innerHTML = '';
+      return null;
+    }
+    const view = r.data;
+    spendTable(view);
+    const onlyHeld = $('r-held').checked;
+    const rec = onlyHeld ? view.recommended.filter(c => c.held) : view.recommended;
+    $('r-list').innerHTML = rec.length ? rec.map((c, i) => cardBlock(c, i === 0 && !onlyHeld)).join('')
+      : '<div class="sub">nothing clears the threshold yet — add some spend</div>';
+    const no = onlyHeld ? view.notRecommended.filter(c => c.held) : view.notRecommended;
+    $('r-no').innerHTML = no.length ? no.map(c => cardBlock(c, false)).join('')
+      : '<div class="sub">none</div>';
+    $('r-meta').textContent = `${view.window} window · ${pct(view.savingsWeightBps)} savings / `
+      + `${pct(10000 - view.savingsWeightBps)} fit · computed ${String(view.computedAt).slice(11, 19)}Z`;
+    $('h-list').innerHTML = view.recommended.concat(view.notRecommended).filter(c => c.held)
+      .map(c => `<span class="chip held">${esc(c.name)}</span>`).join('') || '<span class="sub">none yet</span>';
+    for (const b of document.querySelectorAll('[data-explain]')) {
+      b.addEventListener('click', () => explain(b.getAttribute('data-explain')));
+    }
+    lastTotal = view.monthlySpendPaise;
+    return view;
+  };
+
+  const explain = async id => {
+    const r = await Trail.api('GET', '/api/v1/recommendations/explain/' + id);
+    out('x-out', r.data);
+    if (r.status !== 200) { $('x-head').textContent = r.status + ' ' + ((r.data && r.data.code) || ''); return; }
+    const e = r.data;
+    $('x-head').innerHTML = `<strong>${esc(e.name)}</strong> · earns ${esc(rs2(e.annualRewardPaise))}`
+      + ` − fee ${esc(rs2(e.fee.expectedFeePaise))}`
+      + (e.milestone.annualValuePaise ? ` + milestone ${esc(rs2(e.milestone.annualValuePaise))}` : '')
+      + ` = <strong>${esc(rs2(e.annualSavingsPaise))}</strong> a year`
+      + ` <span class="sub">savings ${pct(e.savingsBps)} · fit ${pct(e.fitBps)} · `
+      + `${e.recommended ? 'recommended' : 'not recommended'}</span>`;
+    $('x-lines').innerHTML = (e.lines || []).length
+      ? '<table><tr><th>root</th><th>rate</th><th>share</th><th>spend considered</th><th>earns</th><th>cap</th></tr>'
+        + e.lines.map(l => `<tr><td class="mono">${esc(l.categoryRoot)}</td>`
+          + `<td class="mono">${pct(l.rateBps)}${l.rewardType === 'cashback' ? '' : ' ' + esc(l.rewardType)}</td>`
+          + `<td class="mono">${pct(l.shareBps)}</td>`
+          + `<td class="mono">${esc(rs2(l.annualSpendConsideredPaise))}</td>`
+          + `<td class="mono">${esc(rs2(l.annualRewardPaise))}</td>`
+          + `<td class="mono">${l.capBound ? 'bound at ' + esc(rs2(l.annualCapPaise))
+            : l.capNotConvertible ? 'per-txn (not applied)' : '—'}</td></tr>`).join('')
+        + '</table>'
+      : '<div class="sub">this card earns nothing on your spend</div>';
+  };
+
+  const spend = async (amountPaise, categoryPath, merchant) => {
+    const body = { amountPaise, occurredAt: new Date().toISOString(), merchant, categoryPath,
+      paymentMethod: 'upi' };
+    const before = lastTotal;
+    const r = await Trail.api('POST', '/api/v1/expenses', { body, headers: key() });
+    out('e-out', r.data);
+    if (r.status !== 201) return;
+    $('e-note').textContent = 'expense recorded — waiting for the recompute…';
+    for (let i = 0; i < 16; i++) {
+      const view = await refresh();
+      if (view && before !== null && view.monthlySpendPaise !== before) {
+        $('e-note').textContent = 'ranking updated';
+        return;
+      }
+      if (view && before === null && view.monthlySpendPaise > 0) {
+        $('e-note').textContent = 'ranking updated';
+        return;
+      }
+      await new Promise(done => setTimeout(done, 500));
+    }
+    $('e-note').textContent = 'no change yet — the sweeper recomputes a few seconds after the burst';
+  };
+
+  $('e-add').addEventListener('click', () => spend(paise('e-amount'), $('e-cat').value.trim(),
+    $('e-merchant').value));
+  $('e-travel').addEventListener('click', () => spend(600000, 'travel.air', 'Trail airways'));
+  $('e-fuel').addEventListener('click', () => spend(300000, 'fuel.petrol', 'Trail fuel'));
+  $('r-reload').addEventListener('click', refresh);
+  $('r-held').addEventListener('change', refresh);
+
+  const reset = () => { lastTotal = null; $('e-note').textContent = ''; $('x-head').textContent = '—';
+    $('x-lines').innerHTML = ''; out('x-out', '—'); };
+  Trail.mountEvents($('events'), { livePath: '/api/_dev/outbox/recent' });
+  document.addEventListener('trail:mode', () => { reset(); refresh(); });
+  (async () => {
+    try {
+      const seed = await Trail.loadSeed();
+      loadCards(seed);
+    } catch (e) {
+      out('r-out', 'fixtures missing: ' + e.message + ' - run ./scripts/seed.sh fixtures');
+    }
+    Trail.mountTenantSwitcher($('tenant'), { onSwitch: () => { reset(); refresh(); } });
+    refresh();
+  })();
+})();
+</script>
+</body>
+</html>
