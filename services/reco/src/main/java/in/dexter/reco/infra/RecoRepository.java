@@ -271,15 +271,15 @@ public final class RecoRepository implements RecoStore {
   /**
    * Claims the oldest dirty accounts and clears the flag in the same statement, so a second sweeper cannot pick
    * them up while the first is recomputing. {@code SKIP LOCKED} is what lets every instance sweep at once.
+   *
+   * <p>The claim is {@code reco.claim_dirty}, a SECURITY DEFINER function owned by {@code reco_owner}, because a
+   * sweep spans accounts and {@code rec_state}'s tenant policy shows the app pool only its own row — written here
+   * as plain SQL it claimed nothing, whatever actor the job carried (A-84).
    */
   @Override
   public List<UUID> claimDirty(Instant olderThan, int batch) {
     TenantScope.require();
-    return jdbc.sql("WITH claimed AS (SELECT account_id FROM reco.rec_state"
-            + " WHERE dirty AND dirty_since <= :before ORDER BY dirty_since, account_id LIMIT :n"
-            + " FOR UPDATE SKIP LOCKED)"
-            + " UPDATE reco.rec_state s SET dirty = false, dirty_since = NULL"
-            + " FROM claimed c WHERE s.account_id = c.account_id RETURNING s.account_id")
+    return jdbc.sql("SELECT c.account_id FROM reco.claim_dirty(:before, :n) AS c(account_id)")
         .param("before", Sql.ts(olderThan)).param("n", batch).query(UUID.class).list();
   }
 

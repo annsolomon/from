@@ -32,7 +32,11 @@ import org.slf4j.LoggerFactory;
  */
 public final class Sweeper {
   private static final Logger log = LoggerFactory.getLogger(Sweeper.class);
-  /** The owner tenant: claiming across accounts is cross-tenant by design, like portfolio's statement closer. */
+  /**
+   * The job's actor: no account, no token — it names who is sweeping in the logs and satisfies the tenant scope
+   * every write needs. It is <em>not</em> what lets the claim see other accounts: no tenant can do that, so the
+   * claim goes through the owner's {@code reco.claim_dirty} (A-84).
+   */
   static final Tenant OWNER = new Tenant(new UUID(0, 0x5_1EE9L), "SWEEPER", null);
 
   /** What one pass did. */

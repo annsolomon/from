@@ -20,6 +20,10 @@ import tools.jackson.databind.JsonNode;
 /**
  * The debounced recompute (MASTER_PLAN P14), including the plan's named test: 50 events must coalesce into one
  * recompute, and an unchanged recompute must publish nothing.
+ *
+ * <p>A sweep spans accounts, so {@code rec_state} is shared by every test here and {@code Pass.claimed()} counts
+ * whatever else the class left dirty. So the assertions are per-account — this account's outbox rows, its history
+ * rows, its dirty flag — which is both order-independent and a sharper statement of what a coalesced burst means.
  */
 class DebounceIT extends RecoIT {
   @Autowired
@@ -57,13 +61,15 @@ class DebounceIT extends RecoIT {
     assertThat(state(a).get("dirty_since")).isNotNull();
 
     Sweeper.Pass pass = immediate().sweep();
-    assertThat(pass.claimed()).as("one account, however many events").isEqualTo(1);
-    assertThat(pass.changed()).isEqualTo(1);
+    assertThat(pass.claimed()).as("the claim took this account").isPositive();
     assertThat(state(a).get("dirty")).isEqualTo(false);
 
-    // and one event on the outbox, not fifty
+    // one recompute and one event for the fifty events, not fifty of each
+    assertThat(historyRows(a)).as("one recompute, however many events").isEqualTo(1);
     assertThat(outboxRows(a, RecommendationUpdatedV1.TYPE)).isEqualTo(1);
-    assertThat(immediate().sweep().claimed()).as("nothing is dirty any more").isZero();
+
+    immediate().sweep();
+    assertThat(outboxRows(a, RecommendationUpdatedV1.TYPE)).as("nothing left to do for it").isEqualTo(1);
   }
 
   @Test
@@ -71,8 +77,9 @@ class DebounceIT extends RecoIT {
     UUID a = UUID.randomUUID();
     publishOneCard();
     projections.onExpenseEvent(Events.created(a, UUID.randomUUID(), Events.state(600_000L, today(), "food.x")));
-    assertThat(immediate().sweep().changed()).isEqualTo(1);
+    immediate().sweep();
     long after = outboxRows(a, RecommendationUpdatedV1.TYPE);
+    assertThat(after).as("the sweep published the first result").isEqualTo(1);
 
     // recompute again with nothing changed: the state hash matches, so there is no new result and no event
     RecommendationService.Recomputed again = recommendations.recompute(a);
@@ -90,7 +97,7 @@ class DebounceIT extends RecoIT {
     String first = storedHash(a);
 
     projections.onExpenseEvent(Events.created(a, UUID.randomUUID(), Events.state(900_000L, today(), "food.x")));
-    assertThat(immediate().sweep().changed()).isEqualTo(1);
+    immediate().sweep();
     assertThat(storedHash(a)).as("more spend, a different hash").isNotEqualTo(first);
     assertThat(outboxRows(a, RecommendationUpdatedV1.TYPE)).isEqualTo(2);
     assertThat(historyRows(a)).isEqualTo(2);
@@ -105,11 +112,12 @@ class DebounceIT extends RecoIT {
     UUID a = UUID.randomUUID();
     publishOneCard();
     projections.onExpenseEvent(Events.created(a, UUID.randomUUID(), Events.state(600_000L, today(), "food.x")));
-    // the real sweeper's three-second debounce: an account dirty a moment ago is not claimed yet
+    // the real sweeper's three-second debounce: an account dirty a moment ago is not claimed yet. A claim clears
+    // the flag, so "still dirty after a patient pass" is exactly "not claimed" - and says it per account.
     Sweeper patient = new Sweeper(tx, store, recommendations, java.time.Clock.systemUTC(),
         Duration.ofSeconds(30), 200);
-    assertThat(patient.sweep().claimed()).as("still inside the debounce").isZero();
-    assertThat(state(a).get("dirty")).as("and it stays dirty").isEqualTo(true);
+    patient.sweep();
+    assertThat(state(a).get("dirty")).as("still inside the debounce, so still dirty").isEqualTo(true);
   }
 
   @Test

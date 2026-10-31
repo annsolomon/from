@@ -9,6 +9,8 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import tools.jackson.databind.JsonNode;
@@ -16,6 +18,11 @@ import tools.jackson.databind.JsonNode;
 /**
  * {@code GET /v1/recommendations} and {@code /explain} over HTTP (MASTER_PLAN P14), including freshness: a read
  * must never serve a result built from inputs that have since changed.
+ *
+ * <p>The catalog projection is global by design (ADR-0020 §9), so every card any test here publishes is a
+ * candidate for every other test's account. A test that is about <em>ranking</em> therefore scores an explicit
+ * subset with {@code ?cardProductIds=}; a test that is about the cached full read — which is the only path that
+ * consults the state hash — keeps the full read and looks its own card up by id instead of taking the first row.
  */
 class RecommendationsIT extends RecoIT {
   @Autowired
@@ -23,6 +30,19 @@ class RecommendationsIT extends RecoIT {
 
   static String today() {
     return LocalDate.now(ZoneId.of("Asia/Kolkata")).toString();
+  }
+
+  /** Score only these cards, so a ranking assertion does not depend on what the rest of the class published. */
+  static String only(UUID... cards) {
+    return "?cardProductIds=" + Stream.of(cards).map(UUID::toString).collect(Collectors.joining(","));
+  }
+
+  /** One card's annual savings from a full read, whichever bucket it landed in. */
+  static long savingsOf(JsonNode body, UUID card) {
+    return Stream.concat(body.get("recommended").valueStream(), body.get("notRecommended").valueStream())
+        .filter(n -> n.get("cardProductId").asString().equals(card.toString()))
+        .findFirst().orElseThrow(() -> new AssertionError("card was not scored at all: " + card))
+        .get("annualSavingsPaise").asLong();
   }
 
   /** A cashback card on `food`, with an annual fee and a waiver. */
@@ -52,10 +72,10 @@ class RecommendationsIT extends RecoIT {
   void aFoodSpenderIsRecommendedTheFoodCard() {
     UUID a = UUID.randomUUID();
     UUID food = foodCard(0, null, 500, null);
-    travelCard(500);
+    UUID travel = travelCard(500);
     spend(a, 2_000_000L, "food.dining");
 
-    Res r = get("/v1/recommendations", a);
+    Res r = get("/v1/recommendations" + only(food, travel), a);
     assertThat(r.status()).as(r.toString()).isEqualTo(200);
     JsonNode body = r.json();
     assertThat(body.get("window").asString()).isEqualTo("3m");
@@ -79,7 +99,7 @@ class RecommendationsIT extends RecoIT {
     spend(a, 2_000_000L, "food.dining");
     projections.onCardEvent(Events.cardAdded(a, UUID.randomUUID(), food, 1));
 
-    JsonNode body = get("/v1/recommendations", a).json();
+    JsonNode body = get("/v1/recommendations" + only(food), a).json();
     JsonNode card = body.get("recommended").get(0);
     assertThat(card.get("cardProductId").asString()).isEqualTo(food.toString());
     assertThat(card.get("held").asBoolean()).isTrue();
@@ -88,17 +108,15 @@ class RecommendationsIT extends RecoIT {
   @Test
   void aReadAfterTheInputsChangedIsRecomputedNotStale() {
     UUID a = UUID.randomUUID();
-    foodCard(0, null, 500, null);
+    UUID card = foodCard(0, null, 500, null);
     spend(a, 1_000_000L, "food.dining");
-    long first = get("/v1/recommendations", a).json().get("recommended").get(0)
-        .get("annualSavingsPaise").asLong();
-    assertThat(first).isEqualTo(600_000L);
+    // the full read, because the stored result and its hash are what this test is about
+    assertThat(savingsOf(get("/v1/recommendations", a).json(), card)).isEqualTo(600_000L);
 
     // more spend arrives, and nothing has swept: the read must still answer with the new figure
     spend(a, 1_000_000L, "food.dining");
-    long second = get("/v1/recommendations", a).json().get("recommended").get(0)
-        .get("annualSavingsPaise").asLong();
-    assertThat(second).as("the read recomputes when the stored hash no longer matches").isEqualTo(1_200_000L);
+    assertThat(savingsOf(get("/v1/recommendations", a).json(), card))
+        .as("the read recomputes when the stored hash no longer matches").isEqualTo(1_200_000L);
   }
 
   @Test
@@ -106,15 +124,14 @@ class RecommendationsIT extends RecoIT {
     UUID a = UUID.randomUUID();
     UUID card = foodCard(0, null, 300, null);
     spend(a, 1_000_000L, "food.dining");
-    assertThat(get("/v1/recommendations", a).json().get("recommended").get(0).get("annualSavingsPaise").asLong())
-        .isEqualTo(360_000L);
+    assertThat(savingsOf(get("/v1/recommendations", a).json(), card)).isEqualTo(360_000L);
 
     // catalog publishes version 2 with a better rate; no per-account dirty flag was set (A-83)
     projections.onCatalogEvent(Events.cardPublished(card, "food-" + card, 2, 2,
         Events.snapshot(card, "food-" + card, "Food Card", 0, null,
             List.of(Events.rule(UUID.randomUUID(), "food", "cashback", 600, 0L, null, null, List.of(), 0)),
             null)));
-    assertThat(get("/v1/recommendations", a).json().get("recommended").get(0).get("annualSavingsPaise").asLong())
+    assertThat(savingsOf(get("/v1/recommendations", a).json(), card))
         .as("the read noticed through the state hash").isEqualTo(720_000L);
   }
 
@@ -150,10 +167,13 @@ class RecommendationsIT extends RecoIT {
     assertThat(line.get("capBound").asBoolean()).as("Rs 500 a month caps a Rs 1,000 reward").isTrue();
     assertThat(line.get("annualCapPaise").asLong()).isEqualTo(600_000L);
     assertThat(e.get("fee").get("annualFeePaise").asLong()).isEqualTo(100_000L);
-    assertThat(e.get("fee").get("waiverProbabilityBps").asInt()).isEqualTo(10_000);
-    assertThat(e.get("fee").get("expectedFeePaise").asLong()).isZero();
+    // the waiver is a ramp, not a step (ADR-0020 §7): Rs 2,40,000 a year against a Rs 3,00,000 threshold is
+    // 60 % of the way from half the threshold to the threshold, so the fee is counted at 40 % of Rs 1,000
+    assertThat(e.get("fee").get("waiverProbabilityBps").asInt()).isEqualTo(6_000);
+    assertThat(e.get("fee").get("expectedFeePaise").asLong()).isEqualTo(40_000L);
     assertThat(e.get("annualRewardPaise").asLong()).isEqualTo(600_000L);
-    assertThat(e.get("annualSavingsPaise").asLong()).isEqualTo(600_000L);
+    assertThat(e.get("annualSavingsPaise").asLong()).as("Rs 6,000 of reward less the Rs 400 expected fee")
+        .isEqualTo(560_000L);
     assertThat(e.get("reasons").size()).isPositive();
     assertThat(e.get("rewardRateBpsByRoot").get("food").asInt()).isPositive();
   }

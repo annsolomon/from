@@ -69,6 +69,21 @@
     app transaction create partitions on any table.
 13. **`window` is a reserved word in Postgres**, so the column is `window_code`; the API field stays `window`, so
     the plan's vocabulary survives where it is read (A-80).
+14. **A cross-account claim cannot be app-pool SQL, so it is an owner function.** `rec_state` carries the same
+    per-account policy as every other table, which means the app pool sees exactly one row — its own. The claim in
+    §11 therefore returned nothing on every pass as first written, and no choice of actor could have fixed it: the
+    sweeper has no account at all. `reco.claim_dirty` is `SECURITY DEFINER`, owned by `reco_owner`, granted to
+    `reco_app` and argument-checked, so the cross-account reach lives in one function that can only do this one
+    thing — the shape portfolio's statement closer already used (A-84). A second RLS policy keyed on a `SWEEPER`
+    actor would have been less code and a wider grant: every statement in such a transaction would see every
+    account's row, where the function sees them only to claim them.
+15. **Because the catalog projection is global and the sweep spans accounts, reco's own tests are per-account.**
+    Both are deliberate (§3, §9), and both mean a test shares state with every other test in its class: a card any
+    test publishes is a candidate for every account, and `Pass.claimed()` counts whatever else was left dirty. So a
+    ranking assertion names the cards it wants scored (`?cardProductIds=`), a cached-read assertion looks its own
+    card up by id rather than taking the first row, and a debounce assertion counts this account's outbox and
+    history rows rather than the pass's totals. The per-account form is also the sharper claim: "fifty events
+    produced one history row and one event for this account" is what coalescing means.
 
 ## What this phase does not do
 

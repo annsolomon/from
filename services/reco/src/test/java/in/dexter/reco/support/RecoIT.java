@@ -1,5 +1,6 @@
 package in.dexter.reco.support;
 
+import in.dexter.db.sql.Sql;
 import in.dexter.security.jwt.JwtVerifier;
 import in.dexter.testkit.containers.ServiceDb;
 import in.dexter.testkit.containers.TestPostgres;
@@ -154,11 +155,14 @@ public abstract class RecoIT {
     return out;
   }
 
-  /** The exact month rows, for comparing the projection against a recomputed sum. */
+  /**
+   * The exact month rows, for comparing the projection against a recomputed sum. {@code category_root} is
+   * {@code ltree}, so the parameter has to be one too — Postgres has no {@code ltree = text} operator.
+   */
   public static long monthTotal(UUID account, String root, String month) {
     return ADMIN.sql("SELECT coalesce(sum(total_paise), 0) FROM reco.spend_month WHERE account_id = :a"
             + " AND category_root = :r AND month = CAST(:m AS date)")
-        .param("a", account).param("r", root).param("m", month).query(Long.class).single();
+        .param("a", account).param("r", Sql.ltree(root)).param("m", month).query(Long.class).single();
   }
 
   public static Map<String, Object> state(UUID account) {

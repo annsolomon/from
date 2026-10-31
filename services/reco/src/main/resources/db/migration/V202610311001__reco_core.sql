@@ -168,12 +168,45 @@ CREATE TABLE reco.rec_state (
 CREATE INDEX rec_state_dirty ON reco.rec_state (dirty_since, account_id) WHERE dirty;
 ALTER TABLE reco.rec_state ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reco.rec_state FORCE  ROW LEVEL SECURITY;
--- the tenant sees its own row; the sweeper runs as the owner (cross-tenant by design, like the statement closer)
+-- the tenant sees its own row; the sweep is cross-account and goes through claim_dirty below
 CREATE POLICY rec_state_tenant ON reco.rec_state FOR ALL TO reco_app
   USING      (account_id = (SELECT reco.app_account()))
   WITH CHECK (account_id = (SELECT reco.app_account()));
 CREATE POLICY rec_state_owner ON reco.rec_state FOR ALL TO reco_owner USING (true) WITH CHECK (true);
 GRANT SELECT, INSERT, UPDATE ON reco.rec_state TO reco_app;
+
+-- The sweeper's claim, as the owner. A sweep spans accounts by definition, and rec_state_tenant shows the app pool
+-- exactly one row - its own - so the app pool cannot do this claim itself however the job is written (A-84; the
+-- first cut tried it under a synthetic SWEEPER tenant and claimed nothing, every time). SECURITY DEFINER keeps the
+-- cross-account reach inside one function that can only ever do this one thing, which is how portfolio's
+-- close_ended_statements solved the same problem for its statement closer rather than opening the table up with a
+-- second policy.
+CREATE FUNCTION reco.claim_dirty(p_before timestamptz, p_limit integer) RETURNS SETOF uuid
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, pg_temp AS
+$$
+BEGIN
+  IF p_before IS NULL OR p_limit NOT BETWEEN 1 AND 10000 THEN
+    RAISE EXCEPTION 'bad claim arguments';
+  END IF;
+  -- claim and clear in one statement: SKIP LOCKED means a second sweeper cannot pick up an account the first is
+  -- still recomputing, so every instance can sweep at once without leader election.
+  RETURN QUERY
+  WITH claimed AS (
+    SELECT account_id FROM reco.rec_state
+     WHERE dirty AND dirty_since <= p_before
+     ORDER BY dirty_since, account_id
+     LIMIT p_limit
+     FOR UPDATE SKIP LOCKED
+  ), cleared AS (
+    UPDATE reco.rec_state s SET dirty = false, dirty_since = NULL
+      FROM claimed c WHERE s.account_id = c.account_id
+      RETURNING s.account_id
+  )
+  SELECT cleared.account_id FROM cleared;
+END
+$$;
+REVOKE ALL ON FUNCTION reco.claim_dirty(timestamptz, integer) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION reco.claim_dirty(timestamptz, integer) TO reco_app;
 
 -- ---------------------------------------------------------------- the latest result, and the history
 -- state_hash is the fingerprint of the inputs the result was computed from: equal hash = nothing to recompute.
