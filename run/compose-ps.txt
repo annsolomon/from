@@ -1,0 +1,6 @@
+NAME                   IMAGE                      COMMAND                  SERVICE       CREATED          STATUS                   PORTS
+dexter-kafka-1         apache/kafka:4.1.0         "/__cacert_entrypoin…"   kafka         15 seconds ago   Up 7 seconds (healthy)   127.0.0.1:9092->9092/tcp
+dexter-mailpit-1       axllent/mailpit:v1.30.5    "/mailpit"               mailpit       15 seconds ago   Up 7 seconds (healthy)   127.0.0.1:1025->1025/tcp, 127.0.0.1:8025->8025/tcp, 1110/tcp
+dexter-objectstore-1   chrislusf/seaweedfs:4.22   "/bin/sh -c 'sh /opt…"   objectstore   15 seconds ago   Up 7 seconds (healthy)   7333/tcp, 8080/tcp, 8888/tcp, 9333/tcp, 18080/tcp, 18888/tcp, 19333/tcp, 127.0.0.1:8333->8333/tcp
+dexter-postgres-1      postgres:17                "docker-entrypoint.s…"   postgres      15 seconds ago   Up 7 seconds (healthy)   127.0.0.1:5432->5432/tcp
+dexter-redis-1         redis:7.4-alpine           "docker-entrypoint.s…"   redis         15 seconds ago   Up 7 seconds (healthy)   127.0.0.1:6379->6379/tcp

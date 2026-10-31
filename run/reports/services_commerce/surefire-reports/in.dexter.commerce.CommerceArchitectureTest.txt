@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: in.dexter.commerce.CommerceArchitectureTest
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.925 s -- in in.dexter.commerce.CommerceArchitectureTest

@@ -1,0 +1,6 @@
+pulled   apache/kafka:4.1.0
+pulled   axllent/mailpit:v1.30.5
+pulled   chrislusf/seaweedfs:4.22
+pulled   postgres:17
+pulled   redis:7.4-alpine
+core images ready: 5/5

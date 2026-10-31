@@ -1,0 +1,472 @@
+# P00 health
+PASS  gateway :8080  health UP  15ms
+PASS  identity :8081  health UP  16ms
+PASS  ledger :8082  health UP  13ms
+PASS  catalog :8083  health UP  12ms
+PASS  portfolio :8084  health UP  12ms
+PASS  planning :8085  health UP  13ms
+PASS  reco :8086  health UP  12ms
+PASS  billing :8087  health UP  12ms
+PASS  commerce :8088  health UP  12ms
+PASS  audit :8089  health UP  13ms
+# P01 request id + ProblemDetail (9 servlet services)
+PASS  identity  X-Request-Id echoed + generated, 404 ProblemDetail NOT_FOUND
+PASS  ledger  X-Request-Id echoed + generated, 404 ProblemDetail NOT_FOUND
+PASS  catalog  X-Request-Id echoed + generated, 404 ProblemDetail NOT_FOUND
+PASS  portfolio  X-Request-Id echoed + generated, 404 ProblemDetail NOT_FOUND
+PASS  planning  X-Request-Id echoed + generated, 404 ProblemDetail NOT_FOUND
+PASS  reco  X-Request-Id echoed + generated, 404 ProblemDetail NOT_FOUND
+PASS  billing  X-Request-Id echoed + generated, 404 ProblemDetail NOT_FOUND
+PASS  commerce  X-Request-Id echoed + generated, 404 ProblemDetail NOT_FOUND
+PASS  audit  X-Request-Id echoed + generated, 404 ProblemDetail NOT_FOUND
+# P01 lab (ledger, dev profile)
+PASS  money 500p x 50bps HALF_EVEN = 2  200
+PASS  money HALF_UP = 3  200
+PASS  strict json ok  200
+PASS  unknown field  400
+PASS  duplicate field  400
+PASS  malformed json  400
+PASS  validation errors[]  400
+PASS  If-Match missing  428
+PASS  If-Match weak  400
+PASS  If-Match current  200
+PASS  If-Match stale  412
+PASS  limit=101  400
+PASS  limit=0  400
+PASS  garbage cursor  400
+PASS  keyset walk 120 rows, no dups, last page nextCursor=null
+PASS  cursor filter mismatch  400
+PASS  tampered cursor  400
+# P02 lab (ledger /_dev/p02)
+PASS  lab starts (Postgres lab db, Kafka topics, relay, consumers, Redis user lab)
+PASS  valid user token accepted (kind USER, account from sub)
+PASS  no token -> 401 UNAUTHENTICATED
+PASS  jwt expired -> 401 EXPIRED
+PASS  jwt not-yet-valid -> 401 NOT_YET_VALID
+PASS  jwt lifetime-too-long -> 401 LIFETIME
+PASS  jwt wrong-audience -> 401 AUDIENCE
+PASS  jwt wrong-issuer -> 401 ISSUER
+PASS  jwt wrong-typ -> 401 TYPE
+PASS  jwt hs256-confusion -> 401 ALGORITHM
+PASS  jwt unknown-kid -> 401 KID_UNKNOWN
+PASS  jwt embedded-jwk -> 401 HEADER
+PASS  jwt bad-signature -> 401 SIGNATURE
+PASS  jwt alg none -> 401
+PASS  service token on a user endpoint -> 403 FORBIDDEN
+PASS  key rotation: new kid accepted via JWKS refetch, old-kid token still valid
+PASS  POST with key -> 201 + Location
+PASS  same key again -> byte-identical replay + Idempotent-Replayed
+PASS  same key, different body -> 422 IDEMPOTENCY_KEY_REUSED
+PASS  no key -> 400 IDEMPOTENCY_KEY_REQUIRED
+PASS  no token -> 401
+PASS  same key while the first holds it -> 409 IDEMPOTENCY_IN_PROGRESS + Retry-After
+PASS  the held request completes 201
+PASS  outbox -> relay -> Kafka -> projector (inbox + version guard)
+PASS  outbox rows marked published
+PASS  poison event: retry-2s -> retry-5s -> DLQ with attempt/error headers
+PASS  cached read: miss, then hit
+PASS  rename (versioned) -> 200
+PASS  after the write: miss with the new value (Path A after commit)
+PASS  stale version -> 412 VERSION_CONFLICT
+PASS  another tenant reading the id -> 404 (RLS + per-account keys)
+PASS  cached keyset list
+PASS  Redis down -> read bypasses to the DB (200, correct value)
+PASS  Redis back -> hits again
+PASS  cache keys of the account visible
+PASS  privacy purge removes every cached entry of the account
+# P02 summary: PASS
+# P04 identity (:8081, Mailpit :8025)
+PASS  jwks: 200, >= 2 public keys, no private parts
+PASS  register: 202 accepted
+PASS  register replay: 202 + Idempotent-Replayed
+PASS  register without key: 400 IDEMPOTENCY_KEY_REQUIRED
+PASS  register breached password: 400
+PASS  login before verification: 403 EMAIL_NOT_VERIFIED
+PASS  verification email arrived in Mailpit
+PASS  verify-email: 200 verified
+PASS  verify-email reused: 400 INVALID_TOKEN
+PASS  login: 200 tokens, no-store
+PASS  me: 200 with ETag
+PASS  PATCH /me with If-Match: 200, phone normalised, new ETag
+PASS  PATCH /me with a stale ETag: 412 VERSION_CONFLICT
+PASS  refresh: 200, rotated
+PASS  replay of the rotated refresh token: 401 REFRESH_TOKEN_REUSED
+PASS  family revoked: the newest token is dead too (401)
+PASS  sessions: only the new session is open, marked current
+PASS  unknown email and wrong password answer identically (401 INVALID_CREDENTIALS)
+PASS  forgot password: 202 for known and unknown emails
+PASS  seeded demo account asha@demo.in signs in
+PASS  client credentials ledger -> catalog: 200 Bearer, 300 s
+PASS  client credentials with a wrong secret: 401 INVALID_CLIENT
+PASS  dev key rotation: new active kid
+PASS  token signed before the rotation is still accepted
+PASS  logout: 204
+PASS  refresh after logout: 401
+# P04 smoke: PASS
+# P05 identity MFA + admin (:8081)
+PASS  user signed up and in
+PASS  enroll: 200 secret + otpauth URI, no-store
+PASS  confirm: 200 and 10 recovery codes
+PASS  login with MFA: challenge, no tokens
+PASS  replayed TOTP step: 401 INVALID_MFA_CODE
+PASS  next TOTP step: 200 tokens, amr has mfa
+PASS  recovery code: 200
+PASS  same recovery code again: 401
+PASS  step-up (password + recovery code): 200 fresh token
+PASS  pre-MFA token cannot remove MFA: 401 STEP_UP_REQUIRED
+PASS  MFA session removes MFA: 204
+PASS  repeated failures are throttled: 429 RATE_LIMITED + Retry-After
+PASS  DEMO_PASSWORD_ADMIN set
+PASS  admin login: 200 challenge
+PASS  admin MFA setup: secret + otpauth URI
+PASS  admin verify: 200 admin tokens
+PASS  admin token: scope admin, standing roles, permissions, amr mfa
+PASS  account lookup (audited): 200 asha
+PASS  admins list without break-glass: 403
+PASS  admin token on a user endpoint: 403
+PASS  break-glass: 200 SUPER_ADMIN token capped at the elevation
+PASS  admins list while elevated: 200
+PASS  invite admin: 201 invited
+PASS  invite email arrived in Mailpit
+PASS  accept invite: 200
+PASS  invited admin signs in: setup required
+PASS  end break-glass: 200
+PASS  old SUPER_ADMIN token refused at once: 403
+# P05 smoke: PASS
+# P06 gateway (:8080)
+PASS  jwks through the gateway (public): 200 EC keys
+PASS  unknown path: 404 NOT_FOUND problem, request id echoed
+PASS  security header x-content-type-options
+PASS  security header referrer-policy
+PASS  security header x-frame-options
+PASS  CSP default-src 'none'
+PASS  token route without a token: 401 UNAUTHENTICATED + WWW-Authenticate
+PASS  ledger route without a token: 401 at the edge
+PASS  garbage token: 401
+PASS  DEMO_PASSWORD_ASHA set
+PASS  demo sign-in through the gateway (public route): 200 tokens + RateLimit headers
+PASS  /v1/me through the gateway: asha, ETag, spoofed X-Account-Id ignored
+PASS  RateLimit on a read: read class 600/min
+PASS  ledger route with a token reaches ledger (P07: 200 page)
+PASS  admin route with a user token: identity answers 403
+PASS  body over 256 KB: 413 at the edge
+PASS  auth class: 10 per minute per IP, the 11th is 429 RATE_LIMITED + Retry-After
+PASS  dev route /_dev/p04/keys (dev profile): 200 through the gateway
+# P06 smoke: PASS
+# P07 ledger via gateway (:8080)
+PASS  DEMO_PASSWORD_ASHA / _RAVI set
+PASS  asha + ravi sign in through the gateway
+PASS  list: 200, 50 rows, hasMore, opaque cursor
+PASS  next page: 25 rows, none repeated, still newest-first
+PASS  cursor with other filters: 400 CURSOR_FILTER_MISMATCH
+PASS  category filter: subtree only
+PASS  create: 201, Location, ETag "0", merchant echoed
+PASS  same key again: replayed, same id
+PASS  same key, other body: 422 IDEMPOTENCY_KEY_REUSED
+PASS  no key: 400 IDEMPOTENCY_KEY_REQUIRED
+PASS  daily totals: +₹349, +1 txn after create
+PASS  get: 200 + ETag "0"
+PASS  patch with a stale If-Match: 412 VERSION_CONFLICT
+PASS  patch without If-Match: 428 IF_MATCH_REQUIRED
+PASS  patch with the current ETag: 200, version 1, note cleared
+PASS  patch of a non-patchable field: 400 UNKNOWN_FIELD
+PASS  daily totals follow the patch (+₹1)
+PASS  ravi GET asha's expense: 404 (RLS, never 403)
+PASS  ravi PATCH asha's expense: 404 (RLS, never 403)
+PASS  ravi DELETE asha's expense: 404 (RLS, never 403)
+PASS  ravi's list never contains asha's expense
+PASS  delete: 204, again 204 (idempotent), then GET 404
+PASS  daily totals drop back after delete
+PASS  restore: 200, version 3
+PASS  daily totals back after restore
+PASS  daily totals over 366 days: 400 VALIDATION_FAILED
+PASS  categories: the 48 system categories visible
+PASS  custom category: 201 under food
+PASS  same category again: 409 CATEGORY_EXISTS
+PASS  ravi does not see asha's custom category
+# P07 smoke: PASS
+# P08 ledger B via gateway (:8080)
+PASS  DEMO_PASSWORD_ASHA set
+PASS  asha signs in through the gateway
+PASS  autocomplete q=swi: 200, ≤ 8, Swiggy first
+PASS  autocomplete q=s: 400 VALIDATION_FAILED
+PASS  resolve UPI descriptor: Zomato, food.delivery, exact, confidence ≥ 900
+PASS  create rule: 201
+PASS  rule decides the category (source rule, confidence 1000)
+PASS  delete rule: 204
+PASS  a seeded expense to search for
+PASS  search: 200, rows newest first
+PASS  search q too short: 400
+PASS  bulk: 200, created 1 · duplicate 1 · invalid 1
+PASS  bulk replay: same answer, Idempotent-Replayed
+PASS  bulk item resolved: merchant Zomato, food.delivery
+PASS  import: create 201, PUT to the presigned URL 200, start 202
+PASS  import completed: total 3, ok 2, failed 1 (row 3 DATE_INVALID)
+PASS  re-import of the same file: completed, 2 duplicates, nothing new
+PASS  start a finished import: 409 IMPORT_NOT_STARTABLE
+PASS  malformed CSV: job failed CSV_INVALID
+PASS  calendar: 200, one entry per day, today has spend
+PASS  summary groupBy=category: 200, groups sum ≤ total
+PASS  summary groupBy=merchant: 200, groups sum ≤ total
+PASS  summary groupBy=paymentMethod: 200, groups sum ≤ total
+PASS  summary groupBy=day: 200, groups sum ≤ total
+# P08 smoke: PASS
+# P09 catalog via gateway (:8080)
+PASS  catalog page 1: 200 without a token
+PASS  catalog page 2: 200 without a token
+PASS  catalog page 3: 200 without a token
+PASS  walk: 40 seeded cards, no repeats, 3 pages
+PASS  network filter: only visa
+PASS  maxAnnualFee=0: only lifetime-free cards
+PASS  category earning ≥ 5 % on food.delivery: 200, some cards
+PASS  detail: 200, ETag = version, rules + milestone
+PASS  unknown slug: 404 NOT_FOUND
+PASS  search q=saffron: trigram hits, Saffron cards first
+PASS  potential food.delivery: ≤ 10 cards, best rate first
+PASS  offers: 200 (active only; none seeded)
+PASS  admin catalog without a token: 401 at the edge
+PASS  asha signs in
+PASS  admin catalog with a user token: 403
+# P09 smoke: PASS
+# P10 catalog ingestion via gateway (:8080, mock issuer site :18091)
+PASS  review queue without a token: 401 at the edge
+PASS  ingestion sources with a user token: 403
+PASS  admin signs in with MFA (secret saved by the P05 smoke)
+PASS  seeded card is public
+PASS  source https://localhost/cards refused: 400 HOST_NOT_ALLOWED
+PASS  source https://169.254.169.254/latest/meta-data/ refused: 400 HOST_NOT_ALLOWED
+PASS  source http://www.hdfcbank.com/cards refused: 400 SCHEME_NOT_ALLOWED
+PASS  source for the mock issuer page: 201 + ETag
+PASS  run 202 -> worker completes: snapshot stored, one review item
+PASS  review item: annual fee 100000 -> 351600 against v1
+PASS  nothing public before approve
+PASS  approve: 200, the promoter publishes v2
+PASS  approve again: same version, replayed
+PASS  public detail: v2, ETag, new annual fee
+PASS  same page again: unchanged (content hash), no review item
+PASS  delete the smoke source: 204
+# P10 smoke: PASS
+# P11 portfolio via gateway (:8080)
+PASS  DEMO_PASSWORD_ASHA / _RAVI set
+PASS  asha + ravi sign in through the gateway
+PASS  cards without a token: 401 at the edge
+PASS  asha's seeded cards: 200, keyset page
+PASS  seeded catalog card is public
+PASS  add card: 201, ETag "0", Location, current cycle
+PASS  same key again: replayed, same card
+PASS  same product + last4 again: 409 CARD_EXISTS
+PASS  unknown product: 400 UNKNOWN_CARD_PRODUCT
+PASS  no Idempotency-Key: 400
+PASS  ravi reads asha's card: 404
+PASS  record transaction: 201, statement + reward
+PASS  transactions list: the new one first
+PASS  ledger expense on the same card: 201
+PASS  auto-match suggestion arrives (ledger.expense.created -> portfolio)
+PASS  confirm: 200 confirmed
+PASS  ravi confirms asha's link: 404
+PASS  the transaction carries the expense
+PASS  statements: the open period holds the spend
+PASS  EMI plan: 201, EMI ₹9,025.83, interest ₹8,309.97
+PASS  schedule: 12 installments, last leaves 0 outstanding
+PASS  close the plan: 2xx
+PASS  rewards balance: 200
+PASS  rewards ledger: 200 keyset page
+PASS  monthly report: the smoke card's spend
+PASS  report period=week: 400
+PASS  remove the smoke card: 204
+PASS  a removed card is gone: 404
+PASS  remove again: 204 (idempotent)
+# P11 smoke: PASS
+# P12 statements via gateway (:8080) + object store (:8333) + ai-parser (:8090), then calc
+PASS  DEMO_PASSWORD_ASHA / _RAVI set
+PASS  asha + ravi sign in through the gateway
+PASS  uploads without a token: 401 at the edge
+PASS  seeded catalog card is public
+PASS  smoke card: 201
+PASS  create upload: 201, presigned PUT, awaiting_upload
+PASS  same key again: replayed
+PASS  submit before the upload: 409 STATEMENT_NOT_UPLOADED
+PASS  presigned PUT to the object store: 200
+PASS  object store refuses an unsigned PUT (403)
+PASS  submit: 202 submitted (scan passed)
+PASS  submit again with the same key: replayed 202
+PASS  parsed by the ai-parser via Kafka (within 90 s)
+PASS  parsed header: Saffron, 17 lines, card matches, 1 redaction, due date
+PASS  lines = the statement, in order
+PASS  no full card number anywhere (PAN redacted before parsing)
+PASS  confirm: 16 imported, 1 excluded
+PASS  16 card transactions, source statement
+PASS  confirm again: 409 STATEMENT_WRONG_STATE
+PASS  indus layout submitted: 202
+PASS  indus: parsed, 16 duplicate lines flagged
+PASS  indus: confirm imports 1, skips 16 duplicates
+PASS  deccan layout submitted: 202
+PASS  deccan: parsed, 17 duplicate lines flagged
+PASS  deccan: confirm imports 0, skips 17 duplicates
+PASS  17 transactions in all (each statement line once)
+PASS  the same file again: 409 STATEMENT_ALREADY_UPLOADED
+PASS  a non-PDF: 422 STATEMENT_FILE_REJECTED NOT_A_PDF
+PASS  unknown layout submitted: 202
+PASS  unknown layout: failed UNKNOWN_FORMAT
+PASS  ravi reads asha's upload: 404
+PASS  asha's uploads: keyset page
+PASS  calc without a token: 401 at the edge
+PASS  calc is POST only: GET is 405
+PASS  emi: Rs 9,025.83 x 12 on Rs 1,00,000 at 15 %
+PASS  ledger: Rs 124.27 interest, Rs 3,000 carried
+PASS  minimum due: blended 5 % beats the finance charge -> Rs 437
+PASS  late fee: Rs 600 + GST, SMA-0 and reported
+PASS  utilization: 120 %, over by Rs 20,000, flat Rs 550 fee wins
+PASS  custom fees cycle 1: Rs 700 + Rs 126 GST, 2 lines
+PASS  custom fees cycle 2: the one-off is skipped
+PASS  full payment: Rs 5,590 all in, grace kept
+PASS  partial payment: statement Rs 5,172.60, Rs 3,000 carried, grace lost
+PASS  no payment: Rs 172.60 by day 30, Rs 6,319.02 and SMA-2 by day 90
+PASS  minimum only: the 141-cycle case, Rs 30,820.88 extra
+PASS  the same request twice: the same answer (stateless, no key needed)
+PASS  ravi gets the same answer (no tenant data in calc)
+PASS  a minimum below the interest: never clears, caught on cycle 1
+PASS  repayment path: avalanche saves Rs 444.50 over snowball
+PASS  repayment path: a budget under the minimums is infeasible, not simulated
+PASS  exit paths: Rs 2,141.01 a cycle clears Rs 6,000 in 3, Rs 423.80 of interest
+PASS  a zero balance has nothing to exit from
+PASS  8 target cycles: 400 VALIDATION_FAILED
+PASS  200 % APR: 400
+PASS  an 18-month cycle: 400
+PASS  501 transactions: 400
+PASS  a body over 64 KB: 413 PAYLOAD_TOO_LARGE
+PASS  remove the smoke card: 204
+# P12 smoke: PASS
+# P13 planning via gateway (:8080): budgets fed by ledger events over Kafka, liabilities, scenarios
+PASS  DEMO_PASSWORD_ASHA / _RAVI set
+PASS  asha + ravi sign in through the gateway
+PASS  budgets without a token: 401 at the edge
+PASS  status without a token: 401
+PASS  a budget without an Idempotency-Key: 400
+PASS  an unknown period: 400 with the field named
+PASS  a zero limit: 400
+PASS  a category that is not an ltree path: 400
+PASS  a custom period without an end: 400
+PASS  six thresholds: 400 TOO_MANY
+PASS  a budget: 201, active, thresholds 50/80/100, ETag "0"
+PASS  the same key replays the same budget
+PASS  the same key with another body: 422 IDEMPOTENCY_KEY_REUSED
+PASS  GET the budget: 200, ETag = version
+PASS  another account's budget: 404, not 403
+PASS  budgets paginate by keyset
+PASS  a forged cursor: 400
+PASS  a budget created now starts at zero (no backfill)
+PASS  the period ends on the last day of the month
+PASS  a budget with no category: 201, all spend
+PASS  an expense in the ledger: 201
+PASS  a subtree expense counts: Rs 600 of Rs 2,000, 3000 bps
+PASS  no threshold crossed at 30 %
+PASS  the all-spend budget counted it too
+PASS  an expense in another root: 201
+PASS  a sibling category does not count towards the subtree budget
+PASS  another child of the same root counts: Rs 1,700, 8500 bps
+PASS  50 % and 80 % crossed, 100 % not
+PASS  over the limit: remaining is negative, overLimit true
+PASS  a threshold alerts once per period, not again
+PASS  the projection is at least the spend
+PASS  the expenses to edit and delete were created
+PASS  an edited amount settles both sides: Rs 2,600
+PASS  moving an expense out of the category subtracts it
+PASS  deleting an expense subtracts it
+PASS  spend never goes negative
+PASS  a budget covering last month: 201
+PASS  23:30 IST on the 2026-09-30 counts in that month, not the next
+PASS  pausing a budget: 200
+PASS  a paused budget is not in /status
+PASS  resuming it does not pick up the Rs 200 spent while it was paused
+PASS  a patch without If-Match: 428
+PASS  a stale If-Match: 412
+PASS  the period is not patchable: 400 UNKNOWN_FIELD
+PASS  raising the limit: 200, the status follows
+PASS  history is a keyset page of periods
+PASS  ending a budget: 204
+PASS  ending it again: 204 (idempotent)
+PASS  an ended budget leaves /status
+PASS  it is still readable, with its history
+PASS  an ended budget is read-only: 409 BUDGET_NOT_ACTIVE
+PASS  an unknown liability kind: 400
+PASS  Rs 1,00,000 at 12 % over 12 months: Rs 8,884.88 a month (the old budget-service golden)
+PASS  interest Rs 6,618.53, payable Rs 1,06,618.53
+PASS  the last due date is the 12th instalment
+PASS  the same key replays the liability
+PASS  the schedule has 12 instalments, in order
+PASS  the first instalment is Rs 1,000 of interest on Rs 1,00,000
+PASS  the principal repaid sums back to the principal
+PASS  the interest charged sums to totalInterestPaise
+PASS  the last instalment closes the loan to zero
+PASS  another account's schedule: 404
+PASS  a liability without a token: 401
+PASS  an adjustment the snapshot cannot satisfy: 422
+PASS  an unknown adjustment kind: 422
+PASS  a scenario copies the account in: 201
+PASS  evaluating with no adjustments: no delta
+PASS  adding a hypothetical loan: 200
+PASS  Rs 5,00,000 at 10 % over 60 months costs Rs 10,623.52 a month, from the same engine
+PASS  the hypothetical line is marked added
+PASS  feasibility is income against the adjusted outgo
+PASS  an income of Rs 10,000 does not cover it: not feasible
+PASS  surplusBefore still uses the snapshot's own income
+PASS  closing the liability: 204
+PASS  it is closed, not gone
+PASS  the copy does not follow the account: the answer is unchanged
+PASS  another account cannot evaluate it: 404
+PASS  an unknown action on a scenario: 404
+PASS  ravi sees none of asha's scenarios
+# P13 smoke: PASS
+# P14 reco via gateway (:8080): the spend profile from ledger events, the 60/40 ranking, explainability
+PASS  DEMO_PASSWORD_ASHA / _RAVI set
+PASS  asha + ravi sign in through the gateway
+PASS  recommendations without a token: 401 at the edge
+PASS  explain without a token: 401
+PASS  a read answers 200 even before any recompute
+PASS  it reports the window and the blend
+PASS  the catalog projection reached reco (1 cards considered)
+PASS  an expense in the ledger: 201
+PASS  the spend profile arrived over Kafka: Rs 8,000 a month
+PASS  the profile is keyed by category root
+PASS  something is recommended once there is spend
+PASS  the ranking is sorted by the blended score
+PASS  the blend is savings x 0.6 + fit x 0.4 on every row
+PASS  the best card normalises to 10000 bps of savings
+PASS  every recommended card saves money
+PASS  every card carries its reasons
+PASS  a card that costs more than it earns is not recommended
+PASS  a second read is the same result
+PASS  and it is reported fresh
+PASS  explain: 200
+PASS  explain is about the card asked for
+PASS  explain agrees with the ranking
+PASS  savings = rewards - the expected fee + the milestone
+PASS  the per-root lines sum to the reward
+PASS  each line names the rule and the share it was credited with
+PASS  a bound cap is reported as bound
+PASS  the fee's waiver probability is a ramp from 0 to 10000
+PASS  explain for a card not in the catalog: 404 CARD_NOT_IN_CATALOG
+PASS  a subset scores only the cards asked about
+PASS  a malformed cardProductIds is 400
+PASS  more than 50 ids is 400
+PASS  asha adds the card reco ranks: 201
+PASS  the card asha holds is marked held, not removed from the ranking
+PASS  asha removes it again: 204
+PASS  and it is no longer held, still ranked
+PASS  ravi's profile is his own, not asha's
+PASS  a client-supplied account header is ignored, not honoured
+# P14 smoke: PASS
+PASS  identity outbox -> Kafka: 18 published, 0 pending
+PASS  identity topics exist (account, session, security, admin)
+PASS  ledger outbox -> Kafka: 19 expense events published, 0 pending
+PASS  dexter.ledger.expense.v1: 19 events
+PASS  dexter.ledger.import.v1: 3 events
+PASS  gateway activity -> Kafka: 329 events on dexter.gateway.activity.v1
+PASS  dexter.portfolio.statement.v1: 4 events
+PASS  dexter.ai-parser.statement.v1: 4 events
+PASS  planning outbox -> Kafka: 8 events published, 0 pending
+PASS  dexter.planning.budget.v1: 6 events
+PASS  dexter.planning.liability.v1: 2 events
+PASS  budget-spend inbox: 19 ledger events consumed
+# summary: PASS

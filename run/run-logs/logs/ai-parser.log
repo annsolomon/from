@@ -1,0 +1,17 @@
+INFO:     Started server process [41862]
+INFO:     Waiting for application startup.
+2026-10-31 18:06:11,803  INFO aiokafka.consumer.subscription_state Updating subscribed topics to: frozenset({'dexter.portfolio.statement.v1'})
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8090 (Press CTRL+C to quit)
+2026-10-31 18:06:11,817  INFO aiokafka.consumer.group_coordinator Discovered coordinator 1 for group ai-parser
+2026-10-31 18:06:11,817  INFO aiokafka.consumer.group_coordinator Revoking previously assigned partitions set() for group ai-parser
+2026-10-31 18:06:11,817  INFO aiokafka.consumer.group_coordinator (Re-)joining group ai-parser
+2026-10-31 18:06:11,821  INFO aiokafka.consumer.group_coordinator Joined group 'ai-parser' (generation 1) with member_id ai-parser-0cd6c5d5-65b8-41cd-9b6a-063443b011cd
+2026-10-31 18:06:11,821  INFO aiokafka.consumer.group_coordinator Elected group leader -- performing partition assignments using roundrobin
+2026-10-31 18:06:11,825  INFO aiokafka.consumer.group_coordinator Successfully synced group ai-parser with generation 1
+2026-10-31 18:06:11,825  INFO aiokafka.consumer.group_coordinator Setting newly assigned partitions {TopicPartition(topic='dexter.portfolio.statement.v1', partition=1), TopicPartition(topic='dexter.portfolio.statement.v1', partition=2), TopicPartition(topic='dexter.portfolio.statement.v1', partition=0)} for group ai-parser
+2026-10-31 18:06:11,825  INFO dexter_parser.worker PARSER_CONSUMING topic=dexter.portfolio.statement.v1 bootstrap=127.0.0.1:9092
+2026-10-31 18:07:38,963  INFO dexter_parser.worker PARSER_RESULT upload=01a19325-5063-7473-8101-d042a5d0b5f9 status=parsed code=None lines=17
+2026-10-31 18:07:40,162  INFO dexter_parser.worker PARSER_RESULT upload=01a19325-5651-7d64-ad66-2990b944dcbc status=parsed code=None lines=17
+2026-10-31 18:07:41,305  INFO dexter_parser.worker PARSER_RESULT upload=01a19325-5aaf-7b1f-a3d6-1d9587a1ced2 status=parsed code=None lines=17
+2026-10-31 18:07:42,585  INFO dexter_parser.worker PARSER_RESULT upload=01a19325-5fb3-7e92-b022-1b4a4e336529 status=failed code=UNKNOWN_FORMAT lines=0

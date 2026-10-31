@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: in.dexter.testkit.cache.TenantCacheIT
+-------------------------------------------------------------------------------
+Tests run: 13, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.084 s -- in in.dexter.testkit.cache.TenantCacheIT

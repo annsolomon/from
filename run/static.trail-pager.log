@@ -1,0 +1,13 @@
+✔ 5.5 same key twice → one row and a replay; different body → 422; no key → 400 (3.018614ms)
+✔ 5.5 20 parallel requests with one key create exactly one row; keys are tenant-scoped (133.435944ms)
+✔ catalog is global (no tenant) and paged by the same rules; filters bind to the cursor (4.614237ms)
+✔ mock login, /me and user cards follow the persona (3.34722ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 827.515955
+pager.spec.js (node v24.22.1): PASS

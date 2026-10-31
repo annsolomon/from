@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: in.dexter.web.DexterWebAutoConfigurationTest
+-------------------------------------------------------------------------------
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.301 s -- in in.dexter.web.DexterWebAutoConfigurationTest

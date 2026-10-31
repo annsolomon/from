@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: in.dexter.planning.BudgetsIT
+-------------------------------------------------------------------------------
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.281 s -- in in.dexter.planning.BudgetsIT

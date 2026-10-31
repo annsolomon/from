@@ -1,0 +1,20 @@
+generated in 6.1 s
+checksum 08da35b601c5441ce952655b81aa3a0e80fa57ca46b92fab30d1f4a0c1fd676c
+seed load: target/seed/medium-42 -> postgres 127.0.0.1:5432 as <svc>_owner (replace)
+  seed_stage.accounts                     10000 rows     112 ms  (staging)
+  seed_stage.admins                           1 rows       5 ms  (staging)
+  seed_stage.admin_roles                      3 rows       3 ms  (staging)
+  seed_stage.issuers                         10 rows       8 ms  (staging)
+  seed_stage.card_products                   40 rows       6 ms  (staging)
+  seed_stage.card_product_versions           40 rows       5 ms  (staging)
+  seed_stage.reward_rules                   103 rows       6 ms  (staging)
+  seed_stage.milestones                      10 rows       4 ms  (staging)
+  seed_stage.catalog_products_proj           40 rows      10 ms  (staging)
+  seed_stage.user_cards                   30000 rows     224 ms  (staging)
+  seed_stage.categories                      48 rows       7 ms  (staging)
+  seed_stage.merchants                      357 rows       6 ms  (staging)
+  seed_stage.merchant_aliases               635 rows       6 ms  (staging)
+  seed_stage.expenses                   1200000 rows    7718 ms  (staging)
+  seed_stage.expense_daily_totals       1099029 rows    1797 ms  (staging)
+loaded 15 tables, 2340316 rows in 10.7 s
+seed.sh: medium seed=42 generated in 7s, total 18s (limit 600s)

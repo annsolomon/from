@@ -1,0 +1,22 @@
+static.forbidden-patterns	PASS	forbidden pattern hits: 0
+static.migration-names	PASS	migrations checked: 16, bad: 0
+static.rls-gate	PASS	rls_check: 6 service migration set(s) checked, OK
+static.trail-isolation	PASS	no service or lib references test-ui
+static.skeletons	PASS	module/service skeleton problems: 0
+static.poms-wellformed	PASS	poms parsed: 25, malformed: 0
+static.shell-syntax	PASS	shell syntax errors: 0
+static.readme	PASS	BUILD_README status table present
+static.trail-pager	PASS	pager.spec.js (node v24.22.1): PASS
+static.compose-config	PASS	compose config valid
+full.env-file	PASS	
+full.images-pull	PASS	core images ready: 5/5
+full.infra-up	PASS	core infra healthy
+full.infra-checks	PASS	kafka: topics API reachable
+full.maven	PASS	[INFO] ------------------------------------------------------------------------
+full.ai-parser	PASS	72 passed in 0.80s
+full.seed-medium	PASS	seed.sh: medium seed=42 generated in 7s, total 18s (limit 600s)
+full.seed-determinism	PASS	seed deterministic: medium seed=42 checksum 08da35b601c5441ce952655b81aa3a0e80fa57ca46b92fab30d1f4a0c1fd676c
+full.services-up	PASS	ai-parser UP on 8090
+full.seed-small	PASS	seed.sh: small seed=42 generated in 1s, total 2s (limit 600s)
+full.api-smoke	PASS	# summary: PASS
+full.k6-smoke	PASS	k6 smoke thresholds met

@@ -1,0 +1,149 @@
+ Container dexter-postgres-1 Running 
+ Container dexter-kafka-1 Running 
+ Container dexter-mailpit-1 Running 
+ Container dexter-redis-1 Running 
+ Container dexter-objectstore-1 Running 
+ Container dexter-objectstore-1 Waiting 
+ Container dexter-postgres-1 Waiting 
+ Container dexter-kafka-1 Waiting 
+ Container dexter-mailpit-1 Waiting 
+ Container dexter-redis-1 Waiting 
+ Container dexter-objectstore-1 Healthy 
+ Container dexter-kafka-1 Healthy 
+ Container dexter-redis-1 Healthy 
+ Container dexter-mailpit-1 Healthy 
+ Container dexter-postgres-1 Healthy 
+SPRING_PROFILES_ACTIVE=dev
+all 10 services UP
+ai-parser already UP on 8090
+ Image nginx:1.28-alpine Pulling 
+ 0151c82f84a9 Pulling fs layer 0B
+ d631a49fb4f7 Pulling fs layer 0B
+ 8f7c784e2471 Pulling fs layer 0B
+ 98104829f3fe Pulling fs layer 0B
+ 1d9cbdb003be Pulling fs layer 0B
+ 589002ba0eae Pulling fs layer 0B
+ e914c6e98e37 Pulling fs layer 0B
+ 44fa0a5a779f Pulling fs layer 0B
+ 589002ba0eae Downloading 2.097MB
+ 0151c82f84a9 Downloading 1.049MB
+ d631a49fb4f7 Download complete 0B
+ 8f7c784e2471 Download complete 0B
+ 1d9cbdb003be Downloading 1.049MB
+ 589002ba0eae Download complete 0B
+ 44fa0a5a779f Download complete 0B
+ 98104829f3fe Download complete 0B
+ e914c6e98e37 Download complete 0B
+ 589002ba0eae Extracting 1B
+ 0151c82f84a9 Downloading 20.25MB
+ 1d9cbdb003be Download complete 0B
+ f2baa5b25d86 Download complete 0B
+ 8654f8d1249e Download complete 0B
+ 589002ba0eae Pull complete 0B
+ 1d9cbdb003be Extracting 1B
+ e914c6e98e37 Pull complete 0B
+ 1d9cbdb003be Pull complete 0B
+ 0151c82f84a9 Download complete 0B
+ d631a49fb4f7 Pull complete 0B
+ 8f7c784e2471 Pull complete 0B
+ 44fa0a5a779f Pull complete 0B
+ 98104829f3fe Pull complete 0B
+ 0151c82f84a9 Extracting 1B
+ 0151c82f84a9 Extracting 1B
+ 0151c82f84a9 Extracting 1B
+ 0151c82f84a9 Pull complete 0B
+ Image nginx:1.28-alpine Pulled 
+ Container dexter-trail-1 Creating 
+ Container dexter-trail-1 Created 
+ Container dexter-trail-1 Starting 
+ Container dexter-trail-1 Started 
+ Container dexter-trail-1 Waiting 
+ Container dexter-trail-1 Healthy 
+PASS  page       200
+PASS  page       200
+PASS  page       200
+PASS  page       200
+PASS  page       200
+PASS  page       200
+PASS  page       200
+PASS  page       200
+PASS  page       200
+PASS  page       200
+PASS  page       200
+PASS  page       200
+PASS  page       200
+PASS  page       200
+PASS  page       200
+PASS  page       200
+PASS  api        200
+PASS  gateway    200
+PASS  identity   200
+PASS  ledger     200
+PASS  catalog    200
+PASS  portfolio  200
+PASS  planning   200
+PASS  reco       200
+PASS  billing    200
+PASS  commerce   200
+PASS  audit      200
+PASS  p01-lab    200
+PASS  p01-problem 412
+PASS  p02-lab    ready
+PASS  p02-jwt    200
+PASS  p02-idem   201 + replay
+PASS  fx-personas 200
+PASS  fx-expenses 200
+PASS  fx-categories 200
+PASS  fx-merchants 200
+PASS  fx-catalog-cards 200
+PASS  fx-user-cards 200
+PASS  fx-seed-info 200
+PASS  trail-kit  200
+PASS  p04-jwks   200
+PASS  p04-login  200
+PASS  p04-me     200
+PASS  p05-admin  challenge
+PASS  p05-anon   401
+PASS  p05-mfa    200
+PASS  p06-404    404
+PASS  p06-me     200
+PASS  p06-bridge gone
+PASS  p07-list   200
+PASS  p07-totals 200
+PASS  p07-cats   200
+PASS  p08-ac     200
+PASS  p08-cal    200
+PASS  p08-sum    200
+PASS  p08-search 200
+PASS  p09-cards  200
+PASS  p09-detail 200
+PASS  p09-potent 200
+PASS  p10-anon   /api/v1/admin/review 401
+PASS  p10-anon   /api/v1/admin/ingestion/sources 401
+PASS  p10-fixture 200
+PASS  p11-anon   401
+PASS  p11-cards  200
+PASS  p11-rewards 200
+PASS  p11-report 200
+PASS  p11-links  200
+PASS  p12-anon   401
+PASS  p12-uploads 200
+PASS  p12-cors   PUT
+PASS  p12-parser consuming
+PASS  p12-calc-anon 401
+PASS  p12-calc-emi 200
+PASS  p12-calc-min 141
+PASS  p12-calc-exit 200
+PASS  p13-anon   401
+PASS  p13-budget 201
+PASS  p13-spend  180000 9000 50,80
+PASS  p13-emi    888488
+PASS  p13-schedule 12 10000000 661853 0
+PASS  p13-scenario 1062352
+PASS  p14-anon   401
+PASS  p14-cold   1 cards, 60/40
+PASS  p14-profile 2121051 1600000 1
+PASS  p14-blend  60/40 on every row, sorted
+PASS  p14-explain arithmetic adds up
+PASS  p14-badids 400
+trail-check: PASS
