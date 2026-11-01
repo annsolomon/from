@@ -94,10 +94,10 @@ class StreamIT extends RecoIT {
   }
 
   @AfterEach
-  void stopInstanceB() {
+  void stopInstanceB() throws Exception {
     if (otherListener != null) {
       otherListener.stop();
-      otherListener.destroy();
+      otherListener.destroy();              // DisposableBean.destroy() is declared to throw
       otherListener = null;
       other = null;
     }
