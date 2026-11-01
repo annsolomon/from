@@ -45,6 +45,16 @@ public final class RecoRepository implements RecoStore {
       rs.getString("reward_type"), rs.getInt("rate_bps"), rs.getLong("point_value_milli_paise"),
       Rows.nullableLong(rs, "cap_paise"), rs.getString("cap_period"), rs.getLong("min_txn_paise"),
       List.of(Rows.textArray(rs, "excluded_paths")), rs.getInt("priority"));
+  static final String OFFER_COLS = "offer_id, card_product_id, merchant_id, category_path::text AS category_path,"
+      + " title, kind, value_bps, value_paise, max_discount_paise, min_spend_paise, valid_from, valid_to,"
+      + " stackable, status, current_version, projected_version";
+  static final RowMapper<OfferRow> OFFER = (rs, n) -> new OfferRow(Rows.uuid(rs, "offer_id"),
+      Rows.uuid(rs, "card_product_id"), Rows.uuid(rs, "merchant_id"), rs.getString("category_path"),
+      rs.getString("title"), rs.getString("kind"), Rows.nullableInt(rs, "value_bps"),
+      Rows.nullableLong(rs, "value_paise"), Rows.nullableLong(rs, "max_discount_paise"),
+      rs.getLong("min_spend_paise"), Rows.instant(rs, "valid_from"), Rows.instant(rs, "valid_to"),
+      rs.getBoolean("stackable"), rs.getString("status"), rs.getInt("current_version"),
+      rs.getLong("projected_version"));
   static final RowMapper<StateRow> STATE = (rs, n) -> new StateRow(Rows.uuid(rs, "account_id"),
       rs.getLong("ledger_ver"), rs.getLong("portfolio_ver"), rs.getLong("catalog_ver"), rs.getBoolean("dirty"),
       Rows.instant(rs, "dirty_since"), Rows.instant(rs, "computed_at"), rs.getInt("attempts"));
@@ -97,6 +107,34 @@ public final class RecoRepository implements RecoStore {
             + " AND month BETWEEN :from AND :to ORDER BY month")
         .param("a", account).param("root", Sql.ltree(categoryRoot)).param("from", from).param("to", to)
         .query(MONTH).list();
+  }
+
+  /**
+   * The same delta against one card's month (A-86). {@code GREATEST(0, ...)} on both branches for the P07/A-47
+   * reason: Postgres checks the proposed INSERT against the CHECK before falling through to {@code ON CONFLICT}.
+   */
+  @Override
+  public void addCardSpend(UUID account, UUID userCardId, String categoryRoot, LocalDate month, long deltaPaise,
+      int deltaCount) {
+    TenantScope.require();
+    jdbc.sql("INSERT INTO reco.card_period_spend (account_id, user_card_id, category_root, month, total_paise,"
+            + " txn_count, updated_at)"
+            + " VALUES (:a, :uc, :root, :month, GREATEST(0, :delta), GREATEST(0, :count), now())"
+            + " ON CONFLICT (account_id, user_card_id, month, category_root) DO UPDATE"
+            + " SET total_paise = GREATEST(0, reco.card_period_spend.total_paise + :delta),"
+            + "     txn_count   = GREATEST(0, reco.card_period_spend.txn_count + :count),"
+            + "     updated_at  = now()")
+        .param("a", account).param("uc", userCardId).param("root", Sql.ltree(categoryRoot))
+        .param("month", month).param("delta", deltaPaise).param("count", deltaCount).update();
+  }
+
+  @Override
+  public List<MonthRow> cardMonth(UUID account, UUID userCardId, LocalDate month) {
+    TenantScope.require();
+    return jdbc.sql("SELECT category_root::text AS category_root, month, total_paise, txn_count"
+            + " FROM reco.card_period_spend WHERE account_id = :a AND user_card_id = :uc AND month = :month"
+            + " ORDER BY total_paise DESC, category_root")
+        .param("a", account).param("uc", userCardId).param("month", month).query(MONTH).list();
   }
 
   @Override
@@ -236,6 +274,58 @@ public final class RecoRepository implements RecoStore {
     return jdbc.sql("SELECT " + RULE_COLS + " FROM reco.catalog_rules_proj"
             + " WHERE card_product_id = ANY(:ids) ORDER BY card_product_id, rule_id")
         .param("ids", Sql.uuids(cardProductIds)).query(RULE).list();
+  }
+
+  // ---------------------------------------------------------------- offers (P15)
+
+  static final String UPSERT_OFFER = "INSERT INTO reco.offers_proj (offer_id, card_product_id, merchant_id,"
+      + " category_path, title, kind, value_bps, value_paise, max_discount_paise, min_spend_paise, valid_from,"
+      + " valid_to, stackable, status, current_version, projected_version, updated_at)"
+      + " VALUES (:id, :card, :merchant, :path, :title, :kind, :bps, :value, :maxd, :minspend, :from, :to,"
+      + " :stackable, :status, :cv, :version, now())"
+      + " ON CONFLICT (offer_id) DO UPDATE"
+      + " SET card_product_id = EXCLUDED.card_product_id, merchant_id = EXCLUDED.merchant_id,"
+      + "     category_path = EXCLUDED.category_path, title = EXCLUDED.title, kind = EXCLUDED.kind,"
+      + "     value_bps = EXCLUDED.value_bps, value_paise = EXCLUDED.value_paise,"
+      + "     max_discount_paise = EXCLUDED.max_discount_paise, min_spend_paise = EXCLUDED.min_spend_paise,"
+      + "     valid_from = EXCLUDED.valid_from, valid_to = EXCLUDED.valid_to,"
+      + "     stackable = EXCLUDED.stackable, status = EXCLUDED.status,"
+      + "     current_version = EXCLUDED.current_version, projected_version = EXCLUDED.projected_version,"
+      + "     updated_at = now()"
+      + " WHERE reco.offers_proj.projected_version < EXCLUDED.projected_version";
+
+  /** A withdrawn offer keeps its row with {@code status = 'withdrawn'}, so a late event cannot resurrect it. */
+  @Override
+  public boolean upsertOffer(OfferRow o, long eventVersion) {
+    TenantScope.require();
+    Map<String, Object> m = new HashMap<>();
+    m.put("id", o.offerId());
+    m.put("card", o.cardProductId());
+    m.put("merchant", o.merchantId());
+    m.put("path", o.categoryPath() == null ? null : Sql.ltree(o.categoryPath()));
+    m.put("title", o.title());
+    m.put("kind", o.kind());
+    m.put("bps", o.valueBps());
+    m.put("value", o.valuePaise());
+    m.put("maxd", o.maxDiscountPaise());
+    m.put("minspend", o.minSpendPaise());
+    m.put("from", o.validFrom() == null ? null : Sql.ts(o.validFrom()));
+    m.put("to", o.validTo() == null ? null : Sql.ts(o.validTo()));
+    m.put("stackable", o.stackable());
+    m.put("status", o.status());
+    m.put("cv", o.currentVersion());
+    return ProjectionVersionGuard.apply(jdbc, UPSERT_OFFER, m, eventVersion);
+  }
+
+  @Override
+  public List<OfferRow> activeOffers(List<UUID> cardProductIds) {
+    TenantScope.require();
+    if (cardProductIds.isEmpty()) {
+      return List.of();
+    }
+    return jdbc.sql("SELECT " + OFFER_COLS + " FROM reco.offers_proj"
+            + " WHERE status = 'active' AND card_product_id = ANY(:ids) ORDER BY card_product_id, offer_id")
+        .param("ids", Sql.uuids(cardProductIds)).query(OFFER).list();
   }
 
   // ---------------------------------------------------------------- state

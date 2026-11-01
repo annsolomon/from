@@ -46,6 +46,31 @@ public interface RecoStore {
   /** Every month of one root inside {@code from}..{@code to}, for rebuilding that root's three windows. */
   List<MonthRow> monthsOf(UUID account, String categoryRoot, LocalDate from, LocalDate to);
 
+  // -------------------------------------------------------------------------------- per-card spend (P15, A-86)
+
+  /**
+   * Adds the same delta to one held card's month, so best-card-now can tell how much of a cap is left. Keyed by
+   * the card the expense was put on, which the ledger's own event already carries.
+   */
+  void addCardSpend(UUID account, UUID userCardId, String categoryRoot, LocalDate month, long deltaPaise,
+      int deltaCount);
+
+  /** This month's spend on one held card, by root — the input to the cap headroom. */
+  List<MonthRow> cardMonth(UUID account, UUID userCardId, LocalDate month);
+
+  // -------------------------------------------------------------------------------- offers (P15)
+
+  /** One projected catalog offer. */
+  record OfferRow(UUID offerId, UUID cardProductId, UUID merchantId, String categoryPath, String title,
+      String kind, Integer valueBps, Long valuePaise, Long maxDiscountPaise, long minSpendPaise, Instant validFrom,
+      Instant validTo, boolean stackable, String status, int currentVersion, long projectedVersion) {}
+
+  /** Projects one offer, version-guarded; false when the event was stale. */
+  boolean upsertOffer(OfferRow offer, long eventVersion);
+
+  /** The active offers of these card products. */
+  List<OfferRow> activeOffers(List<UUID> cardProductIds);
+
   /** Replaces the three window rows of one root. */
   void putProfile(UUID account, String categoryRoot, List<ProfileRow> windows, long projectedVersion);
 

@@ -44,6 +44,12 @@
     <dependency><groupId>in.dexter</groupId><artifactId>dexter-events</artifactId></dependency>
     <dependency><groupId>in.dexter</groupId><artifactId>dexter-security</artifactId></dependency>
     <dependency><groupId>in.dexter</groupId><artifactId>dexter-contracts</artifactId></dependency>
+    <!-- P15: the SSE ticket store and the cross-instance fan-out channel. Reco does not cache through
+         dexter-cache, but it uses the same StringRedisTemplate and the same per-service ACL user (A-87). -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-redis</artifactId>
+    </dependency>
     <dependency>
       <!-- DataSource (Hikari) + JdbcClient. No JPA (MASTER_PLAN 3, enforcer bans it). -->
       <groupId>org.springframework.boot</groupId>

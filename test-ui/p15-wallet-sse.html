@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dexter trail · P15 wallet + stream</title>
+  <link rel="stylesheet" href="trail.css">
+  <style>
+    .tabs { display: flex; gap: 6px; margin: 8px 0; }
+    .tabs button { font-family: var(--mono); font-size: 12px; }
+    .tabs button.on { border-color: var(--accent); color: var(--accent); }
+    .seat { border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; margin: 6px 0; }
+    .seat.idle { opacity: .6; border-style: dashed; }
+    .seat h4 { margin: 0 0 2px; font-size: 13px; }
+    .seat h4 small { color: var(--muted); font-weight: 400; font-family: var(--mono); margin-left: 6px; }
+    .roots .chip { border-color: var(--accent); color: var(--accent); }
+    .chip { display: inline-block; border: 1px solid var(--line); border-radius: 10px; padding: 1px 8px;
+      font-family: var(--mono); font-size: 11px; margin: 2px 4px 2px 0; }
+    .chip.held { border-color: var(--ok); color: var(--ok); }
+    .chip.gone { border-color: var(--warn); color: var(--warn); }
+    .totals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 8px 0;
+      font-family: var(--mono); font-size: 12px; }
+    .totals div { border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; }
+    .totals b { display: block; font-size: 15px; }
+    .up { color: var(--ok); }
+    .down { color: var(--warn); }
+    table.bc td.n, table.bc th.n { text-align: right; font-family: var(--mono); }
+    table.bc tr.best td { border-top: 1px solid var(--ok); border-bottom: 1px solid var(--ok); }
+    #stream { max-height: 200px; overflow: auto; font-family: var(--mono); font-size: 11px; }
+    #stream div { padding: 1px 0; border-bottom: 1px solid var(--line); }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--line);
+      margin-right: 6px; }
+    .dot.live { background: var(--ok); }
+    pre.out { white-space: pre-wrap; max-height: 220px; overflow: auto; }
+  </style>
+</head>
+<body>
+<main>
+  <section class="card">
+    <h2>P15 · the wallet, the card for this purchase, and the push</h2>
+    <p class="mono" style="color:var(--muted);margin:0">
+      P14 answered <em>which card should I get</em>. P15 answers three harder ones. <strong>The wallet:</strong> a
+      rupee is spent once, so two cards are only worth carrying if each earns where the other cannot — and a cap is
+      per card, which is usually the whole reason a second card pays. <strong>Best card now:</strong> at a till, a
+      5&nbsp;% card whose monthly cap is spent is worth less than a 2&nbsp;% card with room left.
+      <strong>The stream:</strong> a recompute on any instance reaches this page over Redis pub/sub, so the number
+      changes while you watch. Testing aid only — deleted in P19.
+    </p>
+    <div id="tenant"></div>
+  </section>
+
+  <section class="card">
+    <h3>The wallet</h3>
+    <div class="tabs" id="sizes"></div>
+    <div class="totals" id="totals"></div>
+    <div id="seats"></div>
+    <p class="mono" style="color:var(--muted);font-size:11px;margin:6px 0 0" id="walletnote"></p>
+    <details><summary>raw</summary><pre class="out" id="walletraw"></pre></details>
+  </section>
+
+  <section class="card">
+    <h3>Best card for this purchase</h3>
+    <div class="row">
+      <label>amount ₹ <input class="in s" id="amt" type="number" value="800" step="50"></label>
+      <label>category <input class="in" id="cat" value="food.dining" size="18"></label>
+      <label>merchant id <input class="in" id="merch" size="16" placeholder="(optional)"></label>
+      <button id="ask">ask</button>
+    </div>
+    <table class="bc" id="bc"><thead><tr><th>card</th><th class="n">rate</th><th class="n">reward</th>
+      <th class="n">offer</th><th class="n">milestone</th><th class="n">total</th><th>headroom</th>
+      <th>why</th></tr></thead><tbody></tbody></table>
+    <details><summary>raw</summary><pre class="out" id="bcraw"></pre></details>
+  </section>
+
+  <section class="card">
+    <h3>The live stream</h3>
+    <div class="row">
+      <button id="open">open stream</button>
+      <button id="close">close</button>
+      <span class="mono" style="font-size:12px"><span class="dot" id="dot"></span><span id="state">closed</span></span>
+    </div>
+    <p class="mono" style="color:var(--muted);font-size:11px;margin:6px 0">
+      A ticket is minted with your token (<code>POST /v1/recommendations/stream-ticket</code>, one use, 60&nbsp;s),
+      because a browser's <code>EventSource</code> cannot send an <code>Authorization</code> header. Add an expense
+      below and watch a push arrive.
+    </p>
+    <div id="stream"></div>
+  </section>
+
+  <section class="card">
+    <h3>Add an expense (the ledger), then watch everything move</h3>
+    <div class="row">
+      <label>amount ₹ <input class="in s" id="eamt" type="number" value="1200" step="100"></label>
+      <label>category <input class="in" id="ecat" value="food.dining" size="18"></label>
+      <button id="spend">record expense</button>
+    </div>
+    <pre class="out" id="expenseraw"></pre>
+  </section>
+
+  <section class="card"><h3>Events</h3><div id="events"></div></section>
+  <section class="card"><h3>Log</h3><div id="log"></div></section>
+</main>
+<script src="trail.js"></script>
+<script>
+(() => {
+  Trail.mountHeader('Wallet + stream', 'P15');
+  Trail.mountLog(document.getElementById('log'));
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const rs = p => '₹' + Math.round(p / 100).toLocaleString('en-IN');
+  const signed = p => (p > 0 ? '+' : p < 0 ? '−' : '') + rs(Math.abs(p));
+  const pct = bps => (bps / 100).toFixed(bps % 100 === 0 ? 0 : 1) + '%';
+  const out = (id, v) => { $(id).textContent = typeof v === 'string' ? v : JSON.stringify(v, null, 2); };
+  const paise = id => Math.round(Number($(id).value) * 100);
+  const key = () => ({ 'Idempotency-Key': Trail.uuidv4() });
+  const need = req => (req.tenant ? null : Trail.problem(401, 'UNAUTHENTICATED', 'log in as a persona first'));
+
+  // ---------------------------------------------------------------- Mock mode
+  // The optimizer is a search, not arithmetic: reimplementing it here would be a second answer to the same
+  // question and the two would drift (the A-82 lesson, and why P13's Mock replays EMI fixtures). So Mock replays
+  // fixtures PRINTED FROM THE REAL ENGINE, and the only thing it computes for itself is the effect of an added
+  // expense - which it does by nudging the fixture's own figures and saying so.
+// Printed from the real Optimizer by scratchpad Fix.java - do not hand-edit.
+  const WALLET_FIXTURE = {
+    window: '3m', monthlySpendPaise: 4500000,
+    bestSize: 3, candidatesConsidered: 3, inBeam: 3,
+    redundant: [],
+    bySize: [
+      { size: 1, annualValuePaise: 810000, annualRewardPaise: 810000, annualFeePaise: 0, marginalValuePaise: 0, exact: true,
+        routing: {travel: '33333333-3333-4333-8333-333333333333', bills: '33333333-3333-4333-8333-333333333333', food: '33333333-3333-4333-8333-333333333333', shopping: '33333333-3333-4333-8333-333333333333'},
+        cards: [
+          { cardProductId: '33333333-3333-4333-8333-333333333333', slug: 'mock-flat-1', name: 'Saffron Everyday', held: true, categoryRoots: ['food', 'travel', 'bills', 'shopping'],
+            annualValuePaise: 810000, annualRewardPaise: 810000, expectedFeePaise: 0 },
+        ] },
+      { size: 2, annualValuePaise: 1290000, annualRewardPaise: 1320000, annualFeePaise: 30000, marginalValuePaise: 480000, exact: true,
+        routing: {travel: '22222222-2222-4222-8222-222222222222', bills: '22222222-2222-4222-8222-222222222222', food: '11111111-1111-4111-8111-111111111111', shopping: '22222222-2222-4222-8222-222222222222'},
+        cards: [
+          { cardProductId: '22222222-2222-4222-8222-222222222222', slug: 'mock-travel-points', name: 'Saffron Voyage', held: false, categoryRoots: ['travel', 'bills', 'shopping'],
+            annualValuePaise: 690000, annualRewardPaise: 720000, expectedFeePaise: 30000 },
+          { cardProductId: '11111111-1111-4111-8111-111111111111', slug: 'mock-food-5', name: 'Saffron Dine 5%', held: false, categoryRoots: ['food'],
+            annualValuePaise: 600000, annualRewardPaise: 600000, expectedFeePaise: 0 },
+        ] },
+      { size: 3, annualValuePaise: 1560000, annualRewardPaise: 1590000, annualFeePaise: 30000, marginalValuePaise: 270000, exact: true,
+        routing: {travel: '22222222-2222-4222-8222-222222222222', bills: '33333333-3333-4333-8333-333333333333', food: '11111111-1111-4111-8111-111111111111', shopping: '33333333-3333-4333-8333-333333333333'},
+        cards: [
+          { cardProductId: '33333333-3333-4333-8333-333333333333', slug: 'mock-flat-1', name: 'Saffron Everyday', held: true, categoryRoots: ['bills', 'shopping'],
+            annualValuePaise: 270000, annualRewardPaise: 270000, expectedFeePaise: 0 },
+          { cardProductId: '22222222-2222-4222-8222-222222222222', slug: 'mock-travel-points', name: 'Saffron Voyage', held: false, categoryRoots: ['travel'],
+            annualValuePaise: 690000, annualRewardPaise: 720000, expectedFeePaise: 30000 },
+          { cardProductId: '11111111-1111-4111-8111-111111111111', slug: 'mock-food-5', name: 'Saffron Dine 5%', held: false, categoryRoots: ['food'],
+            annualValuePaise: 600000, annualRewardPaise: 600000, expectedFeePaise: 0 },
+        ] },
+    ],
+  };
+
+  // best-card-now at 80000 paise on food.dining
+  const BEST_80000 = { amountPaise: 80000, categoryPath: 'food.dining', bestUserCardId: 'aaaa1111-0000-4000-8000-000000000001', cards: [
+    { userCardId: 'aaaa1111-0000-4000-8000-000000000001', name: 'Saffron Dine 5%', rateBps: 500, rewardPaise: 4000, offerPaise: 8000, milestonePaise: 0, totalPaise: 12000, headroomPaise: 15000, capExhausted: false, reasons: ['500 bps on food', 'offer: 10% off dining, up to Rs 200'] },
+    { userCardId: 'aaaa1111-0000-4000-8000-000000000002', name: 'Saffron Everyday', rateBps: 150, rewardPaise: 1200, offerPaise: 0, milestonePaise: 0, totalPaise: 1200, headroomPaise: null, capExhausted: false, reasons: ['150 bps on everything'] },
+  ] };
+  // best-card-now at 500000 paise on food.dining
+  const BEST_500000 = { amountPaise: 500000, categoryPath: 'food.dining', bestUserCardId: 'aaaa1111-0000-4000-8000-000000000001', cards: [
+    { userCardId: 'aaaa1111-0000-4000-8000-000000000001', name: 'Saffron Dine 5%', rateBps: 500, rewardPaise: 15000, offerPaise: 20000, milestonePaise: 0, totalPaise: 35000, headroomPaise: 15000, capExhausted: false, reasons: ['only 15000 paise of this month\'s cap is left', '500 bps on food', 'offer: 10% off dining, up to Rs 200'] },
+    { userCardId: 'aaaa1111-0000-4000-8000-000000000002', name: 'Saffron Everyday', rateBps: 150, rewardPaise: 7500, offerPaise: 0, milestonePaise: 0, totalPaise: 7500, headroomPaise: null, capExhausted: false, reasons: ['150 bps on everything'] },
+  ] };
+
+  const M = { shown: JSON.parse(JSON.stringify(WALLET_FIXTURE)), pushes: 0, extra: 0 };
+
+  /** An expense raises the monthly spend, so every figure scales with it - enough to see the push land. */
+  const nudge = addedPaise => {
+    M.extra += addedPaise;
+    const factor = 1 + M.extra / WALLET_FIXTURE.monthlySpendPaise;
+    const scaled = JSON.parse(JSON.stringify(WALLET_FIXTURE));
+    scaled.monthlySpendPaise = Math.round(WALLET_FIXTURE.monthlySpendPaise * factor);
+    for (const w of scaled.bySize) {
+      w.annualRewardPaise = Math.round(w.annualRewardPaise * factor);
+      w.annualValuePaise = w.annualRewardPaise - w.annualFeePaise;
+      for (const c of w.cards) {
+        c.annualRewardPaise = Math.round(c.annualRewardPaise * factor);
+        c.annualValuePaise = c.annualRewardPaise - c.expectedFeePaise;
+      }
+    }
+    let prev = 0;
+    for (const w of scaled.bySize) {
+      w.marginalValuePaise = w.size === 1 ? 0 : w.annualValuePaise - prev;
+      prev = w.annualValuePaise;
+    }
+    M.shown = scaled;
+  };
+
+  Trail.mock('GET', /^\/api\/v1\/recommendations\/wallet$/, (m, req) => need(req) || (() => {
+    const size = Number(req.query.size || 3);
+    if (size < 1 || size > 3) return Trail.problem(400, 'VALIDATION_FAILED', 'size is 1 to 3');
+    return { ...M.shown, bySize: M.shown.bySize.filter(w => w.size <= size) };
+  })());
+
+  Trail.mock('GET', /^\/api\/v1\/recommendations\/best-card$/, (m, req) => need(req) || (() => {
+    const amount = Number(req.query.amountPaise);
+    if (!amount || amount <= 0) return Trail.problem(400, 'AMOUNT_REQUIRED', 'amountPaise must be positive');
+    if (!req.query.category && !req.query.merchantId) {
+      return Trail.problem(400, 'MERCHANT_OR_CATEGORY_REQUIRED', 'Give merchantId or category');
+    }
+    // the two recorded answers bracket the interesting case: under the cap, and past what is left of it
+    const base = amount >= 300000 ? BEST_500000 : BEST_80000;
+    return { ...base, amountPaise: amount, period: new Date().toISOString().slice(0, 8) + '01' };
+  })());
+
+  Trail.mock('POST', /^\/api\/v1\/recommendations\/stream-ticket$/, (m, req) => need(req)
+    || { ticket: 'mock-' + Trail.uuidv4(), expiresInSeconds: 60 });
+
+  // ---------------------------------------------------------------- rendering
+  let size = 3;
+
+  const renderWallet = body => {
+    out('walletraw', body);
+    const sizes = (body.bySize || []);
+    $('sizes').innerHTML = sizes.map(w =>
+      `<button data-size="${w.size}" class="${w.size === size ? 'on' : ''}">${w.size} card${w.size > 1 ? 's' : ''}</button>`).join('');
+    for (const b of $('sizes').querySelectorAll('button')) {
+      b.onclick = () => { size = Number(b.dataset.size); renderWallet(body); };
+    }
+    const w = sizes.find(x => x.size === size) || sizes[sizes.length - 1];
+    if (!w) {
+      $('totals').innerHTML = '';
+      $('seats').innerHTML = '<p class="mono" style="color:var(--muted)">no spend yet, so nothing to optimize</p>';
+      $('walletnote').textContent = '';
+      return;
+    }
+    $('totals').innerHTML = `
+      <div>a year with this wallet<b>${rs(w.annualValuePaise)}</b>${rs(w.annualRewardPaise)} earned, ${rs(w.annualFeePaise)} in fees</div>
+      <div>over ${w.size - 1 || 'no'} card${w.size === 2 ? '' : 's'} fewer<b class="${w.marginalValuePaise > 0 ? 'up' : w.marginalValuePaise < 0 ? 'down' : ''}">${signed(w.marginalValuePaise)}</b>the ${w.size}${w.size === 2 ? 'nd' : w.size === 3 ? 'rd' : 'st'} card's marginal value</div>
+      <div>monthly spend<b>${rs(body.monthlySpendPaise)}</b>${body.window} window, ${body.inBeam} of ${body.candidatesConsidered} cards in the beam</div>`;
+    $('seats').innerHTML = w.cards.map(c => `
+      <div class="seat ${c.categoryRoots.length ? '' : 'idle'}">
+        <h4>${esc(c.name)}${c.held ? ' <span class="chip held">held</span>' : ''}<small>${esc(c.slug)}</small></h4>
+        <div class="roots">${c.categoryRoots.length
+          ? c.categoryRoots.map(r => `<span class="chip">${esc(r)}</span>`).join('')
+          : '<span class="chip gone">nothing routed here</span>'}</div>
+        <div class="mono" style="font-size:11px;color:var(--muted)">
+          ${rs(c.annualValuePaise)} a year · ${rs(c.annualRewardPaise)} earned${c.expectedFeePaise ? ' · ' + rs(c.expectedFeePaise) + ' fee after its waiver' : ' · no fee'}
+        </div>
+      </div>`).join('');
+    const notes = [`routing: ${Object.entries(w.routing || {}).map(([r, c]) => r + ' → ' + String(c).slice(0, 8)).join(', ') || 'none'}`];
+    if (!w.exact) notes.push('too many categories were contested to route them exhaustively, so this one is greedy');
+    if ((body.redundant || []).length) notes.push(`${body.redundant.length} card(s) reported redundant (shown anyway: the report is not acted on)`);
+    $('walletnote').textContent = notes.join(' · ');
+  };
+
+  const renderBest = body => {
+    out('bcraw', body);
+    $('bc').querySelector('tbody').innerHTML = (body.cards || []).map(c => `
+      <tr class="${c.userCardId === body.bestUserCardId ? 'best' : ''}">
+        <td>${esc(c.name)}</td><td class="n">${pct(c.rateBps)}</td><td class="n">${rs(c.rewardPaise)}</td>
+        <td class="n">${c.offerPaise ? rs(c.offerPaise) : '—'}</td>
+        <td class="n">${c.milestonePaise ? rs(c.milestonePaise) : '—'}</td>
+        <td class="n"><strong>${rs(c.totalPaise)}</strong></td>
+        <td>${c.headroomPaise === null || c.headroomPaise === undefined ? '<span class="chip">uncapped</span>'
+          : c.capExhausted ? '<span class="chip gone">cap used</span>' : '<span class="chip">' + rs(c.headroomPaise) + ' left</span>'}</td>
+        <td class="mono" style="font-size:11px">${(c.reasons || []).map(esc).join('<br>')}</td>
+      </tr>`).join('') || '<tr><td colspan="8" class="mono">no cards held</td></tr>';
+  };
+
+  const line = (name, text) => {
+    const d = document.createElement('div');
+    d.textContent = new Date().toISOString().slice(11, 19) + '  ' + name + '  ' + text;
+    $('stream').prepend(d);
+  };
+
+  // ---------------------------------------------------------------- actions
+  const refresh = async () => {
+    const r = await Trail.api('GET', '/api/v1/recommendations/wallet');
+    if (r.status === 200 && r.data) renderWallet(r.data); else out('walletraw', r.data || r.status);
+  };
+
+  const ask = async () => {
+    const q = new URLSearchParams({ amountPaise: String(paise('amt')) });
+    if ($('cat').value.trim()) q.set('category', $('cat').value.trim());
+    if ($('merch').value.trim()) q.set('merchantId', $('merch').value.trim());
+    const r = await Trail.api('GET', '/api/v1/recommendations/best-card?' + q);
+    if (r.status === 200 && r.data) renderBest(r.data); else out('bcraw', r.data || r.status);
+  };
+
+  // ---------------------------------------------------------------- the stream
+  let es = null;
+  let mockStream = false;
+
+  const setState = (text, live) => {
+    $('state').textContent = text;
+    $('dot').className = 'dot' + (live ? ' live' : '');
+  };
+
+  const openStream = async () => {
+    const t = await Trail.api('POST', '/api/v1/recommendations/stream-ticket', { headers: key() });
+    if (t.status !== 200 || !t.data) { line('error', JSON.stringify(t.data || t.status)); return; }
+    line('ticket', 'minted, ' + t.data.expiresInSeconds + 's, one use');
+    if (Trail.mode === 'mock') {
+      mockStream = true;
+      setState('open (mock)', true);
+      line('recommendation.updated', 'hash ' + (M.shown.bySize[0] || {}).annualValuePaise);
+      return;
+    }
+    es = new EventSource(Trail.livePath('/api/v1/recommendations/stream')
+      + '?ticket=' + encodeURIComponent(t.data.ticket));
+    es.onopen = () => setState('open', true);
+    es.onerror = () => { setState('error / closed', false); };
+    for (const name of ['recommendation.updated', 'recommendation.unchanged', 'recommendation.none', 'heartbeat']) {
+      es.addEventListener(name, e => {
+        line(name, 'id=' + (e.lastEventId || '-'));
+        if (name === 'recommendation.updated') refresh();
+      });
+    }
+  };
+
+  const closeStream = () => {
+    if (es) { es.close(); es = null; }
+    mockStream = false;
+    setState('closed', false);
+  };
+
+  const spend = async () => {
+    const body = { amountPaise: paise('eamt'), occurredAt: new Date().toISOString(),
+      merchant: 'Trail P15', categoryPath: $('ecat').value.trim(), paymentMethod: 'upi' };
+    const r = await Trail.api('POST', '/api/v1/expenses', { body, headers: key() });
+    out('expenseraw', r.data === null ? '(no body)' : r.data);
+    if (r.status !== 201) return;
+    if (Trail.mode === 'mock') {
+      nudge(body.amountPaise);
+      if (mockStream) line('recommendation.updated', 'the wallet moved after the expense');
+      renderWallet(M.shown);
+    }
+  };
+
+  $('ask').onclick = ask;
+  $('open').onclick = openStream;
+  $('close').onclick = closeStream;
+  $('spend').onclick = spend;
+
+  // a real expense arriving from anywhere nudges Mock's figures too, the way the projection would
+  Trail.events.on(ev => {
+    if (!ev || !String(ev.type || '').startsWith('ledger.expense.')) return;
+    if (Trail.mode === 'mock') {
+      const amount = ((ev.data || {}).after || {}).amountPaise || 0;
+      if (amount) { nudge(amount); renderWallet(M.shown); }
+    }
+  });
+
+  Trail.mountEvents($('events'), { livePath: '/api/_dev/outbox/recent' });
+  const reset = () => { M.extra = 0; M.shown = JSON.parse(JSON.stringify(WALLET_FIXTURE)); closeStream(); };
+  (async () => {
+    try {
+      await Trail.loadSeed();
+    } catch (e) { /* the page works without the seed fixtures */ }
+    Trail.mountTenantSwitcher($('tenant'), { onSwitch: () => { reset(); refresh(); ask(); } });
+    await refresh();
+    await ask();
+  })();
+})();
+</script>
+</body>
+</html>

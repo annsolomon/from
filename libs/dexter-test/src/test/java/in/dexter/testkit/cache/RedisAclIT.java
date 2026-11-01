@@ -55,6 +55,20 @@ class RedisAclIT {
   }
 
   @Test
+  void theServiceCanFanOutOnItsOwnChannelNamespace() {
+    // P15 (A-87): reco pushes SSE updates over reco:acct:<id>, so a service user needs its own `<svc>:*`
+    // channels as well as its invalidation channel - and must still be shut out of another service's.
+    assertThat(asService.execute((RedisCallback<Long>) x ->
+        x.publish((SVC + ":acct:abc").getBytes(StandardCharsets.UTF_8), "{}".getBytes(StandardCharsets.UTF_8))))
+        .as("a service may publish on its own namespace").isNotNull();
+    assertThat(asService.execute((RedisCallback<Long>) x ->
+        x.publish(("cache:inv:" + SVC).getBytes(StandardCharsets.UTF_8), "{}".getBytes(StandardCharsets.UTF_8))))
+        .as("and on its invalidation channel").isNotNull();
+    assertRefused("PUBLISH", "othersvc:acct:abc", "{}");
+    assertRefused("PUBLISH", "cache:inv:othersvc", "{}");
+  }
+
+  @Test
   void foreignKeysAndDangerousCommandsAreRefused() {
     assertRefused("GET", "gen:othersvc:global:rules");
     assertRefused("SET", "othersvc:v1:x", "1");

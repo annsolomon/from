@@ -1,6 +1,7 @@
 package in.dexter.reco.app;
 
 import in.dexter.contracts.events.catalog.CardPublishedV1;
+import in.dexter.contracts.events.catalog.OfferChangedV1;
 import in.dexter.contracts.events.ledger.ExpenseChangedV1;
 import in.dexter.contracts.events.ledger.ExpenseStateV1;
 import in.dexter.contracts.events.portfolio.CardChangedV1;
@@ -46,6 +47,7 @@ public final class ProjectionService {
   public static final String EXPENSE_CONSUMER = "spend-profile";
   public static final String CARD_CONSUMER = "held-cards";
   public static final String CATALOG_CONSUMER = "catalog-rules";
+  public static final String OFFER_CONSUMER = "catalog-offers";
 
   /** The consumer's actor for the global catalog projection (RLS: is_projector()); no token carries it. */
   public static final Tenant PROJECTOR = new Tenant(new UUID(0, 0x9807_1EC7L), "PROJECTOR", null);
@@ -103,6 +105,12 @@ public final class ProjectionService {
     String root = root(state.categoryPath());
     LocalDate month = Windows.month(LocalDate.parse(state.day()));
     store.addSpend(account, root, month, sign * state.amountPaise(), sign);
+    // the same delta against the card it was put on, which best-card-now reads as cap headroom (A-86). The
+    // ledger's own event carries userCardId, so there is no second event source to keep in step - and an expense
+    // paid by UPI or cash simply has no card, which is why this is conditional rather than assumed.
+    if (state.userCardId() != null) {
+      store.addCardSpend(account, state.userCardId(), root, month, sign * state.amountPaise(), sign);
+    }
     if (!touched.contains(root)) {
       touched.add(root);
     }
@@ -184,6 +192,34 @@ public final class ProjectionService {
       }
       return store.upsertCard(card, rules, e.aggregateVersion()) ? Outcome.APPLIED : Outcome.STALE;
     });
+  }
+
+  // ---------------------------------------------------------------- catalog -> offers (P15)
+
+  /**
+   * Projects {@code catalog.offer.changed} (P15). Global and PROJECTOR-written like the card projections, because
+   * an offer belongs to a card rather than to an account — so this does not mark anybody dirty either (A-83): a
+   * new offer changes what best-card-now answers, which is computed per request, not what the cached ranking says.
+   */
+  public Outcome onOfferEvent(EventEnvelope e) {
+    if (!e.type().equals(OfferChangedV1.TYPE)) {
+      return Outcome.IGNORED;
+    }
+    OfferChangedV1 o = mapper.treeToValue(e.data(), OfferChangedV1.class);
+    RecoStore.OfferRow row = new RecoStore.OfferRow(o.offerId(), o.cardProductId(), o.merchantId(),
+        o.categoryPath(), o.title(), o.kind(), o.valueBps(), o.valuePaise(), o.maxDiscountPaise(),
+        o.minSpendPaise(), instant(o.validFrom()), instant(o.validTo()), o.stackable(), o.status(), o.version(),
+        e.aggregateVersion());
+    return tx.write(PROJECTOR, () -> {
+      if (!inbox.firstDelivery(OFFER_CONSUMER, e.id())) {
+        return Outcome.DUPLICATE;
+      }
+      return store.upsertOffer(row, e.aggregateVersion()) ? Outcome.APPLIED : Outcome.STALE;
+    });
+  }
+
+  private static Instant instant(String iso) {
+    return iso == null || iso.isBlank() ? null : Instant.parse(iso);
   }
 
   private List<RecoStore.RuleRow> rules(UUID cardId, JsonNode snap) {

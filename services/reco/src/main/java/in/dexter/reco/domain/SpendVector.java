@@ -31,6 +31,24 @@ public record SpendVector(Map<String, Long> monthlyByRoot) {
     return new SpendVector(Map.of());
   }
 
+  /**
+   * The same spend with only these roots kept. This is how the optimizer values one card in a wallet: a card is
+   * scored against exactly the roots assigned to it, so {@link Savings} applies that card's caps, fee waiver and
+   * milestone to the spend it actually sees rather than to the whole account's (ADR-0021 §2).
+   */
+  public SpendVector only(java.util.Set<String> roots) {
+    if (roots == null || roots.isEmpty()) {
+      return empty();
+    }
+    Map<String, Long> kept = new LinkedHashMap<>();
+    for (Map.Entry<String, Long> e : monthlyByRoot.entrySet()) {
+      if (roots.contains(e.getKey())) {
+        kept.put(e.getKey(), e.getValue());
+      }
+    }
+    return new SpendVector(kept);
+  }
+
   public long monthly(String root) {
     Long v = monthlyByRoot.get(root);
     return v == null ? 0 : v;

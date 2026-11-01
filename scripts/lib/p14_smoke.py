@@ -153,8 +153,14 @@ def main():
               [l["annualRewardPaise"] for l in e["lines"]])
         check("each line names the rule and the share it was credited with",
               all(l["ruleId"] and 0 < l["shareBps"] <= 10_000 for l in e["lines"]), e["lines"][:2])
-        check("a bound cap is reported as bound",
-              all(not l["capBound"] or l["annualCapPaise"] == l["annualRewardPaise"] for l in e["lines"]),
+        # a rule's cap is shared across the roots it earns on (A-85), so a bound line reports what was LEFT of
+        # the cap, not the whole cap - the invariant is that no line ever exceeds its cap
+        check("a bound cap holds the line at or under the cap",
+              all(l["annualCapPaise"] is None or l["annualRewardPaise"] <= l["annualCapPaise"]
+                  for l in e["lines"]),
+              [l for l in e["lines"] if l["capBound"]][:2])
+        check("a bound line reports the headroom it had",
+              all(l["annualCapRemainingPaise"] is not None for l in e["lines"] if l["capBound"]),
               [l for l in e["lines"] if l["capBound"]][:2])
         check("the fee's waiver probability is a ramp from 0 to 10000",
               0 <= e["fee"]["waiverProbabilityBps"] <= 10_000, e["fee"])

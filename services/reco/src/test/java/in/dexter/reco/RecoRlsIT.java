@@ -47,6 +47,15 @@ class RecoRlsIT extends RecoIT {
         + " VALUES (?, 'hash', '{}'::jsonb)", "UPDATE reco.recommendations SET account_id = ?").proveAll();
   }
 
+  /** P15 (A-86): per-card spend is per account like the rest, so it gets the same proof. */
+  @Test
+  void cardPeriodSpend() throws Exception {
+    kit("card_period_spend", "INSERT INTO reco.card_period_spend (account_id, user_card_id, category_root,"
+        + " month, total_paise, txn_count) VALUES (?, gen_random_uuid(), CAST('food' AS public.ltree),"
+        + " DATE '2026-11-01', 100000, 1)",
+        "UPDATE reco.card_period_spend SET account_id = ?").proveAll();
+  }
+
   @Test
   void recommendationHistory() throws Exception {
     // append-only for the app role (it has SELECT and INSERT, no UPDATE), so there is no row to move

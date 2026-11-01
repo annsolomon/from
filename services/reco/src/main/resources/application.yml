@@ -14,6 +14,16 @@ spring:
     hikari:
       maximum-pool-size: ${RECO_DB_POOL:20}
       connection-timeout: 5000
+  # P15: the SSE ticket store and the cross-instance fan-out channel (infra/redis/acl.tmpl: keys reco:*,
+  # channels reco:* and cache:inv:reco - A-87). Reco is the first service to use Redis for pub/sub.
+  data:
+    redis:
+      host: ${DEXTER_REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      username: reco
+      password: ${REDIS_PW_RECO:${REDIS_PW_SERVICE:}}
+      timeout: 200ms
+      connect-timeout: 1s
   # Migrations run as the schema owner (MASTER_PLAN 3.1); the app role has no DDL rights.
   flyway:
     user: reco_owner

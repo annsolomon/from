@@ -46,3 +46,53 @@ X-Request-Id: manual-reco-explain-404
 GET http://localhost:8086/v1/recommendations
 Authorization: Bearer PASTE_AN_ADMIN_TOKEN
 X-Request-Id: manual-reco-admin-refused
+
+### P15 · the wallet: the best one, two and three card wallets, and what each further card adds
+GET http://localhost:8086/v1/recommendations/wallet
+Authorization: Bearer {{token}}
+X-Request-Id: manual-reco-wallet
+
+### the wallet, capped at a single card
+GET http://localhost:8086/v1/recommendations/wallet?size=1
+Authorization: Bearer {{token}}
+X-Request-Id: manual-reco-wallet-one
+
+### a wallet bigger than three cards -> 400
+GET http://localhost:8086/v1/recommendations/wallet?size=9
+Authorization: Bearer {{token}}
+X-Request-Id: manual-reco-wallet-too-big
+
+### P15 · best card for one purchase: Rs 2,500 of dining, over the cards the account holds
+GET http://localhost:8086/v1/recommendations/best-card?amountPaise=250000&category=food.dining
+Authorization: Bearer {{token}}
+X-Request-Id: manual-reco-bestcard
+
+### the same purchase at a known merchant: a merchant rule beats the category rule
+GET http://localhost:8086/v1/recommendations/best-card?amountPaise=250000&category=food.dining&merchantId=PASTE_A_MERCHANT_ID
+Authorization: Bearer {{token}}
+X-Request-Id: manual-reco-bestcard-merchant
+
+### no amount -> 400 AMOUNT_REQUIRED
+GET http://localhost:8086/v1/recommendations/best-card?amountPaise=0&category=food.dining
+Authorization: Bearer {{token}}
+X-Request-Id: manual-reco-bestcard-no-amount
+
+### neither merchant nor category -> 400 MERCHANT_OR_CATEGORY_REQUIRED
+GET http://localhost:8086/v1/recommendations/best-card?amountPaise=250000
+Authorization: Bearer {{token}}
+X-Request-Id: manual-reco-bestcard-no-scope
+
+### P15 · mint a one-time stream ticket (60 s), because EventSource cannot send an Authorization header
+POST http://localhost:8086/v1/recommendations/stream-ticket
+Authorization: Bearer {{token}}
+X-Request-Id: manual-reco-ticket
+
+### open the stream with it. No token: the ticket is the credential. Paste the ticket from the call above.
+GET http://localhost:8086/v1/recommendations/stream?ticket=PASTE_THE_TICKET
+Accept: text/event-stream
+X-Request-Id: manual-reco-stream
+
+### the same ticket a second time -> 401 STREAM_TICKET_INVALID (single use)
+GET http://localhost:8086/v1/recommendations/stream?ticket=PASTE_THE_SAME_TICKET
+Accept: text/event-stream
+X-Request-Id: manual-reco-stream-replay

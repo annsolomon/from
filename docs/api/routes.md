@@ -94,6 +94,7 @@ breaker (Resilience4j, per service) and a 10 s response timeout.
 | `/v1/scenarios` | `GET /v1/scenarios` | planning | token | read | P13 |
 | `/v1/scenarios/**` | `POST /v1/scenarios/0192a5a1-0000-7000-8000-000000000c03:evaluate` | planning | token | write | P13 |
 | `/v1/recommendations` | `GET /v1/recommendations` | reco | token | read | P14 |
+| `/v1/recommendations/**` | `GET /v1/recommendations/wallet` | reco | token | read | P15 |
 | `/v1/recommendations/**` | `GET /v1/recommendations/best-card?category=dining&amountPaise=50000` | reco | token | read | P15 |
 | `/v1/recommendations/**` | `POST /v1/recommendations/stream-ticket` | reco | token | write | P15 |
 | `/v1/plans` | `GET /v1/plans` | billing | public | read | P16 |
@@ -187,6 +188,25 @@ inputs, so a read is always current (ADR-0020). Money is paise, scores are basis
 The blend is **60 % rupees saved, 40 % expense fit**, configurable (`dexter.reco.scoring.savings-weight-bps`), and
 every response reports the weight and threshold it used. Reco holds no spend of its own: the profile comes from
 `ledger.expense.*`, the held cards from `portfolio.card.*` and the card terms from the compacted catalog topic.
+
+## `/v1/recommendations/wallet`, `/best-card` and `/stream` (P15, reco)
+
+Three different questions, so three shapes. None is cached: the wallet because it is cheap and asked for
+deliberately, best-card-now because the answer depends on the amount, the stream because it is a notification
+(ADR-0021 §5).
+
+| Path | What it does |
+|---|---|
+| `GET /v1/recommendations/wallet` | the best one-, two- and three-card wallet. Each category root is routed to exactly one card, caps are counted per card, and fees and milestones follow the spend actually routed to each card — so the answer is not the top three of `/v1/recommendations`. Every size reports its `marginalValuePaise` over the size below, which may be negative, and `exact: false` when too many roots were contested to route them exhaustively |
+| `GET /v1/recommendations/wallet?size=n` | the same, up to `n` cards (1 to 3) |
+| `GET /v1/recommendations/best-card?merchantId=&category=&amountPaise=` | which **held** card to put this purchase on. Give `merchantId` or `category` (or both) and a positive `amountPaise`. Each card reports its reward, any active offers, a milestone this purchase would reach, the cap headroom left this period and whether that cap is already used |
+| `POST /v1/recommendations/stream-ticket` | a one-time ticket, 60 seconds, for opening the stream from a browser |
+| `GET /v1/recommendations/stream?ticket=` | Server-Sent Events: the current result at once, then one `recommendation.updated` per recompute, with the state hash as the event id, and a `heartbeat` every 25 s. Public at the edge because the ticket is the credential — an `EventSource` cannot send an `Authorization` header. `Last-Event-ID` is honoured: a reconnect that already has the latest result is told `recommendation.unchanged` |
+
+A push reaches a viewer whatever instance recomputed, because a recompute publishes on the Redis channel
+`reco:acct:{id}` and every instance relays it to the streams it holds (A-87). Delivery is best-effort by design:
+the stored result is the system of record, and a missed push is corrected by the next one, by the heartbeat
+failing, or by the reconnect replay.
 
 ## Not routed (on purpose)
 

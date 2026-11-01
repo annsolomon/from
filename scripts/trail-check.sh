@@ -6,7 +6,7 @@ set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
 source scripts/lib/services.sh
-PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html p05-mfa-admin.html p06-gateway.html p07-ledger.html p08-ledger-plus.html p09-catalog.html p10-ingestion.html p11-portfolio.html p12-statements.html p12-calc.html p13-planning.html p14-reco.html})
+PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html p05-mfa-admin.html p06-gateway.html p07-ledger.html p08-ledger-plus.html p09-catalog.html p10-ingestion.html p11-portfolio.html p12-statements.html p12-calc.html p13-planning.html p14-reco.html p15-wallet-sse.html})
 BASE=http://127.0.0.1:8099
 fail=0
 
@@ -334,6 +334,76 @@ qs=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 -H "Authorization: Bea
   "$BASE/api/v1/recommendations?cardProductIds=not-a-uuid")
 if [[ $qs == 400 ]]; then printf 'PASS  %-10s %s\n' p14-badids 400
 else printf 'FAIL  %-10s %s\n' p14-badids "$qs"; fail=1; fi
+
+# P15: what p15-wallet-sse.html Live mode drives. The wallet's arithmetic is checked by identity rather than by
+# a hardcoded figure (the seeded catalog is whatever the run published): every wallet's value is its reward less
+# its fees, each size is at least as good as the one below it or says why, and no category root is routed twice.
+rc=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$BASE/api/v1/recommendations/wallet")
+if [[ $rc == 401 ]]; then printf 'PASS  %-10s %s\n' p15-anon 401
+else printf 'FAIL  %-10s %s\n' p15-anon "$rc"; fail=1; fi
+w0=$(curl -s --max-time 20 -H "Authorization: Bearer $at" "$BASE/api/v1/recommendations/wallet")
+wv=$(printf '%s' "$w0" | python3 -c '
+import json, sys
+d = json.load(sys.stdin)
+sizes = d["bySize"]
+adds_up = all(w["annualValuePaise"] == sum(c["annualValuePaise"] for c in w["cards"]) for w in sizes)
+fees = all(w["annualFeePaise"] == sum(c["expectedFeePaise"] for c in w["cards"]) for w in sizes)
+once = True
+for w in sizes:
+    seen = []
+    for c in w["cards"]:
+        seen += c["categoryRoots"]
+    once = once and len(seen) == len(set(seen))
+marg = all(w["marginalValuePaise"] == 0 for w in sizes if w["size"] == 1)
+for i in range(1, len(sizes)):
+    marg = marg and sizes[i]["marginalValuePaise"] == sizes[i]["annualValuePaise"] - sizes[i - 1]["annualValuePaise"]
+print(len(sizes), adds_up, fees, once, marg)
+' 2>/dev/null)
+read -r wn wadds wfees wonce wmarg <<< "$wv"
+if [[ ${wn:-0} -ge 1 && $wadds == True && $wfees == True && $wonce == True && $wmarg == True ]]; then
+  printf 'PASS  %-10s %s\n' p15-wallet "$wn sizes, a rupee spent once"
+else printf 'FAIL  %-10s %s\n' p15-wallet "n=$wn adds=$wadds fees=$wfees once=$wonce marginal=$wmarg"; fail=1; fi
+
+# best-card-now over the cards the account holds, with the arithmetic checked the same way
+b0=$(curl -s --max-time 10 -H "Authorization: Bearer $at" \
+  "$BASE/api/v1/recommendations/best-card?amountPaise=250000&category=$qexp")
+bv=$(printf '%s' "$b0" | python3 -c '
+import json, sys
+d = json.load(sys.stdin)
+cards = d["cards"]
+adds = all(c["totalPaise"] == c["rewardPaise"] + c["offerPaise"] + c["milestonePaise"] for c in cards)
+sorted_ok = all(cards[i - 1]["totalPaise"] >= cards[i]["totalPaise"] for i in range(1, len(cards)))
+cap = all(c["headroomPaise"] is None or c["rewardPaise"] <= c["headroomPaise"] for c in cards)
+best = (not cards) or d["bestUserCardId"] == cards[0]["userCardId"]
+print(len(cards), adds, sorted_ok, cap, best)
+' 2>/dev/null)
+read -r bn badds bsorted bcap bbest <<< "$bv"
+if [[ -n ${bn:-} && $badds == True && $bsorted == True && $bcap == True && $bbest == True ]]; then
+  printf 'PASS  %-10s %s\n' p15-bestcard "$bn held cards, reward within headroom"
+else printf 'FAIL  %-10s %s\n' p15-bestcard "n=$bn adds=$badds sorted=$bsorted cap=$bcap best=$bbest"; fail=1; fi
+bs=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 -H "Authorization: Bearer $at" \
+  "$BASE/api/v1/recommendations/best-card?amountPaise=0&category=$qexp")
+if [[ $bs == 400 ]]; then printf 'PASS  %-10s %s\n' p15-badamount 400
+else printf 'FAIL  %-10s %s\n' p15-badamount "$bs"; fail=1; fi
+
+# the stream: a one-time ticket, then a real SSE read of the opening event
+tk=$(curl -s --max-time 10 -X POST -H "Authorization: Bearer $at" \
+  -H "Idempotency-Key: $(cat /proc/sys/kernel/random/uuid)" "$BASE/api/v1/recommendations/stream-ticket")
+tkv=$(printf '%s' "$tk" | jget ticket expiresInSeconds)
+read -r tkt tkexp <<< "$tkv"
+if [[ -n ${tkt:-} && ${tkexp:-0} == 60 ]]; then printf 'PASS  %-10s %s\n' p15-ticket "60s, one use"
+else printf 'FAIL  %-10s %s\n' p15-ticket "${tk:0:200}"; fail=1; fi
+# the stream needs no token: the ticket is the credential, which is why the gateway makes it public
+sse=$(curl -s --max-time 6 -N -H 'Accept: text/event-stream' \
+  "$BASE/api/v1/recommendations/stream?ticket=$tkt" 2>/dev/null | head -c 400 || true)
+if printf '%s' "$sse" | grep -q 'event:recommendation\.\|event: recommendation\.'; then
+  printf 'PASS  %-10s %s\n' p15-stream "opening event received"
+else printf 'FAIL  %-10s %s\n' p15-stream "${sse:0:200}"; fail=1; fi
+# and the ticket is spent: a second use is refused
+again=$(curl -s -o /dev/null -w '%{http_code}' --max-time 6 \
+  "$BASE/api/v1/recommendations/stream?ticket=$tkt")
+if [[ $again == 401 ]]; then printf 'PASS  %-10s %s\n' p15-onceonly 401
+else printf 'FAIL  %-10s %s\n' p15-onceonly "$again"; fail=1; fi
 
 echo "trail-check: $([[ $fail -eq 0 ]] && echo PASS || echo FAIL)"
 exit $fail

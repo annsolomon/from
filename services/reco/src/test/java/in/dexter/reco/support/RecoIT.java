@@ -4,6 +4,7 @@ import in.dexter.db.sql.Sql;
 import in.dexter.security.jwt.JwtVerifier;
 import in.dexter.testkit.containers.ServiceDb;
 import in.dexter.testkit.containers.TestPostgres;
+import in.dexter.testkit.containers.TestRedis;
 import in.dexter.testkit.security.TestJwt;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -56,6 +57,10 @@ public abstract class RecoIT {
     }
   }
 
+  /** P15: the SSE ticket store and fan-out channel, on the service's own ACL user. */
+  public static final String REDIS_USER = "reco";
+  public static final String REDIS_PW = "reco-it-pw";
+
   @DynamicPropertySource
   static void props(DynamicPropertyRegistry r) {
     r.add("spring.datasource.url", DB::url);
@@ -65,6 +70,13 @@ public abstract class RecoIT {
     r.add("dexter.reco.consumers.enabled", () -> "false");
     // the tests drive Sweeper.sweep() themselves: a background pass would race every debounce assertion
     r.add("dexter.reco.sweeper.enabled", () -> "false");
+    // P15: the real per-service ACL line from infra/redis/acl.tmpl, so the ITs prove it is sufficient for the
+    // ticket keys AND the reco:acct:* channels - the same way RedisAclIT proves it for dexter-cache (A-87)
+    TestRedis.applyServiceAcl(REDIS_USER, REDIS_PW);
+    r.add("spring.data.redis.host", TestRedis::host);
+    r.add("spring.data.redis.port", () -> TestRedis.port());
+    r.add("spring.data.redis.username", () -> REDIS_USER);
+    r.add("spring.data.redis.password", () -> REDIS_PW);
   }
 
   public static String token(UUID account) {

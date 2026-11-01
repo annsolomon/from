@@ -20,8 +20,13 @@ import java.util.Map;
  * changes, or stale results will be served as fresh).
  */
 public final class StateHash {
-  /** Bumped whenever the scoring arithmetic changes, so every stored result is recomputed. */
-  public static final int ENGINE_VERSION = 1;
+  /**
+   * Bumped whenever the scoring arithmetic changes, so every stored result is recomputed.
+   *
+   * <p>2 (P15): a rule's cap is now shared across the roots that rule earns on, instead of being applied once per
+   * root — which had a capped catch-all rule earning its ceiling several times over (A-85).
+   */
+  public static final int ENGINE_VERSION = 2;
 
   private StateHash() {}
 

@@ -31,6 +31,9 @@
 #   P14: reco via the gateway (scripts/lib/p14_smoke.py): a ledger expense becoming a spend profile over Kafka and
 #        moving the ranking, the 60/40 blend on every row, explain's arithmetic adding up line by line, the subset
 #        form, a held card marked not hidden, and the state-hash cache.
+#   P15: reco B via the gateway (scripts/lib/p15_smoke.py): the wallet optimizer checked by its own identities (a
+#        rupee routed once, marginal value as the step up, value = the cards' values), best-card-now with the cap
+#        headroom an expense on that card moves, and the SSE stream - a one-time 60s ticket, then a real read.
 # Later phases append their checks below the P00 block. Output also goes to $SMOKE_OUT if set.
 set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -180,6 +183,11 @@ log "# P14 reco via gateway (:8080): the spend profile from ledger events, the 6
 p14=$(python3 "$ROOT/scripts/lib/p14_smoke.py" "http://localhost:8080" 2>&1); p14rc=$?
 while IFS= read -r line; do log "$line"; done <<< "$p14"
 [[ $p14rc -eq 0 ]] || fail=1
+# ------------------------------------------------------------------ P15: reco B through the gateway
+log "# P15 reco B via gateway (:8080): the wallet optimizer, best-card-now with cap headroom, and the SSE stream"
+p15=$(python3 "$ROOT/scripts/lib/p15_smoke.py" "http://localhost:8080" 2>&1); p15rc=$?
+while IFS= read -r line; do log "$line"; done <<< "$p15"
+[[ $p15rc -eq 0 ]] || fail=1
 # Outbox -> Kafka (MASTER_PLAN 6.3): every identity event written above is published by the relay within 30 s.
 COMPOSE=(docker compose --env-file "$ROOT/.env" -f "$ROOT/infra/compose/docker-compose.yml")
 outbox() { "${COMPOSE[@]}" exec -T postgres psql -U "${POSTGRES_USER:-postgres}" -d identity -tA -c "$1" 2>/dev/null | tr -d '[:space:]'; }

@@ -1,6 +1,7 @@
 package in.dexter.reco.config;
 
 import in.dexter.contracts.events.catalog.CardPublishedV1;
+import in.dexter.contracts.events.catalog.OfferChangedV1;
 import in.dexter.contracts.events.ledger.ExpenseChangedV1;
 import in.dexter.contracts.events.portfolio.CardChangedV1;
 import in.dexter.events.EnvelopeCodec;
@@ -43,7 +44,11 @@ public class RecoConsumersConfiguration {
     EventConsumer catalog = new EventConsumer(EventConsumer.Settings.defaults(bootstrap, SERVICE,
         ProjectionService.CATALOG_CONSUMER, List.of(CardPublishedV1.TOPIC)), projections::onCatalogEvent, codec,
         producer, clock);
-    return new Consumers(List.of(expenses, cards, catalog), producer);
+    // P15: offers, for best-card-now. Global like the card projection and written under the same PROJECTOR actor.
+    EventConsumer offers = new EventConsumer(EventConsumer.Settings.defaults(bootstrap, SERVICE,
+        ProjectionService.OFFER_CONSUMER, List.of(OfferChangedV1.TOPIC)), projections::onOfferEvent, codec,
+        producer, clock);
+    return new Consumers(List.of(expenses, cards, catalog, offers), producer);
   }
 
   static final class Consumers implements SmartLifecycle {

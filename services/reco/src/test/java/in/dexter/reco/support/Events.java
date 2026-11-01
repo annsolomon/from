@@ -1,6 +1,7 @@
 package in.dexter.reco.support;
 
 import in.dexter.contracts.events.catalog.CardPublishedV1;
+import in.dexter.contracts.events.catalog.OfferChangedV1;
 import in.dexter.contracts.events.ledger.ExpenseChangedV1;
 import in.dexter.contracts.events.ledger.ExpenseStateV1;
 import in.dexter.contracts.events.portfolio.CardChangedV1;
@@ -24,6 +25,16 @@ public final class Events {
 
   public static ExpenseStateV1 state(long paise, String day, String categoryPath) {
     return new ExpenseStateV1(paise, day, categoryPath, "upi", null, null, "Test merchant", day + "T06:00:00Z");
+  }
+
+  /**
+   * The same expense put on a card (P15): best-card-now's cap headroom comes from this, and the ledger's own
+   * event has carried {@code userCardId} since P07 — so there is no second event source (A-86).
+   */
+  public static ExpenseStateV1 onCard(long paise, String day, String categoryPath, UUID userCardId,
+      UUID merchantId) {
+    return new ExpenseStateV1(paise, day, categoryPath, "card", userCardId, merchantId, "Test merchant",
+        day + "T06:00:00Z");
   }
 
   public static EventEnvelope expense(String type, UUID account, UUID expenseId, long version,
@@ -83,6 +94,13 @@ public final class Events {
     return m;
   }
 
+  /** A rule written for one merchant (P15): best-card-now prefers it over the category rule it sits beside. */
+  public static Map<String, Object> merchantRule(UUID ruleId, UUID merchantId, String rewardType, int rateBps) {
+    Map<String, Object> m = rule(ruleId, null, rewardType, rateBps, 0L, null, null, List.of(), 0);
+    m.put("merchantId", merchantId.toString());
+    return m;
+  }
+
   public static Map<String, Object> milestone(long spendThresholdPaise, String period, long benefitValuePaise) {
     Map<String, Object> m = new LinkedHashMap<>();
     m.put("spendThresholdPaise", spendThresholdPaise);
@@ -124,6 +142,17 @@ public final class Events {
   public static EventEnvelope cardRetired(UUID cardId, String slug, int catalogVersion, long aggregateVersion,
       Map<String, Object> snapshot) {
     return catalog(CardPublishedV1.RETIRED, cardId, slug, "retired", catalogVersion, aggregateVersion, snapshot);
+  }
+
+  /** {@code catalog.offer.changed} (P15): keyed by the offer, global like a card, carrying the whole offer. */
+  public static EventEnvelope offerChanged(UUID offerId, UUID cardProductId, UUID merchantId, String categoryPath,
+      String kind, Integer valueBps, Long valuePaise, Long maxDiscountPaise, long minSpendPaise, String validFrom,
+      String validTo, boolean stackable, String status, long aggregateVersion) {
+    return new EventEnvelope(UUID.randomUUID(), OfferChangedV1.TYPE, 1, "catalog", Instant.now(), null, offerId,
+        aggregateVersion, null, RecoIT.JSON.valueToTree(new OfferChangedV1(offerId, status, UUID.randomUUID(),
+            cardProductId, merchantId, categoryPath, "Offer " + offerId, kind, valueBps, valuePaise,
+            maxDiscountPaise, minSpendPaise, validFrom, validTo, stackable, (int) aggregateVersion,
+            Instant.now().toString())));
   }
 
   public static EventEnvelope catalog(String type, UUID cardId, String slug, String status, int catalogVersion,

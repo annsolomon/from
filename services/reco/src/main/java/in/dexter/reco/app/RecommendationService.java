@@ -71,11 +71,17 @@ public final class RecommendationService {
       long monthlyShortfallPaise) {}
 
   /** @param shareBps how much of the root's spend the matched rule was assumed to see (Rules.share, A-81) */
+  /**
+   * @param annualCapRemainingPaise what was left of the rule's cap when this root was credited, or null when the
+   *     rule is uncapped. One rule's cap is shared across every root it earns on (A-85), so a line can report
+   *     less than the cap and this is what explains it
+   */
   public record Line(String categoryRoot, String ruleId, String rewardType, int rateBps, int shareBps,
       long monthlySpendPaise, long annualSpendConsideredPaise, long annualRewardPaise, boolean capBound,
-      Long annualCapPaise, boolean capNotConvertible) {}
+      Long annualCapPaise, Long annualCapRemainingPaise, boolean capNotConvertible) {}
 
   private final TenantTx tx;
+  private final ResultListener listener;
   private final RecoStore store;
   private final OutboxWriter outbox;
   private final ObjectMapper mapper;
@@ -83,8 +89,25 @@ public final class RecommendationService {
   private final int savingsWeightBps;
   private final int thresholdBps;
 
+  /**
+   * Told about a result that changed, once the recompute has committed. P15's SSE fan-out is the only
+   * implementation; it is an interface so the recompute keeps working — and stays testable — with no Redis at all,
+   * and so a failed push can never roll back a stored result.
+   */
+  public interface ResultListener {
+    void changed(UUID account, String stateHash, String payloadJson);
+
+    ResultListener NONE = (a, h, p) -> { };
+  }
+
   public RecommendationService(TenantTx tx, RecoStore store, OutboxWriter outbox, ObjectMapper mapper, Clock clock,
       int savingsWeightBps, int thresholdBps) {
+    this(tx, store, outbox, mapper, clock, savingsWeightBps, thresholdBps, ResultListener.NONE);
+  }
+
+  public RecommendationService(TenantTx tx, RecoStore store, OutboxWriter outbox, ObjectMapper mapper, Clock clock,
+      int savingsWeightBps, int thresholdBps, ResultListener listener) {
+    this.listener = listener == null ? ResultListener.NONE : listener;
     this.tx = tx;
     this.store = store;
     this.outbox = outbox;
@@ -146,7 +169,7 @@ public final class RecommendationService {
       for (Savings.Line l : sv.lines()) {
         lines.add(new Line(l.categoryRoot(), l.ruleId(), l.rewardType(), l.rateBps(), l.shareBps(),
             l.monthlySpendPaise(), l.annualSpendConsideredPaise(), l.annualRewardPaise(), l.capBound(),
-            l.annualCapPaise(), l.capUnconvertible()));
+            l.annualCapPaise(), l.annualCapRemainingPaise(), l.capUnconvertible()));
       }
       return new Explanation(cardProductId, card.slug(), card.name(), card.issuerCode(), scored.held(),
           SCORING_WINDOW, in.spend().monthlyTotal(), sv.annualRewardPaise(), sv.annualSavingsPaise(),
@@ -167,6 +190,16 @@ public final class RecommendationService {
    * by the account and the event is only published on a change.
    */
   public Recomputed recompute(UUID account) {
+    Recomputed out = recomputeInTx(account);
+    if (out.changed()) {
+      // after the commit, never inside it: a listener that throws must not undo a stored result, and a listener
+      // that re-reads must not see the row as it was
+      listener.changed(account, out.stateHash(), mapper.writeValueAsString(out.view()));
+    }
+    return out;
+  }
+
+  private Recomputed recomputeInTx(UUID account) {
     return tx.write(Tenant.user(account), () -> {
       Inputs in = inputs(account);
       Map<String, Integer> versions = new LinkedHashMap<>();
@@ -209,7 +242,8 @@ public final class RecommendationService {
   record Inputs(SpendVector spend, Set<String> heldProductIds, List<CardTerms> candidates,
       Map<String, Integer> versions) {}
 
-  private Inputs inputs(UUID account) {
+  /** Package-visible so P15's wallet and best-card services read the account through one door. */
+  Inputs inputs(UUID account) {
     Map<String, Long> byRoot = new LinkedHashMap<>();
     for (RecoStore.ProfileRow p : store.profile(account, SCORING_WINDOW)) {
       byRoot.put(p.categoryRoot(), p.monthlyAvgPaise());

@@ -1,6 +1,7 @@
 package in.dexter.reco.config;
 
 import in.dexter.contracts.events.catalog.CardPublishedV1;
+import in.dexter.contracts.events.catalog.OfferChangedV1;
 import in.dexter.contracts.events.ledger.ExpenseChangedV1;
 import in.dexter.contracts.events.portfolio.CardChangedV1;
 import in.dexter.db.partition.PartitionManager;
@@ -61,10 +62,12 @@ public class RecoRelayConfiguration {
     topics.main("ledger", "expense");
     topics.main("portfolio", "card");
     topics.main("catalog", "card");
+    topics.main("catalog", "offer");          // P15: best-card-now reads the offers projection
     List<String> stages = EventConsumer.Settings.defaults("x", SCHEMA, "x", List.of("x")).stageNames();
     topics.consumer(ExpenseChangedV1.TOPIC, ProjectionService.EXPENSE_CONSUMER, stages);
     topics.consumer(CardChangedV1.TOPIC, ProjectionService.CARD_CONSUMER, stages);
     topics.consumer(CardPublishedV1.TOPIC, ProjectionService.CATALOG_CONSUMER, stages);
+    topics.consumer(OfferChangedV1.TOPIC, ProjectionService.OFFER_CONSUMER, stages);
     EnsureTopics ensureTopics = new EnsureTopics(topics, r.bootstrapServers());
     OutboxRelay.Settings d = OutboxRelay.Settings.defaults(SCHEMA);
     // Library defaults, but maintenance every 10 min (default 1 h) so a failed topic creation is retried soon.
