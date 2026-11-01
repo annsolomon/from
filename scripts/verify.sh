@@ -166,8 +166,14 @@ write_env() {
 # ------------------------------------------------------------------ unit/full pieces
 need_env_file() { [[ -f "$ROOT/.env" ]] || { echo "no .env - run: cp .env.example .env"; return 1; }; }
 
-mvn_unit() { mvn -B -DskipITs verify 2>&1 | tee "$VDIR/mvn.log" | tail -n 5; return "${PIPESTATUS[0]}"; }
-mvn_full() { mvn -B verify 2>&1 | tee "$VDIR/mvn.log" | tail -n 5; return "${PIPESTATUS[0]}"; }
+# -U forces a re-check of resolutions Maven has cached as FAILED. Without it a single hiccup against Maven
+# Central is sticky: Maven writes a `.lastUpdated` marker beside the missing artifact, refuses to retry a release
+# it has already failed to find, and setup-java's post step saves that marker into the Actions cache - so every
+# later run restores the failure and never retries it. P15 r1 hit exactly that: `spring-boot-starter-parent:4.0.8`
+# "could not be found in central" on two consecutive runs, on a pin that had been green for fifteen phases and
+# had only stopped being served from a warm cache because a pom edit changed the cache key (A-88).
+mvn_unit() { mvn -B -U -DskipITs verify 2>&1 | tee "$VDIR/mvn.log" | tail -n 5; return "${PIPESTATUS[0]}"; }
+mvn_full() { mvn -B -U verify 2>&1 | tee "$VDIR/mvn.log" | tail -n 5; return "${PIPESTATUS[0]}"; }
 
 images_pull() {
   # Sequential `docker pull` per image, not `compose pull`: on this Codespace (containerd image store)
