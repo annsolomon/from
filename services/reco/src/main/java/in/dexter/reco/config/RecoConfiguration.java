@@ -13,7 +13,6 @@ import in.dexter.reco.app.Sweeper;
 import in.dexter.reco.app.WalletService;
 import in.dexter.reco.infra.RecoRepository;
 import java.time.Clock;
-import java.util.Optional;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,17 +39,15 @@ public class RecoConfiguration {
   }
 
   /**
-   * The ranking. {@code streams} is optional on purpose: with no Redis there is no SSE, and the recompute still
-   * works — it just has nobody to tell (ADR-0021 §8).
+   * The ranking. The stream is told about a changed result through a one-method listener rather than being wired
+   * in directly, so a push cannot happen inside the write transaction and a push that throws cannot undo a
+   * stored result (ADR-0021 §11).
    */
   @Bean
   RecommendationService recommendationService(TenantTx tx, RecoStore store, OutboxWriter outbox, JsonMapper mapper,
-      Clock clock, RecoProperties props, Optional<StreamService> streams) {
-    RecommendationService.ResultListener listener = streams
-        .<RecommendationService.ResultListener>map(s -> s::publish)
-        .orElse(RecommendationService.ResultListener.NONE);
+      Clock clock, RecoProperties props, StreamService streams) {
     return new RecommendationService(tx, store, outbox, mapper, clock, props.scoring().savingsWeightBps(),
-        props.scoring().thresholdBps(), listener);
+        props.scoring().thresholdBps(), streams::publish);
   }
 
   @Bean

@@ -71,11 +71,18 @@
     `reco:acct:{id}` and every instance relays it to the streams it holds (A-87). This is the first use of Redis
     pub/sub in the system, and the per-service ACL had to gain the service's own `<svc>:*` channel namespace;
     `RedisAclIT` now proves a service can publish there and still cannot reach another service's channels.
-11. **The push happens after the commit, through an interface.** `RecommendationService.ResultListener` is a
-    one-method interface with a no-op default, called once the write transaction has returned. A listener that
-    throws must not roll back a stored result, a listener that re-reads must not see the old row, and the recompute
-    has to keep working with no Redis at all — which is also what lets the stream wiring live in its own
-    conditional configuration.
+11. **The push happens after the commit, through a one-method interface.** `RecommendationService.ResultListener`
+    is called once the write transaction has returned: a listener that throws must not roll back a stored result,
+    and a listener that re-reads must not see the row as it was. It also keeps the recompute testable with no
+    Redis, which is how `DebounceIT` and `RecommendationsIT` exercise it.
+
+    The stream wiring is *not* conditional on Redis being present, and the first attempt to make it so is the
+    lesson: `@ConditionalOnBean(StringRedisTemplate.class)` on an ordinary `@Configuration` is evaluated while
+    user configuration is scanned, before auto-configuration has run, so the template Boot was about to create did
+    not exist yet — the condition failed and `StreamController` came up with nothing to inject. That annotation is
+    only dependable inside an `@AutoConfiguration` class. Reco declares the Redis starter and configures it, so
+    the template is always there, and Lettuce connects lazily: a Redis that is down costs the stream, not the
+    service.
 12. **Delivery is best-effort, and the stored result is the system of record.** A missed push is corrected by the
     next one, by the 25-second heartbeat failing, or by the reconnect replay: `Last-Event-ID` is the state hash the
     client last saw, so a reconnect that already has the latest result is told `recommendation.unchanged` rather

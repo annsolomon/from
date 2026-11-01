@@ -52,9 +52,10 @@ is in the repo (clone it). The old repo zip is not needed: nothing is left to po
   and errors.md are all in. What could not be run in the sandbox (no Maven Central, Java 21 only, no Docker) is
   every Spring/Testcontainers test. The likeliest first failures, with their fixes:
   - **reco is now the first service to use Redis**, so its ITs need a Redis container: `RecoIT` applies the real
-    ACL line from `infra/redis/acl.tmpl` and points `spring.data.redis.*` at `TestRedis`. If the context fails to
-    start, that wiring is where to look — and note `RecoHealthIT` asserts `status: UP`, which a missing Redis
-    would break.
+    ACL line from `infra/redis/acl.tmpl` and points `spring.data.redis.*` at `TestRedis`. (r4 found the related
+    trap: `@ConditionalOnBean(StringRedisTemplate.class)` on an ordinary `@Configuration` is evaluated before
+    auto-configuration runs, so `StreamService` was never created and every reco IT failed on a context that
+    would not start. The condition is gone — reco simply requires Redis.)
   - **the per-service ACL gained `&{{svc}}:*`** (A-87). `RedisAclIT` asserts a service may publish there and still
     may not reach `othersvc:*`; if Redis 7.4 words that refusal differently, the assertion is what needs widening,
     not the ACL.

@@ -8,7 +8,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,9 +18,16 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * The SSE wiring (MASTER_PLAN P15 step 3), in its own configuration because it is the one part of reco that needs
- * Redis: with no {@link StringRedisTemplate} there is no ticket store and no cross-instance channel, so there is
- * no stream either and the rest of reco carries on unchanged.
+ * The SSE wiring (MASTER_PLAN P15 step 3), in its own configuration because it is the one part of reco built on
+ * Redis — the ticket store and the cross-instance channel.
+ *
+ * <p>It is <b>not</b> conditional on a {@link StringRedisTemplate} being present, and the first version's attempt
+ * to make it so is worth recording: {@code @ConditionalOnBean} on an ordinary {@code @Configuration} is evaluated
+ * while user configuration is being scanned, which is <em>before</em> auto-configuration has run — so the
+ * template Boot was about to create did not exist yet, the condition failed, and {@code StreamController} came up
+ * with no {@code StreamService} to inject. That condition is only dependable inside an {@code @AutoConfiguration}
+ * class. Reco declares {@code spring-boot-starter-data-redis} and configures {@code spring.data.redis.*}, so the
+ * template is always there; Lettuce connects lazily, so a Redis that is down costs the stream, not the service.
  *
  * <p>Two moving parts beyond the service itself. The <b>listener container</b> subscribes this instance to
  * {@code reco:acct:*} and relays every message to the emitters it holds — a pattern subscription rather than one
@@ -30,7 +36,6 @@ import tools.jackson.databind.json.JsonMapper;
  * closing an idle stream and is also how a dead connection is noticed and forgotten.
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnBean(StringRedisTemplate.class)
 public class RecoStreamConfiguration {
   private static final Logger log = LoggerFactory.getLogger(RecoStreamConfiguration.class);
 
