@@ -66,6 +66,25 @@ class RedisAclIT {
         .as("and on its invalidation channel").isNotNull();
     assertRefused("PUBLISH", "othersvc:acct:abc", "{}");
     assertRefused("PUBLISH", "cache:inv:othersvc", "{}");
+
+    // Spring's RedisMessageListenerContainer takes a PATTERN subscription, so `subscribe` alone is not enough.
+    // ACL DRYRUN answers whether a command would be allowed without actually subscribing and blocking.
+    assertThat(dryRun(SVC, "psubscribe", SVC + ":acct:*")).as("a pattern subscription on its own namespace")
+        .isEqualTo("OK");
+    assertThat(dryRun(SVC, "subscribe", "cache:inv:" + SVC)).isEqualTo("OK");
+    assertThat(dryRun(SVC, "psubscribe", "othersvc:*")).as("but not on another service's")
+        .isNotEqualTo("OK");
+    assertThat(dryRun(SVC, "subscribe", "cache:inv:othersvc")).isNotEqualTo("OK");
+  }
+
+  /** Whether this user would be allowed to run that command, per Redis itself. */
+  static String dryRun(String user, String command, String arg) {
+    return TestRedis.admin().execute((RedisCallback<String>) c -> {
+      byte[] reply = (byte[]) c.execute("ACL", "DRYRUN".getBytes(StandardCharsets.UTF_8),
+          user.getBytes(StandardCharsets.UTF_8), command.getBytes(StandardCharsets.UTF_8),
+          arg.getBytes(StandardCharsets.UTF_8));
+      return reply == null ? null : new String(reply, StandardCharsets.UTF_8);
+    });
   }
 
   @Test
