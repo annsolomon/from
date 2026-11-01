@@ -30,9 +30,9 @@ import tools.jackson.databind.json.JsonMapper;
  * template is always there; Lettuce connects lazily, so a Redis that is down costs the stream, not the service.
  *
  * <p>Two moving parts beyond the service itself. The <b>listener container</b> subscribes this instance to
- * {@code reco:acct:*} and relays every message to the emitters it holds — a pattern subscription rather than one
- * per account, because an instance's set of streams changes constantly and re-subscribing on each open would be a
- * round trip per viewer. The <b>heartbeat</b> sends a comment frame every 25 seconds, which keeps proxies from
+ * {@link StreamService#CHANNEL_PATTERN} and relays every message to the emitters it holds — a pattern
+ * subscription rather than one per account, because an instance's set of streams changes constantly and
+ * re-subscribing on each open would be a round trip per viewer. The <b>heartbeat</b> sends a comment frame every 25 seconds, which keeps proxies from
  * closing an idle stream and is also how a dead connection is noticed and forgotten.
  */
 @Configuration(proxyBeanMethods = false)
@@ -58,7 +58,7 @@ public class RecoStreamConfiguration {
         // one bad message must not take the subscription down for every viewer on this instance
         log.warn("RECO_STREAM_RELAY_FAILED channel={} error={}", channel, e.toString());
       }
-    }, new PatternTopic(StreamService.CHANNEL_PREFIX + "*"));
+    }, new PatternTopic(StreamService.CHANNEL_PATTERN));
     return container;
   }
 

@@ -86,7 +86,7 @@ class StreamIT extends RecoIT {
       otherListener.addMessageListener((message, pattern) -> other.onMessage(
           new String(message.getChannel(), StandardCharsets.UTF_8),
           new String(message.getBody(), StandardCharsets.UTF_8)),
-          new PatternTopic(StreamService.CHANNEL_PREFIX + "*"));
+          new PatternTopic(StreamService.CHANNEL_PATTERN));
       otherListener.afterPropertiesSet();
       otherListener.start();
     }

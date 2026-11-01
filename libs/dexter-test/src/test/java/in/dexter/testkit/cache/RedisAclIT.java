@@ -69,8 +69,13 @@ class RedisAclIT {
 
     // Spring's RedisMessageListenerContainer takes a PATTERN subscription, so `subscribe` alone is not enough.
     // ACL DRYRUN answers whether a command would be allowed without actually subscribing and blocking.
-    assertThat(dryRun(SVC, "psubscribe", SVC + ":acct:*")).as("a pattern subscription on its own namespace")
+    // Note the pattern has to be the one the ACL grants: Redis compares a PSUBSCRIBE pattern to an ACL channel
+    // pattern by literal equality, not by glob, so `<svc>:acct:*` is refused even though `<svc>:*` is allowed.
+    assertThat(dryRun(SVC, "psubscribe", SVC + ":*")).as("a pattern subscription on its own namespace")
         .isEqualTo("OK");
+    assertThat(dryRun(SVC, "psubscribe", SVC + ":acct:*"))
+        .as("a narrower pattern is NOT covered by the granted one - Redis matches patterns literally")
+        .isNotEqualTo("OK");
     assertThat(dryRun(SVC, "subscribe", "cache:inv:" + SVC)).isEqualTo("OK");
     assertThat(dryRun(SVC, "psubscribe", "othersvc:*")).as("but not on another service's")
         .isNotEqualTo("OK");

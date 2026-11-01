@@ -53,6 +53,15 @@ public final class StreamService {
   public static final String TICKET_PREFIX = "reco:ticket:";
   /** The fan-out channel for one account. Inside the service's own {@code reco:*} channel namespace (A-87). */
   public static final String CHANNEL_PREFIX = "reco:acct:";
+  /**
+   * The pattern an instance subscribes to. It is the service's whole namespace rather than the narrower
+   * {@code reco:acct:*} that would read more naturally, because Redis checks a {@code PSUBSCRIBE} pattern against
+   * an ACL's channel patterns by <em>literal equality</em>, not by glob — so with {@code &reco:*} granted,
+   * {@code PSUBSCRIBE reco:acct:*} is refused outright ("no permissions to access the channel"). Subscribing to
+   * the granted pattern and filtering in {@link #onMessage} costs nothing: the only channels reco publishes on are
+   * {@code reco:acct:<id>}, and tickets are keys, not channels.
+   */
+  public static final String CHANNEL_PATTERN = "reco:*";
   /** MASTER_PLAN P15: a 60-second ticket. */
   public static final Duration TICKET_TTL = Duration.ofSeconds(60);
   /** MASTER_PLAN P15: a heartbeat every 25 seconds, under the usual 30-second proxy idle timeout. */

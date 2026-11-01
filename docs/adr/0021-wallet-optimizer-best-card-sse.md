@@ -69,8 +69,17 @@
 10. **A push crosses instances over Redis pub/sub.** A browser is attached to one instance and the recompute that
     concerns it may happen on another — the sweeper runs everywhere. So a changed recompute publishes on
     `reco:acct:{id}` and every instance relays it to the streams it holds (A-87). This is the first use of Redis
-    pub/sub in the system, and the per-service ACL had to gain the service's own `<svc>:*` channel namespace;
-    `RedisAclIT` now proves a service can publish there and still cannot reach another service's channels.
+    pub/sub in the system, and the per-service ACL had to gain the service's own `<svc>:*` channel namespace plus
+    the pattern pub/sub commands — Spring's listener container takes one pattern subscription rather than one per
+    account, since an instance's set of streams changes constantly.
+
+    An instance subscribes to `reco:*`, not the narrower `reco:acct:*` that would read better, because **Redis
+    compares a `PSUBSCRIBE` pattern to an ACL's channel patterns by literal equality rather than by glob**: with
+    `&reco:*` granted, `PSUBSCRIBE reco:acct:*` is refused outright. So the subscription uses exactly the granted
+    pattern and `onMessage` filters by prefix, which costs nothing — the only channels reco publishes on are
+    `reco:acct:<id>`, and tickets are keys, not channels. `RedisAclIT` pins all of it: a service may publish and
+    pattern-subscribe on its own namespace, a narrower pattern is not covered by the granted one, and another
+    service's channels stay out of reach.
 11. **The push happens after the commit, through a one-method interface.** `RecommendationService.ResultListener`
     is called once the write transaction has returned: a listener that throws must not roll back a stored result,
     and a listener that re-reads must not see the row as it was. It also keeps the recompute testable with no
