@@ -91,6 +91,20 @@ class RulesTest {
    * "scored as the category rule it sits under"; it was scored as zero.
    */
   @Test
+  void aMerchantRuleIsNotCreditedInTheRanking() {
+    // the spend profile has no merchant dimension, so the ranking cannot say how much of a root is spent there
+    CardTerms.Rule merchant = new CardTerms.Rule("m", null, java.util.UUID.randomUUID().toString(),
+        "cashback", 900, 0, null, null, 0, java.util.List.of(), 0);
+    assertThat(Rules.share(merchant, "food")).as("a merchant rule earns no share of a root").isZero();
+    assertThat(Rules.best(java.util.List.of(merchant), "food")).as("so it is never the best rule for a root")
+        .isNull();
+
+    CardTerms.Rule alsoCategory = new CardTerms.Rule("mc", "food", java.util.UUID.randomUUID().toString(),
+        "cashback", 900, 0, null, null, 0, java.util.List.of(), 0);
+    assertThat(Rules.share(alsoCategory, "food")).as("a merchant rule with a category is excluded too").isZero();
+  }
+
+  @Test
   void aMerchantRuleEarnsAtItsOwnRate() {
     CardTerms.Rule merchant = new CardTerms.Rule("m", "food", java.util.UUID.randomUUID().toString(),
         "cashback", 500, 0, null, null, 0, java.util.List.of(), 0);

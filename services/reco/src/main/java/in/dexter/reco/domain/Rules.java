@@ -28,6 +28,14 @@ public final class Rules {
    * not measurements: P15's optimizer, which has the per-category detail, supersedes them (A-81).
    */
   public static int share(Rule rule, String root) {
+    // A rule written for one merchant earns nothing in the ranking. The spend profile has no merchant dimension,
+    // so reco cannot know what share of a root is spent there - and the alternatives are both wrong: crediting it
+    // in full turns "9 % at one shop" into "9 % on everything", and crediting it at the category rate claims a
+    // benefit the account may never collect. best-card-now is the question that can answer this honestly, because
+    // it is asked about one merchant (A-89, ADR-0021 §14).
+    if (rule.merchantId() != null && !rule.merchantId().isBlank()) {
+      return 0;
+    }
     String ruleRoot = rule.root();
     if (ruleRoot != null && !ruleRoot.equals(root)) {
       return 0;

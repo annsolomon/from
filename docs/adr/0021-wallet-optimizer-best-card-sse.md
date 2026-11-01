@@ -115,6 +115,15 @@
     UUIDs, and a separate one pins the malformed-id behaviour: a merchant-specific rule that names no real
     merchant earns nothing, which is the conservative reading and the right one for money.
 
+    Fixing it exposed the question underneath, which ADR-0020 had answered wrongly. Once a merchant rule earns,
+    `Rules.share` credited a merchant rule with *no* category as a catch-all — turning "9 % at one shop" into
+    "9 % on everything" and recommending a card for a benefit the account may never collect. So **the ranking now
+    excludes merchant rules outright**: `Rules.share` returns 0 for any rule carrying a merchant. ADR-0020 said
+    such a rule was "scored as the category rule it sits under"; for a merchant-only rule there is no category to
+    sit under, and for one with a category, crediting it still claims spend reco cannot see. The spend profile has
+    no merchant dimension, and best-card-now is the question that can answer this honestly because it is asked
+    about one merchant. Under-crediting is the safe direction here, and it is now the deliberate one.
+
 ## What this phase does not do
 
 - **No wallet cache and no wallet history.** §5. If the wallet becomes a screen people land on rather than a thing
