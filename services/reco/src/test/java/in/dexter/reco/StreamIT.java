@@ -166,27 +166,41 @@ class StreamIT extends RecoIT {
 
   // ------------------------------------------------------------------------------- the rest of the mechanism
 
+  /**
+   * What the opening event is called, which depends only on {@code Last-Event-ID} and the stored result.
+   *
+   * <p>The stored result is written straight into the table rather than produced by a recompute. A recompute also
+   * publishes, and that push can beat the opening event into the recorder — the sink is registered before the
+   * opening {@code send}, so the Redis listener thread has a window. Chasing it with a sleep would be a flaky
+   * test about the wrong thing; this test is about the name of the opening event, so it removes the publish
+   * instead of racing it. The cross-instance push has its own test above.
+   */
   @Test
   void theOpeningEventSaysWhetherTheClientAlreadyHasThisResult() {
     UUID a = UUID.randomUUID();
-    publishCard();
-    projections.onExpenseEvent(Events.created(a, UUID.randomUUID(),
-        Events.state(700_000L, today(), "food.dining")));
-    String hash = recommendations.recompute(a).stateHash();
+    String hash = "a-hash-nothing-else-will-produce";
+    ADMIN.sql("INSERT INTO reco.recommendations (account_id, state_hash, computed_at, payload)"
+            + " VALUES (:a, :h, now(), '{}'::jsonb)")
+        .param("a", a).param("h", hash).update();
 
-    // the recompute above also publishes, and that push can land on this instance a moment after open() has
-    // registered the sink - a duplicate with the same event id, which Last-Event-ID makes harmless. What this
-    // test is about is the FIRST event, so that is what it asserts.
     Recorder fresh = new Recorder();
     streams.open(a, fresh, null);
-    assertThat(fresh.events.get(0)).isEqualTo("recommendation.updated|" + hash);
+    assertThat(fresh.events).as("a new stream is sent the current result at once")
+        .containsExactly("recommendation.updated|" + hash);
 
     Recorder reconnect = new Recorder();
     streams.open(a, reconnect, hash);
-    assertThat(reconnect.events.get(0)).as("a reconnect that already has it is told so")
-        .isEqualTo("recommendation.unchanged|" + hash);
+    assertThat(reconnect.events).as("a reconnect that already has it is told so, not told again")
+        .containsExactly("recommendation.unchanged|" + hash);
+
+    Recorder stale = new Recorder();
+    streams.open(a, stale, "some-older-hash");
+    assertThat(stale.events).as("a reconnect holding something older gets the current result")
+        .containsExactly("recommendation.updated|" + hash);
+
     streams.close(a, fresh);
     streams.close(a, reconnect);
+    streams.close(a, stale);
   }
 
   @Test
