@@ -25,8 +25,10 @@ public final class StateHash {
    *
    * <p>2 (P15): a rule's cap is now shared across the roots that rule earns on, instead of being applied once per
    * root — which had a capped catch-all rule earning its ceiling several times over (A-85).
+   *
+   * <p>3 (P15): a rule written for a merchant now earns at its own rate instead of earning nothing (A-89).
    */
-  public static final int ENGINE_VERSION = 2;
+  public static final int ENGINE_VERSION = 3;
 
   private StateHash() {}
 

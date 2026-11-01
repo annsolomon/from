@@ -19,7 +19,7 @@ class RecoHealthIT extends RecoIT {
     assertThat(nf.body()).contains("\"requestId\":");
 
     assertThat(ADMIN.sql("SELECT count(1) FROM reco.flyway_schema_history WHERE success AND type = 'SQL'")
-        .query(Long.class).single()).as("the platform migration and the core one").isEqualTo(2);
+        .query(Long.class).single()).as("the platform migration, the core one and P15's wallet one").isEqualTo(3);
     assertThat(ADMIN.sql("SELECT tableowner FROM pg_tables WHERE schemaname = 'reco'"
             + " AND tablename = 'spend_profile'").query(String.class).single()).isEqualTo("reco_owner");
   }

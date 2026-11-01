@@ -47,6 +47,8 @@ class StreamIT extends RecoIT {
   @Autowired
   in.dexter.reco.app.RecoStore store;
   @Autowired
+  in.dexter.db.tenant.TenantTx tx;
+  @Autowired
   RedisConnectionFactory redisFactory;
 
   /** Instance B: its own service and its own subscription, the same Redis. */
@@ -80,7 +82,7 @@ class StreamIT extends RecoIT {
 
   private StreamService instanceB() {
     if (other == null) {
-      other = new StreamService(redis, store, JsonMapper.builder().build());
+      other = new StreamService(redis, tx, store, JsonMapper.builder().build());
       otherListener = new RedisMessageListenerContainer();
       otherListener.setConnectionFactory(redisFactory);
       otherListener.addMessageListener((message, pattern) -> other.onMessage(

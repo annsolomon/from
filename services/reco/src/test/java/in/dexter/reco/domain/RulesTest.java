@@ -83,4 +83,23 @@ class RulesTest {
     assertThat(Rules.best(List.of(rule("travel", "travel", "cashback", 500, 0)), "food")).isNull();
     assertThat(Rules.best(List.of(), "food")).isNull();
   }
+
+  /**
+   * P15 (A-89): a merchant rule used to earn <em>nothing</em>, anywhere. {@code Rules.rewardPaise} asked
+   * {@code RewardTerms} what the rule earns while passing no merchant, so a rule written for a merchant matched
+   * nothing and returned zero — in the ranking as well as in best-card-now. ADR-0020 said a merchant rule was
+   * "scored as the category rule it sits under"; it was scored as zero.
+   */
+  @Test
+  void aMerchantRuleEarnsAtItsOwnRate() {
+    CardTerms.Rule merchant = new CardTerms.Rule("m", "food", java.util.UUID.randomUUID().toString(),
+        "cashback", 500, 0, null, null, 0, java.util.List.of(), 0);
+    assertThat(Rules.rewardPaise(merchant, 1_000_000L)).as("5 % of Rs 10,000").isEqualTo(50_000L);
+
+    CardTerms.Rule plain = new CardTerms.Rule("p", "food", null, "cashback", 500, 0, null, null, 0,
+        java.util.List.of(), 0);
+    assertThat(Rules.rewardPaise(merchant, 1_000_000L))
+        .as("the same as the identical rule without a merchant")
+        .isEqualTo(Rules.rewardPaise(plain, 1_000_000L));
+  }
 }

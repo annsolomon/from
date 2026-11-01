@@ -93,7 +93,10 @@ public final class Rules {
     // the path the rule itself is written on, so RewardTerms' ancestor-or-self matching selects this rule; a rule
     // with no category is asked about a path it covers by definition
     String path = rule.categoryPath() == null || rule.categoryPath().isBlank() ? "any" : rule.categoryPath();
-    RewardTerms terms = new RewardTerms(List.of(rule.shared()));
-    return terms.earn(spendPaise, path, null).valuePaise();
+    RewardTerms.Rule shared = rule.shared();
+    RewardTerms terms = new RewardTerms(List.of(shared));
+    // and the merchant it is written for, for the same reason: a merchant rule asked about no merchant matches
+    // nothing and earns zero. P15 found this - best-card-now is the first caller to pass a merchant rule here.
+    return terms.earn(spendPaise, path, shared.merchantId()).valuePaise();
   }
 }

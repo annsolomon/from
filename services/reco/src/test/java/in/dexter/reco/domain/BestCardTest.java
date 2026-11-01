@@ -8,6 +8,7 @@ import in.dexter.reco.domain.CardTerms.Rule;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -64,19 +65,42 @@ class BestCardTest {
 
   // ------------------------------------------------------------------------------- rule selection
 
+  /**
+   * The merchant ids here are real UUIDs on purpose. {@code Rule.shared()} treats an unparseable merchant id as
+   * "no merchant rule", so a test written with {@code "m-1"} passes whether or not the merchant is carried through
+   * to the earning arithmetic — which is exactly how P15 shipped a merchant rule that earned nothing and let CI
+   * find it.
+   */
   @Test
   void aMerchantRuleBeatsACategoryRule() {
+    String here = UUID.randomUUID().toString();
+    String elsewhere = UUID.randomUUID().toString();
     CardTerms c = card("c", List.of(rule("cat", "food", null, 500, null),
-        rule("merch", null, "m-1", 300, null)), null);
-    BestCard.Answer here = BestCard.rank(List.of(held("uc", c, 0, Map.of())), List.of(),
-        "m-1", "food.dining", 100_000L, NOW);
-    assertThat(here.best().ruleId()).isEqualTo("merch");
-    assertThat(here.best().rewardPaise()).as("even at a lower rate").isEqualTo(3_000L);
+        rule("merch", null, here, 300, null)), null);
 
-    BestCard.Answer elsewhere = BestCard.rank(List.of(held("uc", c, 0, Map.of())), List.of(),
-        "m-2", "food.dining", 100_000L, NOW);
-    assertThat(elsewhere.best().ruleId()).isEqualTo("cat");
-    assertThat(elsewhere.best().rewardPaise()).isEqualTo(5_000L);
+    BestCard.Answer atTheMerchant = BestCard.rank(List.of(held("uc", c, 0, Map.of())), List.of(),
+        here, "food.dining", 100_000L, NOW);
+    assertThat(atTheMerchant.best().ruleId()).isEqualTo("merch");
+    assertThat(atTheMerchant.best().rateBps()).isEqualTo(300);
+    assertThat(atTheMerchant.best().rewardPaise()).as("3 % of Rs 1,000, even at a lower rate than the category")
+        .isEqualTo(3_000L);
+
+    BestCard.Answer anywhereElse = BestCard.rank(List.of(held("uc", c, 0, Map.of())), List.of(),
+        elsewhere, "food.dining", 100_000L, NOW);
+    assertThat(anywhereElse.best().ruleId()).isEqualTo("cat");
+    assertThat(anywhereElse.best().rewardPaise()).isEqualTo(5_000L);
+  }
+
+  @Test
+  void aRuleWithAnUnparseableMerchantIdEarnsNothing() {
+    // A malformed merchant id in the projection is a data error, and the conservative reading is the right one
+    // for money: the rule is merchant-specific and matches no real merchant, so it earns nothing rather than
+    // quietly earning everywhere.
+    CardTerms c = card("c", List.of(rule("merch", null, "not-a-uuid", 300, null)), null);
+    BestCard.Answer a = BestCard.rank(List.of(held("uc", c, 0, Map.of())), List.of(),
+        UUID.randomUUID().toString(), "food.dining", 100_000L, NOW);
+    assertThat(a.best().rewardPaise()).isZero();
+    assertThat(a.best().ruleId()).isNull();
   }
 
   @Test

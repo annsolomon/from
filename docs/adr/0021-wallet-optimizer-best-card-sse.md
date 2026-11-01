@@ -103,15 +103,27 @@
     a figure below the cap is readable. `StateHash.ENGINE_VERSION` went to 2, which is exactly what that rule is
     for: every stored result recomputes rather than being served as fresh against the old arithmetic.
 
+14. **A rule written for a merchant earned nothing at all, anywhere (A-89).** `Rules.rewardPaise` asked
+    `RewardTerms` what a rule earns while passing no merchant, so a merchant rule matched nothing and returned
+    zero — in `GET /v1/recommendations` as much as in best-card-now. ADR-0020 said a merchant rule was "scored as
+    the category rule it sits under"; it was in fact scored as zero, and no test caught it because every P14
+    fixture used category rules. It now earns at its own rate, and `ENGINE_VERSION` went to 3.
+
+    The near miss is worth recording too. The unit test I wrote for this used `"m-1"` as a merchant id, and
+    `Rule.shared()` treats an unparseable merchant id as "no merchant" — so the test passed whether or not the
+    merchant reached the arithmetic, and only the integration test, with real UUIDs, failed. The test now uses
+    UUIDs, and a separate one pins the malformed-id behaviour: a merchant-specific rule that names no real
+    merchant earns nothing, which is the conservative reading and the right one for money.
+
 ## What this phase does not do
 
 - **No wallet cache and no wallet history.** §5. If the wallet becomes a screen people land on rather than a thing
   they ask for, it gets the same treatment as the ranking: a state hash and a stored row.
 - **No offer stacking rules beyond the catalog's own flag.** At most one non-stackable offer plus every stackable
   one, which is what `stackable` means. Issuer-specific stacking rules are a catalog question.
-- **No merchant dimension in the spend profile.** Unchanged from ADR-0020: best-card-now matches merchant rules
-  because it is asked about one merchant, but the wallet still scores merchant rules as the category rules they sit
-  under.
+- **No merchant dimension in the spend profile.** Unchanged from ADR-0020 in intent: best-card-now matches
+  merchant rules because it is asked about one merchant, while the wallet and the ranking score a merchant rule as
+  the category rule it sits under — which is now actually what happens, rather than scoring it as zero (§14).
 - **The SSE stream carries the result, not a diff.** A payload is small and a diff would need the client's last
   state; `Last-Event-ID` tells us only what it saw, not what it still holds.
 - **Nothing seeded reaches reco's projections** (inherited, BUILD_README §7): a seeded demo gives the optimizer one

@@ -62,6 +62,13 @@ dexter:
     jwks-uri: ${IDENTITY_JWKS_URI:http://127.0.0.1:${PORT_IDENTITY:8081}/.well-known/jwks.json}
     issuer: ${IDENTITY_ISSUER:https://identity.dexter.internal}
     audience: reco
+    # P15: the SSE stream carries a one-time ticket instead of a bearer token, because a browser's EventSource
+    # cannot set a header - the gateway lists it public and forwards it with no Authorization, so this service has
+    # to let it reach the controller, which then checks the ticket (ADR-0021 §9).
+    public-paths:
+      - /_dev/**
+      - /error
+      - /v1/recommendations/stream
   reco:
     # the 60/40 blend (MASTER_PLAN P14) and the not-recommended threshold, both configurable
     scoring:

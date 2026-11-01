@@ -1,5 +1,6 @@
 package in.dexter.reco.config;
 
+import in.dexter.db.tenant.TenantTx;
 import in.dexter.reco.app.RecoStore;
 import in.dexter.reco.app.StreamService;
 import java.nio.charset.StandardCharsets;
@@ -40,8 +41,8 @@ public class RecoStreamConfiguration {
   private static final Logger log = LoggerFactory.getLogger(RecoStreamConfiguration.class);
 
   @Bean
-  StreamService streamService(StringRedisTemplate redis, RecoStore store, JsonMapper mapper) {
-    return new StreamService(redis, store, mapper);
+  StreamService streamService(StringRedisTemplate redis, TenantTx tx, RecoStore store, JsonMapper mapper) {
+    return new StreamService(redis, tx, store, mapper);
   }
 
   /** Subscribes this instance to every account's channel and hands messages to the service. */

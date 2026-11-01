@@ -2,6 +2,7 @@ package in.dexter.reco.app;
 
 import in.dexter.core.error.DexterException;
 import in.dexter.core.tenant.Tenant;
+import in.dexter.db.tenant.TenantTx;
 import in.dexter.reco.domain.RecoErrors;
 import java.security.SecureRandom;
 import java.time.Duration;
@@ -76,6 +77,7 @@ public final class StreamService {
       "local v = redis.call('get', KEYS[1]); if v then redis.call('unlink', KEYS[1]); end; return v", String.class);
 
   private final StringRedisTemplate redis;
+  private final TenantTx tx;
   private final RecoStore store;
   private final ObjectMapper mapper;
   /** account id -> the emitters this instance is holding for it. */
@@ -85,8 +87,9 @@ public final class StreamService {
    * No clock: a ticket's life is Redis's to keep (the key carries its own TTL) and an event's identity is the
    * state hash, not a timestamp — so there is nothing here for this service to read the time for.
    */
-  public StreamService(StringRedisTemplate redis, RecoStore store, ObjectMapper mapper) {
+  public StreamService(StringRedisTemplate redis, TenantTx tx, RecoStore store, ObjectMapper mapper) {
     this.redis = redis;
+    this.tx = tx;
     this.store = store;
     this.mapper = mapper;
   }
@@ -148,7 +151,9 @@ public final class StreamService {
    */
   public void open(UUID account, Sink sink, String lastEventId) {
     sinks.computeIfAbsent(account, a -> new CopyOnWriteArrayList<>()).add(sink);
-    Optional<RecoStore.ResultRow> stored = store.result(account);
+    // the stored result is read under the account's own tenant scope: every reco repository call is RLS-bound and
+    // refuses to run outside one, and opening a stream happens on a request thread with no transaction of its own
+    Optional<RecoStore.ResultRow> stored = tx.read(Tenant.user(account), () -> store.result(account));
     if (stored.isPresent()) {
       RecoStore.ResultRow r = stored.get();
       String name = r.stateHash().equals(lastEventId) ? "recommendation.unchanged" : "recommendation.updated";
