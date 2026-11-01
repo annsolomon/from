@@ -10,7 +10,6 @@ import in.dexter.reco.app.StreamService;
 import in.dexter.reco.support.Events;
 import in.dexter.reco.support.RecoIT;
 import java.nio.charset.StandardCharsets;
-import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -81,7 +80,7 @@ class StreamIT extends RecoIT {
 
   private StreamService instanceB() {
     if (other == null) {
-      other = new StreamService(redis, store, JsonMapper.builder().build(), Clock.systemUTC());
+      other = new StreamService(redis, store, JsonMapper.builder().build());
       otherListener = new RedisMessageListenerContainer();
       otherListener.setConnectionFactory(redisFactory);
       otherListener.addMessageListener((message, pattern) -> other.onMessage(

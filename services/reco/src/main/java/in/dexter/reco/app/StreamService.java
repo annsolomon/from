@@ -4,7 +4,6 @@ import in.dexter.core.error.DexterException;
 import in.dexter.core.tenant.Tenant;
 import in.dexter.reco.domain.RecoErrors;
 import java.security.SecureRandom;
-import java.time.Clock;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
@@ -70,15 +69,17 @@ public final class StreamService {
   private final StringRedisTemplate redis;
   private final RecoStore store;
   private final ObjectMapper mapper;
-  private final Clock clock;
   /** account id -> the emitters this instance is holding for it. */
   private final Map<UUID, List<Sink>> sinks = new ConcurrentHashMap<>();
 
-  public StreamService(StringRedisTemplate redis, RecoStore store, ObjectMapper mapper, Clock clock) {
+  /**
+   * No clock: a ticket's life is Redis's to keep (the key carries its own TTL) and an event's identity is the
+   * state hash, not a timestamp — so there is nothing here for this service to read the time for.
+   */
+  public StreamService(StringRedisTemplate redis, RecoStore store, ObjectMapper mapper) {
     this.redis = redis;
     this.store = store;
     this.mapper = mapper;
-    this.clock = clock;
   }
 
   /**

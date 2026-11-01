@@ -79,8 +79,9 @@ public class StreamController {
         }
         emitter.send(event);
         return true;
-      } catch (IOException | IllegalStateException | RuntimeException e) {
-        return false;      // the client is gone; the service forgets this sink
+      } catch (IOException | RuntimeException e) {
+        // the client is gone, or the emitter is already complete; either way the service forgets this sink
+        return false;
       }
     }
 
