@@ -123,6 +123,12 @@
     sit under, and for one with a category, crediting it still claims spend reco cannot see. The spend profile has
     no merchant dimension, and best-card-now is the question that can answer this honestly because it is asked
     about one merchant. Under-crediting is the safe direction here, and it is now the deliberate one.
+15. **The stream produces `text/event-stream` and nothing else, so a JSON-only client is refused by content
+    negotiation — 406 — before the ticket is read.** This is the right order: a client that cannot read the
+    stream is told so, and an invalid ticket is not even consulted. A client that does accept the stream gets the
+    refusal itself as a problem document (401 `STREAM_TICKET_INVALID`), which is what a browser's `EventSource`
+    and the api-smoke both see. Worth recording because the first smoke asked with `Accept: application/json` and
+    read the 406 as a missing error mapping; it is the opposite — the mapping is fine and the request was.
 
 ## What this phase does not do
 

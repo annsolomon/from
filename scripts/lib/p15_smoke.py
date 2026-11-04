@@ -58,6 +58,18 @@ def best(tok, amount, category=None, merchant=None):
     return s, d
 
 
+def wait_scored(tok, user_card_id, seconds=45):
+    """The user card id once best-card-now ranks it, i.e. once `portfolio.card.added` reached reco over Kafka."""
+    end = time.time() + seconds
+    while True:
+        s, b = best(tok, 100_000, category=SUB)
+        if s == 200 and any(c["userCardId"] == user_card_id for c in b["cards"]):
+            return user_card_id
+        if time.time() > end:
+            return None
+        time.sleep(1)
+
+
 def expense_on_card(tok, amount, category, user_card_id):
     """An expense the ledger attributes to a card, which is what moves best-card-now's headroom."""
     body = {"amountPaise": amount, "occurredAt": datetime.datetime.now(datetime.timezone.utc)
@@ -156,11 +168,31 @@ def main():
     s, _, d = call("GET", GW + "/v1/recommendations/wallet?size=9", headers=bearer(asha))
     check("size past three is 400", s == 400, (s, d))
 
+    # ---- a holding best-card-now can actually score. asha's seeded cards were written straight into
+    # portfolio's tables and emitted no event, so reco's held projection has never heard of them - and
+    # best-card-now ranks held cards, so without a holding of our own it answers with an empty list and every
+    # identity below holds vacuously (which is exactly what it did until this was added). P14's smoke adds its
+    # own holding for the same reason, and removes it again; this one stays, because the headroom check below
+    # needs it and P15 is the last block in the run.
+    target = None
+    s, _, r = call("GET", GW + "/v1/recommendations", headers=bearer(asha))
+    ranked = ((r.get("recommended") or []) + (r.get("notRecommended") or [])) if s == 200 else []
+    if check("reco ranks at least one catalog card for asha", bool(ranked), (s, len(ranked))):
+        last4 = "%04d" % random.randint(0, 9999)
+        s, _, mine_card = call("POST", GW + "/v1/cards", {"cardProductId": ranked[0]["cardProductId"],
+                               "last4": last4, "statementDay": 5, "dueOffsetDays": 20,
+                               "nickname": "Smoke P15 " + last4}, key(asha))
+        if check("asha holds the card reco ranks first: 201", s == 201, (s, mine_card)):
+            target = wait_scored(asha, mine_card["id"])
+            check("best-card scores it once portfolio.card.added has arrived", target is not None,
+                  mine_card["id"])
+
     # ---- best-card-now
     s, b = best(asha, 250_000, category=SUB)
     if check("best-card: 200", s == 200, (s, b)):
         cards = b["cards"]
-        check("it answers for the cards asha holds", isinstance(cards, list), type(cards).__name__)
+        check("it answers for the cards asha holds, and the answer is not empty",
+              isinstance(cards, list) and bool(cards), cards)
         check("total = reward + offer + milestone on every card",
               all(c["totalPaise"] == c["rewardPaise"] + c["offerPaise"] + c["milestonePaise"] for c in cards),
               cards[:1])
@@ -183,16 +215,7 @@ def main():
           s == 400 and code(d) == "MERCHANT_OR_CATEGORY_REQUIRED", (s, d))
 
     # ---- an expense on a held card moves that card's headroom (A-86)
-    s, _, held = call("GET", GW + "/v1/cards?limit=50", headers=bearer(asha))
-    mine = [c for c in (held.get("data") or [])] if s == 200 else []
-    scored = []
-    if mine:
-        s, b = best(asha, 100_000, category=SUB)
-        if s == 200:
-            ids = {c["userCardId"] for c in b["cards"]}
-            scored = [c for c in mine if c["id"] in ids]
-    if check("asha holds a card reco can score", bool(scored), {"holds": len(mine), "scored": len(scored)}):
-        target = scored[0]["id"]
+    if target:
         s, b = best(asha, 100_000, category=SUB)
         before = next(c for c in b["cards"] if c["userCardId"] == target)["periodSpendPaise"]
         s, _ = expense_on_card(asha, 300_000, SUB, target)
@@ -221,7 +244,11 @@ def main():
               "id:" in body.replace("id: ", "id:") or "recommendation.none" in body, body[:200])
         status2, body2 = read_stream(t["ticket"], seconds=5)
         check("and the ticket cannot be used twice", status2 == 401, (status2, body2[:120]))
-    s, _, d = call("GET", GW + "/v1/recommendations/stream?ticket=never-issued")
+    # The stream produces text/event-stream and nothing else, so content negotiation refuses a JSON-only client
+    # with 406 before the handler ever reads the ticket - correct, and not what is being tested here. A client
+    # that accepts the stream gets the refusal itself, as a problem document (ADR-0021 §15).
+    s, _, d = call("GET", GW + "/v1/recommendations/stream?ticket=never-issued",
+                   headers={"Accept": "text/event-stream, application/json"})
     check("an unissued ticket is 401 STREAM_TICKET_INVALID",
           s == 401 and code(d) == "STREAM_TICKET_INVALID", (s, d))
 

@@ -279,7 +279,26 @@ infra_checks() {
   [[ $n_dbs -eq $expect_dbs && $n_roles -eq $((expect_dbs * 5)) && $n_bypass -eq 0 && $n_lab -eq 1 && $fail -eq 0 ]]
 }
 
-services_up() { "$ROOT/scripts/run.sh" services; }
+# A service that never becomes healthy leaves its reason only in .run/logs/<svc>.log - and the steps that follow
+# (api-smoke, then trail-check.sh) start the stack again with `>` redirects, which destroys exactly the log that
+# says why. So on failure the logs are snapshotted while they still say it, and the down services' tails go into
+# this step's own log so the published report carries them (A-90). run.sh's own last line is re-echoed last,
+# because run_step takes the last line as the step's Detail.
+services_up() {
+  local out status keep svc
+  out=$("$ROOT/scripts/run.sh" services 2>&1); status=$?
+  printf '%s\n' "$out"
+  [[ $status -eq 0 ]] && return 0
+  keep="$VDIR/run-logs-at-failure"
+  rm -rf "$keep"; mkdir -p "$keep"
+  cp "$ROOT/.run/logs/"*.log "$keep/" 2>/dev/null || true
+  for svc in $(printf '%s\n' "$out" | sed -n 's/^not UP after [0-9]*s: \(.*\) (logs in .*/\1/p'); do
+    echo "---- $svc.log (last 40 lines; all of them kept in target/verify/run-logs-at-failure)"
+    tail -n 40 "$ROOT/.run/logs/$svc.log" 2>/dev/null || echo "(no log for $svc)"
+  done
+  printf '%s\n' "$out" | tail -n 1
+  return 1
+}
 services_down() { "$ROOT/scripts/run.sh" stop >/dev/null 2>&1 || true; }
 api_smoke() { SMOKE_OUT="$VDIR/smoke.txt" "$ROOT/scripts/api-smoke.sh"; }
 # P03 (MASTER_PLAN 11.1): medium seed generated + loaded into the core Postgres within 10 min, then determinism
