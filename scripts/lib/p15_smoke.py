@@ -176,7 +176,7 @@ def main():
         check("an exhausted cap says so rather than reporting a silent zero",
               all(not c["capExhausted"] or c["rewardPaise"] == 0 for c in cards), cards[:1])
 
-    s, _, d = best(asha, 0, category=SUB)
+    s, d = best(asha, 0, category=SUB)
     check("a zero amount is 400 AMOUNT_REQUIRED", s == 400 and code(d) == "AMOUNT_REQUIRED", (s, d))
     s, _, d = call("GET", GW + "/v1/recommendations/best-card?amountPaise=1000", headers=bearer(asha))
     check("neither merchant nor category is 400 MERCHANT_OR_CATEGORY_REQUIRED",
