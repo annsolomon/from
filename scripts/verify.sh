@@ -23,11 +23,24 @@ rm -rf "$VDIR"; mkdir -p "$VDIR"
 : > "$VDIR/steps.tsv"
 
 record() { printf '%s\t%s\t%s\n' "$1" "$2" "${3:-}" >> "$VDIR/steps.tsv"; printf '%-34s %s %s\n' "$1" "$2" "${3:-}"; }
-# run_step <name> <fn> : PASS if fn returns 0; log in target/verify/<name>.log; last log line = detail
+# run_step <name> <fn> : PASS if fn returns 0; log in target/verify/<name>.log; last log line = detail.
+# Every step is timed, and the elapsed seconds go into the report: when a run is killed by the job's own
+# timeout there is no report at all, so the only way to know which step ate the hour is for the step before
+# it to have said how long it took (A-91). The long poles also carry their own `timeout` - see step_limit.
 run_step() {
   local name=$1; shift
-  if "$@" > "$VDIR/$name.log" 2>&1; then record "$name" PASS "$(tail -n1 "$VDIR/$name.log")"
-  else record "$name" FAIL "see target/verify/$name.log: $(tail -n1 "$VDIR/$name.log")"; fi
+  local t0=$SECONDS
+  if "$@" > "$VDIR/$name.log" 2>&1; then record "$name" PASS "$(tail -n1 "$VDIR/$name.log") [$((SECONDS - t0))s]"
+  else record "$name" FAIL "see target/verify/$name.log: $(tail -n1 "$VDIR/$name.log") [$((SECONDS - t0))s]"; fi
+}
+# step_limit <seconds> <cmd...> : the external long poles (docker, maven, the smoke, k6) run under `timeout`,
+# so a hung one fails its own step with a line that says so instead of taking the whole job down with it.
+step_limit() {
+  local limit=$1; shift
+  timeout -k 20 "$limit" "$@"
+  local rc=$?
+  if (( rc == 124 || rc == 137 )); then echo "TIMEOUT: exceeded ${limit}s and was killed"; fi
+  return $rc
 }
 skip() { record "$1" SKIP "$2"; }
 
@@ -172,8 +185,8 @@ need_env_file() { [[ -f "$ROOT/.env" ]] || { echo "no .env - run: cp .env.exampl
 # later run restores the failure and never retries it. P15 r1 hit exactly that: `spring-boot-starter-parent:4.0.8`
 # "could not be found in central" on two consecutive runs, on a pin that had been green for fifteen phases and
 # had only stopped being served from a warm cache because a pom edit changed the cache key (A-88).
-mvn_unit() { mvn -B -U -DskipITs verify 2>&1 | tee "$VDIR/mvn.log" | tail -n 5; return "${PIPESTATUS[0]}"; }
-mvn_full() { mvn -B -U verify 2>&1 | tee "$VDIR/mvn.log" | tail -n 5; return "${PIPESTATUS[0]}"; }
+mvn_unit() { step_limit 2700 mvn -B -U -DskipITs verify 2>&1 | tee "$VDIR/mvn.log" | tail -n 5; return "${PIPESTATUS[0]}"; }
+mvn_full() { step_limit 2700 mvn -B -U verify 2>&1 | tee "$VDIR/mvn.log" | tail -n 5; return "${PIPESTATUS[0]}"; }
 
 images_pull() {
   # Sequential `docker pull` per image, not `compose pull`: on this Codespace (containerd image store)
@@ -182,7 +195,8 @@ images_pull() {
   for img in $("${COMPOSE[@]}" --profile core config --images 2>/dev/null | sort -u); do
     n=$((n+1))
     if docker image inspect "$img" >/dev/null 2>&1; then echo "present  $img"; continue; fi
-    local out; out=$(docker pull "$img" 2>&1)
+    # Bounded: a pull that stalls on the network must fail this step, not the whole job (A-91).
+    local out; out=$(timeout -k 20 600 docker pull "$img" 2>&1)
     if [[ $? -eq 0 ]]; then echo "pulled   $img"
     else echo "FAILED   $img"; echo "$out" | tail -n 5 | sed 's/^/    /'; failed+=("$img"); fi
   done
@@ -204,7 +218,7 @@ infra_up() {
   [[ ${KEEP_VOLUMES:-0} == 1 ]] || down+=(-v)
   echo "reset: docker compose ${down[*]}"
   "${COMPOSE[@]}" --profile core --profile obs --profile trail "${down[@]}" 2>&1 | tail -n 3
-  "$ROOT/scripts/run.sh" core || rc=$?
+  timeout -k 20 900 "$ROOT/scripts/run.sh" core || rc=$?
   "${COMPOSE[@]}" --profile core ps -a > "$VDIR/compose-ps.txt" 2>&1
   if [[ $rc -ne 0 ]]; then
     echo "--- containers not healthy; last 40 log lines each ---"
@@ -282,25 +296,31 @@ infra_checks() {
 # A service that never becomes healthy leaves its reason only in .run/logs/<svc>.log - and the steps that follow
 # (api-smoke, then trail-check.sh) start the stack again with `>` redirects, which destroys exactly the log that
 # says why. So on failure the logs are snapshotted while they still say it, and the down services' tails go into
-# this step's own log so the published report carries them (A-90). run.sh's own last line is re-echoed last,
-# because run_step takes the last line as the step's Detail.
+# this step's own log so the published report carries them (A-90).
+#
+# run.sh writes straight into this step's log (run_step redirects stdout to it) and the down services are read
+# back out of that file afterwards. An earlier version captured run.sh's output in `out=$(run.sh services)`
+# instead, and that run hung for the job's whole 90-minute ceiling with an empty log: every service and the
+# ai-parser had started and were healthy, so nothing was wrong with the stack - a command substitution waits
+# for the write end of its pipe, and something in that process tree held it (A-91). Nothing here needs the
+# output in a variable, so nothing here opens that pipe.
 services_up() {
-  local out status keep svc
-  out=$("$ROOT/scripts/run.sh" services 2>&1); status=$?
-  printf '%s\n' "$out"
+  local status keep svc log="$VDIR/full.services-up.log"
+  step_limit 420 "$ROOT/scripts/run.sh" services; status=$?
   [[ $status -eq 0 ]] && return 0
   keep="$VDIR/run-logs-at-failure"
   rm -rf "$keep"; mkdir -p "$keep"
   cp "$ROOT/.run/logs/"*.log "$keep/" 2>/dev/null || true
-  for svc in $(printf '%s\n' "$out" | sed -n 's/^not UP after [0-9]*s: \(.*\) (logs in .*/\1/p'); do
+  for svc in $(sed -n 's/^not UP after [0-9]*s: \(.*\) (logs in .*/\1/p' "$log" 2>/dev/null); do
     echo "---- $svc.log (last 40 lines; all of them kept in target/verify/run-logs-at-failure)"
     tail -n 40 "$ROOT/.run/logs/$svc.log" 2>/dev/null || echo "(no log for $svc)"
   done
-  printf '%s\n' "$out" | tail -n 1
+  # last line, because run_step takes it as the step's Detail
+  echo "services not UP; tails above, full logs in target/verify/run-logs-at-failure"
   return 1
 }
 services_down() { "$ROOT/scripts/run.sh" stop >/dev/null 2>&1 || true; }
-api_smoke() { SMOKE_OUT="$VDIR/smoke.txt" "$ROOT/scripts/api-smoke.sh"; }
+api_smoke() { SMOKE_OUT="$VDIR/smoke.txt" step_limit 1500 "$ROOT/scripts/api-smoke.sh"; }
 # P03 (MASTER_PLAN 11.1): medium seed generated + loaded into the core Postgres within 10 min, then determinism
 # (a second generation must give the identical checksum). Uses the jar mvn verify just built.
 seed_medium() { SEED_MAX_SECONDS=600 "$ROOT/scripts/seed.sh" medium --regen 2>&1 | tail -n 20; return "${PIPESTATUS[0]}"; }
@@ -309,7 +329,8 @@ seed_determinism() { "$ROOT/scripts/seed.sh" check medium 2>&1 | tail -n 5; retu
 # tables (identity.accounts), so the demo accounts can sign in (api-smoke, trail-check).
 seed_small_real() { "$ROOT/scripts/seed.sh" small 2>&1 | tail -n 8; return "${PIPESTATUS[0]}"; }
 k6_smoke() {
-  k6 run --quiet --summary-export "$VDIR/k6-summary.json" "$ROOT/perf/smoke.js" && echo "k6 smoke thresholds met"
+  step_limit 600 k6 run --quiet --summary-export "$VDIR/k6-summary.json" "$ROOT/perf/smoke.js" \
+    && echo "k6 smoke thresholds met"
 }
 
 # ------------------------------------------------------------------ run
