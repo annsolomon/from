@@ -1,0 +1,1343 @@
+2026-11-06T00:22:44.416Z  INFO [] 56704 --- [ledger] [           main] in.dexter.ledger.LedgerApplication       : Starting LedgerApplication v0.1.0-SNAPSHOT using Java 25.0.5 with PID 56704 (/home/runner/work/from/from/services/ledger/target/app.jar started by runner in /home/runner/work/from/from)
+2026-11-06T00:22:44.455Z  INFO [] 56704 --- [ledger] [           main] in.dexter.ledger.LedgerApplication       : The following 1 profile is active: "dev"
+2026-11-06T00:22:49.740Z  INFO [] 56704 --- [ledger] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-11-06T00:22:49.763Z  INFO [] 56704 --- [ledger] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2026-11-06T00:22:50.081Z  INFO [] 56704 --- [ledger] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 172 ms. Found 0 Redis repository interfaces.
+2026-11-06T00:22:53.583Z  INFO [] 56704 --- [ledger] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8082 (http)
+2026-11-06T00:22:53.618Z  INFO [] 56704 --- [ledger] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-11-06T00:22:53.735Z  INFO [] 56704 --- [ledger] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
+2026-11-06T00:22:53.822Z  INFO [] 56704 --- [ledger] [           main] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 8926 ms
+2026-11-06T00:22:56.219Z  INFO [] 56704 --- [ledger] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://127.0.0.1:5432/ledger?ApplicationName=ledger (PostgreSQL 17.11)
+2026-11-06T00:22:56.403Z  INFO [] 56704 --- [ledger] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 4 migrations (execution time 00:00.081s)
+2026-11-06T00:22:56.483Z  INFO [] 56704 --- [ledger] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "ledger": 202610171300
+2026-11-06T00:22:56.491Z  INFO [] 56704 --- [ledger] [           main] o.f.core.internal.command.DbMigrate      : Schema "ledger" is up to date. No migration necessary.
+2026-11-06T00:22:58.708Z  INFO [] 56704 --- [ledger] [           main] o.a.kafka.common.config.AbstractConfig   : ProducerConfig values: 
+	acks = -1
+	batch.size = 16384
+	bootstrap.servers = [127.0.0.1:9092]
+	buffer.memory = 33554432
+	client.dns.lookup = use_all_dns_ips
+	client.id = ledger-relay
+	compression.gzip.level = -1
+	compression.lz4.level = 9
+	compression.type = none
+	compression.zstd.level = 3
+	connections.max.idle.ms = 540000
+	delivery.timeout.ms = 15000
+	enable.idempotence = true
+	enable.metrics.push = true
+	interceptor.classes = []
+	key.serializer = class org.apache.kafka.common.serialization.StringSerializer
+	linger.ms = 5
+	max.block.ms = 60000
+	max.in.flight.requests.per.connection = 5
+	max.request.size = 1048576
+	metadata.max.age.ms = 300000
+	metadata.max.idle.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partitioner.adaptive.partitioning.enable = true
+	partitioner.availability.timeout.ms = 0
+	partitioner.class = null
+	partitioner.ignore.keys = false
+	receive.buffer.bytes = 32768
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 10000
+	retries = 2147483647
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	transaction.timeout.ms = 60000
+	transaction.two.phase.commit.enable = false
+	transactional.id = null
+	value.serializer = class org.apache.kafka.common.serialization.ByteArraySerializer
+
+2026-11-06T00:22:58.782Z  INFO [] 56704 --- [ledger] [           main] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-06T00:22:58.988Z  INFO [] 56704 --- [ledger] [           main] o.a.k.clients.producer.KafkaProducer     : [Producer clientId=ledger-relay] Instantiated an idempotent producer.
+2026-11-06T00:22:59.054Z  INFO [] 56704 --- [ledger] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.1.2
+2026-11-06T00:22:59.055Z  INFO [] 56704 --- [ledger] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c82fd9b934b4c1e6
+2026-11-06T00:22:59.055Z  INFO [] 56704 --- [ledger] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-9053]
+2026-11-06T00:23:00.185Z  INFO [] 56704 --- [ledger] [ | ledger-relay] org.apache.kafka.clients.Metadata        : [Producer clientId=ledger-relay] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-06T00:23:00.196Z  INFO [] 56704 --- [ledger] [ | ledger-relay] o.a.k.c.p.internals.TransactionManager   : [Producer clientId=ledger-relay] ProducerId set to 16 with epoch 0
+2026-11-06T00:23:00.756Z  INFO [] 56704 --- [ledger] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 3 endpoints beneath base path '/actuator'
+2026-11-06T00:23:00.840Z  INFO [] 56704 --- [ledger] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8082 (http) with context path '/'
+2026-11-06T00:23:00.845Z  INFO [] 56704 --- [ledger] [           main] o.a.kafka.common.config.AbstractConfig   : AdminClientConfig values: 
+	bootstrap.controllers = []
+	bootstrap.servers = [127.0.0.1:9092]
+	client.dns.lookup = use_all_dns_ips
+	client.id = 
+	connections.max.idle.ms = 300000
+	default.api.timeout.ms = 10000
+	enable.metrics.push = false
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 5000
+	retries = 2147483647
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+
+2026-11-06T00:23:00.884Z  INFO [] 56704 --- [ledger] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.1.2
+2026-11-06T00:23:00.884Z  INFO [] 56704 --- [ledger] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c82fd9b934b4c1e6
+2026-11-06T00:23:00.884Z  INFO [] 56704 --- [ledger] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-0883]
+2026-11-06T00:23:00.907Z  INFO [] 56704 --- [ledger] [           main] .c.LedgerRelayConfiguration$EnsureTopics : TOPICS_READY created=[]
+2026-11-06T00:23:00.908Z  INFO [] 56704 --- [ledger] [           main] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-06T00:23:00.908Z  INFO [] 56704 --- [ledger] [           main] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-06T00:23:00.908Z  INFO [] 56704 --- [ledger] [           main] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-06T00:23:00.909Z  INFO [] 56704 --- [ledger] [| adminclient-1] o.a.kafka.common.utils.AppInfoParser     : App info kafka.admin.client for adminclient-1 unregistered
+2026-11-06T00:23:00.919Z  INFO [] 56704 --- [ledger] [| adminclient-1] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-06T00:23:00.922Z  INFO [] 56704 --- [ledger] [| adminclient-1] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-06T00:23:00.925Z  INFO [] 56704 --- [ledger] [| adminclient-1] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-06T00:23:00.998Z  INFO [] 56704 --- [ledger] [           main] in.dexter.ledger.LedgerApplication       : Started LedgerApplication in 19.069 seconds (process running for 21.542)
+2026-11-06T00:23:01.069Z  INFO [] 56704 --- [ledger] [ox-relay-ledger] in.dexter.events.relay.OutboxRelay       : outbox relay ledger: leader
+2026-11-06T00:23:01.951Z  INFO [] 56704 --- [ledger] [r-import-worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-11-06T00:23:02.071Z  INFO [] 56704 --- [ledger] [r-import-worker] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@10962199
+2026-11-06T00:23:02.086Z  INFO [] 56704 --- [ledger] [r-import-worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-11-06T00:23:05.391Z  INFO [] 56704 --- [ledger] [omcat-handler-0] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-11-06T00:23:05.391Z  INFO [] 56704 --- [ledger] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-11-06T00:23:05.393Z  INFO [] 56704 --- [ledger] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-11-06T00:23:19.446Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.config.AbstractConfig   : AdminClientConfig values: 
+	bootstrap.controllers = []
+	bootstrap.servers = [127.0.0.1:9092]
+	client.dns.lookup = use_all_dns_ips
+	client.id = 
+	connections.max.idle.ms = 300000
+	default.api.timeout.ms = 60000
+	enable.metrics.push = false
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retries = 2147483647
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+
+2026-11-06T00:23:19.451Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.1.2
+2026-11-06T00:23:19.451Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c82fd9b934b4c1e6
+2026-11-06T00:23:19.451Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-9451]
+2026-11-06T00:23:19.458Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-06T00:23:19.458Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-06T00:23:19.459Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-06T00:23:19.459Z  INFO [] 56704 --- [ledger] [| adminclient-2] o.a.kafka.common.utils.AppInfoParser     : App info kafka.admin.client for adminclient-2 unregistered
+2026-11-06T00:23:19.460Z  INFO [] 56704 --- [ledger] [| adminclient-2] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-06T00:23:19.460Z  INFO [] 56704 --- [ledger] [| adminclient-2] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-06T00:23:19.460Z  INFO [] 56704 --- [ledger] [| adminclient-2] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-06T00:23:19.461Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.config.AbstractConfig   : ProducerConfig values: 
+	acks = -1
+	batch.size = 16384
+	bootstrap.servers = [127.0.0.1:9092]
+	buffer.memory = 33554432
+	client.dns.lookup = use_all_dns_ips
+	client.id = ledger-p02-lab
+	compression.gzip.level = -1
+	compression.lz4.level = 9
+	compression.type = none
+	compression.zstd.level = 3
+	connections.max.idle.ms = 540000
+	delivery.timeout.ms = 15000
+	enable.idempotence = true
+	enable.metrics.push = true
+	interceptor.classes = []
+	key.serializer = class org.apache.kafka.common.serialization.StringSerializer
+	linger.ms = 5
+	max.block.ms = 60000
+	max.in.flight.requests.per.connection = 5
+	max.request.size = 1048576
+	metadata.max.age.ms = 300000
+	metadata.max.idle.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partitioner.adaptive.partitioning.enable = true
+	partitioner.availability.timeout.ms = 0
+	partitioner.class = null
+	partitioner.ignore.keys = false
+	receive.buffer.bytes = 32768
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 10000
+	retries = 2147483647
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	transaction.timeout.ms = 60000
+	transaction.two.phase.commit.enable = false
+	transactional.id = null
+	value.serializer = class org.apache.kafka.common.serialization.ByteArraySerializer
+
+2026-11-06T00:23:19.463Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-06T00:23:19.464Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.k.clients.producer.KafkaProducer     : [Producer clientId=ledger-p02-lab] Instantiated an idempotent producer.
+2026-11-06T00:23:19.468Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.1.2
+2026-11-06T00:23:19.468Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c82fd9b934b4c1e6
+2026-11-06T00:23:19.468Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-9468]
+2026-11-06T00:23:19.473Z  INFO [] 56704 --- [ledger] [ ledger-p02-lab] org.apache.kafka.clients.Metadata        : [Producer clientId=ledger-p02-lab] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-06T00:23:19.473Z  INFO [] 56704 --- [ledger] [ ledger-p02-lab] o.a.k.c.p.internals.TransactionManager   : [Producer clientId=ledger-p02-lab] ProducerId set to 20 with epoch 0
+2026-11-06T00:23:19.489Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.config.AbstractConfig   : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = earliest
+	bootstrap.servers = [127.0.0.1:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-lab.projector-1
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = lab.projector
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_committed
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 200
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	share.acknowledgement.mode = implicit
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+2026-11-06T00:23:19.495Z  INFO [] 56704 --- [ledger] [utbox-relay-lab] in.dexter.events.relay.OutboxRelay       : outbox relay lab: leader
+2026-11-06T00:23:19.506Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-06T00:23:19.553Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.1.2
+2026-11-06T00:23:19.553Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c82fd9b934b4c1e6
+2026-11-06T00:23:19.553Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-9553]
+2026-11-06T00:23:19.555Z  INFO [] 56704 --- [ledger] [r-lab.projector] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-lab.projector-1, groupId=lab.projector] Subscribed to topic(s): dexter.lab.note.v1
+2026-11-06T00:23:19.555Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.config.AbstractConfig   : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = earliest
+	bootstrap.servers = [127.0.0.1:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-lab.projector.retry-2s-2
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = lab.projector.retry-2s
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_committed
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 200
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	share.acknowledgement.mode = implicit
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+2026-11-06T00:23:19.558Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-06T00:23:19.561Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.1.2
+2026-11-06T00:23:19.562Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c82fd9b934b4c1e6
+2026-11-06T00:23:19.562Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-9561]
+2026-11-06T00:23:19.562Z  INFO [] 56704 --- [ledger] [jector.retry-2s] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-lab.projector.retry-2s-2, groupId=lab.projector.retry-2s] Subscribed to topic(s): dexter.lab.note.v1.projector.retry-2s
+2026-11-06T00:23:19.562Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.config.AbstractConfig   : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = earliest
+	bootstrap.servers = [127.0.0.1:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-lab.projector.retry-5s-3
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = lab.projector.retry-5s
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_committed
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 200
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	share.acknowledgement.mode = implicit
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+2026-11-06T00:23:19.565Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-06T00:23:19.566Z  INFO [] 56704 --- [ledger] [r-lab.projector] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-lab.projector-1, groupId=lab.projector] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-06T00:23:19.566Z  INFO [] 56704 --- [ledger] [jector.retry-2s] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-lab.projector.retry-2s-2, groupId=lab.projector.retry-2s] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-06T00:23:19.567Z  INFO [] 56704 --- [ledger] [r-lab.projector] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector-1, groupId=lab.projector] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false)
+2026-11-06T00:23:19.568Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.1.2
+2026-11-06T00:23:19.568Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c82fd9b934b4c1e6
+2026-11-06T00:23:19.568Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-9568]
+2026-11-06T00:23:19.568Z  INFO [] 56704 --- [ledger] [jector.retry-5s] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-lab.projector.retry-5s-3, groupId=lab.projector.retry-5s] Subscribed to topic(s): dexter.lab.note.v1.projector.retry-5s
+2026-11-06T00:23:19.569Z  INFO [] 56704 --- [ledger] [r-lab.projector] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector-1, groupId=lab.projector] (Re-)joining group
+2026-11-06T00:23:19.569Z  INFO [] 56704 --- [ledger] [jector.retry-2s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector.retry-2s-2, groupId=lab.projector.retry-2s] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false)
+2026-11-06T00:23:19.569Z  INFO [] 56704 --- [ledger] [jector.retry-2s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector.retry-2s-2, groupId=lab.projector.retry-2s] (Re-)joining group
+2026-11-06T00:23:19.569Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.config.AbstractConfig   : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = earliest
+	bootstrap.servers = [127.0.0.1:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-lab.cache-inv-4
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = lab.cache-inv
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_committed
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 200
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	share.acknowledgement.mode = implicit
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+2026-11-06T00:23:19.571Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-06T00:23:19.572Z  INFO [] 56704 --- [ledger] [jector.retry-5s] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-lab.projector.retry-5s-3, groupId=lab.projector.retry-5s] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-06T00:23:19.574Z  INFO [] 56704 --- [ledger] [jector.retry-5s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector.retry-5s-3, groupId=lab.projector.retry-5s] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false)
+2026-11-06T00:23:19.574Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.1.2
+2026-11-06T00:23:19.574Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c82fd9b934b4c1e6
+2026-11-06T00:23:19.574Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-9574]
+2026-11-06T00:23:19.575Z  INFO [] 56704 --- [ledger] [jector.retry-5s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector.retry-5s-3, groupId=lab.projector.retry-5s] (Re-)joining group
+2026-11-06T00:23:19.576Z  INFO [] 56704 --- [ledger] [r-lab.cache-inv] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-lab.cache-inv-4, groupId=lab.cache-inv] Subscribed to topic(s): dexter.lab.note.v1
+2026-11-06T00:23:19.575Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.config.AbstractConfig   : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = earliest
+	bootstrap.servers = [127.0.0.1:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-lab.cache-inv.retry-2s-5
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = lab.cache-inv.retry-2s
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_committed
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 200
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	share.acknowledgement.mode = implicit
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+2026-11-06T00:23:19.578Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-06T00:23:19.586Z  INFO [] 56704 --- [ledger] [r-lab.cache-inv] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-lab.cache-inv-4, groupId=lab.cache-inv] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-06T00:23:19.588Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.1.2
+2026-11-06T00:23:19.588Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c82fd9b934b4c1e6
+2026-11-06T00:23:19.588Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-9588]
+2026-11-06T00:23:19.589Z  INFO [] 56704 --- [ledger] [he-inv.retry-2s] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-lab.cache-inv.retry-2s-5, groupId=lab.cache-inv.retry-2s] Subscribed to topic(s): dexter.lab.note.v1.cache-inv.retry-2s
+2026-11-06T00:23:19.591Z  INFO [] 56704 --- [ledger] [jector.retry-5s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector.retry-5s-3, groupId=lab.projector.retry-5s] Request joining group due to: need to re-join with the given member-id: consumer-lab.projector.retry-5s-3-886a62ed-98bd-4296-b7e8-0a7aef6b16b5
+2026-11-06T00:23:19.589Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.config.AbstractConfig   : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = earliest
+	bootstrap.servers = [127.0.0.1:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-lab.cache-inv.retry-5s-6
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = lab.cache-inv.retry-5s
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_committed
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 200
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	share.acknowledgement.mode = implicit
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+2026-11-06T00:23:19.592Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-06T00:23:19.592Z  INFO [] 56704 --- [ledger] [r-lab.cache-inv] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv-4, groupId=lab.cache-inv] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false)
+2026-11-06T00:23:19.592Z  INFO [] 56704 --- [ledger] [jector.retry-5s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector.retry-5s-3, groupId=lab.projector.retry-5s] (Re-)joining group
+2026-11-06T00:23:19.593Z  INFO [] 56704 --- [ledger] [jector.retry-2s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector.retry-2s-2, groupId=lab.projector.retry-2s] Request joining group due to: need to re-join with the given member-id: consumer-lab.projector.retry-2s-2-bb2a6f02-6178-46c6-a940-d28d792f59bc
+2026-11-06T00:23:19.593Z  INFO [] 56704 --- [ledger] [r-lab.projector] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector-1, groupId=lab.projector] Request joining group due to: need to re-join with the given member-id: consumer-lab.projector-1-33c92277-4c7a-42d5-8e4b-1294d73eec5f
+2026-11-06T00:23:19.594Z  INFO [] 56704 --- [ledger] [r-lab.cache-inv] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv-4, groupId=lab.cache-inv] (Re-)joining group
+2026-11-06T00:23:19.594Z  INFO [] 56704 --- [ledger] [jector.retry-2s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector.retry-2s-2, groupId=lab.projector.retry-2s] (Re-)joining group
+2026-11-06T00:23:19.594Z  INFO [] 56704 --- [ledger] [r-lab.projector] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector-1, groupId=lab.projector] (Re-)joining group
+2026-11-06T00:23:19.596Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.1.2
+2026-11-06T00:23:19.596Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c82fd9b934b4c1e6
+2026-11-06T00:23:19.596Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-9596]
+2026-11-06T00:23:19.597Z  INFO [01a1ae3d-0e84-7fab-9a0d-7a6c04d1c1df] 56704 --- [ledger] [omcat-handler-4] in.dexter.lab.p02.P02Lab                 : P02 lab ready: database lab, topic dexter.lab.note.v1, Redis user lab
+2026-11-06T00:23:19.597Z  INFO [] 56704 --- [ledger] [jector.retry-5s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector.retry-5s-3, groupId=lab.projector.retry-5s] Successfully joined group with generation Generation{generationId=3, memberId='consumer-lab.projector.retry-5s-3-886a62ed-98bd-4296-b7e8-0a7aef6b16b5', protocol='range'}
+2026-11-06T00:23:19.597Z  INFO [] 56704 --- [ledger] [jector.retry-2s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector.retry-2s-2, groupId=lab.projector.retry-2s] Successfully joined group with generation Generation{generationId=3, memberId='consumer-lab.projector.retry-2s-2-bb2a6f02-6178-46c6-a940-d28d792f59bc', protocol='range'}
+2026-11-06T00:23:19.598Z  INFO [] 56704 --- [ledger] [he-inv.retry-5s] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-lab.cache-inv.retry-5s-6, groupId=lab.cache-inv.retry-5s] Subscribed to topic(s): dexter.lab.note.v1.cache-inv.retry-5s
+2026-11-06T00:23:19.604Z  INFO [] 56704 --- [ledger] [jector.retry-2s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector.retry-2s-2, groupId=lab.projector.retry-2s] Finished assignment for group at generation 3: {consumer-lab.projector.retry-2s-2-bb2a6f02-6178-46c6-a940-d28d792f59bc=Assignment(partitions=[dexter.lab.note.v1.projector.retry-2s-0, dexter.lab.note.v1.projector.retry-2s-1, dexter.lab.note.v1.projector.retry-2s-2])}
+2026-11-06T00:23:19.604Z  INFO [] 56704 --- [ledger] [jector.retry-5s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector.retry-5s-3, groupId=lab.projector.retry-5s] Finished assignment for group at generation 3: {consumer-lab.projector.retry-5s-3-886a62ed-98bd-4296-b7e8-0a7aef6b16b5=Assignment(partitions=[dexter.lab.note.v1.projector.retry-5s-0, dexter.lab.note.v1.projector.retry-5s-1, dexter.lab.note.v1.projector.retry-5s-2])}
+2026-11-06T00:23:19.607Z  INFO [] 56704 --- [ledger] [r-lab.projector] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector-1, groupId=lab.projector] Successfully joined group with generation Generation{generationId=3, memberId='consumer-lab.projector-1-33c92277-4c7a-42d5-8e4b-1294d73eec5f', protocol='range'}
+2026-11-06T00:23:19.607Z  INFO [] 56704 --- [ledger] [he-inv.retry-5s] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-lab.cache-inv.retry-5s-6, groupId=lab.cache-inv.retry-5s] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-06T00:23:19.607Z  INFO [] 56704 --- [ledger] [r-lab.projector] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector-1, groupId=lab.projector] Finished assignment for group at generation 3: {consumer-lab.projector-1-33c92277-4c7a-42d5-8e4b-1294d73eec5f=Assignment(partitions=[dexter.lab.note.v1-0, dexter.lab.note.v1-1, dexter.lab.note.v1-2])}
+2026-11-06T00:23:19.607Z  INFO [] 56704 --- [ledger] [he-inv.retry-5s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv.retry-5s-6, groupId=lab.cache-inv.retry-5s] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false)
+2026-11-06T00:23:19.608Z  INFO [] 56704 --- [ledger] [he-inv.retry-5s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv.retry-5s-6, groupId=lab.cache-inv.retry-5s] (Re-)joining group
+2026-11-06T00:23:19.608Z  INFO [] 56704 --- [ledger] [he-inv.retry-2s] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-lab.cache-inv.retry-2s-5, groupId=lab.cache-inv.retry-2s] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-06T00:23:19.609Z  INFO [] 56704 --- [ledger] [he-inv.retry-2s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv.retry-2s-5, groupId=lab.cache-inv.retry-2s] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false)
+2026-11-06T00:23:19.609Z  INFO [] 56704 --- [ledger] [r-lab.cache-inv] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv-4, groupId=lab.cache-inv] Request joining group due to: need to re-join with the given member-id: consumer-lab.cache-inv-4-4ae6ba25-1d76-4cee-9e31-624c5d020d3c
+2026-11-06T00:23:19.609Z  INFO [] 56704 --- [ledger] [r-lab.cache-inv] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv-4, groupId=lab.cache-inv] (Re-)joining group
+2026-11-06T00:23:19.610Z  INFO [] 56704 --- [ledger] [he-inv.retry-2s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv.retry-2s-5, groupId=lab.cache-inv.retry-2s] (Re-)joining group
+2026-11-06T00:23:19.613Z  INFO [] 56704 --- [ledger] [he-inv.retry-5s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv.retry-5s-6, groupId=lab.cache-inv.retry-5s] Request joining group due to: need to re-join with the given member-id: consumer-lab.cache-inv.retry-5s-6-4eced7c1-87e6-44a4-aa97-1400a45b4367
+2026-11-06T00:23:19.613Z  INFO [] 56704 --- [ledger] [r-lab.cache-inv] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv-4, groupId=lab.cache-inv] Successfully joined group with generation Generation{generationId=3, memberId='consumer-lab.cache-inv-4-4ae6ba25-1d76-4cee-9e31-624c5d020d3c', protocol='range'}
+2026-11-06T00:23:19.615Z  INFO [] 56704 --- [ledger] [he-inv.retry-5s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv.retry-5s-6, groupId=lab.cache-inv.retry-5s] (Re-)joining group
+2026-11-06T00:23:19.615Z  INFO [] 56704 --- [ledger] [r-lab.cache-inv] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv-4, groupId=lab.cache-inv] Finished assignment for group at generation 3: {consumer-lab.cache-inv-4-4ae6ba25-1d76-4cee-9e31-624c5d020d3c=Assignment(partitions=[dexter.lab.note.v1-0, dexter.lab.note.v1-1, dexter.lab.note.v1-2])}
+2026-11-06T00:23:19.614Z  INFO [] 56704 --- [ledger] [he-inv.retry-2s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv.retry-2s-5, groupId=lab.cache-inv.retry-2s] Request joining group due to: need to re-join with the given member-id: consumer-lab.cache-inv.retry-2s-5-8edebff9-0a05-4f4f-83de-c8ff7f898b35
+2026-11-06T00:23:19.617Z  INFO [] 56704 --- [ledger] [he-inv.retry-2s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv.retry-2s-5, groupId=lab.cache-inv.retry-2s] (Re-)joining group
+2026-11-06T00:23:19.618Z  INFO [] 56704 --- [ledger] [jector.retry-5s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector.retry-5s-3, groupId=lab.projector.retry-5s] Successfully synced group in generation Generation{generationId=3, memberId='consumer-lab.projector.retry-5s-3-886a62ed-98bd-4296-b7e8-0a7aef6b16b5', protocol='range'}
+2026-11-06T00:23:19.618Z  INFO [] 56704 --- [ledger] [jector.retry-5s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector.retry-5s-3, groupId=lab.projector.retry-5s] Notifying assignor about the new Assignment(partitions=[dexter.lab.note.v1.projector.retry-5s-0, dexter.lab.note.v1.projector.retry-5s-1, dexter.lab.note.v1.projector.retry-5s-2])
+2026-11-06T00:23:19.618Z  INFO [] 56704 --- [ledger] [jector.retry-2s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector.retry-2s-2, groupId=lab.projector.retry-2s] Successfully synced group in generation Generation{generationId=3, memberId='consumer-lab.projector.retry-2s-2-bb2a6f02-6178-46c6-a940-d28d792f59bc', protocol='range'}
+2026-11-06T00:23:19.619Z  INFO [] 56704 --- [ledger] [r-lab.projector] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector-1, groupId=lab.projector] Successfully synced group in generation Generation{generationId=3, memberId='consumer-lab.projector-1-33c92277-4c7a-42d5-8e4b-1294d73eec5f', protocol='range'}
+2026-11-06T00:23:19.619Z  INFO [] 56704 --- [ledger] [r-lab.projector] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector-1, groupId=lab.projector] Notifying assignor about the new Assignment(partitions=[dexter.lab.note.v1-0, dexter.lab.note.v1-1, dexter.lab.note.v1-2])
+2026-11-06T00:23:19.620Z  INFO [] 56704 --- [ledger] [jector.retry-2s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector.retry-2s-2, groupId=lab.projector.retry-2s] Notifying assignor about the new Assignment(partitions=[dexter.lab.note.v1.projector.retry-2s-0, dexter.lab.note.v1.projector.retry-2s-1, dexter.lab.note.v1.projector.retry-2s-2])
+2026-11-06T00:23:19.620Z  INFO [] 56704 --- [ledger] [he-inv.retry-5s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv.retry-5s-6, groupId=lab.cache-inv.retry-5s] Successfully joined group with generation Generation{generationId=3, memberId='consumer-lab.cache-inv.retry-5s-6-4eced7c1-87e6-44a4-aa97-1400a45b4367', protocol='range'}
+2026-11-06T00:23:19.621Z  INFO [] 56704 --- [ledger] [he-inv.retry-5s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv.retry-5s-6, groupId=lab.cache-inv.retry-5s] Finished assignment for group at generation 3: {consumer-lab.cache-inv.retry-5s-6-4eced7c1-87e6-44a4-aa97-1400a45b4367=Assignment(partitions=[dexter.lab.note.v1.cache-inv.retry-5s-0, dexter.lab.note.v1.cache-inv.retry-5s-1, dexter.lab.note.v1.cache-inv.retry-5s-2])}
+2026-11-06T00:23:19.621Z  INFO [] 56704 --- [ledger] [he-inv.retry-2s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv.retry-2s-5, groupId=lab.cache-inv.retry-2s] Successfully joined group with generation Generation{generationId=3, memberId='consumer-lab.cache-inv.retry-2s-5-8edebff9-0a05-4f4f-83de-c8ff7f898b35', protocol='range'}
+2026-11-06T00:23:19.622Z  INFO [] 56704 --- [ledger] [he-inv.retry-2s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv.retry-2s-5, groupId=lab.cache-inv.retry-2s] Finished assignment for group at generation 3: {consumer-lab.cache-inv.retry-2s-5-8edebff9-0a05-4f4f-83de-c8ff7f898b35=Assignment(partitions=[dexter.lab.note.v1.cache-inv.retry-2s-0, dexter.lab.note.v1.cache-inv.retry-2s-1, dexter.lab.note.v1.cache-inv.retry-2s-2])}
+2026-11-06T00:23:19.623Z  INFO [] 56704 --- [ledger] [r-lab.cache-inv] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv-4, groupId=lab.cache-inv] Successfully synced group in generation Generation{generationId=3, memberId='consumer-lab.cache-inv-4-4ae6ba25-1d76-4cee-9e31-624c5d020d3c', protocol='range'}
+2026-11-06T00:23:19.623Z  INFO [] 56704 --- [ledger] [jector.retry-2s] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-lab.projector.retry-2s-2, groupId=lab.projector.retry-2s] Adding newly assigned partitions: [dexter.lab.note.v1.projector.retry-2s-0, dexter.lab.note.v1.projector.retry-2s-1, dexter.lab.note.v1.projector.retry-2s-2]
+2026-11-06T00:23:19.623Z  INFO [] 56704 --- [ledger] [r-lab.cache-inv] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv-4, groupId=lab.cache-inv] Notifying assignor about the new Assignment(partitions=[dexter.lab.note.v1-0, dexter.lab.note.v1-1, dexter.lab.note.v1-2])
+2026-11-06T00:23:19.623Z  INFO [] 56704 --- [ledger] [r-lab.projector] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-lab.projector-1, groupId=lab.projector] Adding newly assigned partitions: [dexter.lab.note.v1-0, dexter.lab.note.v1-1, dexter.lab.note.v1-2]
+2026-11-06T00:23:19.626Z  INFO [] 56704 --- [ledger] [r-lab.cache-inv] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-lab.cache-inv-4, groupId=lab.cache-inv] Adding newly assigned partitions: [dexter.lab.note.v1-0, dexter.lab.note.v1-1, dexter.lab.note.v1-2]
+2026-11-06T00:23:19.624Z  INFO [] 56704 --- [ledger] [jector.retry-5s] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-lab.projector.retry-5s-3, groupId=lab.projector.retry-5s] Adding newly assigned partitions: [dexter.lab.note.v1.projector.retry-5s-0, dexter.lab.note.v1.projector.retry-5s-1, dexter.lab.note.v1.projector.retry-5s-2]
+2026-11-06T00:23:19.629Z  INFO [] 56704 --- [ledger] [he-inv.retry-5s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv.retry-5s-6, groupId=lab.cache-inv.retry-5s] Successfully synced group in generation Generation{generationId=3, memberId='consumer-lab.cache-inv.retry-5s-6-4eced7c1-87e6-44a4-aa97-1400a45b4367', protocol='range'}
+2026-11-06T00:23:19.630Z  INFO [] 56704 --- [ledger] [he-inv.retry-5s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv.retry-5s-6, groupId=lab.cache-inv.retry-5s] Notifying assignor about the new Assignment(partitions=[dexter.lab.note.v1.cache-inv.retry-5s-0, dexter.lab.note.v1.cache-inv.retry-5s-1, dexter.lab.note.v1.cache-inv.retry-5s-2])
+2026-11-06T00:23:19.630Z  INFO [] 56704 --- [ledger] [he-inv.retry-5s] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-lab.cache-inv.retry-5s-6, groupId=lab.cache-inv.retry-5s] Adding newly assigned partitions: [dexter.lab.note.v1.cache-inv.retry-5s-0, dexter.lab.note.v1.cache-inv.retry-5s-1, dexter.lab.note.v1.cache-inv.retry-5s-2]
+2026-11-06T00:23:19.631Z  INFO [] 56704 --- [ledger] [r-lab.cache-inv] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv-4, groupId=lab.cache-inv] Found no committed offset for partition dexter.lab.note.v1-1
+2026-11-06T00:23:19.632Z  INFO [] 56704 --- [ledger] [r-lab.cache-inv] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv-4, groupId=lab.cache-inv] Found no committed offset for partition dexter.lab.note.v1-2
+2026-11-06T00:23:19.632Z  INFO [] 56704 --- [ledger] [jector.retry-5s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector.retry-5s-3, groupId=lab.projector.retry-5s] Found no committed offset for partition dexter.lab.note.v1.projector.retry-5s-1
+2026-11-06T00:23:19.632Z  INFO [] 56704 --- [ledger] [he-inv.retry-5s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv.retry-5s-6, groupId=lab.cache-inv.retry-5s] Found no committed offset for partition dexter.lab.note.v1.cache-inv.retry-5s-0
+2026-11-06T00:23:19.632Z  INFO [] 56704 --- [ledger] [jector.retry-5s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector.retry-5s-3, groupId=lab.projector.retry-5s] Found no committed offset for partition dexter.lab.note.v1.projector.retry-5s-2
+2026-11-06T00:23:19.632Z  INFO [] 56704 --- [ledger] [he-inv.retry-5s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv.retry-5s-6, groupId=lab.cache-inv.retry-5s] Found no committed offset for partition dexter.lab.note.v1.cache-inv.retry-5s-1
+2026-11-06T00:23:19.632Z  INFO [] 56704 --- [ledger] [he-inv.retry-5s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv.retry-5s-6, groupId=lab.cache-inv.retry-5s] Found no committed offset for partition dexter.lab.note.v1.cache-inv.retry-5s-2
+2026-11-06T00:23:19.633Z  INFO [] 56704 --- [ledger] [r-lab.cache-inv] o.a.k.c.c.internals.ConsumerUtils        : Setting offset for partition dexter.lab.note.v1-0 to the committed offset FetchPosition{offset=4, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}
+2026-11-06T00:23:19.633Z  INFO [] 56704 --- [ledger] [jector.retry-5s] o.a.k.c.c.internals.ConsumerUtils        : Setting offset for partition dexter.lab.note.v1.projector.retry-5s-0 to the committed offset FetchPosition{offset=1, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}
+2026-11-06T00:23:19.639Z  INFO [] 56704 --- [ledger] [r-lab.projector] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector-1, groupId=lab.projector] Found no committed offset for partition dexter.lab.note.v1-1
+2026-11-06T00:23:19.639Z  INFO [] 56704 --- [ledger] [r-lab.projector] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector-1, groupId=lab.projector] Found no committed offset for partition dexter.lab.note.v1-2
+2026-11-06T00:23:19.639Z  INFO [] 56704 --- [ledger] [r-lab.projector] o.a.k.c.c.internals.ConsumerUtils        : Setting offset for partition dexter.lab.note.v1-0 to the committed offset FetchPosition{offset=4, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}
+2026-11-06T00:23:19.642Z  INFO [] 56704 --- [ledger] [jector.retry-2s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector.retry-2s-2, groupId=lab.projector.retry-2s] Found no committed offset for partition dexter.lab.note.v1.projector.retry-2s-2
+2026-11-06T00:23:19.643Z  INFO [] 56704 --- [ledger] [jector.retry-2s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector.retry-2s-2, groupId=lab.projector.retry-2s] Found no committed offset for partition dexter.lab.note.v1.projector.retry-2s-1
+2026-11-06T00:23:19.644Z  INFO [] 56704 --- [ledger] [jector.retry-2s] o.a.k.c.c.internals.ConsumerUtils        : Setting offset for partition dexter.lab.note.v1.projector.retry-2s-0 to the committed offset FetchPosition{offset=1, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}
+2026-11-06T00:23:19.649Z  INFO [] 56704 --- [ledger] [jector.retry-5s] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-lab.projector.retry-5s-3, groupId=lab.projector.retry-5s] Resetting offset for partition dexter.lab.note.v1.projector.retry-5s-1 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:19.649Z  INFO [] 56704 --- [ledger] [r-lab.projector] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-lab.projector-1, groupId=lab.projector] Resetting offset for partition dexter.lab.note.v1-1 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:19.650Z  INFO [] 56704 --- [ledger] [jector.retry-5s] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-lab.projector.retry-5s-3, groupId=lab.projector.retry-5s] Resetting offset for partition dexter.lab.note.v1.projector.retry-5s-2 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:19.650Z  INFO [] 56704 --- [ledger] [r-lab.projector] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-lab.projector-1, groupId=lab.projector] Resetting offset for partition dexter.lab.note.v1-2 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:19.650Z  INFO [] 56704 --- [ledger] [he-inv.retry-5s] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-lab.cache-inv.retry-5s-6, groupId=lab.cache-inv.retry-5s] Resetting offset for partition dexter.lab.note.v1.cache-inv.retry-5s-0 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:19.650Z  INFO [] 56704 --- [ledger] [r-lab.cache-inv] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-lab.cache-inv-4, groupId=lab.cache-inv] Resetting offset for partition dexter.lab.note.v1-1 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:19.651Z  INFO [] 56704 --- [ledger] [r-lab.cache-inv] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-lab.cache-inv-4, groupId=lab.cache-inv] Resetting offset for partition dexter.lab.note.v1-2 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:19.651Z  INFO [] 56704 --- [ledger] [he-inv.retry-5s] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-lab.cache-inv.retry-5s-6, groupId=lab.cache-inv.retry-5s] Resetting offset for partition dexter.lab.note.v1.cache-inv.retry-5s-1 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:19.651Z  INFO [] 56704 --- [ledger] [he-inv.retry-5s] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-lab.cache-inv.retry-5s-6, groupId=lab.cache-inv.retry-5s] Resetting offset for partition dexter.lab.note.v1.cache-inv.retry-5s-2 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:19.651Z  INFO [] 56704 --- [ledger] [he-inv.retry-2s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv.retry-2s-5, groupId=lab.cache-inv.retry-2s] Successfully synced group in generation Generation{generationId=3, memberId='consumer-lab.cache-inv.retry-2s-5-8edebff9-0a05-4f4f-83de-c8ff7f898b35', protocol='range'}
+2026-11-06T00:23:19.652Z  INFO [] 56704 --- [ledger] [he-inv.retry-2s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv.retry-2s-5, groupId=lab.cache-inv.retry-2s] Notifying assignor about the new Assignment(partitions=[dexter.lab.note.v1.cache-inv.retry-2s-0, dexter.lab.note.v1.cache-inv.retry-2s-1, dexter.lab.note.v1.cache-inv.retry-2s-2])
+2026-11-06T00:23:19.652Z  INFO [] 56704 --- [ledger] [he-inv.retry-2s] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-lab.cache-inv.retry-2s-5, groupId=lab.cache-inv.retry-2s] Adding newly assigned partitions: [dexter.lab.note.v1.cache-inv.retry-2s-0, dexter.lab.note.v1.cache-inv.retry-2s-1, dexter.lab.note.v1.cache-inv.retry-2s-2]
+2026-11-06T00:23:19.653Z  INFO [] 56704 --- [ledger] [jector.retry-2s] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-lab.projector.retry-2s-2, groupId=lab.projector.retry-2s] Resetting offset for partition dexter.lab.note.v1.projector.retry-2s-2 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:19.653Z  INFO [] 56704 --- [ledger] [jector.retry-2s] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-lab.projector.retry-2s-2, groupId=lab.projector.retry-2s] Resetting offset for partition dexter.lab.note.v1.projector.retry-2s-1 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:19.654Z  INFO [] 56704 --- [ledger] [he-inv.retry-2s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv.retry-2s-5, groupId=lab.cache-inv.retry-2s] Found no committed offset for partition dexter.lab.note.v1.cache-inv.retry-2s-2
+2026-11-06T00:23:19.654Z  INFO [] 56704 --- [ledger] [he-inv.retry-2s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv.retry-2s-5, groupId=lab.cache-inv.retry-2s] Found no committed offset for partition dexter.lab.note.v1.cache-inv.retry-2s-0
+2026-11-06T00:23:19.654Z  INFO [] 56704 --- [ledger] [he-inv.retry-2s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv.retry-2s-5, groupId=lab.cache-inv.retry-2s] Found no committed offset for partition dexter.lab.note.v1.cache-inv.retry-2s-1
+2026-11-06T00:23:19.657Z  INFO [] 56704 --- [ledger] [he-inv.retry-2s] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-lab.cache-inv.retry-2s-5, groupId=lab.cache-inv.retry-2s] Resetting offset for partition dexter.lab.note.v1.cache-inv.retry-2s-2 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:19.657Z  INFO [] 56704 --- [ledger] [he-inv.retry-2s] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-lab.cache-inv.retry-2s-5, groupId=lab.cache-inv.retry-2s] Resetting offset for partition dexter.lab.note.v1.cache-inv.retry-2s-0 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:19.658Z  INFO [] 56704 --- [ledger] [he-inv.retry-2s] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-lab.cache-inv.retry-2s-5, groupId=lab.cache-inv.retry-2s] Resetting offset for partition dexter.lab.note.v1.cache-inv.retry-2s-1 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:28.242Z  INFO [] 56704 --- [ledger] [ionShutdownHook] o.a.k.clients.producer.KafkaProducer     : [Producer clientId=ledger-relay] Closing the Kafka producer with timeoutMillis = [CARD-5807] ms.
+2026-11-06T00:23:28.247Z  INFO [] 56704 --- [ledger] [ionShutdownHook] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-06T00:23:28.247Z  INFO [] 56704 --- [ledger] [ionShutdownHook] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-06T00:23:28.247Z  INFO [] 56704 --- [ledger] [ionShutdownHook] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.telemetry.internals.ClientTelemetryReporter
+2026-11-06T00:23:28.247Z  INFO [] 56704 --- [ledger] [ionShutdownHook] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-06T00:23:28.250Z  INFO [] 56704 --- [ledger] [ionShutdownHook] o.a.kafka.common.utils.AppInfoParser     : App info kafka.producer for ledger-relay unregistered
+2026-11-06T00:23:28.256Z  INFO [] 56704 --- [ledger] [ionShutdownHook] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-11-06T00:23:28.259Z  INFO [] 56704 --- [ledger] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+2026-11-06T00:23:28.294Z  INFO [] 56704 --- [ledger] [he-inv.retry-5s] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-lab.cache-inv.retry-5s-6, groupId=lab.cache-inv.retry-5s] Revoke previously assigned partitions [dexter.lab.note.v1.cache-inv.retry-5s-0, dexter.lab.note.v1.cache-inv.retry-5s-1, dexter.lab.note.v1.cache-inv.retry-5s-2]
+2026-11-06T00:23:28.295Z  INFO [] 56704 --- [ledger] [he-inv.retry-5s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv.retry-5s-6, groupId=lab.cache-inv.retry-5s] Member consumer-lab.cache-inv.retry-5s-6-4eced7c1-87e6-44a4-aa97-1400a45b4367 sending LeaveGroup request to coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false) due to the consumer is being closed
+2026-11-06T00:23:28.296Z  INFO [] 56704 --- [ledger] [r-lab.cache-inv] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-lab.cache-inv-4, groupId=lab.cache-inv] Revoke previously assigned partitions [dexter.lab.note.v1-0, dexter.lab.note.v1-1, dexter.lab.note.v1-2]
+2026-11-06T00:23:28.296Z  INFO [] 56704 --- [ledger] [he-inv.retry-5s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv.retry-5s-6, groupId=lab.cache-inv.retry-5s] Resetting generation and member id due to: consumer pro-actively leaving the group
+2026-11-06T00:23:28.298Z  INFO [] 56704 --- [ledger] [he-inv.retry-5s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv.retry-5s-6, groupId=lab.cache-inv.retry-5s] Request joining group due to: consumer pro-actively leaving the group
+2026-11-06T00:23:28.296Z  INFO [] 56704 --- [ledger] [r-lab.cache-inv] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv-4, groupId=lab.cache-inv] Member consumer-lab.cache-inv-4-4ae6ba25-1d76-4cee-9e31-624c5d020d3c sending LeaveGroup request to coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false) due to the consumer is being closed
+2026-11-06T00:23:28.299Z  INFO [] 56704 --- [ledger] [r-lab.cache-inv] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv-4, groupId=lab.cache-inv] Resetting generation and member id due to: consumer pro-actively leaving the group
+2026-11-06T00:23:28.299Z  INFO [] 56704 --- [ledger] [r-lab.cache-inv] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv-4, groupId=lab.cache-inv] Request joining group due to: consumer pro-actively leaving the group
+2026-11-06T00:23:28.299Z  INFO [] 56704 --- [ledger] [he-inv.retry-2s] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-lab.cache-inv.retry-2s-5, groupId=lab.cache-inv.retry-2s] Revoke previously assigned partitions [dexter.lab.note.v1.cache-inv.retry-2s-0, dexter.lab.note.v1.cache-inv.retry-2s-1, dexter.lab.note.v1.cache-inv.retry-2s-2]
+2026-11-06T00:23:28.300Z  INFO [] 56704 --- [ledger] [he-inv.retry-2s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv.retry-2s-5, groupId=lab.cache-inv.retry-2s] Member consumer-lab.cache-inv.retry-2s-5-8edebff9-0a05-4f4f-83de-c8ff7f898b35 sending LeaveGroup request to coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false) due to the consumer is being closed
+2026-11-06T00:23:28.300Z  INFO [] 56704 --- [ledger] [he-inv.retry-2s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv.retry-2s-5, groupId=lab.cache-inv.retry-2s] Resetting generation and member id due to: consumer pro-actively leaving the group
+2026-11-06T00:23:28.300Z  INFO [] 56704 --- [ledger] [he-inv.retry-2s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.cache-inv.retry-2s-5, groupId=lab.cache-inv.retry-2s] Request joining group due to: consumer pro-actively leaving the group
+2026-11-06T00:23:28.382Z  INFO [] 56704 --- [ledger] [r-lab.cache-inv] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-06T00:23:28.382Z  INFO [] 56704 --- [ledger] [r-lab.cache-inv] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-06T00:23:28.383Z  INFO [] 56704 --- [ledger] [r-lab.cache-inv] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.telemetry.internals.ClientTelemetryReporter
+2026-11-06T00:23:28.383Z  INFO [] 56704 --- [ledger] [r-lab.cache-inv] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-06T00:23:28.385Z  INFO [] 56704 --- [ledger] [r-lab.cache-inv] o.a.kafka.common.utils.AppInfoParser     : App info kafka.consumer for consumer-lab.cache-inv-4 unregistered
+2026-11-06T00:23:28.683Z  INFO [] 56704 --- [ledger] [he-inv.retry-5s] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-06T00:23:28.684Z  INFO [] 56704 --- [ledger] [he-inv.retry-5s] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-06T00:23:28.684Z  INFO [] 56704 --- [ledger] [he-inv.retry-5s] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.telemetry.internals.ClientTelemetryReporter
+2026-11-06T00:23:28.684Z  INFO [] 56704 --- [ledger] [he-inv.retry-5s] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-06T00:23:28.686Z  INFO [] 56704 --- [ledger] [he-inv.retry-5s] o.a.kafka.common.utils.AppInfoParser     : App info kafka.consumer for consumer-lab.cache-inv.retry-5s-6 unregistered
+2026-11-06T00:23:28.686Z  INFO [] 56704 --- [ledger] [he-inv.retry-2s] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-06T00:23:28.686Z  INFO [] 56704 --- [ledger] [he-inv.retry-2s] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-06T00:23:28.686Z  INFO [] 56704 --- [ledger] [he-inv.retry-2s] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.telemetry.internals.ClientTelemetryReporter
+2026-11-06T00:23:28.686Z  INFO [] 56704 --- [ledger] [he-inv.retry-2s] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-06T00:23:28.689Z  INFO [] 56704 --- [ledger] [he-inv.retry-2s] o.a.kafka.common.utils.AppInfoParser     : App info kafka.consumer for consumer-lab.cache-inv.retry-2s-5 unregistered
+2026-11-06T00:23:28.689Z  INFO [] 56704 --- [ledger] [r-lab.projector] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-lab.projector-1, groupId=lab.projector] Revoke previously assigned partitions [dexter.lab.note.v1-0, dexter.lab.note.v1-1, dexter.lab.note.v1-2]
+2026-11-06T00:23:28.689Z  INFO [] 56704 --- [ledger] [jector.retry-2s] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-lab.projector.retry-2s-2, groupId=lab.projector.retry-2s] Revoke previously assigned partitions [dexter.lab.note.v1.projector.retry-2s-0, dexter.lab.note.v1.projector.retry-2s-1, dexter.lab.note.v1.projector.retry-2s-2]
+2026-11-06T00:23:28.689Z  INFO [] 56704 --- [ledger] [jector.retry-5s] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-lab.projector.retry-5s-3, groupId=lab.projector.retry-5s] Revoke previously assigned partitions [dexter.lab.note.v1.projector.retry-5s-0, dexter.lab.note.v1.projector.retry-5s-1, dexter.lab.note.v1.projector.retry-5s-2]
+2026-11-06T00:23:28.689Z  INFO [] 56704 --- [ledger] [r-lab.projector] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector-1, groupId=lab.projector] Member consumer-lab.projector-1-33c92277-4c7a-42d5-8e4b-1294d73eec5f sending LeaveGroup request to coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false) due to the consumer is being closed
+2026-11-06T00:23:28.690Z  INFO [] 56704 --- [ledger] [jector.retry-2s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector.retry-2s-2, groupId=lab.projector.retry-2s] Member consumer-lab.projector.retry-2s-2-bb2a6f02-6178-46c6-a940-d28d792f59bc sending LeaveGroup request to coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false) due to the consumer is being closed
+2026-11-06T00:23:28.690Z  INFO [] 56704 --- [ledger] [jector.retry-5s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector.retry-5s-3, groupId=lab.projector.retry-5s] Member consumer-lab.projector.retry-5s-3-886a62ed-98bd-4296-b7e8-0a7aef6b16b5 sending LeaveGroup request to coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false) due to the consumer is being closed
+2026-11-06T00:23:28.690Z  INFO [] 56704 --- [ledger] [r-lab.projector] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector-1, groupId=lab.projector] Resetting generation and member id due to: consumer pro-actively leaving the group
+2026-11-06T00:23:28.690Z  INFO [] 56704 --- [ledger] [jector.retry-5s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector.retry-5s-3, groupId=lab.projector.retry-5s] Resetting generation and member id due to: consumer pro-actively leaving the group
+2026-11-06T00:23:28.690Z  INFO [] 56704 --- [ledger] [jector.retry-2s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector.retry-2s-2, groupId=lab.projector.retry-2s] Resetting generation and member id due to: consumer pro-actively leaving the group
+2026-11-06T00:23:28.690Z  INFO [] 56704 --- [ledger] [r-lab.projector] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector-1, groupId=lab.projector] Request joining group due to: consumer pro-actively leaving the group
+2026-11-06T00:23:28.690Z  INFO [] 56704 --- [ledger] [jector.retry-5s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector.retry-5s-3, groupId=lab.projector.retry-5s] Request joining group due to: consumer pro-actively leaving the group
+2026-11-06T00:23:28.690Z  INFO [] 56704 --- [ledger] [jector.retry-2s] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-lab.projector.retry-2s-2, groupId=lab.projector.retry-2s] Request joining group due to: consumer pro-actively leaving the group

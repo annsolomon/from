@@ -1,0 +1,14 @@
+2026-11-06T00:22:44.247Z  INFO [] 56839 --- [commerce] [           main] in.dexter.commerce.CommerceApplication   : Starting CommerceApplication v0.1.0-SNAPSHOT using Java 25.0.5 with PID 56839 (/home/runner/work/from/from/services/commerce/target/app.jar started by runner in /home/runner/work/from/from)
+2026-11-06T00:22:44.285Z  INFO [] 56839 --- [commerce] [           main] in.dexter.commerce.CommerceApplication   : The following 1 profile is active: "dev"
+2026-11-06T00:22:49.718Z  INFO [] 56839 --- [commerce] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8088 (http)
+2026-11-06T00:22:49.773Z  INFO [] 56839 --- [commerce] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-11-06T00:22:49.773Z  INFO [] 56839 --- [commerce] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
+2026-11-06T00:22:49.868Z  INFO [] 56839 --- [commerce] [           main] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 5336 ms
+2026-11-06T00:22:52.708Z  INFO [] 56839 --- [commerce] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 3 endpoints beneath base path '/actuator'
+2026-11-06T00:22:52.893Z  INFO [] 56839 --- [commerce] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8088 (http) with context path '/'
+2026-11-06T00:22:52.912Z  INFO [] 56839 --- [commerce] [           main] in.dexter.commerce.CommerceApplication   : Started CommerceApplication in 11.058 seconds (process running for 13.288)
+2026-11-06T00:22:54.592Z  INFO [] 56839 --- [commerce] [omcat-handler-0] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-11-06T00:22:54.594Z  INFO [] 56839 --- [commerce] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-11-06T00:22:54.600Z  INFO [] 56839 --- [commerce] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-11-06T00:23:28.138Z  INFO [] 56839 --- [commerce] [ionShutdownHook] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-11-06T00:23:28.149Z  INFO [] 56839 --- [commerce] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete

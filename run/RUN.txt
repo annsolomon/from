@@ -1,0 +1,4 @@
+sha=67eb9561c3c241d1e3ec77d0967e6e4eba094d57
+run=42134809373
+verify_full=success
+trail_check=success

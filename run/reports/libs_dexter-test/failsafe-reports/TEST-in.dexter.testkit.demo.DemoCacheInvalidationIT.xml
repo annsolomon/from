@@ -1,0 +1,773 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-failsafe-plugin/xsd/failsafe-test-report.xsd" version="3.0.2" name="in.dexter.testkit.demo.DemoCacheInvalidationIT" time="2.22" tests="2" errors="0" skipped="0" failures="0" flakes="0">
+  <properties>
+    <property name="java.specification.version" value="25"/>
+    <property name="sun.jnu.encoding" value="UTF-8"/>
+    <property name="java.class.path" value="/home/runner/work/from/from/libs/dexter-test/target/test-classes:/home/runner/work/from/from/libs/dexter-test/target/classes:/home/runner/work/from/from/libs/dexter-core/target/dexter-core-0.1.0-SNAPSHOT.jar:/home/runner/.m2/repository/com/github/f4b6a3/uuid-creator/6.1.1/uuid-creator-6.1.1.jar:/home/runner/work/from/from/libs/dexter-db/target/dexter-db-0.1.0-SNAPSHOT.jar:/home/runner/.m2/repository/org/springframework/spring-jdbc/7.0.9/spring-jdbc-7.0.9.jar:/home/runner/.m2/repository/org/springframework/spring-beans/7.0.9/spring-beans-7.0.9.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-autoconfigure/4.0.8/spring-boot-autoconfigure-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot/4.0.8/spring-boot-4.0.8.jar:/home/runner/.m2/repository/org/springframework/spring-context/7.0.9/spring-context-7.0.9.jar:/home/runner/.m2/repository/org/springframework/spring-expression/7.0.9/spring-expression-7.0.9.jar:/home/runner/.m2/repository/org/postgresql/postgresql/42.7.13/postgresql-42.7.13.jar:/home/runner/.m2/repository/org/checkerframework/checker-qual/3.55.1/checker-qual-3.55.1.jar:/home/runner/work/from/from/libs/dexter-web/target/dexter-web-0.1.0-SNAPSHOT.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-webmvc/4.0.8/spring-boot-starter-webmvc-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-jackson/4.0.8/spring-boot-starter-jackson-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-jackson/4.0.8/spring-boot-jackson-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-tomcat/4.0.8/spring-boot-starter-tomcat-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-tomcat-runtime/4.0.8/spring-boot-starter-tomcat-runtime-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-web-server/4.0.8/spring-boot-web-server-4.0.8.jar:/home/runner/.m2/repository/org/apache/tomcat/embed/tomcat-embed-core/11.0.24/tomcat-embed-core-11.0.24.jar:/home/runner/.m2/repository/org/apache/tomcat/embed/tomcat-embed-el/11.0.24/tomcat-embed-el-11.0.24.jar:/home/runner/.m2/repository/org/apache/tomcat/embed/tomcat-embed-websocket/11.0.24/tomcat-embed-websocket-11.0.24.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-tomcat/4.0.8/spring-boot-tomcat-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-http-converter/4.0.8/spring-boot-http-converter-4.0.8.jar:/home/runner/.m2/repository/org/springframework/spring-web/7.0.9/spring-web-7.0.9.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-webmvc/4.0.8/spring-boot-webmvc-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-servlet/4.0.8/spring-boot-servlet-4.0.8.jar:/home/runner/.m2/repository/org/springframework/spring-webmvc/7.0.9/spring-webmvc-7.0.9.jar:/home/runner/work/from/from/libs/dexter-idempotency/target/dexter-idempotency-0.1.0-SNAPSHOT.jar:/home/runner/work/from/from/libs/dexter-events/target/dexter-events-0.1.0-SNAPSHOT.jar:/home/runner/.m2/repository/org/apache/kafka/kafka-clients/4.1.2/kafka-clients-4.1.2.jar:/home/runner/.m2/repository/com/github/luben/zstd-jni/1.5.6-10/zstd-jni-1.5.6-10.jar:/home/runner/.m2/repository/at/yawk/lz4/lz4-java/1.10.1/lz4-java-1.10.1.jar:/home/runner/.m2/repository/org/xerial/snappy/snappy-java/1.1.10.7/snappy-java-1.1.10.7.jar:/home/runner/.m2/repository/tools/jackson/core/jackson-databind/3.1.5/jackson-databind-3.1.5.jar:/home/runner/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.21/jackson-annotations-2.21.jar:/home/runner/.m2/repository/tools/jackson/core/jackson-core/3.1.5/jackson-core-3.1.5.jar:/home/runner/.m2/repository/org/slf4j/slf4j-api/2.0.18/slf4j-api-2.0.18.jar:/home/runner/work/from/from/contracts/target/dexter-contracts-0.1.0-SNAPSHOT.jar:/home/runner/work/from/from/libs/dexter-security/target/dexter-security-0.1.0-SNAPSHOT.jar:/home/runner/.m2/repository/com/nimbusds/nimbus-jose-jwt/10.9.1/nimbus-jose-jwt-10.9.1.jar:/home/runner/work/from/from/libs/dexter-cache/target/dexter-cache-0.1.0-SNAPSHOT.jar:/home/runner/.m2/repository/org/springframework/data/spring-data-redis/4.0.7/spring-data-redis-4.0.7.jar:/home/runner/.m2/repository/org/springframework/data/spring-data-keyvalue/4.0.7/spring-data-keyvalue-4.0.7.jar:/home/runner/.m2/repository/org/springframework/data/spring-data-commons/4.0.7/spring-data-commons-4.0.7.jar:/home/runner/.m2/repository/org/springframework/spring-oxm/7.0.9/spring-oxm-7.0.9.jar:/home/runner/.m2/repository/org/springframework/spring-aop/7.0.9/spring-aop-7.0.9.jar:/home/runner/.m2/repository/org/springframework/spring-context-support/7.0.9/spring-context-support-7.0.9.jar:/home/runner/.m2/repository/io/lettuce/lettuce-core/6.8.2.RELEASE/lettuce-core-6.8.2.RELEASE.jar:/home/runner/.m2/repository/redis/clients/authentication/redis-authx-core/0.1.1-beta2/redis-authx-core-0.1.1-beta2.jar:/home/runner/.m2/repository/io/netty/netty-common/4.2.17.Final/netty-common-4.2.17.Final.jar:/home/runner/.m2/repository/io/netty/netty-handler/4.2.17.Final/netty-handler-4.2.17.Final.jar:/home/runner/.m2/repository/io/netty/netty-resolver/4.2.17.Final/netty-resolver-4.2.17.Final.jar:/home/runner/.m2/repository/io/netty/netty-buffer/4.2.17.Final/netty-buffer-4.2.17.Final.jar:/home/runner/.m2/repository/io/netty/netty-transport-native-unix-common/4.2.17.Final/netty-transport-native-unix-common-4.2.17.Final.jar:/home/runner/.m2/repository/io/netty/netty-codec-base/4.2.17.Final/netty-codec-base-4.2.17.Final.jar:/home/runner/.m2/repository/io/netty/netty-transport/4.2.17.Final/netty-transport-4.2.17.Final.jar:/home/runner/.m2/repository/io/projectreactor/reactor-core/3.8.7/reactor-core-3.8.7.jar:/home/runner/.m2/repository/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar:/home/runner/.m2/repository/io/netty/netty-resolver-dns/4.2.17.Final/netty-resolver-dns-4.2.17.Final.jar:/home/runner/.m2/repository/io/netty/netty-codec-dns/4.2.17.Final/netty-codec-dns-4.2.17.Final.jar:/home/runner/.m2/repository/org/springframework/spring-tx/7.0.9/spring-tx-7.0.9.jar:/home/runner/.m2/repository/io/micrometer/micrometer-core/1.16.7/micrometer-core-1.16.7.jar:/home/runner/.m2/repository/io/micrometer/micrometer-commons/1.16.7/micrometer-commons-1.16.7.jar:/home/runner/.m2/repository/io/micrometer/micrometer-observation/1.16.7/micrometer-observation-1.16.7.jar:/home/runner/.m2/repository/org/hdrhistogram/HdrHistogram/2.2.2/HdrHistogram-2.2.2.jar:/home/runner/.m2/repository/org/latencyutils/LatencyUtils/2.0.3/LatencyUtils-2.0.3.jar:/home/runner/.m2/repository/com/tngtech/archunit/archunit/1.4.2/archunit-1.4.2.jar:/home/runner/.m2/repository/org/testcontainers/testcontainers/2.0.5/testcontainers-2.0.5.jar:/home/runner/.m2/repository/org/apache/commons/commons-compress/1.28.0/commons-compress-1.28.0.jar:/home/runner/.m2/repository/commons-codec/commons-codec/1.19.0/commons-codec-1.19.0.jar:/home/runner/.m2/repository/commons-io/commons-io/2.20.0/commons-io-2.20.0.jar:/home/runner/.m2/repository/org/apache/commons/commons-lang3/3.19.0/commons-lang3-3.19.0.jar:/home/runner/.m2/repository/org/rnorth/duct-tape/duct-tape/1.0.8/duct-tape-1.0.8.jar:/home/runner/.m2/repository/org/jetbrains/annotations/17.0.0/annotations-17.0.0.jar:/home/runner/.m2/repository/com/github/docker-java/docker-java-api/3.7.1/docker-java-api-3.7.1.jar:/home/runner/.m2/repository/com/github/docker-java/docker-java-transport-zerodep/3.7.1/docker-java-transport-zerodep-3.7.1.jar:/home/runner/.m2/repository/com/github/docker-java/docker-java-transport/3.7.1/docker-java-transport-3.7.1.jar:/home/runner/.m2/repository/net/java/dev/jna/jna/5.18.1/jna-5.18.1.jar:/home/runner/.m2/repository/org/testcontainers/testcontainers-postgresql/2.0.5/testcontainers-postgresql-2.0.5.jar:/home/runner/.m2/repository/org/testcontainers/testcontainers-jdbc/2.0.5/testcontainers-jdbc-2.0.5.jar:/home/runner/.m2/repository/org/testcontainers/testcontainers-database-commons/2.0.5/testcontainers-database-commons-2.0.5.jar:/home/runner/.m2/repository/org/testcontainers/testcontainers-kafka/2.0.5/testcontainers-kafka-2.0.5.jar:/home/runner/.m2/repository/com/zaxxer/HikariCP/7.0.2/HikariCP-7.0.2.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter-api/6.0.3/junit-jupiter-api-6.0.3.jar:/home/runner/.m2/repository/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar:/home/runner/.m2/repository/org/junit/platform/junit-platform-commons/6.0.3/junit-platform-commons-6.0.3.jar:/home/runner/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/home/runner/.m2/repository/org/jspecify/jspecify/1.0.1/jspecify-1.0.1.jar:/home/runner/.m2/repository/org/assertj/assertj-core/3.27.7/assertj-core-3.27.7.jar:/home/runner/.m2/repository/net/bytebuddy/byte-buddy/1.17.8/byte-buddy-1.17.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-test/4.0.8/spring-boot-starter-test-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter/4.0.8/spring-boot-starter-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-logging/4.0.8/spring-boot-starter-logging-4.0.8.jar:/home/runner/.m2/repository/ch/qos/logback/logback-classic/1.5.38/logback-classic-1.5.38.jar:/home/runner/.m2/repository/ch/qos/logback/logback-core/1.5.38/logback-core-1.5.38.jar:/home/runner/.m2/repository/org/apache/logging/log4j/log4j-to-slf4j/2.25.5/log4j-to-slf4j-2.25.5.jar:/home/runner/.m2/repository/org/apache/logging/log4j/log4j-api/2.25.5/log4j-api-2.25.5.jar:/home/runner/.m2/repository/org/slf4j/jul-to-slf4j/2.0.18/jul-to-slf4j-2.0.18.jar:/home/runner/.m2/repository/jakarta/annotation/jakarta.annotation-api/3.0.0/jakarta.annotation-api-3.0.0.jar:/home/runner/.m2/repository/org/yaml/snakeyaml/2.5/snakeyaml-2.5.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-test/4.0.8/spring-boot-test-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-test-autoconfigure/4.0.8/spring-boot-test-autoconfigure-4.0.8.jar:/home/runner/.m2/repository/com/jayway/jsonpath/json-path/2.10.0/json-path-2.10.0.jar:/home/runner/.m2/repository/jakarta/xml/bind/jakarta.xml.bind-api/4.0.5/jakarta.xml.bind-api-4.0.5.jar:/home/runner/.m2/repository/jakarta/activation/jakarta.activation-api/2.1.4/jakarta.activation-api-2.1.4.jar:/home/runner/.m2/repository/net/minidev/json-smart/2.6.0/json-smart-2.6.0.jar:/home/runner/.m2/repository/net/minidev/accessors-smart/2.6.0/accessors-smart-2.6.0.jar:/home/runner/.m2/repository/org/ow2/asm/asm/9.7.1/asm-9.7.1.jar:/home/runner/.m2/repository/org/hamcrest/hamcrest/3.0/hamcrest-3.0.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter/6.0.3/junit-jupiter-6.0.3.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter-params/6.0.3/junit-jupiter-params-6.0.3.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter-engine/6.0.3/junit-jupiter-engine-6.0.3.jar:/home/runner/.m2/repository/org/junit/platform/junit-platform-engine/6.0.3/junit-platform-engine-6.0.3.jar:/home/runner/.m2/repository/org/mockito/mockito-core/5.20.0/mockito-core-5.20.0.jar:/home/runner/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar:/home/runner/.m2/repository/org/objenesis/objenesis/3.3/objenesis-3.3.jar:/home/runner/.m2/repository/org/mockito/mockito-junit-jupiter/5.20.0/mockito-junit-jupiter-5.20.0.jar:/home/runner/.m2/repository/org/skyscreamer/jsonassert/1.5.3/jsonassert-1.5.3.jar:/home/runner/.m2/repository/com/vaadin/external/google/android-json/0.0.20131108.vaadin1/android-json-0.0.20131108.vaadin1.jar:/home/runner/.m2/repository/org/springframework/spring-core/7.0.9/spring-core-7.0.9.jar:/home/runner/.m2/repository/commons-logging/commons-logging/1.3.6/commons-logging-1.3.6.jar:/home/runner/.m2/repository/org/springframework/spring-test/7.0.9/spring-test-7.0.9.jar:/home/runner/.m2/repository/org/xmlunit/xmlunit-core/2.10.4/xmlunit-core-2.10.4.jar:/home/runner/.m2/repository/org/awaitility/awaitility/4.3.0/awaitility-4.3.0.jar:"/>
+    <property name="java.vm.vendor" value="Eclipse Adoptium"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="java.vendor.url" value="https://adoptium.net/"/>
+    <property name="user.timezone" value="Etc/UTC"/>
+    <property name="os.name" value="Linux"/>
+    <property name="java.vm.specification.version" value="25"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="sun.boot.library.path" value="/usr/lib/jvm/temurin-25-jdk-amd64/lib"/>
+    <property name="sun.java.command" value="/home/runner/work/from/from/libs/dexter-test/target/surefire/surefirebooter-20261106001219074_18.jar /home/runner/work/from/from/libs/dexter-test/target/surefire 2026-11-06T00-11-24_148-jvmRun1 surefire-20261106001219074_16tmp surefire_1-20261106001219074_17tmp"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="surefire.test.class.path" value="/home/runner/work/from/from/libs/dexter-test/target/test-classes:/home/runner/work/from/from/libs/dexter-test/target/classes:/home/runner/work/from/from/libs/dexter-core/target/dexter-core-0.1.0-SNAPSHOT.jar:/home/runner/.m2/repository/com/github/f4b6a3/uuid-creator/6.1.1/uuid-creator-6.1.1.jar:/home/runner/work/from/from/libs/dexter-db/target/dexter-db-0.1.0-SNAPSHOT.jar:/home/runner/.m2/repository/org/springframework/spring-jdbc/7.0.9/spring-jdbc-7.0.9.jar:/home/runner/.m2/repository/org/springframework/spring-beans/7.0.9/spring-beans-7.0.9.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-autoconfigure/4.0.8/spring-boot-autoconfigure-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot/4.0.8/spring-boot-4.0.8.jar:/home/runner/.m2/repository/org/springframework/spring-context/7.0.9/spring-context-7.0.9.jar:/home/runner/.m2/repository/org/springframework/spring-expression/7.0.9/spring-expression-7.0.9.jar:/home/runner/.m2/repository/org/postgresql/postgresql/42.7.13/postgresql-42.7.13.jar:/home/runner/.m2/repository/org/checkerframework/checker-qual/3.55.1/checker-qual-3.55.1.jar:/home/runner/work/from/from/libs/dexter-web/target/dexter-web-0.1.0-SNAPSHOT.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-webmvc/4.0.8/spring-boot-starter-webmvc-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-jackson/4.0.8/spring-boot-starter-jackson-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-jackson/4.0.8/spring-boot-jackson-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-tomcat/4.0.8/spring-boot-starter-tomcat-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-tomcat-runtime/4.0.8/spring-boot-starter-tomcat-runtime-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-web-server/4.0.8/spring-boot-web-server-4.0.8.jar:/home/runner/.m2/repository/org/apache/tomcat/embed/tomcat-embed-core/11.0.24/tomcat-embed-core-11.0.24.jar:/home/runner/.m2/repository/org/apache/tomcat/embed/tomcat-embed-el/11.0.24/tomcat-embed-el-11.0.24.jar:/home/runner/.m2/repository/org/apache/tomcat/embed/tomcat-embed-websocket/11.0.24/tomcat-embed-websocket-11.0.24.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-tomcat/4.0.8/spring-boot-tomcat-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-http-converter/4.0.8/spring-boot-http-converter-4.0.8.jar:/home/runner/.m2/repository/org/springframework/spring-web/7.0.9/spring-web-7.0.9.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-webmvc/4.0.8/spring-boot-webmvc-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-servlet/4.0.8/spring-boot-servlet-4.0.8.jar:/home/runner/.m2/repository/org/springframework/spring-webmvc/7.0.9/spring-webmvc-7.0.9.jar:/home/runner/work/from/from/libs/dexter-idempotency/target/dexter-idempotency-0.1.0-SNAPSHOT.jar:/home/runner/work/from/from/libs/dexter-events/target/dexter-events-0.1.0-SNAPSHOT.jar:/home/runner/.m2/repository/org/apache/kafka/kafka-clients/4.1.2/kafka-clients-4.1.2.jar:/home/runner/.m2/repository/com/github/luben/zstd-jni/1.5.6-10/zstd-jni-1.5.6-10.jar:/home/runner/.m2/repository/at/yawk/lz4/lz4-java/1.10.1/lz4-java-1.10.1.jar:/home/runner/.m2/repository/org/xerial/snappy/snappy-java/1.1.10.7/snappy-java-1.1.10.7.jar:/home/runner/.m2/repository/tools/jackson/core/jackson-databind/3.1.5/jackson-databind-3.1.5.jar:/home/runner/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.21/jackson-annotations-2.21.jar:/home/runner/.m2/repository/tools/jackson/core/jackson-core/3.1.5/jackson-core-3.1.5.jar:/home/runner/.m2/repository/org/slf4j/slf4j-api/2.0.18/slf4j-api-2.0.18.jar:/home/runner/work/from/from/contracts/target/dexter-contracts-0.1.0-SNAPSHOT.jar:/home/runner/work/from/from/libs/dexter-security/target/dexter-security-0.1.0-SNAPSHOT.jar:/home/runner/.m2/repository/com/nimbusds/nimbus-jose-jwt/10.9.1/nimbus-jose-jwt-10.9.1.jar:/home/runner/work/from/from/libs/dexter-cache/target/dexter-cache-0.1.0-SNAPSHOT.jar:/home/runner/.m2/repository/org/springframework/data/spring-data-redis/4.0.7/spring-data-redis-4.0.7.jar:/home/runner/.m2/repository/org/springframework/data/spring-data-keyvalue/4.0.7/spring-data-keyvalue-4.0.7.jar:/home/runner/.m2/repository/org/springframework/data/spring-data-commons/4.0.7/spring-data-commons-4.0.7.jar:/home/runner/.m2/repository/org/springframework/spring-oxm/7.0.9/spring-oxm-7.0.9.jar:/home/runner/.m2/repository/org/springframework/spring-aop/7.0.9/spring-aop-7.0.9.jar:/home/runner/.m2/repository/org/springframework/spring-context-support/7.0.9/spring-context-support-7.0.9.jar:/home/runner/.m2/repository/io/lettuce/lettuce-core/6.8.2.RELEASE/lettuce-core-6.8.2.RELEASE.jar:/home/runner/.m2/repository/redis/clients/authentication/redis-authx-core/0.1.1-beta2/redis-authx-core-0.1.1-beta2.jar:/home/runner/.m2/repository/io/netty/netty-common/4.2.17.Final/netty-common-4.2.17.Final.jar:/home/runner/.m2/repository/io/netty/netty-handler/4.2.17.Final/netty-handler-4.2.17.Final.jar:/home/runner/.m2/repository/io/netty/netty-resolver/4.2.17.Final/netty-resolver-4.2.17.Final.jar:/home/runner/.m2/repository/io/netty/netty-buffer/4.2.17.Final/netty-buffer-4.2.17.Final.jar:/home/runner/.m2/repository/io/netty/netty-transport-native-unix-common/4.2.17.Final/netty-transport-native-unix-common-4.2.17.Final.jar:/home/runner/.m2/repository/io/netty/netty-codec-base/4.2.17.Final/netty-codec-base-4.2.17.Final.jar:/home/runner/.m2/repository/io/netty/netty-transport/4.2.17.Final/netty-transport-4.2.17.Final.jar:/home/runner/.m2/repository/io/projectreactor/reactor-core/3.8.7/reactor-core-3.8.7.jar:/home/runner/.m2/repository/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar:/home/runner/.m2/repository/io/netty/netty-resolver-dns/4.2.17.Final/netty-resolver-dns-4.2.17.Final.jar:/home/runner/.m2/repository/io/netty/netty-codec-dns/4.2.17.Final/netty-codec-dns-4.2.17.Final.jar:/home/runner/.m2/repository/org/springframework/spring-tx/7.0.9/spring-tx-7.0.9.jar:/home/runner/.m2/repository/io/micrometer/micrometer-core/1.16.7/micrometer-core-1.16.7.jar:/home/runner/.m2/repository/io/micrometer/micrometer-commons/1.16.7/micrometer-commons-1.16.7.jar:/home/runner/.m2/repository/io/micrometer/micrometer-observation/1.16.7/micrometer-observation-1.16.7.jar:/home/runner/.m2/repository/org/hdrhistogram/HdrHistogram/2.2.2/HdrHistogram-2.2.2.jar:/home/runner/.m2/repository/org/latencyutils/LatencyUtils/2.0.3/LatencyUtils-2.0.3.jar:/home/runner/.m2/repository/com/tngtech/archunit/archunit/1.4.2/archunit-1.4.2.jar:/home/runner/.m2/repository/org/testcontainers/testcontainers/2.0.5/testcontainers-2.0.5.jar:/home/runner/.m2/repository/org/apache/commons/commons-compress/1.28.0/commons-compress-1.28.0.jar:/home/runner/.m2/repository/commons-codec/commons-codec/1.19.0/commons-codec-1.19.0.jar:/home/runner/.m2/repository/commons-io/commons-io/2.20.0/commons-io-2.20.0.jar:/home/runner/.m2/repository/org/apache/commons/commons-lang3/3.19.0/commons-lang3-3.19.0.jar:/home/runner/.m2/repository/org/rnorth/duct-tape/duct-tape/1.0.8/duct-tape-1.0.8.jar:/home/runner/.m2/repository/org/jetbrains/annotations/17.0.0/annotations-17.0.0.jar:/home/runner/.m2/repository/com/github/docker-java/docker-java-api/3.7.1/docker-java-api-3.7.1.jar:/home/runner/.m2/repository/com/github/docker-java/docker-java-transport-zerodep/3.7.1/docker-java-transport-zerodep-3.7.1.jar:/home/runner/.m2/repository/com/github/docker-java/docker-java-transport/3.7.1/docker-java-transport-3.7.1.jar:/home/runner/.m2/repository/net/java/dev/jna/jna/5.18.1/jna-5.18.1.jar:/home/runner/.m2/repository/org/testcontainers/testcontainers-postgresql/2.0.5/testcontainers-postgresql-2.0.5.jar:/home/runner/.m2/repository/org/testcontainers/testcontainers-jdbc/2.0.5/testcontainers-jdbc-2.0.5.jar:/home/runner/.m2/repository/org/testcontainers/testcontainers-database-commons/2.0.5/testcontainers-database-commons-2.0.5.jar:/home/runner/.m2/repository/org/testcontainers/testcontainers-kafka/2.0.5/testcontainers-kafka-2.0.5.jar:/home/runner/.m2/repository/com/zaxxer/HikariCP/7.0.2/HikariCP-7.0.2.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter-api/6.0.3/junit-jupiter-api-6.0.3.jar:/home/runner/.m2/repository/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar:/home/runner/.m2/repository/org/junit/platform/junit-platform-commons/6.0.3/junit-platform-commons-6.0.3.jar:/home/runner/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/home/runner/.m2/repository/org/jspecify/jspecify/1.0.1/jspecify-1.0.1.jar:/home/runner/.m2/repository/org/assertj/assertj-core/3.27.7/assertj-core-3.27.7.jar:/home/runner/.m2/repository/net/bytebuddy/byte-buddy/1.17.8/byte-buddy-1.17.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-test/4.0.8/spring-boot-starter-test-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter/4.0.8/spring-boot-starter-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-starter-logging/4.0.8/spring-boot-starter-logging-4.0.8.jar:/home/runner/.m2/repository/ch/qos/logback/logback-classic/1.5.38/logback-classic-1.5.38.jar:/home/runner/.m2/repository/ch/qos/logback/logback-core/1.5.38/logback-core-1.5.38.jar:/home/runner/.m2/repository/org/apache/logging/log4j/log4j-to-slf4j/2.25.5/log4j-to-slf4j-2.25.5.jar:/home/runner/.m2/repository/org/apache/logging/log4j/log4j-api/2.25.5/log4j-api-2.25.5.jar:/home/runner/.m2/repository/org/slf4j/jul-to-slf4j/2.0.18/jul-to-slf4j-2.0.18.jar:/home/runner/.m2/repository/jakarta/annotation/jakarta.annotation-api/3.0.0/jakarta.annotation-api-3.0.0.jar:/home/runner/.m2/repository/org/yaml/snakeyaml/2.5/snakeyaml-2.5.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-test/4.0.8/spring-boot-test-4.0.8.jar:/home/runner/.m2/repository/org/springframework/boot/spring-boot-test-autoconfigure/4.0.8/spring-boot-test-autoconfigure-4.0.8.jar:/home/runner/.m2/repository/com/jayway/jsonpath/json-path/2.10.0/json-path-2.10.0.jar:/home/runner/.m2/repository/jakarta/xml/bind/jakarta.xml.bind-api/4.0.5/jakarta.xml.bind-api-4.0.5.jar:/home/runner/.m2/repository/jakarta/activation/jakarta.activation-api/2.1.4/jakarta.activation-api-2.1.4.jar:/home/runner/.m2/repository/net/minidev/json-smart/2.6.0/json-smart-2.6.0.jar:/home/runner/.m2/repository/net/minidev/accessors-smart/2.6.0/accessors-smart-2.6.0.jar:/home/runner/.m2/repository/org/ow2/asm/asm/9.7.1/asm-9.7.1.jar:/home/runner/.m2/repository/org/hamcrest/hamcrest/3.0/hamcrest-3.0.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter/6.0.3/junit-jupiter-6.0.3.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter-params/6.0.3/junit-jupiter-params-6.0.3.jar:/home/runner/.m2/repository/org/junit/jupiter/junit-jupiter-engine/6.0.3/junit-jupiter-engine-6.0.3.jar:/home/runner/.m2/repository/org/junit/platform/junit-platform-engine/6.0.3/junit-platform-engine-6.0.3.jar:/home/runner/.m2/repository/org/mockito/mockito-core/5.20.0/mockito-core-5.20.0.jar:/home/runner/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar:/home/runner/.m2/repository/org/objenesis/objenesis/3.3/objenesis-3.3.jar:/home/runner/.m2/repository/org/mockito/mockito-junit-jupiter/5.20.0/mockito-junit-jupiter-5.20.0.jar:/home/runner/.m2/repository/org/skyscreamer/jsonassert/1.5.3/jsonassert-1.5.3.jar:/home/runner/.m2/repository/com/vaadin/external/google/android-json/0.0.20131108.vaadin1/android-json-0.0.20131108.vaadin1.jar:/home/runner/.m2/repository/org/springframework/spring-core/7.0.9/spring-core-7.0.9.jar:/home/runner/.m2/repository/commons-logging/commons-logging/1.3.6/commons-logging-1.3.6.jar:/home/runner/.m2/repository/org/springframework/spring-test/7.0.9/spring-test-7.0.9.jar:/home/runner/.m2/repository/org/xmlunit/xmlunit-core/2.10.4/xmlunit-core-2.10.4.jar:/home/runner/.m2/repository/org/awaitility/awaitility/4.3.0/awaitility-4.3.0.jar:"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="user.home" value="/home/runner"/>
+    <property name="user.language" value="en"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.version.date" value="2026-10-20"/>
+    <property name="java.home" value="/usr/lib/jvm/temurin-25-jdk-amd64"/>
+    <property name="file.separator" value="/"/>
+    <property name="basedir" value="/home/runner/work/from/from/libs/dexter-test"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="line.separator" value="&#10;"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="surefire.real.class.path" value="/home/runner/work/from/from/libs/dexter-test/target/surefire/surefirebooter-20261106001219074_18.jar"/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="java.runtime.version" value="25.0.5+8-LTS"/>
+    <property name="user.name" value="runner"/>
+    <property name="stdout.encoding" value="UTF-8"/>
+    <property name="path.separator" value=":"/>
+    <property name="os.version" value="7.0.0-1019-azure"/>
+    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+    <property name="java.vendor.version" value="Temurin-25.0.5+8"/>
+    <property name="localRepository" value="/home/runner/.m2/repository"/>
+    <property name="java.vendor.url.bug" value="https://github.com/adoptium/adoptium-support/issues"/>
+    <property name="java.io.tmpdir" value="/tmp"/>
+    <property name="java.version" value="25.0.5"/>
+    <property name="user.dir" value="/home/runner/work/from/from/libs/dexter-test"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="native.encoding" value="UTF-8"/>
+    <property name="java.library.path" value="/usr/java/packages/lib:/usr/lib64:/lib64:/lib:/usr/lib"/>
+    <property name="java.vm.info" value="mixed mode, sharing"/>
+    <property name="stderr.encoding" value="UTF-8"/>
+    <property name="java.vendor" value="Eclipse Adoptium"/>
+    <property name="java.vm.version" value="25.0.5+8-LTS"/>
+    <property name="stdin.encoding" value="UTF-8"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="java.class.version" value="69.0"/>
+  </properties>
+  <testcase name="aRedisOutageDuringPathBIsRetriedNotLost" classname="in.dexter.testkit.demo.DemoCacheInvalidationIT" time="1.085">
+    <system-out><![CDATA[00:12:45.210 [main] INFO org.apache.kafka.common.config.AbstractConfig -- AdminClientConfig values: 
+	bootstrap.controllers = []
+	bootstrap.servers = [localhost:32773]
+	client.dns.lookup = use_all_dns_ips
+	client.id = 
+	connections.max.idle.ms = 300000
+	default.api.timeout.ms = 60000
+	enable.metrics.push = false
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retries = 2147483647
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = null
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = null
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = null
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = null
+	ssl.truststore.type = JKS
+
+00:12:45.212 [main] INFO org.apache.kafka.common.utils.AppInfoParser -- Kafka version: 4.1.2
+00:12:45.212 [main] INFO org.apache.kafka.common.utils.AppInfoParser -- Kafka commitId: c82fd9b934b4c1e6
+00:12:45.212 [main] INFO org.apache.kafka.common.utils.AppInfoParser -- Kafka startTimeMs: 1793923965211
+00:12:45.252 [main] INFO in.dexter.events.topics.TopicRegistry -- created 3 topic(s): [dexter.demo.note.v1.cache-inv.retry-10m, dexter.demo.note.v1.cache-inv.dlq, dexter.demo.note.v1.cache-inv.retry-1m]
+00:12:45.252 [main] INFO org.apache.kafka.common.metrics.Metrics -- Metrics scheduler closed
+00:12:45.252 [main] INFO org.apache.kafka.common.metrics.Metrics -- Closing reporter org.apache.kafka.common.metrics.JmxReporter
+00:12:45.252 [main] INFO org.apache.kafka.common.metrics.Metrics -- Metrics reporters closed
+00:12:45.252 [kafka-admin-client-thread | adminclient-3] INFO org.apache.kafka.common.utils.AppInfoParser -- App info kafka.admin.client for adminclient-3 unregistered
+00:12:45.253 [kafka-admin-client-thread | adminclient-3] INFO org.apache.kafka.common.metrics.Metrics -- Metrics scheduler closed
+00:12:45.253 [kafka-admin-client-thread | adminclient-3] INFO org.apache.kafka.common.metrics.Metrics -- Closing reporter org.apache.kafka.common.metrics.JmxReporter
+00:12:45.253 [kafka-admin-client-thread | adminclient-3] INFO org.apache.kafka.common.metrics.Metrics -- Metrics reporters closed
+00:12:45.254 [main] INFO org.apache.kafka.common.config.AbstractConfig -- ProducerConfig values: 
+	acks = -1
+	batch.size = 16384
+	bootstrap.servers = [localhost:32773]
+	buffer.memory = 33554432
+	client.dns.lookup = use_all_dns_ips
+	client.id = cache-inv-it
+	compression.gzip.level = -1
+	compression.lz4.level = 9
+	compression.type = none
+	compression.zstd.level = 3
+	connections.max.idle.ms = 540000
+	delivery.timeout.ms = 15000
+	enable.idempotence = true
+	enable.metrics.push = true
+	interceptor.classes = []
+	key.serializer = class org.apache.kafka.common.serialization.StringSerializer
+	linger.ms = 5
+	max.block.ms = 60000
+	max.in.flight.requests.per.connection = 5
+	max.request.size = 1048576
+	metadata.max.age.ms = 300000
+	metadata.max.idle.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partitioner.adaptive.partitioning.enable = true
+	partitioner.availability.timeout.ms = 0
+	partitioner.class = null
+	partitioner.ignore.keys = false
+	receive.buffer.bytes = 32768
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 10000
+	retries = 2147483647
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = null
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = null
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = null
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = null
+	ssl.truststore.type = JKS
+	transaction.timeout.ms = 60000
+	transaction.two.phase.commit.enable = false
+	transactional.id = null
+	value.serializer = class org.apache.kafka.common.serialization.ByteArraySerializer
+
+00:12:45.254 [main] INFO org.apache.kafka.common.telemetry.internals.KafkaMetricsCollector -- initializing Kafka metrics collector
+00:12:45.254 [main] INFO org.apache.kafka.clients.producer.KafkaProducer -- [Producer clientId=cache-inv-it] Instantiated an idempotent producer.
+00:12:45.255 [main] INFO org.apache.kafka.common.utils.AppInfoParser -- Kafka version: 4.1.2
+00:12:45.255 [main] INFO org.apache.kafka.common.utils.AppInfoParser -- Kafka commitId: c82fd9b934b4c1e6
+00:12:45.255 [main] INFO org.apache.kafka.common.utils.AppInfoParser -- Kafka startTimeMs: 1793923965255
+00:12:45.256 [main] INFO org.apache.kafka.common.config.AbstractConfig -- ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = earliest
+	bootstrap.servers = [localhost:32773]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-demo.cache-inv-12
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = demo.cache-inv
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_committed
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 200
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = null
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	share.acknowledgement.mode = implicit
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = null
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = null
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = null
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+00:12:45.256 [main] INFO org.apache.kafka.common.telemetry.internals.KafkaMetricsCollector -- initializing Kafka metrics collector
+00:12:45.258 [main] INFO org.apache.kafka.common.utils.AppInfoParser -- Kafka version: 4.1.2
+00:12:45.258 [main] INFO org.apache.kafka.common.utils.AppInfoParser -- Kafka commitId: c82fd9b934b4c1e6
+00:12:45.258 [main] INFO org.apache.kafka.common.utils.AppInfoParser -- Kafka startTimeMs: 1793923965258
+00:12:45.258 [consumer-demo.cache-inv] INFO org.apache.kafka.clients.consumer.internals.ClassicKafkaConsumer -- [Consumer clientId=consumer-demo.cache-inv-12, groupId=demo.cache-inv] Subscribed to topic(s): dexter.demo.note.v1
+00:12:45.259 [main] INFO org.apache.kafka.common.config.AbstractConfig -- ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = earliest
+	bootstrap.servers = [localhost:32773]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-demo.cache-inv.retry-1m-13
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = demo.cache-inv.retry-1m
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_committed
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 200
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = null
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	share.acknowledgement.mode = implicit
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = null
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = null
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = null
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+00:12:45.259 [main] INFO org.apache.kafka.common.telemetry.internals.KafkaMetricsCollector -- initializing Kafka metrics collector
+00:12:45.263 [kafka-producer-network-thread | cache-inv-it] INFO org.apache.kafka.clients.Metadata -- [Producer clientId=cache-inv-it] Cluster ID: 4L6g3nShT-eMCtK--X86sw
+00:12:45.263 [kafka-producer-network-thread | cache-inv-it] INFO org.apache.kafka.clients.producer.internals.TransactionManager -- [Producer clientId=cache-inv-it] ProducerId set to 2 with epoch 0
+00:12:45.263 [main] INFO org.apache.kafka.common.utils.AppInfoParser -- Kafka version: 4.1.2
+00:12:45.263 [main] INFO org.apache.kafka.common.utils.AppInfoParser -- Kafka commitId: c82fd9b934b4c1e6
+00:12:45.263 [main] INFO org.apache.kafka.common.utils.AppInfoParser -- Kafka startTimeMs: 1793923965263
+00:12:45.263 [consumer-demo.cache-inv.retry-1m] INFO org.apache.kafka.clients.consumer.internals.ClassicKafkaConsumer -- [Consumer clientId=consumer-demo.cache-inv.retry-1m-13, groupId=demo.cache-inv.retry-1m] Subscribed to topic(s): dexter.demo.note.v1.cache-inv.retry-1m
+00:12:45.263 [main] INFO org.apache.kafka.common.config.AbstractConfig -- ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = earliest
+	bootstrap.servers = [localhost:32773]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-demo.cache-inv.retry-10m-14
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = demo.cache-inv.retry-10m
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_committed
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 200
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = null
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	share.acknowledgement.mode = implicit
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = null
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = null
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = null
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+00:12:45.264 [main] INFO org.apache.kafka.common.telemetry.internals.KafkaMetricsCollector -- initializing Kafka metrics collector
+00:12:45.265 [main] INFO org.apache.kafka.common.utils.AppInfoParser -- Kafka version: 4.1.2
+00:12:45.265 [main] INFO org.apache.kafka.common.utils.AppInfoParser -- Kafka commitId: c82fd9b934b4c1e6
+00:12:45.265 [main] INFO org.apache.kafka.common.utils.AppInfoParser -- Kafka startTimeMs: 1793923965265
+00:12:45.266 [consumer-demo.cache-inv.retry-10m] INFO org.apache.kafka.clients.consumer.internals.ClassicKafkaConsumer -- [Consumer clientId=consumer-demo.cache-inv.retry-10m-14, groupId=demo.cache-inv.retry-10m] Subscribed to topic(s): dexter.demo.note.v1.cache-inv.retry-10m
+00:12:45.270 [consumer-demo.cache-inv] INFO org.apache.kafka.clients.Metadata -- [Consumer clientId=consumer-demo.cache-inv-12, groupId=demo.cache-inv] Cluster ID: 4L6g3nShT-eMCtK--X86sw
+00:12:45.270 [consumer-demo.cache-inv] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv-12, groupId=demo.cache-inv] Discovered group coordinator localhost:32773 (id: 2147483646 rack: null isFenced: false)
+00:12:45.272 [consumer-demo.cache-inv] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv-12, groupId=demo.cache-inv] (Re-)joining group
+00:12:45.273 [outbox-relay-demo] INFO in.dexter.events.relay.OutboxRelay -- outbox relay demo: leader
+00:12:45.282 [consumer-demo.cache-inv.retry-1m] INFO org.apache.kafka.clients.Metadata -- [Consumer clientId=consumer-demo.cache-inv.retry-1m-13, groupId=demo.cache-inv.retry-1m] Cluster ID: 4L6g3nShT-eMCtK--X86sw
+00:12:45.283 [consumer-demo.cache-inv.retry-1m] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv.retry-1m-13, groupId=demo.cache-inv.retry-1m] Discovered group coordinator localhost:32773 (id: 2147483646 rack: null isFenced: false)
+00:12:45.284 [consumer-demo.cache-inv.retry-10m] INFO org.apache.kafka.clients.Metadata -- [Consumer clientId=consumer-demo.cache-inv.retry-10m-14, groupId=demo.cache-inv.retry-10m] Cluster ID: 4L6g3nShT-eMCtK--X86sw
+00:12:45.284 [consumer-demo.cache-inv.retry-10m] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv.retry-10m-14, groupId=demo.cache-inv.retry-10m] Discovered group coordinator localhost:32773 (id: 2147483646 rack: null isFenced: false)
+00:12:45.286 [consumer-demo.cache-inv.retry-10m] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv.retry-10m-14, groupId=demo.cache-inv.retry-10m] (Re-)joining group
+00:12:45.288 [consumer-demo.cache-inv.retry-1m] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv.retry-1m-13, groupId=demo.cache-inv.retry-1m] (Re-)joining group
+00:12:45.291 [consumer-demo.cache-inv] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv-12, groupId=demo.cache-inv] Request joining group due to: need to re-join with the given member-id: consumer-demo.cache-inv-12-812a6a1b-8bf3-47fb-b70f-284b2e7ff1b2
+00:12:45.291 [consumer-demo.cache-inv] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv-12, groupId=demo.cache-inv] (Re-)joining group
+00:12:45.296 [consumer-demo.cache-inv.retry-10m] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv.retry-10m-14, groupId=demo.cache-inv.retry-10m] Request joining group due to: need to re-join with the given member-id: consumer-demo.cache-inv.retry-10m-14-773f47ad-b02b-4f5e-880d-f0eb45c2ac9c
+00:12:45.297 [consumer-demo.cache-inv.retry-10m] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv.retry-10m-14, groupId=demo.cache-inv.retry-10m] (Re-)joining group
+00:12:45.301 [consumer-demo.cache-inv.retry-1m] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv.retry-1m-13, groupId=demo.cache-inv.retry-1m] Request joining group due to: need to re-join with the given member-id: consumer-demo.cache-inv.retry-1m-13-7f8daf79-5727-4ca6-beb6-55ccce5c3c8d
+00:12:45.302 [consumer-demo.cache-inv.retry-1m] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv.retry-1m-13, groupId=demo.cache-inv.retry-1m] (Re-)joining group
+00:12:45.301 [consumer-demo.cache-inv] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv-12, groupId=demo.cache-inv] Successfully joined group with generation Generation{generationId=1, memberId='consumer-demo.cache-inv-12-812a6a1b-8bf3-47fb-b70f-284b2e7ff1b2', protocol='range'}
+00:12:45.306 [consumer-demo.cache-inv] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv-12, groupId=demo.cache-inv] Finished assignment for group at generation 1: {consumer-demo.cache-inv-12-812a6a1b-8bf3-47fb-b70f-284b2e7ff1b2=Assignment(partitions=[dexter.demo.note.v1-0, dexter.demo.note.v1-1, dexter.demo.note.v1-2])}
+00:12:45.302 [consumer-demo.cache-inv.retry-10m] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv.retry-10m-14, groupId=demo.cache-inv.retry-10m] Successfully joined group with generation Generation{generationId=1, memberId='consumer-demo.cache-inv.retry-10m-14-773f47ad-b02b-4f5e-880d-f0eb45c2ac9c', protocol='range'}
+00:12:45.307 [consumer-demo.cache-inv.retry-10m] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv.retry-10m-14, groupId=demo.cache-inv.retry-10m] Finished assignment for group at generation 1: {consumer-demo.cache-inv.retry-10m-14-773f47ad-b02b-4f5e-880d-f0eb45c2ac9c=Assignment(partitions=[dexter.demo.note.v1.cache-inv.retry-10m-0, dexter.demo.note.v1.cache-inv.retry-10m-1, dexter.demo.note.v1.cache-inv.retry-10m-2])}
+00:12:45.312 [consumer-demo.cache-inv.retry-1m] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv.retry-1m-13, groupId=demo.cache-inv.retry-1m] Successfully joined group with generation Generation{generationId=1, memberId='consumer-demo.cache-inv.retry-1m-13-7f8daf79-5727-4ca6-beb6-55ccce5c3c8d', protocol='range'}
+00:12:45.312 [consumer-demo.cache-inv.retry-1m] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv.retry-1m-13, groupId=demo.cache-inv.retry-1m] Finished assignment for group at generation 1: {consumer-demo.cache-inv.retry-1m-13-7f8daf79-5727-4ca6-beb6-55ccce5c3c8d=Assignment(partitions=[dexter.demo.note.v1.cache-inv.retry-1m-0, dexter.demo.note.v1.cache-inv.retry-1m-1, dexter.demo.note.v1.cache-inv.retry-1m-2])}
+00:12:45.320 [consumer-demo.cache-inv] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv-12, groupId=demo.cache-inv] Successfully synced group in generation Generation{generationId=1, memberId='consumer-demo.cache-inv-12-812a6a1b-8bf3-47fb-b70f-284b2e7ff1b2', protocol='range'}
+00:12:45.321 [consumer-demo.cache-inv] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv-12, groupId=demo.cache-inv] Notifying assignor about the new Assignment(partitions=[dexter.demo.note.v1-0, dexter.demo.note.v1-1, dexter.demo.note.v1-2])
+00:12:45.321 [consumer-demo.cache-inv] INFO org.apache.kafka.clients.consumer.internals.ConsumerRebalanceListenerInvoker -- [Consumer clientId=consumer-demo.cache-inv-12, groupId=demo.cache-inv] Adding newly assigned partitions: [dexter.demo.note.v1-0, dexter.demo.note.v1-1, dexter.demo.note.v1-2]
+00:12:45.322 [consumer-demo.cache-inv.retry-10m] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv.retry-10m-14, groupId=demo.cache-inv.retry-10m] Successfully synced group in generation Generation{generationId=1, memberId='consumer-demo.cache-inv.retry-10m-14-773f47ad-b02b-4f5e-880d-f0eb45c2ac9c', protocol='range'}
+00:12:45.324 [consumer-demo.cache-inv.retry-10m] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv.retry-10m-14, groupId=demo.cache-inv.retry-10m] Notifying assignor about the new Assignment(partitions=[dexter.demo.note.v1.cache-inv.retry-10m-0, dexter.demo.note.v1.cache-inv.retry-10m-1, dexter.demo.note.v1.cache-inv.retry-10m-2])
+00:12:45.324 [consumer-demo.cache-inv.retry-10m] INFO org.apache.kafka.clients.consumer.internals.ConsumerRebalanceListenerInvoker -- [Consumer clientId=consumer-demo.cache-inv.retry-10m-14, groupId=demo.cache-inv.retry-10m] Adding newly assigned partitions: [dexter.demo.note.v1.cache-inv.retry-10m-0, dexter.demo.note.v1.cache-inv.retry-10m-1, dexter.demo.note.v1.cache-inv.retry-10m-2]
+00:12:45.325 [consumer-demo.cache-inv.retry-1m] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv.retry-1m-13, groupId=demo.cache-inv.retry-1m] Successfully synced group in generation Generation{generationId=1, memberId='consumer-demo.cache-inv.retry-1m-13-7f8daf79-5727-4ca6-beb6-55ccce5c3c8d', protocol='range'}
+00:12:45.325 [consumer-demo.cache-inv] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv-12, groupId=demo.cache-inv] Found no committed offset for partition dexter.demo.note.v1-1
+00:12:45.325 [consumer-demo.cache-inv] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv-12, groupId=demo.cache-inv] Found no committed offset for partition dexter.demo.note.v1-0
+00:12:45.325 [consumer-demo.cache-inv] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv-12, groupId=demo.cache-inv] Found no committed offset for partition dexter.demo.note.v1-2
+00:12:45.325 [consumer-demo.cache-inv.retry-1m] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv.retry-1m-13, groupId=demo.cache-inv.retry-1m] Notifying assignor about the new Assignment(partitions=[dexter.demo.note.v1.cache-inv.retry-1m-0, dexter.demo.note.v1.cache-inv.retry-1m-1, dexter.demo.note.v1.cache-inv.retry-1m-2])
+00:12:45.325 [consumer-demo.cache-inv.retry-1m] INFO org.apache.kafka.clients.consumer.internals.ConsumerRebalanceListenerInvoker -- [Consumer clientId=consumer-demo.cache-inv.retry-1m-13, groupId=demo.cache-inv.retry-1m] Adding newly assigned partitions: [dexter.demo.note.v1.cache-inv.retry-1m-0, dexter.demo.note.v1.cache-inv.retry-1m-1, dexter.demo.note.v1.cache-inv.retry-1m-2]
+00:12:45.327 [consumer-demo.cache-inv.retry-1m] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv.retry-1m-13, groupId=demo.cache-inv.retry-1m] Found no committed offset for partition dexter.demo.note.v1.cache-inv.retry-1m-0
+00:12:45.327 [consumer-demo.cache-inv.retry-1m] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv.retry-1m-13, groupId=demo.cache-inv.retry-1m] Found no committed offset for partition dexter.demo.note.v1.cache-inv.retry-1m-1
+00:12:45.327 [consumer-demo.cache-inv.retry-1m] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv.retry-1m-13, groupId=demo.cache-inv.retry-1m] Found no committed offset for partition dexter.demo.note.v1.cache-inv.retry-1m-2
+00:12:45.328 [consumer-demo.cache-inv.retry-10m] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv.retry-10m-14, groupId=demo.cache-inv.retry-10m] Found no committed offset for partition dexter.demo.note.v1.cache-inv.retry-10m-1
+00:12:45.328 [consumer-demo.cache-inv.retry-10m] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv.retry-10m-14, groupId=demo.cache-inv.retry-10m] Found no committed offset for partition dexter.demo.note.v1.cache-inv.retry-10m-2
+00:12:45.328 [consumer-demo.cache-inv.retry-10m] INFO org.apache.kafka.clients.consumer.internals.ConsumerCoordinator -- [Consumer clientId=consumer-demo.cache-inv.retry-10m-14, groupId=demo.cache-inv.retry-10m] Found no committed offset for partition dexter.demo.note.v1.cache-inv.retry-10m-0
+00:12:45.336 [consumer-demo.cache-inv.retry-1m] INFO org.apache.kafka.clients.consumer.internals.SubscriptionState -- [Consumer clientId=consumer-demo.cache-inv.retry-1m-13, groupId=demo.cache-inv.retry-1m] Resetting offset for partition dexter.demo.note.v1.cache-inv.retry-1m-0 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:32773 (id: 1 rack: null isFenced: false)], epoch=0}}.
+00:12:45.336 [consumer-demo.cache-inv.retry-1m] INFO org.apache.kafka.clients.consumer.internals.SubscriptionState -- [Consumer clientId=consumer-demo.cache-inv.retry-1m-13, groupId=demo.cache-inv.retry-1m] Resetting offset for partition dexter.demo.note.v1.cache-inv.retry-1m-1 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:32773 (id: 1 rack: null isFenced: false)], epoch=0}}.
+00:12:45.336 [consumer-demo.cache-inv.retry-1m] INFO org.apache.kafka.clients.consumer.internals.SubscriptionState -- [Consumer clientId=consumer-demo.cache-inv.retry-1m-13, groupId=demo.cache-inv.retry-1m] Resetting offset for partition dexter.demo.note.v1.cache-inv.retry-1m-2 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:32773 (id: 1 rack: null isFenced: false)], epoch=0}}.
+00:12:45.337 [consumer-demo.cache-inv] INFO org.apache.kafka.clients.consumer.internals.SubscriptionState -- [Consumer clientId=consumer-demo.cache-inv-12, groupId=demo.cache-inv] Resetting offset for partition dexter.demo.note.v1-1 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:32773 (id: 1 rack: null isFenced: false)], epoch=0}}.
+00:12:45.337 [consumer-demo.cache-inv] INFO org.apache.kafka.clients.consumer.internals.SubscriptionState -- [Consumer clientId=consumer-demo.cache-inv-12, groupId=demo.cache-inv] Resetting offset for partition dexter.demo.note.v1-0 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:32773 (id: 1 rack: null isFenced: false)], epoch=0}}.
+00:12:45.337 [consumer-demo.cache-inv] INFO org.apache.kafka.clients.consumer.internals.SubscriptionState -- [Consumer clientId=consumer-demo.cache-inv-12, groupId=demo.cache-inv] Resetting offset for partition dexter.demo.note.v1-2 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:32773 (id: 1 rack: null isFenced: false)], epoch=0}}.
+00:12:45.341 [consumer-demo.cache-inv.retry-10m] INFO org.apache.kafka.clients.consumer.internals.SubscriptionState -- [Consumer clientId=consumer-demo.cache-inv.retry-10m-14, groupId=demo.cache-inv.retry-10m] Resetting offset for partition dexter.demo.note.v1.cache-inv.retry-10m-1 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:32773 (id: 1 rack: null isFenced: false)], epoch=0}}.
+00:12:45.342 [consumer-demo.cache-inv.retry-10m] INFO org.apache.kafka.clients.consumer.internals.SubscriptionState -- [Consumer clientId=consumer-demo.cache-inv.retry-10m-14, groupId=demo.cache-inv.retry-10m] Resetting offset for partition dexter.demo.note.v1.cache-inv.retry-10m-2 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:32773 (id: 1 rack: null isFenced: false)], epoch=0}}.
+00:12:45.342 [consumer-demo.cache-inv.retry-10m] INFO org.apache.kafka.clients.consumer.internals.SubscriptionState -- [Consumer clientId=consumer-demo.cache-inv.retry-10m-14, groupId=demo.cache-inv.retry-10m] Resetting offset for partition dexter.demo.note.v1.cache-inv.retry-10m-0 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:32773 (id: 1 rack: null isFenced: false)], epoch=0}}.
+00:12:45.346 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: poison message at dexter.demo.note.v1-1@0 → DLQ (not JSON)
+00:12:45.358 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-3fe2-7483-b17c-4cf137675b33 (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.364 [main] WARN in.dexter.cache.CacheInvalidator -- CACHE_INVALIDATION_FAILED path=A keys=1 error=org.springframework.data.redis.RedisSystemException: Redis exception (Path B / TTL will bound staleness)
+00:12:45.375 [consumer-demo.cache-inv.retry-1m] INFO org.apache.kafka.clients.consumer.internals.ClassicKafkaConsumer -- [Consumer clientId=consumer-demo.cache-inv.retry-1m-13, groupId=demo.cache-inv.retry-1m] Seeking to offset 0 for partition dexter.demo.note.v1.cache-inv.retry-1m-1
+00:12:45.376 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-4d1a-7de6-ac4f-b972e8fb07f1 (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.384 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-4d1a-7de6-ac4f-b972e8fb07f1 (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.392 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-4d2c-76c4-99b7-2a13ef8726a3 (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.399 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-552b-7b7a-9c5a-a6443fbbb06f (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.407 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-5530-76df-b826-3f5a252c3756 (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.415 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-5534-7541-9021-1b84eaa2097c (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.423 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-552b-7b7a-9c5a-a6443fbbb06f (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.431 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-5530-76df-b826-3f5a252c3756 (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.439 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-5534-7541-9021-1b84eaa2097c (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.446 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-5538-7541-ab2d-dc3e2505d234 (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.454 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-553b-7d86-8c21-e2e828249291 (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.461 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-553f-7409-8b07-3f2f47470fc6 (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.463 [lettuce-eventExecutorLoop-17-2] INFO io.lettuce.core.protocol.ConnectionWatchdog -- Reconnecting, last destination was /127.0.0.1:33247
+00:12:45.466 [lettuce-nioEventLoop-22-2] WARN io.lettuce.core.protocol.ConnectionWatchdog -- Cannot reconnect to [127.0.0.1/<unresolved>:33247]: Connection closed prematurely
+io.lettuce.core.RedisConnectionException: Connection closed prematurely
+	at io.lettuce.core.protocol.RedisHandshakeHandler.channelInactive(RedisHandshakeHandler.java:76)
+	at io.netty.channel.AbstractChannelHandlerContext.fireChannelInactive(AbstractChannelHandlerContext.java:251)
+	at io.netty.channel.ChannelInboundHandlerAdapter.channelInactive(ChannelInboundHandlerAdapter.java:81)
+	at io.lettuce.core.ChannelGroupListener.channelInactive(ChannelGroupListener.java:54)
+	at io.netty.channel.AbstractChannelHandlerContext.fireChannelInactive(AbstractChannelHandlerContext.java:251)
+	at io.netty.channel.DefaultChannelPipeline$HeadContext.channelInactive(DefaultChannelPipeline.java:1424)
+	at io.netty.channel.DefaultChannelPipeline.fireChannelInactive(DefaultChannelPipeline.java:876)
+	at io.netty.channel.AbstractChannel$AbstractUnsafe$6.run(AbstractChannel.java:676)
+	at io.netty.util.concurrent.AbstractEventExecutor.runTask(AbstractEventExecutor.java:148)
+	at io.netty.util.concurrent.AbstractEventExecutor.safeExecute(AbstractEventExecutor.java:141)
+	at io.netty.util.concurrent.SingleThreadEventExecutor.runAllTasks(SingleThreadEventExecutor.java:535)
+	at io.netty.channel.SingleThreadIoEventLoop.run(SingleThreadIoEventLoop.java:201)
+	at io.netty.util.concurrent.SingleThreadEventExecutor$5.run(SingleThreadEventExecutor.java:1204)
+	at io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)
+	at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)
+	at java.base/java.lang.Thread.run(Thread.java:1474)
+00:12:45.468 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-5542-755a-abee-9b73e7c9cf41 (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.475 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-5545-7a57-8401-f75a727f5457 (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.482 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-5548-7c0f-b95b-9ca7967ee829 (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.489 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-554b-7f1f-9c88-295d9800701d (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.497 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-5abc-7f6b-ab52-1443b492479f (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.504 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-6063-7d4a-9cda-69f41a6dd25d (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.511 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-608e-75b2-829e-56d4dc447807 (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.519 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-6160-7c32-9ba2-c1c01bbba54b (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.527 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-4444-7b4e-bc7f-f82229095115 (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.536 [consumer-demo.cache-inv.retry-1m] INFO org.apache.kafka.clients.consumer.internals.ClassicKafkaConsumer -- [Consumer clientId=consumer-demo.cache-inv.retry-1m-13, groupId=demo.cache-inv.retry-1m] Seeking to offset 0 for partition dexter.demo.note.v1.cache-inv.retry-1m-0
+00:12:45.536 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-6095-73bb-9c74-ddc432203dc9 (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.543 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-60b7-7ae5-accb-760535a54fe6 (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.551 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-6104-76d5-883e-075cfe6e60bf (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.558 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-4c63-754b-b8bf-3dbdb5d3ac61 (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.566 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-4c6c-77e7-b22c-43ca7af215bd (demo.note.renamed) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.567 [consumer-demo.cache-inv.retry-1m] INFO org.apache.kafka.clients.consumer.internals.ClassicKafkaConsumer -- [Consumer clientId=consumer-demo.cache-inv.retry-1m-13, groupId=demo.cache-inv.retry-1m] Seeking to offset 0 for partition dexter.demo.note.v1.cache-inv.retry-1m-2
+00:12:45.574 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-4c75-777c-9822-fc62aa0b7993 (demo.note.renamed) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.582 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-4c7d-744c-a7ce-d1cee5cdcca7 (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.589 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-50be-75e7-bf06-cfd6d760afdb (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.597 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-50ce-7e4a-a05f-64d3a57d6987 (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.604 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-521d-736d-a6e5-9586c038f355 (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.612 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-5222-757a-bc48-bc8f37ccbfb3 (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.619 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-5227-7083-af4b-e043661eaf6e (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.626 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-522d-7ef0-ac54-eb8cf0a3ecb2 (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.633 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-5232-7448-af1c-28da4a5a8984 (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.640 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-600a-7b8f-a9ee-99248ce9b074 (demo.note.created) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.656 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-61b2-7cd1-a8cc-2382f8b14d59 (demo.note.renamed) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:45.668 [lettuce-nioEventLoop-22-3] INFO io.lettuce.core.protocol.ReconnectionHandler -- Reconnected to 127.0.0.1/<unresolved>:33247
+00:12:45.790 [consumer-demo.cache-inv.retry-1m] INFO org.apache.kafka.clients.consumer.internals.ClassicKafkaConsumer -- [Consumer clientId=consumer-demo.cache-inv.retry-1m-13, groupId=demo.cache-inv.retry-1m] Seeking to offset 17 for partition dexter.demo.note.v1.cache-inv.retry-1m-1
+]]></system-out>
+  </testcase>
+  <testcase name="theOutboxEventRepairsALostAfterCommitBump" classname="in.dexter.testkit.demo.DemoCacheInvalidationIT" time="0.661">
+    <system-out><![CDATA[00:12:46.399 [main] WARN in.dexter.cache.CacheInvalidator -- CACHE_INVALIDATION_FAILED path=A keys=1 error=org.springframework.data.redis.RedisSystemException: Redis exception (Path B / TTL will bound staleness)
+00:12:46.408 [consumer-demo.cache-inv] WARN in.dexter.events.consumer.EventConsumer -- consumer cache-inv: event 01a1ae33-65be-7619-b483-bf62eadb3975 (demo.note.renamed) failed attempt 1 → retry-1m: in.dexter.cache.CacheUnavailableException: cache generation bump failed
+00:12:46.418 [consumer-demo.cache-inv.retry-1m] INFO org.apache.kafka.clients.consumer.internals.ClassicKafkaConsumer -- [Consumer clientId=consumer-demo.cache-inv.retry-1m-13, groupId=demo.cache-inv.retry-1m] Seeking to offset 12 for partition dexter.demo.note.v1.cache-inv.retry-1m-2
+00:12:46.567 [lettuce-nioEventLoop-22-4] INFO io.lettuce.core.protocol.ReconnectionHandler -- Reconnected to 127.0.0.1/<unresolved>:33247
+00:12:46.886 [lettuce-eventExecutorLoop-7-3] INFO io.lettuce.core.protocol.ConnectionWatchdog -- Reconnecting, last destination was 127.0.0.1/<unresolved>:42113
+00:12:46.888 [lettuce-nioEventLoop-9-2] WARN io.lettuce.core.protocol.ConnectionWatchdog -- Cannot reconnect to [127.0.0.1/<unresolved>:42113]: Connection refused (connect failed): /127.0.0.1:42113
+]]></system-out>
+  </testcase>
+</testsuite>

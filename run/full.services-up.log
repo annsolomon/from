@@ -1,0 +1,3 @@
+SPRING_PROFILES_ACTIVE=dev
+all 10 services UP
+ai-parser UP on 8090

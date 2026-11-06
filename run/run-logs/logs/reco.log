@@ -1,0 +1,2038 @@
+2026-11-06T00:22:45.002Z  INFO [] 56774 --- [reco] [           main] in.dexter.reco.RecoApplication           : Starting RecoApplication v0.1.0-SNAPSHOT using Java 25.0.5 with PID 56774 (/home/runner/work/from/from/services/reco/target/app.jar started by runner in /home/runner/work/from/from)
+2026-11-06T00:22:45.077Z  INFO [] 56774 --- [reco] [           main] in.dexter.reco.RecoApplication           : The following 1 profile is active: "dev"
+2026-11-06T00:22:50.986Z  INFO [] 56774 --- [reco] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-11-06T00:22:51.027Z  INFO [] 56774 --- [reco] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2026-11-06T00:22:51.226Z  INFO [] 56774 --- [reco] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 68 ms. Found 0 Redis repository interfaces.
+2026-11-06T00:22:53.771Z  INFO [] 56774 --- [reco] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8086 (http)
+2026-11-06T00:22:53.801Z  INFO [] 56774 --- [reco] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-11-06T00:22:53.805Z  INFO [] 56774 --- [reco] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
+2026-11-06T00:22:53.842Z  INFO [] 56774 --- [reco] [           main] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 8534 ms
+2026-11-06T00:22:56.529Z  INFO [] 56774 --- [reco] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://127.0.0.1:5432/reco?ApplicationName=reco (PostgreSQL 17.11)
+2026-11-06T00:22:56.758Z  INFO [] 56774 --- [reco] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 4 migrations (execution time 00:00.146s)
+2026-11-06T00:22:56.855Z  INFO [] 56774 --- [reco] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "reco": 202611011000
+2026-11-06T00:22:56.863Z  INFO [] 56774 --- [reco] [           main] o.f.core.internal.command.DbMigrate      : Schema "reco" is up to date. No migration necessary.
+2026-11-06T00:22:59.199Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.config.AbstractConfig   : ProducerConfig values: 
+	acks = -1
+	batch.size = 16384
+	bootstrap.servers = [127.0.0.1:9092]
+	buffer.memory = 33554432
+	client.dns.lookup = use_all_dns_ips
+	client.id = reco-consumers
+	compression.gzip.level = -1
+	compression.lz4.level = 9
+	compression.type = none
+	compression.zstd.level = 3
+	connections.max.idle.ms = 540000
+	delivery.timeout.ms = 15000
+	enable.idempotence = true
+	enable.metrics.push = true
+	interceptor.classes = []
+	key.serializer = class org.apache.kafka.common.serialization.StringSerializer
+	linger.ms = 5
+	max.block.ms = 60000
+	max.in.flight.requests.per.connection = 5
+	max.request.size = 1048576
+	metadata.max.age.ms = 300000
+	metadata.max.idle.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partitioner.adaptive.partitioning.enable = true
+	partitioner.availability.timeout.ms = 0
+	partitioner.class = null
+	partitioner.ignore.keys = false
+	receive.buffer.bytes = 32768
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 10000
+	retries = 2147483647
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	transaction.timeout.ms = 60000
+	transaction.two.phase.commit.enable = false
+	transactional.id = null
+	value.serializer = class org.apache.kafka.common.serialization.ByteArraySerializer
+
+2026-11-06T00:22:59.280Z  INFO [] 56774 --- [reco] [           main] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-06T00:22:59.495Z  INFO [] 56774 --- [reco] [           main] o.a.k.clients.producer.KafkaProducer     : [Producer clientId=reco-consumers] Instantiated an idempotent producer.
+2026-11-06T00:22:59.650Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.1.2
+2026-11-06T00:22:59.659Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c82fd9b934b4c1e6
+2026-11-06T00:22:59.659Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-9643]
+2026-11-06T00:22:59.694Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.config.AbstractConfig   : ProducerConfig values: 
+	acks = -1
+	batch.size = 16384
+	bootstrap.servers = [127.0.0.1:9092]
+	buffer.memory = 33554432
+	client.dns.lookup = use_all_dns_ips
+	client.id = reco-relay
+	compression.gzip.level = -1
+	compression.lz4.level = 9
+	compression.type = none
+	compression.zstd.level = 3
+	connections.max.idle.ms = 540000
+	delivery.timeout.ms = 15000
+	enable.idempotence = true
+	enable.metrics.push = true
+	interceptor.classes = []
+	key.serializer = class org.apache.kafka.common.serialization.StringSerializer
+	linger.ms = 5
+	max.block.ms = 60000
+	max.in.flight.requests.per.connection = 5
+	max.request.size = 1048576
+	metadata.max.age.ms = 300000
+	metadata.max.idle.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partitioner.adaptive.partitioning.enable = true
+	partitioner.availability.timeout.ms = 0
+	partitioner.class = null
+	partitioner.ignore.keys = false
+	receive.buffer.bytes = 32768
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 10000
+	retries = 2147483647
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	transaction.timeout.ms = 60000
+	transaction.two.phase.commit.enable = false
+	transactional.id = null
+	value.serializer = class org.apache.kafka.common.serialization.ByteArraySerializer
+
+2026-11-06T00:22:59.709Z  INFO [] 56774 --- [reco] [           main] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-06T00:22:59.710Z  INFO [] 56774 --- [reco] [           main] o.a.k.clients.producer.KafkaProducer     : [Producer clientId=reco-relay] Instantiated an idempotent producer.
+2026-11-06T00:22:59.728Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.1.2
+2026-11-06T00:22:59.728Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c82fd9b934b4c1e6
+2026-11-06T00:22:59.728Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-9728]
+2026-11-06T00:23:01.456Z  INFO [] 56774 --- [reco] [ reco-consumers] org.apache.kafka.clients.Metadata        : [Producer clientId=reco-consumers] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-06T00:23:01.457Z  INFO [] 56774 --- [reco] [ad | reco-relay] org.apache.kafka.clients.Metadata        : [Producer clientId=reco-relay] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-06T00:23:01.463Z  INFO [] 56774 --- [reco] [ reco-consumers] o.a.k.c.p.internals.TransactionManager   : [Producer clientId=reco-consumers] ProducerId set to 18 with epoch 0
+2026-11-06T00:23:01.472Z  INFO [] 56774 --- [reco] [ad | reco-relay] o.a.k.c.p.internals.TransactionManager   : [Producer clientId=reco-relay] ProducerId set to 19 with epoch 0
+2026-11-06T00:23:01.658Z  INFO [] 56774 --- [reco] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 3 endpoints beneath base path '/actuator'
+2026-11-06T00:23:01.730Z  INFO [] 56774 --- [reco] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8086 (http) with context path '/'
+2026-11-06T00:23:01.736Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.config.AbstractConfig   : AdminClientConfig values: 
+	bootstrap.controllers = []
+	bootstrap.servers = [127.0.0.1:9092]
+	client.dns.lookup = use_all_dns_ips
+	client.id = 
+	connections.max.idle.ms = 300000
+	default.api.timeout.ms = 10000
+	enable.metrics.push = false
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 5000
+	retries = 2147483647
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+
+2026-11-06T00:23:01.773Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.1.2
+2026-11-06T00:23:01.773Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c82fd9b934b4c1e6
+2026-11-06T00:23:01.773Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-1773]
+2026-11-06T00:23:01.808Z  INFO [] 56774 --- [reco] [           main] .r.c.RecoRelayConfiguration$EnsureTopics : TOPICS_READY created=[]
+2026-11-06T00:23:01.808Z  INFO [] 56774 --- [reco] [           main] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-06T00:23:01.808Z  INFO [] 56774 --- [reco] [           main] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-06T00:23:01.809Z  INFO [] 56774 --- [reco] [           main] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-06T00:23:01.810Z  INFO [] 56774 --- [reco] [| adminclient-1] o.a.kafka.common.utils.AppInfoParser     : App info kafka.admin.client for adminclient-1 unregistered
+2026-11-06T00:23:01.813Z  INFO [] 56774 --- [reco] [| adminclient-1] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-06T00:23:01.813Z  INFO [] 56774 --- [reco] [| adminclient-1] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-06T00:23:01.813Z  INFO [] 56774 --- [reco] [| adminclient-1] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-06T00:23:01.831Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.config.AbstractConfig   : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = earliest
+	bootstrap.servers = [127.0.0.1:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-reco.spend-profile-1
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = reco.spend-profile
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_committed
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 200
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	share.acknowledgement.mode = implicit
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+2026-11-06T00:23:01.844Z  INFO [] 56774 --- [reco] [           main] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-06T00:23:01.853Z  INFO [] 56774 --- [reco] [tbox-relay-reco] in.dexter.events.relay.OutboxRelay       : outbox relay reco: leader
+2026-11-06T00:23:01.899Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.1.2
+2026-11-06T00:23:01.899Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c82fd9b934b4c1e6
+2026-11-06T00:23:01.899Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-1899]
+2026-11-06T00:23:01.902Z  INFO [] 56774 --- [reco] [o.spend-profile] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-reco.spend-profile-1, groupId=reco.spend-profile] Subscribed to topic(s): dexter.ledger.expense.v1
+2026-11-06T00:23:01.901Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.config.AbstractConfig   : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = earliest
+	bootstrap.servers = [127.0.0.1:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-reco.spend-profile.retry-1m-2
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = reco.spend-profile.retry-1m
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_committed
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 200
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	share.acknowledgement.mode = implicit
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+2026-11-06T00:23:01.905Z  INFO [] 56774 --- [reco] [           main] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-06T00:23:01.910Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.1.2
+2026-11-06T00:23:01.910Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c82fd9b934b4c1e6
+2026-11-06T00:23:01.910Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-1910]
+2026-11-06T00:23:01.910Z  INFO [] 56774 --- [reco] [rofile.retry-1m] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-reco.spend-profile.retry-1m-2, groupId=reco.spend-profile.retry-1m] Subscribed to topic(s): dexter.ledger.expense.v1.spend-profile.retry-1m
+2026-11-06T00:23:01.911Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.config.AbstractConfig   : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = earliest
+	bootstrap.servers = [127.0.0.1:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-reco.spend-profile.retry-10m-3
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = reco.spend-profile.retry-10m
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_committed
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 200
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	share.acknowledgement.mode = implicit
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+2026-11-06T00:23:01.914Z  INFO [] 56774 --- [reco] [           main] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-06T00:23:01.916Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.1.2
+2026-11-06T00:23:01.917Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c82fd9b934b4c1e6
+2026-11-06T00:23:01.917Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-1916]
+2026-11-06T00:23:01.918Z  INFO [] 56774 --- [reco] [ofile.retry-10m] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-reco.spend-profile.retry-10m-3, groupId=reco.spend-profile.retry-10m] Subscribed to topic(s): dexter.ledger.expense.v1.spend-profile.retry-10m
+2026-11-06T00:23:01.918Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.config.AbstractConfig   : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = earliest
+	bootstrap.servers = [127.0.0.1:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-reco.held-cards-4
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = reco.held-cards
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_committed
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 200
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	share.acknowledgement.mode = implicit
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+2026-11-06T00:23:01.921Z  INFO [] 56774 --- [reco] [           main] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-06T00:23:01.925Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.1.2
+2026-11-06T00:23:01.925Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c82fd9b934b4c1e6
+2026-11-06T00:23:01.925Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-1925]
+2026-11-06T00:23:01.928Z  INFO [] 56774 --- [reco] [ofile.retry-10m] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-reco.spend-profile.retry-10m-3, groupId=reco.spend-profile.retry-10m] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-06T00:23:01.926Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.config.AbstractConfig   : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = earliest
+	bootstrap.servers = [127.0.0.1:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-reco.held-cards.retry-1m-5
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = reco.held-cards.retry-1m
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_committed
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 200
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	share.acknowledgement.mode = implicit
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+2026-11-06T00:23:01.929Z  INFO [] 56774 --- [reco] [           main] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-06T00:23:01.929Z  INFO [] 56774 --- [reco] [reco.held-cards] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-reco.held-cards-4, groupId=reco.held-cards] Subscribed to topic(s): dexter.portfolio.card.v1
+2026-11-06T00:23:01.931Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.1.2
+2026-11-06T00:23:01.932Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c82fd9b934b4c1e6
+2026-11-06T00:23:01.932Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-1931]
+2026-11-06T00:23:01.932Z  INFO [] 56774 --- [reco] [rofile.retry-1m] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-reco.spend-profile.retry-1m-2, groupId=reco.spend-profile.retry-1m] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-06T00:23:01.932Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.config.AbstractConfig   : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = earliest
+	bootstrap.servers = [127.0.0.1:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-reco.held-cards.retry-10m-6
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = reco.held-cards.retry-10m
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_committed
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 200
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	share.acknowledgement.mode = implicit
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+2026-11-06T00:23:01.936Z  INFO [] 56774 --- [reco] [           main] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-06T00:23:01.936Z  INFO [] 56774 --- [reco] [-cards.retry-1m] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-reco.held-cards.retry-1m-5, groupId=reco.held-cards.retry-1m] Subscribed to topic(s): dexter.portfolio.card.v1.held-cards.retry-1m
+2026-11-06T00:23:01.938Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.1.2
+2026-11-06T00:23:01.938Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c82fd9b934b4c1e6
+2026-11-06T00:23:01.938Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-1938]
+2026-11-06T00:23:01.941Z  INFO [] 56774 --- [reco] [ofile.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile.retry-10m-3, groupId=reco.spend-profile.retry-10m] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false)
+2026-11-06T00:23:01.943Z  INFO [] 56774 --- [reco] [cards.retry-10m] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-reco.held-cards.retry-10m-6, groupId=reco.held-cards.retry-10m] Subscribed to topic(s): dexter.portfolio.card.v1.held-cards.retry-10m
+2026-11-06T00:23:01.939Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.config.AbstractConfig   : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = earliest
+	bootstrap.servers = [127.0.0.1:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-reco.catalog-rules-7
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = reco.catalog-rules
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_committed
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 200
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	share.acknowledgement.mode = implicit
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+2026-11-06T00:23:01.943Z  INFO [] 56774 --- [reco] [rofile.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile.retry-1m-2, groupId=reco.spend-profile.retry-1m] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false)
+2026-11-06T00:23:01.944Z  INFO [] 56774 --- [reco] [           main] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-06T00:23:01.947Z  INFO [] 56774 --- [reco] [ofile.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile.retry-10m-3, groupId=reco.spend-profile.retry-10m] (Re-)joining group
+2026-11-06T00:23:01.952Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.1.2
+2026-11-06T00:23:01.952Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c82fd9b934b4c1e6
+2026-11-06T00:23:01.952Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-1952]
+2026-11-06T00:23:01.953Z  INFO [] 56774 --- [reco] [o.catalog-rules] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-reco.catalog-rules-7, groupId=reco.catalog-rules] Subscribed to topic(s): dexter.catalog.card.v1
+2026-11-06T00:23:01.955Z  INFO [] 56774 --- [reco] [rofile.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile.retry-1m-2, groupId=reco.spend-profile.retry-1m] (Re-)joining group
+2026-11-06T00:23:01.961Z  INFO [] 56774 --- [reco] [o.catalog-rules] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-reco.catalog-rules-7, groupId=reco.catalog-rules] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-06T00:23:01.961Z  INFO [] 56774 --- [reco] [o.catalog-rules] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules-7, groupId=reco.catalog-rules] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false)
+2026-11-06T00:23:01.952Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.config.AbstractConfig   : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = earliest
+	bootstrap.servers = [127.0.0.1:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-reco.catalog-rules.retry-1m-8
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = reco.catalog-rules.retry-1m
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_committed
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 200
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	share.acknowledgement.mode = implicit
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+2026-11-06T00:23:01.964Z  INFO [] 56774 --- [reco] [           main] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-06T00:23:01.968Z  INFO [] 56774 --- [reco] [o.catalog-rules] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules-7, groupId=reco.catalog-rules] (Re-)joining group
+2026-11-06T00:23:01.986Z  INFO [] 56774 --- [reco] [-cards.retry-1m] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-reco.held-cards.retry-1m-5, groupId=reco.held-cards.retry-1m] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-06T00:23:01.988Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.1.2
+2026-11-06T00:23:01.990Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c82fd9b934b4c1e6
+2026-11-06T00:23:01.990Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-1970]
+2026-11-06T00:23:01.991Z  INFO [] 56774 --- [reco] [-cards.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards.retry-1m-5, groupId=reco.held-cards.retry-1m] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false)
+2026-11-06T00:23:01.993Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.config.AbstractConfig   : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = earliest
+	bootstrap.servers = [127.0.0.1:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-reco.catalog-rules.retry-10m-9
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = reco.catalog-rules.retry-10m
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_committed
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 200
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	share.acknowledgement.mode = implicit
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+2026-11-06T00:23:01.997Z  INFO [] 56774 --- [reco] [           main] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-06T00:23:01.998Z  INFO [] 56774 --- [reco] [o.spend-profile] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-reco.spend-profile-1, groupId=reco.spend-profile] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-06T00:23:01.999Z  INFO [] 56774 --- [reco] [-cards.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards.retry-1m-5, groupId=reco.held-cards.retry-1m] (Re-)joining group
+2026-11-06T00:23:01.999Z  INFO [] 56774 --- [reco] [o.spend-profile] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile-1, groupId=reco.spend-profile] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false)
+2026-11-06T00:23:02.000Z  INFO [] 56774 --- [reco] [o.spend-profile] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile-1, groupId=reco.spend-profile] (Re-)joining group
+2026-11-06T00:23:01.997Z  INFO [] 56774 --- [reco] [-rules.retry-1m] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-reco.catalog-rules.retry-1m-8, groupId=reco.catalog-rules.retry-1m] Subscribed to topic(s): dexter.catalog.card.v1.catalog-rules.retry-1m
+2026-11-06T00:23:02.004Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.1.2
+2026-11-06T00:23:02.004Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c82fd9b934b4c1e6
+2026-11-06T00:23:02.004Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-2004]
+2026-11-06T00:23:02.004Z  INFO [] 56774 --- [reco] [rofile.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile.retry-1m-2, groupId=reco.spend-profile.retry-1m] Request joining group due to: need to re-join with the given member-id: consumer-reco.spend-profile.retry-1m-2-5ed32f7b-7cb4-4b3d-94a3-91d72bb06ba1
+2026-11-06T00:23:02.002Z  INFO [] 56774 --- [reco] [reco.held-cards] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-reco.held-cards-4, groupId=reco.held-cards] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-06T00:23:02.005Z  INFO [] 56774 --- [reco] [reco.held-cards] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards-4, groupId=reco.held-cards] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false)
+2026-11-06T00:23:02.005Z  INFO [] 56774 --- [reco] [rofile.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile.retry-1m-2, groupId=reco.spend-profile.retry-1m] (Re-)joining group
+2026-11-06T00:23:02.007Z  INFO [] 56774 --- [reco] [cards.retry-10m] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-reco.held-cards.retry-10m-6, groupId=reco.held-cards.retry-10m] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-06T00:23:02.008Z  INFO [] 56774 --- [reco] [cards.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards.retry-10m-6, groupId=reco.held-cards.retry-10m] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false)
+2026-11-06T00:23:02.008Z  INFO [] 56774 --- [reco] [reco.held-cards] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards-4, groupId=reco.held-cards] (Re-)joining group
+2026-11-06T00:23:02.011Z  INFO [] 56774 --- [reco] [cards.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards.retry-10m-6, groupId=reco.held-cards.retry-10m] (Re-)joining group
+2026-11-06T00:23:02.011Z  INFO [] 56774 --- [reco] [rules.retry-10m] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-reco.catalog-rules.retry-10m-9, groupId=reco.catalog-rules.retry-10m] Subscribed to topic(s): dexter.catalog.card.v1.catalog-rules.retry-10m
+2026-11-06T00:23:02.012Z  INFO [] 56774 --- [reco] [ofile.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile.retry-10m-3, groupId=reco.spend-profile.retry-10m] Request joining group due to: need to re-join with the given member-id: consumer-reco.spend-profile.retry-10m-3-bf6e0f15-5492-449f-a2e1-112a58d8d377
+2026-11-06T00:23:02.012Z  INFO [] 56774 --- [reco] [ofile.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile.retry-10m-3, groupId=reco.spend-profile.retry-10m] (Re-)joining group
+2026-11-06T00:23:02.004Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.config.AbstractConfig   : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = earliest
+	bootstrap.servers = [127.0.0.1:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-reco.catalog-offers-10
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = reco.catalog-offers
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_committed
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 200
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	share.acknowledgement.mode = implicit
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+2026-11-06T00:23:02.014Z  INFO [] 56774 --- [reco] [           main] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-06T00:23:02.015Z  INFO [] 56774 --- [reco] [o.spend-profile] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile-1, groupId=reco.spend-profile] Request joining group due to: need to re-join with the given member-id: consumer-reco.spend-profile-1-cbf17445-fa57-4de2-972b-94d081162487
+2026-11-06T00:23:02.015Z  INFO [] 56774 --- [reco] [-cards.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards.retry-1m-5, groupId=reco.held-cards.retry-1m] Request joining group due to: need to re-join with the given member-id: consumer-reco.held-cards.retry-1m-5-b069e777-959e-408a-942d-c8a178b8a76f
+2026-11-06T00:23:02.016Z  INFO [] 56774 --- [reco] [o.spend-profile] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile-1, groupId=reco.spend-profile] (Re-)joining group
+2026-11-06T00:23:02.016Z  INFO [] 56774 --- [reco] [-cards.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards.retry-1m-5, groupId=reco.held-cards.retry-1m] (Re-)joining group
+2026-11-06T00:23:02.018Z  INFO [] 56774 --- [reco] [rofile.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile.retry-1m-2, groupId=reco.spend-profile.retry-1m] Successfully joined group with generation Generation{generationId=3, memberId='consumer-reco.spend-profile.retry-1m-2-5ed32f7b-7cb4-4b3d-94a3-91d72bb06ba1', protocol='range'}
+2026-11-06T00:23:02.021Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.1.2
+2026-11-06T00:23:02.022Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c82fd9b934b4c1e6
+2026-11-06T00:23:02.022Z  INFO [] 56774 --- [reco] [o.spend-profile] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile-1, groupId=reco.spend-profile] Successfully joined group with generation Generation{generationId=3, memberId='consumer-reco.spend-profile-1-cbf17445-fa57-4de2-972b-94d081162487', protocol='range'}
+2026-11-06T00:23:02.023Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-2021]
+2026-11-06T00:23:02.023Z  INFO [] 56774 --- [reco] [reco.held-cards] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards-4, groupId=reco.held-cards] Request joining group due to: need to re-join with the given member-id: consumer-reco.held-cards-4-0cebc98d-de90-47e4-be32-403cb2675380
+2026-11-06T00:23:02.023Z  INFO [] 56774 --- [reco] [reco.held-cards] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards-4, groupId=reco.held-cards] (Re-)joining group
+2026-11-06T00:23:02.021Z  INFO [] 56774 --- [reco] [-rules.retry-1m] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-reco.catalog-rules.retry-1m-8, groupId=reco.catalog-rules.retry-1m] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-06T00:23:02.023Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.config.AbstractConfig   : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = earliest
+	bootstrap.servers = [127.0.0.1:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-reco.catalog-offers.retry-1m-11
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = reco.catalog-offers.retry-1m
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_committed
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 200
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	share.acknowledgement.mode = implicit
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+2026-11-06T00:23:02.021Z  INFO [] 56774 --- [reco] [ofile.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile.retry-10m-3, groupId=reco.spend-profile.retry-10m] Successfully joined group with generation Generation{generationId=3, memberId='consumer-reco.spend-profile.retry-10m-3-bf6e0f15-5492-449f-a2e1-112a58d8d377', protocol='range'}
+2026-11-06T00:23:02.032Z  INFO [] 56774 --- [reco] [           main] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-06T00:23:02.035Z  INFO [] 56774 --- [reco] [rofile.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile.retry-1m-2, groupId=reco.spend-profile.retry-1m] Finished assignment for group at generation 3: {consumer-reco.spend-profile.retry-1m-2-5ed32f7b-7cb4-4b3d-94a3-91d72bb06ba1=Assignment(partitions=[dexter.ledger.expense.v1.spend-profile.retry-1m-0, dexter.ledger.expense.v1.spend-profile.retry-1m-1, dexter.ledger.expense.v1.spend-profile.retry-1m-2])}
+2026-11-06T00:23:02.036Z  INFO [] 56774 --- [reco] [o.spend-profile] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile-1, groupId=reco.spend-profile] Finished assignment for group at generation 3: {consumer-reco.spend-profile-1-cbf17445-fa57-4de2-972b-94d081162487=Assignment(partitions=[dexter.ledger.expense.v1-0, dexter.ledger.expense.v1-1, dexter.ledger.expense.v1-2])}
+2026-11-06T00:23:02.037Z  INFO [] 56774 --- [reco] [ofile.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile.retry-10m-3, groupId=reco.spend-profile.retry-10m] Finished assignment for group at generation 3: {consumer-reco.spend-profile.retry-10m-3-bf6e0f15-5492-449f-a2e1-112a58d8d377=Assignment(partitions=[dexter.ledger.expense.v1.spend-profile.retry-10m-0, dexter.ledger.expense.v1.spend-profile.retry-10m-1, dexter.ledger.expense.v1.spend-profile.retry-10m-2])}
+2026-11-06T00:23:02.037Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.1.2
+2026-11-06T00:23:02.037Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c82fd9b934b4c1e6
+2026-11-06T00:23:02.037Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-2037]
+2026-11-06T00:23:02.044Z  INFO [] 56774 --- [reco] [rules.retry-10m] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-reco.catalog-rules.retry-10m-9, groupId=reco.catalog-rules.retry-10m] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-06T00:23:02.044Z  INFO [] 56774 --- [reco] [rules.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules.retry-10m-9, groupId=reco.catalog-rules.retry-10m] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false)
+2026-11-06T00:23:02.038Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.config.AbstractConfig   : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = earliest
+	bootstrap.servers = [127.0.0.1:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-reco.catalog-offers.retry-10m-12
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = reco.catalog-offers.retry-10m
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_committed
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 200
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	share.acknowledgement.mode = implicit
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+2026-11-06T00:23:02.045Z  INFO [] 56774 --- [reco] [           main] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-06T00:23:02.022Z  INFO [] 56774 --- [reco] [o.catalog-rules] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules-7, groupId=reco.catalog-rules] Request joining group due to: need to re-join with the given member-id: consumer-reco.catalog-rules-7-fd6587ca-0339-4074-8bd6-00feefb13d4a
+2026-11-06T00:23:02.046Z  INFO [] 56774 --- [reco] [o.catalog-rules] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules-7, groupId=reco.catalog-rules] (Re-)joining group
+2026-11-06T00:23:02.047Z  INFO [] 56774 --- [reco] [reco.held-cards] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards-4, groupId=reco.held-cards] Successfully joined group with generation Generation{generationId=3, memberId='consumer-reco.held-cards-4-0cebc98d-de90-47e4-be32-403cb2675380', protocol='range'}
+2026-11-06T00:23:02.047Z  INFO [] 56774 --- [reco] [reco.held-cards] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards-4, groupId=reco.held-cards] Finished assignment for group at generation 3: {consumer-reco.held-cards-4-0cebc98d-de90-47e4-be32-403cb2675380=Assignment(partitions=[dexter.portfolio.card.v1-0, dexter.portfolio.card.v1-1, dexter.portfolio.card.v1-2])}
+2026-11-06T00:23:02.046Z  INFO [] 56774 --- [reco] [rules.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules.retry-10m-9, groupId=reco.catalog-rules.retry-10m] (Re-)joining group
+2026-11-06T00:23:02.022Z  INFO [] 56774 --- [reco] [-cards.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards.retry-1m-5, groupId=reco.held-cards.retry-1m] Successfully joined group with generation Generation{generationId=3, memberId='consumer-reco.held-cards.retry-1m-5-b069e777-959e-408a-942d-c8a178b8a76f', protocol='range'}
+2026-11-06T00:23:02.049Z  INFO [] 56774 --- [reco] [-cards.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards.retry-1m-5, groupId=reco.held-cards.retry-1m] Finished assignment for group at generation 3: {consumer-reco.held-cards.retry-1m-5-b069e777-959e-408a-942d-c8a178b8a76f=Assignment(partitions=[dexter.portfolio.card.v1.held-cards.retry-1m-0, dexter.portfolio.card.v1.held-cards.retry-1m-1, dexter.portfolio.card.v1.held-cards.retry-1m-2])}
+2026-11-06T00:23:02.050Z  INFO [] 56774 --- [reco] [cards.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards.retry-10m-6, groupId=reco.held-cards.retry-10m] Request joining group due to: need to re-join with the given member-id: consumer-reco.held-cards.retry-10m-6-0c1642e5-4107-42c1-bb81-8bde0a744329
+2026-11-06T00:23:02.050Z  INFO [] 56774 --- [reco] [cards.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards.retry-10m-6, groupId=reco.held-cards.retry-10m] (Re-)joining group
+2026-11-06T00:23:02.050Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.1.2
+2026-11-06T00:23:02.051Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c82fd9b934b4c1e6
+2026-11-06T00:23:02.051Z  INFO [] 56774 --- [reco] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-2050]
+2026-11-06T00:23:02.051Z  INFO [] 56774 --- [reco] [.catalog-offers] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-reco.catalog-offers-10, groupId=reco.catalog-offers] Subscribed to topic(s): dexter.catalog.offer.v1
+2026-11-06T00:23:02.054Z  INFO [] 56774 --- [reco] [offers.retry-1m] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-reco.catalog-offers.retry-1m-11, groupId=reco.catalog-offers.retry-1m] Subscribed to topic(s): dexter.catalog.offer.v1.catalog-offers.retry-1m
+2026-11-06T00:23:02.055Z  INFO [] 56774 --- [reco] [o.catalog-rules] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules-7, groupId=reco.catalog-rules] Successfully joined group with generation Generation{generationId=3, memberId='consumer-reco.catalog-rules-7-fd6587ca-0339-4074-8bd6-00feefb13d4a', protocol='range'}
+2026-11-06T00:23:02.056Z  INFO [] 56774 --- [reco] [o.catalog-rules] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules-7, groupId=reco.catalog-rules] Finished assignment for group at generation 3: {consumer-reco.catalog-rules-7-fd6587ca-0339-4074-8bd6-00feefb13d4a=Assignment(partitions=[dexter.catalog.card.v1-0, dexter.catalog.card.v1-1, dexter.catalog.card.v1-2])}
+2026-11-06T00:23:02.056Z  INFO [] 56774 --- [reco] [cards.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards.retry-10m-6, groupId=reco.held-cards.retry-10m] Successfully joined group with generation Generation{generationId=3, memberId='consumer-reco.held-cards.retry-10m-6-0c1642e5-4107-42c1-bb81-8bde0a744329', protocol='range'}
+2026-11-06T00:23:02.032Z  INFO [] 56774 --- [reco] [-rules.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules.retry-1m-8, groupId=reco.catalog-rules.retry-1m] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false)
+2026-11-06T00:23:02.056Z  INFO [] 56774 --- [reco] [cards.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards.retry-10m-6, groupId=reco.held-cards.retry-10m] Finished assignment for group at generation 3: {consumer-reco.held-cards.retry-10m-6-0c1642e5-4107-42c1-bb81-8bde0a744329=Assignment(partitions=[dexter.portfolio.card.v1.held-cards.retry-10m-0, dexter.portfolio.card.v1.held-cards.retry-10m-1, dexter.portfolio.card.v1.held-cards.retry-10m-2])}
+2026-11-06T00:23:02.058Z  INFO [] 56774 --- [reco] [rofile.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile.retry-1m-2, groupId=reco.spend-profile.retry-1m] Successfully synced group in generation Generation{generationId=3, memberId='consumer-reco.spend-profile.retry-1m-2-5ed32f7b-7cb4-4b3d-94a3-91d72bb06ba1', protocol='range'}
+2026-11-06T00:23:02.061Z  INFO [] 56774 --- [reco] [-rules.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules.retry-1m-8, groupId=reco.catalog-rules.retry-1m] (Re-)joining group
+2026-11-06T00:23:02.062Z  INFO [] 56774 --- [reco] [ofile.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile.retry-10m-3, groupId=reco.spend-profile.retry-10m] Successfully synced group in generation Generation{generationId=3, memberId='consumer-reco.spend-profile.retry-10m-3-bf6e0f15-5492-449f-a2e1-112a58d8d377', protocol='range'}
+2026-11-06T00:23:02.063Z  INFO [] 56774 --- [reco] [ofile.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile.retry-10m-3, groupId=reco.spend-profile.retry-10m] Notifying assignor about the new Assignment(partitions=[dexter.ledger.expense.v1.spend-profile.retry-10m-0, dexter.ledger.expense.v1.spend-profile.retry-10m-1, dexter.ledger.expense.v1.spend-profile.retry-10m-2])
+2026-11-06T00:23:02.064Z  INFO [] 56774 --- [reco] [ffers.retry-10m] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-reco.catalog-offers.retry-10m-12, groupId=reco.catalog-offers.retry-10m] Subscribed to topic(s): dexter.catalog.offer.v1.catalog-offers.retry-10m
+2026-11-06T00:23:02.065Z  INFO [] 56774 --- [reco] [rules.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules.retry-10m-9, groupId=reco.catalog-rules.retry-10m] Request joining group due to: need to re-join with the given member-id: consumer-reco.catalog-rules.retry-10m-9-5debce48-787b-41d3-a6d8-a3a408b98eb6
+2026-11-06T00:23:02.065Z  INFO [] 56774 --- [reco] [rules.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules.retry-10m-9, groupId=reco.catalog-rules.retry-10m] (Re-)joining group
+2026-11-06T00:23:02.066Z  INFO [] 56774 --- [reco] [.catalog-offers] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-reco.catalog-offers-10, groupId=reco.catalog-offers] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-06T00:23:02.066Z  INFO [] 56774 --- [reco] [.catalog-offers] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers-10, groupId=reco.catalog-offers] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false)
+2026-11-06T00:23:02.074Z  INFO [] 56774 --- [reco] [ofile.retry-10m] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-reco.spend-profile.retry-10m-3, groupId=reco.spend-profile.retry-10m] Adding newly assigned partitions: [dexter.ledger.expense.v1.spend-profile.retry-10m-0, dexter.ledger.expense.v1.spend-profile.retry-10m-1, dexter.ledger.expense.v1.spend-profile.retry-10m-2]
+2026-11-06T00:23:02.076Z  INFO [] 56774 --- [reco] [.catalog-offers] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers-10, groupId=reco.catalog-offers] (Re-)joining group
+2026-11-06T00:23:02.077Z  INFO [] 56774 --- [reco] [ffers.retry-10m] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-reco.catalog-offers.retry-10m-12, groupId=reco.catalog-offers.retry-10m] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-06T00:23:02.079Z  INFO [] 56774 --- [reco] [ffers.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers.retry-10m-12, groupId=reco.catalog-offers.retry-10m] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false)
+2026-11-06T00:23:02.085Z  INFO [] 56774 --- [reco] [cards.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards.retry-10m-6, groupId=reco.held-cards.retry-10m] Successfully synced group in generation Generation{generationId=3, memberId='consumer-reco.held-cards.retry-10m-6-0c1642e5-4107-42c1-bb81-8bde0a744329', protocol='range'}
+2026-11-06T00:23:02.089Z  INFO [] 56774 --- [reco] [cards.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards.retry-10m-6, groupId=reco.held-cards.retry-10m] Notifying assignor about the new Assignment(partitions=[dexter.portfolio.card.v1.held-cards.retry-10m-0, dexter.portfolio.card.v1.held-cards.retry-10m-1, dexter.portfolio.card.v1.held-cards.retry-10m-2])
+2026-11-06T00:23:02.089Z  INFO [] 56774 --- [reco] [cards.retry-10m] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-reco.held-cards.retry-10m-6, groupId=reco.held-cards.retry-10m] Adding newly assigned partitions: [dexter.portfolio.card.v1.held-cards.retry-10m-0, dexter.portfolio.card.v1.held-cards.retry-10m-1, dexter.portfolio.card.v1.held-cards.retry-10m-2]
+2026-11-06T00:23:02.091Z  INFO [] 56774 --- [reco] [ffers.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers.retry-10m-12, groupId=reco.catalog-offers.retry-10m] (Re-)joining group
+2026-11-06T00:23:02.064Z  INFO [] 56774 --- [reco] [-cards.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards.retry-1m-5, groupId=reco.held-cards.retry-1m] Successfully synced group in generation Generation{generationId=3, memberId='consumer-reco.held-cards.retry-1m-5-b069e777-959e-408a-942d-c8a178b8a76f', protocol='range'}
+2026-11-06T00:23:02.094Z  INFO [] 56774 --- [reco] [-cards.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards.retry-1m-5, groupId=reco.held-cards.retry-1m] Notifying assignor about the new Assignment(partitions=[dexter.portfolio.card.v1.held-cards.retry-1m-0, dexter.portfolio.card.v1.held-cards.retry-1m-1, dexter.portfolio.card.v1.held-cards.retry-1m-2])
+2026-11-06T00:23:02.095Z  INFO [] 56774 --- [reco] [-cards.retry-1m] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-reco.held-cards.retry-1m-5, groupId=reco.held-cards.retry-1m] Adding newly assigned partitions: [dexter.portfolio.card.v1.held-cards.retry-1m-0, dexter.portfolio.card.v1.held-cards.retry-1m-1, dexter.portfolio.card.v1.held-cards.retry-1m-2]
+2026-11-06T00:23:02.097Z  INFO [] 56774 --- [reco] [rules.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules.retry-10m-9, groupId=reco.catalog-rules.retry-10m] Successfully joined group with generation Generation{generationId=3, memberId='consumer-reco.catalog-rules.retry-10m-9-5debce48-787b-41d3-a6d8-a3a408b98eb6', protocol='range'}
+2026-11-06T00:23:02.097Z  INFO [] 56774 --- [reco] [rules.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules.retry-10m-9, groupId=reco.catalog-rules.retry-10m] Finished assignment for group at generation 3: {consumer-reco.catalog-rules.retry-10m-9-5debce48-787b-41d3-a6d8-a3a408b98eb6=Assignment(partitions=[dexter.catalog.card.v1.catalog-rules.retry-10m-0, dexter.catalog.card.v1.catalog-rules.retry-10m-1, dexter.catalog.card.v1.catalog-rules.retry-10m-2])}
+2026-11-06T00:23:02.102Z  INFO [] 56774 --- [reco] [-rules.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules.retry-1m-8, groupId=reco.catalog-rules.retry-1m] Request joining group due to: need to re-join with the given member-id: consumer-reco.catalog-rules.retry-1m-8-ba167d23-7e31-43b1-8d92-af098c281375
+2026-11-06T00:23:02.105Z  INFO [] 56774 --- [reco] [-rules.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules.retry-1m-8, groupId=reco.catalog-rules.retry-1m] (Re-)joining group
+2026-11-06T00:23:02.104Z  INFO [] 56774 --- [reco] [ffers.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers.retry-10m-12, groupId=reco.catalog-offers.retry-10m] Request joining group due to: need to re-join with the given member-id: consumer-reco.catalog-offers.retry-10m-12-a3fde19c-fe93-4f04-acb6-49baf39577b3
+2026-11-06T00:23:02.106Z  INFO [] 56774 --- [reco] [o.catalog-rules] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules-7, groupId=reco.catalog-rules] Successfully synced group in generation Generation{generationId=3, memberId='consumer-reco.catalog-rules-7-fd6587ca-0339-4074-8bd6-00feefb13d4a', protocol='range'}
+2026-11-06T00:23:02.106Z  INFO [] 56774 --- [reco] [-rules.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules.retry-1m-8, groupId=reco.catalog-rules.retry-1m] Successfully joined group with generation Generation{generationId=3, memberId='consumer-reco.catalog-rules.retry-1m-8-ba167d23-7e31-43b1-8d92-af098c281375', protocol='range'}
+2026-11-06T00:23:02.103Z  INFO [] 56774 --- [reco] [reco.held-cards] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards-4, groupId=reco.held-cards] Successfully synced group in generation Generation{generationId=3, memberId='consumer-reco.held-cards-4-0cebc98d-de90-47e4-be32-403cb2675380', protocol='range'}
+2026-11-06T00:23:02.108Z  INFO [] 56774 --- [reco] [reco.held-cards] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards-4, groupId=reco.held-cards] Notifying assignor about the new Assignment(partitions=[dexter.portfolio.card.v1-0, dexter.portfolio.card.v1-1, dexter.portfolio.card.v1-2])
+2026-11-06T00:23:02.108Z  INFO [] 56774 --- [reco] [-rules.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules.retry-1m-8, groupId=reco.catalog-rules.retry-1m] Finished assignment for group at generation 3: {consumer-reco.catalog-rules.retry-1m-8-ba167d23-7e31-43b1-8d92-af098c281375=Assignment(partitions=[dexter.catalog.card.v1.catalog-rules.retry-1m-0, dexter.catalog.card.v1.catalog-rules.retry-1m-1, dexter.catalog.card.v1.catalog-rules.retry-1m-2])}
+2026-11-06T00:23:02.108Z  INFO [] 56774 --- [reco] [reco.held-cards] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-reco.held-cards-4, groupId=reco.held-cards] Adding newly assigned partitions: [dexter.portfolio.card.v1-0, dexter.portfolio.card.v1-1, dexter.portfolio.card.v1-2]
+2026-11-06T00:23:02.104Z  INFO [] 56774 --- [reco] [offers.retry-1m] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-reco.catalog-offers.retry-1m-11, groupId=reco.catalog-offers.retry-1m] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-06T00:23:02.108Z  INFO [] 56774 --- [reco] [offers.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers.retry-1m-11, groupId=reco.catalog-offers.retry-1m] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false)
+2026-11-06T00:23:02.109Z  INFO [] 56774 --- [reco] [cards.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards.retry-10m-6, groupId=reco.held-cards.retry-10m] Found no committed offset for partition dexter.portfolio.card.v1.held-cards.retry-10m-0
+2026-11-06T00:23:02.109Z  INFO [] 56774 --- [reco] [cards.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards.retry-10m-6, groupId=reco.held-cards.retry-10m] Found no committed offset for partition dexter.portfolio.card.v1.held-cards.retry-10m-1
+2026-11-06T00:23:02.113Z  INFO [] 56774 --- [reco] [reco.held-cards] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards-4, groupId=reco.held-cards] Found no committed offset for partition dexter.portfolio.card.v1-2
+2026-11-06T00:23:02.113Z  INFO [] 56774 --- [reco] [cards.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards.retry-10m-6, groupId=reco.held-cards.retry-10m] Found no committed offset for partition dexter.portfolio.card.v1.held-cards.retry-10m-2
+2026-11-06T00:23:02.106Z  INFO [] 56774 --- [reco] [o.catalog-rules] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules-7, groupId=reco.catalog-rules] Notifying assignor about the new Assignment(partitions=[dexter.catalog.card.v1-0, dexter.catalog.card.v1-1, dexter.catalog.card.v1-2])
+2026-11-06T00:23:02.113Z  INFO [] 56774 --- [reco] [offers.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers.retry-1m-11, groupId=reco.catalog-offers.retry-1m] (Re-)joining group
+2026-11-06T00:23:02.107Z  INFO [] 56774 --- [reco] [rofile.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile.retry-1m-2, groupId=reco.spend-profile.retry-1m] Notifying assignor about the new Assignment(partitions=[dexter.ledger.expense.v1.spend-profile.retry-1m-0, dexter.ledger.expense.v1.spend-profile.retry-1m-1, dexter.ledger.expense.v1.spend-profile.retry-1m-2])
+2026-11-06T00:23:02.116Z  INFO [] 56774 --- [reco] [rofile.retry-1m] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-reco.spend-profile.retry-1m-2, groupId=reco.spend-profile.retry-1m] Adding newly assigned partitions: [dexter.ledger.expense.v1.spend-profile.retry-1m-0, dexter.ledger.expense.v1.spend-profile.retry-1m-1, dexter.ledger.expense.v1.spend-profile.retry-1m-2]
+2026-11-06T00:23:02.107Z  INFO [] 56774 --- [reco] [o.spend-profile] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile-1, groupId=reco.spend-profile] Successfully synced group in generation Generation{generationId=3, memberId='consumer-reco.spend-profile-1-cbf17445-fa57-4de2-972b-94d081162487', protocol='range'}
+2026-11-06T00:23:02.118Z  INFO [] 56774 --- [reco] [o.spend-profile] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile-1, groupId=reco.spend-profile] Notifying assignor about the new Assignment(partitions=[dexter.ledger.expense.v1-0, dexter.ledger.expense.v1-1, dexter.ledger.expense.v1-2])
+2026-11-06T00:23:02.119Z  INFO [] 56774 --- [reco] [o.spend-profile] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-reco.spend-profile-1, groupId=reco.spend-profile] Adding newly assigned partitions: [dexter.ledger.expense.v1-0, dexter.ledger.expense.v1-1, dexter.ledger.expense.v1-2]
+2026-11-06T00:23:02.120Z  INFO [] 56774 --- [reco] [o.catalog-rules] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-reco.catalog-rules-7, groupId=reco.catalog-rules] Adding newly assigned partitions: [dexter.catalog.card.v1-0, dexter.catalog.card.v1-1, dexter.catalog.card.v1-2]
+2026-11-06T00:23:02.122Z  INFO [] 56774 --- [reco] [o.catalog-rules] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules-7, groupId=reco.catalog-rules] Found no committed offset for partition dexter.catalog.card.v1-0
+2026-11-06T00:23:02.122Z  INFO [] 56774 --- [reco] [o.spend-profile] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile-1, groupId=reco.spend-profile] Found no committed offset for partition dexter.ledger.expense.v1-1
+2026-11-06T00:23:02.123Z  INFO [] 56774 --- [reco] [o.spend-profile] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile-1, groupId=reco.spend-profile] Found no committed offset for partition dexter.ledger.expense.v1-2
+2026-11-06T00:23:02.123Z  INFO [] 56774 --- [reco] [o.catalog-rules] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules-7, groupId=reco.catalog-rules] Found no committed offset for partition dexter.catalog.card.v1-2
+2026-11-06T00:23:02.128Z  INFO [] 56774 --- [reco] [o.catalog-rules] o.a.k.c.c.internals.ConsumerUtils        : Setting offset for partition dexter.catalog.card.v1-1 to the committed offset FetchPosition{offset=1, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}
+2026-11-06T00:23:02.127Z  INFO [] 56774 --- [reco] [o.spend-profile] o.a.k.c.c.internals.ConsumerUtils        : Setting offset for partition dexter.ledger.expense.v1-0 to the committed offset FetchPosition{offset=21, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}
+2026-11-06T00:23:02.107Z  INFO [] 56774 --- [reco] [ffers.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers.retry-10m-12, groupId=reco.catalog-offers.retry-10m] (Re-)joining group
+2026-11-06T00:23:02.110Z  INFO [] 56774 --- [reco] [-cards.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards.retry-1m-5, groupId=reco.held-cards.retry-1m] Found no committed offset for partition dexter.portfolio.card.v1.held-cards.retry-1m-0
+2026-11-06T00:23:02.149Z  INFO [] 56774 --- [reco] [-cards.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards.retry-1m-5, groupId=reco.held-cards.retry-1m] Found no committed offset for partition dexter.portfolio.card.v1.held-cards.retry-1m-2
+2026-11-06T00:23:02.150Z  INFO [] 56774 --- [reco] [-cards.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards.retry-1m-5, groupId=reco.held-cards.retry-1m] Found no committed offset for partition dexter.portfolio.card.v1.held-cards.retry-1m-1
+2026-11-06T00:23:02.110Z  INFO [] 56774 --- [reco] [ofile.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile.retry-10m-3, groupId=reco.spend-profile.retry-10m] Found no committed offset for partition dexter.ledger.expense.v1.spend-profile.retry-10m-2
+2026-11-06T00:23:02.158Z  INFO [] 56774 --- [reco] [ofile.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile.retry-10m-3, groupId=reco.spend-profile.retry-10m] Found no committed offset for partition dexter.ledger.expense.v1.spend-profile.retry-10m-1
+2026-11-06T00:23:02.158Z  INFO [] 56774 --- [reco] [ofile.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile.retry-10m-3, groupId=reco.spend-profile.retry-10m] Found no committed offset for partition dexter.ledger.expense.v1.spend-profile.retry-10m-0
+2026-11-06T00:23:02.111Z  INFO [] 56774 --- [reco] [.catalog-offers] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers-10, groupId=reco.catalog-offers] Request joining group due to: need to re-join with the given member-id: consumer-reco.catalog-offers-10-db746204-4fc3-4a37-af54-a3a20bb0708d
+2026-11-06T00:23:02.112Z  INFO [] 56774 --- [reco] [rules.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules.retry-10m-9, groupId=reco.catalog-rules.retry-10m] Successfully synced group in generation Generation{generationId=3, memberId='consumer-reco.catalog-rules.retry-10m-9-5debce48-787b-41d3-a6d8-a3a408b98eb6', protocol='range'}
+2026-11-06T00:23:02.159Z  INFO [] 56774 --- [reco] [.catalog-offers] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers-10, groupId=reco.catalog-offers] (Re-)joining group
+2026-11-06T00:23:02.114Z  INFO [] 56774 --- [reco] [reco.held-cards] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.held-cards-4, groupId=reco.held-cards] Found no committed offset for partition dexter.portfolio.card.v1-1
+2026-11-06T00:23:02.160Z  INFO [] 56774 --- [reco] [reco.held-cards] o.a.k.c.c.internals.ConsumerUtils        : Setting offset for partition dexter.portfolio.card.v1-0 to the committed offset FetchPosition{offset=7, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}
+2026-11-06T00:23:02.164Z  INFO [] 56774 --- [reco] [-rules.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules.retry-1m-8, groupId=reco.catalog-rules.retry-1m] Successfully synced group in generation Generation{generationId=3, memberId='consumer-reco.catalog-rules.retry-1m-8-ba167d23-7e31-43b1-8d92-af098c281375', protocol='range'}
+2026-11-06T00:23:02.166Z  INFO [] 56774 --- [reco] [.catalog-offers] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers-10, groupId=reco.catalog-offers] Successfully joined group with generation Generation{generationId=3, memberId='consumer-reco.catalog-offers-10-db746204-4fc3-4a37-af54-a3a20bb0708d', protocol='range'}
+2026-11-06T00:23:02.165Z  INFO [] 56774 --- [reco] [rofile.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile.retry-1m-2, groupId=reco.spend-profile.retry-1m] Found no committed offset for partition dexter.ledger.expense.v1.spend-profile.retry-1m-1
+2026-11-06T00:23:02.167Z  INFO [] 56774 --- [reco] [cards.retry-10m] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.held-cards.retry-10m-6, groupId=reco.held-cards.retry-10m] Resetting offset for partition dexter.portfolio.card.v1.held-cards.retry-10m-0 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.168Z  INFO [] 56774 --- [reco] [offers.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers.retry-1m-11, groupId=reco.catalog-offers.retry-1m] Request joining group due to: need to re-join with the given member-id: consumer-reco.catalog-offers.retry-1m-11-4fd89536-fc82-42b6-b009-5311bb175b40
+2026-11-06T00:23:02.168Z  INFO [] 56774 --- [reco] [.catalog-offers] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers-10, groupId=reco.catalog-offers] Finished assignment for group at generation 3: {consumer-reco.catalog-offers-10-db746204-4fc3-4a37-af54-a3a20bb0708d=Assignment(partitions=[dexter.catalog.offer.v1-0, dexter.catalog.offer.v1-1, dexter.catalog.offer.v1-2])}
+2026-11-06T00:23:02.169Z  INFO [] 56774 --- [reco] [cards.retry-10m] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.held-cards.retry-10m-6, groupId=reco.held-cards.retry-10m] Resetting offset for partition dexter.portfolio.card.v1.held-cards.retry-10m-1 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.169Z  INFO [] 56774 --- [reco] [cards.retry-10m] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.held-cards.retry-10m-6, groupId=reco.held-cards.retry-10m] Resetting offset for partition dexter.portfolio.card.v1.held-cards.retry-10m-2 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.169Z  INFO [] 56774 --- [reco] [-rules.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules.retry-1m-8, groupId=reco.catalog-rules.retry-1m] Notifying assignor about the new Assignment(partitions=[dexter.catalog.card.v1.catalog-rules.retry-1m-0, dexter.catalog.card.v1.catalog-rules.retry-1m-1, dexter.catalog.card.v1.catalog-rules.retry-1m-2])
+2026-11-06T00:23:02.169Z  INFO [] 56774 --- [reco] [-rules.retry-1m] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-reco.catalog-rules.retry-1m-8, groupId=reco.catalog-rules.retry-1m] Adding newly assigned partitions: [dexter.catalog.card.v1.catalog-rules.retry-1m-0, dexter.catalog.card.v1.catalog-rules.retry-1m-1, dexter.catalog.card.v1.catalog-rules.retry-1m-2]
+2026-11-06T00:23:02.165Z  INFO [] 56774 --- [reco] [ffers.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers.retry-10m-12, groupId=reco.catalog-offers.retry-10m] Successfully joined group with generation Generation{generationId=3, memberId='consumer-reco.catalog-offers.retry-10m-12-a3fde19c-fe93-4f04-acb6-49baf39577b3', protocol='range'}
+2026-11-06T00:23:02.172Z  INFO [] 56774 --- [reco] [ffers.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers.retry-10m-12, groupId=reco.catalog-offers.retry-10m] Finished assignment for group at generation 3: {consumer-reco.catalog-offers.retry-10m-12-a3fde19c-fe93-4f04-acb6-49baf39577b3=Assignment(partitions=[dexter.catalog.offer.v1.catalog-offers.retry-10m-0, dexter.catalog.offer.v1.catalog-offers.retry-10m-1, dexter.catalog.offer.v1.catalog-offers.retry-10m-2])}
+2026-11-06T00:23:02.175Z  INFO [] 56774 --- [reco] [-rules.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules.retry-1m-8, groupId=reco.catalog-rules.retry-1m] Found no committed offset for partition dexter.catalog.card.v1.catalog-rules.retry-1m-2
+2026-11-06T00:23:02.175Z  INFO [] 56774 --- [reco] [-rules.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules.retry-1m-8, groupId=reco.catalog-rules.retry-1m] Found no committed offset for partition dexter.catalog.card.v1.catalog-rules.retry-1m-0
+2026-11-06T00:23:02.176Z  INFO [] 56774 --- [reco] [-rules.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules.retry-1m-8, groupId=reco.catalog-rules.retry-1m] Found no committed offset for partition dexter.catalog.card.v1.catalog-rules.retry-1m-1
+2026-11-06T00:23:02.177Z  INFO [] 56774 --- [reco] [o.spend-profile] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.spend-profile-1, groupId=reco.spend-profile] Resetting offset for partition dexter.ledger.expense.v1-1 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.177Z  INFO [] 56774 --- [reco] [o.spend-profile] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.spend-profile-1, groupId=reco.spend-profile] Resetting offset for partition dexter.ledger.expense.v1-2 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.167Z  INFO [] 56774 --- [reco] [rofile.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile.retry-1m-2, groupId=reco.spend-profile.retry-1m] Found no committed offset for partition dexter.ledger.expense.v1.spend-profile.retry-1m-2
+2026-11-06T00:23:02.178Z  INFO [] 56774 --- [reco] [rofile.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile.retry-1m-2, groupId=reco.spend-profile.retry-1m] Found no committed offset for partition dexter.ledger.expense.v1.spend-profile.retry-1m-0
+2026-11-06T00:23:02.168Z  INFO [] 56774 --- [reco] [offers.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers.retry-1m-11, groupId=reco.catalog-offers.retry-1m] (Re-)joining group
+2026-11-06T00:23:02.183Z  INFO [] 56774 --- [reco] [o.catalog-rules] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.catalog-rules-7, groupId=reco.catalog-rules] Resetting offset for partition dexter.catalog.card.v1-0 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.185Z  INFO [] 56774 --- [reco] [o.catalog-rules] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.catalog-rules-7, groupId=reco.catalog-rules] Resetting offset for partition dexter.catalog.card.v1-2 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.188Z  INFO [] 56774 --- [reco] [.catalog-offers] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers-10, groupId=reco.catalog-offers] Successfully synced group in generation Generation{generationId=3, memberId='consumer-reco.catalog-offers-10-db746204-4fc3-4a37-af54-a3a20bb0708d', protocol='range'}
+2026-11-06T00:23:02.189Z  INFO [] 56774 --- [reco] [.catalog-offers] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers-10, groupId=reco.catalog-offers] Notifying assignor about the new Assignment(partitions=[dexter.catalog.offer.v1-0, dexter.catalog.offer.v1-1, dexter.catalog.offer.v1-2])
+2026-11-06T00:23:02.189Z  INFO [] 56774 --- [reco] [.catalog-offers] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-reco.catalog-offers-10, groupId=reco.catalog-offers] Adding newly assigned partitions: [dexter.catalog.offer.v1-0, dexter.catalog.offer.v1-1, dexter.catalog.offer.v1-2]
+2026-11-06T00:23:02.173Z  INFO [] 56774 --- [reco] [rules.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules.retry-10m-9, groupId=reco.catalog-rules.retry-10m] Notifying assignor about the new Assignment(partitions=[dexter.catalog.card.v1.catalog-rules.retry-10m-0, dexter.catalog.card.v1.catalog-rules.retry-10m-1, dexter.catalog.card.v1.catalog-rules.retry-10m-2])
+2026-11-06T00:23:02.190Z  INFO [] 56774 --- [reco] [rules.retry-10m] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-reco.catalog-rules.retry-10m-9, groupId=reco.catalog-rules.retry-10m] Adding newly assigned partitions: [dexter.catalog.card.v1.catalog-rules.retry-10m-0, dexter.catalog.card.v1.catalog-rules.retry-10m-1, dexter.catalog.card.v1.catalog-rules.retry-10m-2]
+2026-11-06T00:23:02.183Z  INFO [] 56774 --- [reco] [ofile.retry-10m] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.spend-profile.retry-10m-3, groupId=reco.spend-profile.retry-10m] Resetting offset for partition dexter.ledger.expense.v1.spend-profile.retry-10m-2 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.191Z  INFO [] 56774 --- [reco] [.catalog-offers] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers-10, groupId=reco.catalog-offers] Found no committed offset for partition dexter.catalog.offer.v1-2
+2026-11-06T00:23:02.194Z  INFO [] 56774 --- [reco] [.catalog-offers] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers-10, groupId=reco.catalog-offers] Found no committed offset for partition dexter.catalog.offer.v1-1
+2026-11-06T00:23:02.194Z  INFO [] 56774 --- [reco] [.catalog-offers] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers-10, groupId=reco.catalog-offers] Found no committed offset for partition dexter.catalog.offer.v1-0
+2026-11-06T00:23:02.194Z  INFO [] 56774 --- [reco] [ofile.retry-10m] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.spend-profile.retry-10m-3, groupId=reco.spend-profile.retry-10m] Resetting offset for partition dexter.ledger.expense.v1.spend-profile.retry-10m-1 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.194Z  INFO [] 56774 --- [reco] [ofile.retry-10m] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.spend-profile.retry-10m-3, groupId=reco.spend-profile.retry-10m] Resetting offset for partition dexter.ledger.expense.v1.spend-profile.retry-10m-0 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.196Z  INFO [] 56774 --- [reco] [ffers.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers.retry-10m-12, groupId=reco.catalog-offers.retry-10m] Successfully synced group in generation Generation{generationId=3, memberId='consumer-reco.catalog-offers.retry-10m-12-a3fde19c-fe93-4f04-acb6-49baf39577b3', protocol='range'}
+2026-11-06T00:23:02.196Z  INFO [] 56774 --- [reco] [ffers.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers.retry-10m-12, groupId=reco.catalog-offers.retry-10m] Notifying assignor about the new Assignment(partitions=[dexter.catalog.offer.v1.catalog-offers.retry-10m-0, dexter.catalog.offer.v1.catalog-offers.retry-10m-1, dexter.catalog.offer.v1.catalog-offers.retry-10m-2])
+2026-11-06T00:23:02.196Z  INFO [] 56774 --- [reco] [ffers.retry-10m] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-reco.catalog-offers.retry-10m-12, groupId=reco.catalog-offers.retry-10m] Adding newly assigned partitions: [dexter.catalog.offer.v1.catalog-offers.retry-10m-0, dexter.catalog.offer.v1.catalog-offers.retry-10m-1, dexter.catalog.offer.v1.catalog-offers.retry-10m-2]
+2026-11-06T00:23:02.196Z  INFO [] 56774 --- [reco] [offers.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers.retry-1m-11, groupId=reco.catalog-offers.retry-1m] Successfully joined group with generation Generation{generationId=3, memberId='consumer-reco.catalog-offers.retry-1m-11-4fd89536-fc82-42b6-b009-5311bb175b40', protocol='range'}
+2026-11-06T00:23:02.197Z  INFO [] 56774 --- [reco] [rofile.retry-1m] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.spend-profile.retry-1m-2, groupId=reco.spend-profile.retry-1m] Resetting offset for partition dexter.ledger.expense.v1.spend-profile.retry-1m-1 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.198Z  INFO [] 56774 --- [reco] [rofile.retry-1m] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.spend-profile.retry-1m-2, groupId=reco.spend-profile.retry-1m] Resetting offset for partition dexter.ledger.expense.v1.spend-profile.retry-1m-2 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.198Z  INFO [] 56774 --- [reco] [rofile.retry-1m] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.spend-profile.retry-1m-2, groupId=reco.spend-profile.retry-1m] Resetting offset for partition dexter.ledger.expense.v1.spend-profile.retry-1m-0 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.199Z  INFO [] 56774 --- [reco] [-rules.retry-1m] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.catalog-rules.retry-1m-8, groupId=reco.catalog-rules.retry-1m] Resetting offset for partition dexter.catalog.card.v1.catalog-rules.retry-1m-2 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.199Z  INFO [] 56774 --- [reco] [-rules.retry-1m] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.catalog-rules.retry-1m-8, groupId=reco.catalog-rules.retry-1m] Resetting offset for partition dexter.catalog.card.v1.catalog-rules.retry-1m-0 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.199Z  INFO [] 56774 --- [reco] [offers.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers.retry-1m-11, groupId=reco.catalog-offers.retry-1m] Finished assignment for group at generation 3: {consumer-reco.catalog-offers.retry-1m-11-4fd89536-fc82-42b6-b009-5311bb175b40=Assignment(partitions=[dexter.catalog.offer.v1.catalog-offers.retry-1m-0, dexter.catalog.offer.v1.catalog-offers.retry-1m-1, dexter.catalog.offer.v1.catalog-offers.retry-1m-2])}
+2026-11-06T00:23:02.199Z  INFO [] 56774 --- [reco] [-rules.retry-1m] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.catalog-rules.retry-1m-8, groupId=reco.catalog-rules.retry-1m] Resetting offset for partition dexter.catalog.card.v1.catalog-rules.retry-1m-1 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.200Z  INFO [] 56774 --- [reco] [rules.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules.retry-10m-9, groupId=reco.catalog-rules.retry-10m] Found no committed offset for partition dexter.catalog.card.v1.catalog-rules.retry-10m-2
+2026-11-06T00:23:02.200Z  INFO [] 56774 --- [reco] [rules.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules.retry-10m-9, groupId=reco.catalog-rules.retry-10m] Found no committed offset for partition dexter.catalog.card.v1.catalog-rules.retry-10m-1
+2026-11-06T00:23:02.200Z  INFO [] 56774 --- [reco] [rules.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-rules.retry-10m-9, groupId=reco.catalog-rules.retry-10m] Found no committed offset for partition dexter.catalog.card.v1.catalog-rules.retry-10m-0
+2026-11-06T00:23:02.203Z  INFO [] 56774 --- [reco] [reco.held-cards] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.held-cards-4, groupId=reco.held-cards] Resetting offset for partition dexter.portfolio.card.v1-2 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.203Z  INFO [] 56774 --- [reco] [ffers.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers.retry-10m-12, groupId=reco.catalog-offers.retry-10m] Found no committed offset for partition dexter.catalog.offer.v1.catalog-offers.retry-10m-2
+2026-11-06T00:23:02.203Z  INFO [] 56774 --- [reco] [reco.held-cards] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.held-cards-4, groupId=reco.held-cards] Resetting offset for partition dexter.portfolio.card.v1-1 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.203Z  INFO [] 56774 --- [reco] [ffers.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers.retry-10m-12, groupId=reco.catalog-offers.retry-10m] Found no committed offset for partition dexter.catalog.offer.v1.catalog-offers.retry-10m-1
+2026-11-06T00:23:02.204Z  INFO [] 56774 --- [reco] [ffers.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers.retry-10m-12, groupId=reco.catalog-offers.retry-10m] Found no committed offset for partition dexter.catalog.offer.v1.catalog-offers.retry-10m-0
+2026-11-06T00:23:02.205Z  INFO [] 56774 --- [reco] [.catalog-offers] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.catalog-offers-10, groupId=reco.catalog-offers] Resetting offset for partition dexter.catalog.offer.v1-2 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.207Z  INFO [] 56774 --- [reco] [.catalog-offers] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.catalog-offers-10, groupId=reco.catalog-offers] Resetting offset for partition dexter.catalog.offer.v1-1 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.208Z  INFO [] 56774 --- [reco] [.catalog-offers] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.catalog-offers-10, groupId=reco.catalog-offers] Resetting offset for partition dexter.catalog.offer.v1-0 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.208Z  INFO [] 56774 --- [reco] [offers.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers.retry-1m-11, groupId=reco.catalog-offers.retry-1m] Successfully synced group in generation Generation{generationId=3, memberId='consumer-reco.catalog-offers.retry-1m-11-4fd89536-fc82-42b6-b009-5311bb175b40', protocol='range'}
+2026-11-06T00:23:02.213Z  INFO [] 56774 --- [reco] [rules.retry-10m] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.catalog-rules.retry-10m-9, groupId=reco.catalog-rules.retry-10m] Resetting offset for partition dexter.catalog.card.v1.catalog-rules.retry-10m-2 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.213Z  INFO [] 56774 --- [reco] [rules.retry-10m] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.catalog-rules.retry-10m-9, groupId=reco.catalog-rules.retry-10m] Resetting offset for partition dexter.catalog.card.v1.catalog-rules.retry-10m-1 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.209Z  INFO [] 56774 --- [reco] [-cards.retry-1m] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.held-cards.retry-1m-5, groupId=reco.held-cards.retry-1m] Resetting offset for partition dexter.portfolio.card.v1.held-cards.retry-1m-0 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.214Z  INFO [] 56774 --- [reco] [rules.retry-10m] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.catalog-rules.retry-10m-9, groupId=reco.catalog-rules.retry-10m] Resetting offset for partition dexter.catalog.card.v1.catalog-rules.retry-10m-0 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.214Z  INFO [] 56774 --- [reco] [-cards.retry-1m] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.held-cards.retry-1m-5, groupId=reco.held-cards.retry-1m] Resetting offset for partition dexter.portfolio.card.v1.held-cards.retry-1m-2 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.214Z  INFO [] 56774 --- [reco] [-cards.retry-1m] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.held-cards.retry-1m-5, groupId=reco.held-cards.retry-1m] Resetting offset for partition dexter.portfolio.card.v1.held-cards.retry-1m-1 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.210Z  INFO [] 56774 --- [reco] [ffers.retry-10m] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.catalog-offers.retry-10m-12, groupId=reco.catalog-offers.retry-10m] Resetting offset for partition dexter.catalog.offer.v1.catalog-offers.retry-10m-2 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.215Z  INFO [] 56774 --- [reco] [ffers.retry-10m] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.catalog-offers.retry-10m-12, groupId=reco.catalog-offers.retry-10m] Resetting offset for partition dexter.catalog.offer.v1.catalog-offers.retry-10m-1 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.215Z  INFO [] 56774 --- [reco] [offers.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers.retry-1m-11, groupId=reco.catalog-offers.retry-1m] Notifying assignor about the new Assignment(partitions=[dexter.catalog.offer.v1.catalog-offers.retry-1m-0, dexter.catalog.offer.v1.catalog-offers.retry-1m-1, dexter.catalog.offer.v1.catalog-offers.retry-1m-2])
+2026-11-06T00:23:02.215Z  INFO [] 56774 --- [reco] [offers.retry-1m] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-reco.catalog-offers.retry-1m-11, groupId=reco.catalog-offers.retry-1m] Adding newly assigned partitions: [dexter.catalog.offer.v1.catalog-offers.retry-1m-0, dexter.catalog.offer.v1.catalog-offers.retry-1m-1, dexter.catalog.offer.v1.catalog-offers.retry-1m-2]
+2026-11-06T00:23:02.216Z  INFO [] 56774 --- [reco] [ffers.retry-10m] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.catalog-offers.retry-10m-12, groupId=reco.catalog-offers.retry-10m] Resetting offset for partition dexter.catalog.offer.v1.catalog-offers.retry-10m-0 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.220Z  INFO [] 56774 --- [reco] [offers.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers.retry-1m-11, groupId=reco.catalog-offers.retry-1m] Found no committed offset for partition dexter.catalog.offer.v1.catalog-offers.retry-1m-2
+2026-11-06T00:23:02.220Z  INFO [] 56774 --- [reco] [offers.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers.retry-1m-11, groupId=reco.catalog-offers.retry-1m] Found no committed offset for partition dexter.catalog.offer.v1.catalog-offers.retry-1m-1
+2026-11-06T00:23:02.220Z  INFO [] 56774 --- [reco] [offers.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.catalog-offers.retry-1m-11, groupId=reco.catalog-offers.retry-1m] Found no committed offset for partition dexter.catalog.offer.v1.catalog-offers.retry-1m-0
+2026-11-06T00:23:02.228Z  INFO [] 56774 --- [reco] [offers.retry-1m] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.catalog-offers.retry-1m-11, groupId=reco.catalog-offers.retry-1m] Resetting offset for partition dexter.catalog.offer.v1.catalog-offers.retry-1m-2 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.228Z  INFO [] 56774 --- [reco] [offers.retry-1m] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.catalog-offers.retry-1m-11, groupId=reco.catalog-offers.retry-1m] Resetting offset for partition dexter.catalog.offer.v1.catalog-offers.retry-1m-1 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:02.229Z  INFO [] 56774 --- [reco] [offers.retry-1m] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-reco.catalog-offers.retry-1m-11, groupId=reco.catalog-offers.retry-1m] Resetting offset for partition dexter.catalog.offer.v1.catalog-offers.retry-1m-0 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=0}}.
+2026-11-06T00:23:03.026Z  INFO [] 56774 --- [reco] [           main] in.dexter.reco.RecoApplication           : Started RecoApplication in 21.186 seconds (process running for 23.492)
+2026-11-06T00:23:04.025Z  INFO [] 56774 --- [reco] [   scheduling-1] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-11-06T00:23:04.051Z  INFO [] 56774 --- [reco] [   scheduling-1] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@368210d8
+2026-11-06T00:23:04.055Z  INFO [] 56774 --- [reco] [   scheduling-1] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-11-06T00:23:05.623Z  INFO [] 56774 --- [reco] [omcat-handler-0] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-11-06T00:23:05.623Z  INFO [] 56774 --- [reco] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-11-06T00:23:05.624Z  INFO [] 56774 --- [reco] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-11-06T00:23:28.292Z  INFO [] 56774 --- [reco] [o.spend-profile] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-reco.spend-profile-1, groupId=reco.spend-profile] Revoke previously assigned partitions [dexter.ledger.expense.v1-0, dexter.ledger.expense.v1-1, dexter.ledger.expense.v1-2]
+2026-11-06T00:23:28.293Z  INFO [] 56774 --- [reco] [o.spend-profile] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile-1, groupId=reco.spend-profile] Member consumer-reco.spend-profile-1-cbf17445-fa57-4de2-972b-94d081162487 sending LeaveGroup request to coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false) due to the consumer is being closed
+2026-11-06T00:23:28.293Z  INFO [] 56774 --- [reco] [rofile.retry-1m] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-reco.spend-profile.retry-1m-2, groupId=reco.spend-profile.retry-1m] Revoke previously assigned partitions [dexter.ledger.expense.v1.spend-profile.retry-1m-0, dexter.ledger.expense.v1.spend-profile.retry-1m-1, dexter.ledger.expense.v1.spend-profile.retry-1m-2]
+2026-11-06T00:23:28.294Z  INFO [] 56774 --- [reco] [rofile.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile.retry-1m-2, groupId=reco.spend-profile.retry-1m] Member consumer-reco.spend-profile.retry-1m-2-5ed32f7b-7cb4-4b3d-94a3-91d72bb06ba1 sending LeaveGroup request to coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false) due to the consumer is being closed
+2026-11-06T00:23:28.294Z  INFO [] 56774 --- [reco] [o.spend-profile] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile-1, groupId=reco.spend-profile] Resetting generation and member id due to: consumer pro-actively leaving the group
+2026-11-06T00:23:28.294Z  INFO [] 56774 --- [reco] [o.spend-profile] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile-1, groupId=reco.spend-profile] Request joining group due to: consumer pro-actively leaving the group
+2026-11-06T00:23:28.294Z  INFO [] 56774 --- [reco] [rofile.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile.retry-1m-2, groupId=reco.spend-profile.retry-1m] Resetting generation and member id due to: consumer pro-actively leaving the group
+2026-11-06T00:23:28.294Z  INFO [] 56774 --- [reco] [rofile.retry-1m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile.retry-1m-2, groupId=reco.spend-profile.retry-1m] Request joining group due to: consumer pro-actively leaving the group
+2026-11-06T00:23:28.297Z  INFO [] 56774 --- [reco] [ofile.retry-10m] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-reco.spend-profile.retry-10m-3, groupId=reco.spend-profile.retry-10m] Revoke previously assigned partitions [dexter.ledger.expense.v1.spend-profile.retry-10m-0, dexter.ledger.expense.v1.spend-profile.retry-10m-1, dexter.ledger.expense.v1.spend-profile.retry-10m-2]
+2026-11-06T00:23:28.297Z  INFO [] 56774 --- [reco] [ofile.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile.retry-10m-3, groupId=reco.spend-profile.retry-10m] Member consumer-reco.spend-profile.retry-10m-3-bf6e0f15-5492-449f-a2e1-112a58d8d377 sending LeaveGroup request to coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false) due to the consumer is being closed
+2026-11-06T00:23:28.299Z  INFO [] 56774 --- [reco] [ofile.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile.retry-10m-3, groupId=reco.spend-profile.retry-10m] Resetting generation and member id due to: consumer pro-actively leaving the group
+2026-11-06T00:23:28.300Z  INFO [] 56774 --- [reco] [ofile.retry-10m] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-reco.spend-profile.retry-10m-3, groupId=reco.spend-profile.retry-10m] Request joining group due to: consumer pro-actively leaving the group
+2026-11-06T00:23:28.397Z  INFO [] 56774 --- [reco] [o.spend-profile] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-06T00:23:28.397Z  INFO [] 56774 --- [reco] [o.spend-profile] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-06T00:23:28.397Z  INFO [] 56774 --- [reco] [o.spend-profile] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.telemetry.internals.ClientTelemetryReporter
+2026-11-06T00:23:28.398Z  INFO [] 56774 --- [reco] [o.spend-profile] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-06T00:23:28.402Z  INFO [] 56774 --- [reco] [o.spend-profile] o.a.kafka.common.utils.AppInfoParser     : App info kafka.consumer for consumer-reco.spend-profile-1 unregistered
