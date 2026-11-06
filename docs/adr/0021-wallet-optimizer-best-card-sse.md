@@ -1,8 +1,10 @@
 # ADR-0021: Reco B — a wallet valued as a wallet, a card chosen for one purchase, and a push that crosses instances
 
-- Status: Accepted (P15). Proof: reco unit (`OptimizerTest` including a brute force over the whole candidate set,
-  `BestCardTest`, `OffersTest`) + IT (`WalletIT`, `BestCardIT`, `StreamIT`, `ProjectionsIT`, `RecoRlsIT`),
-  `RedisAclIT` for the channel namespace, api-smoke P15, trail-check `p15`.
+- Status: Accepted (P15), proved by CI run 41952698922 (git `35a2ed7`): `verify.sh full` PASS 22/22 +
+  `trail-check.sh` PASS. Proof: reco unit **69** (`OptimizerTest` including a brute force over the whole
+  candidate set — 163 wallets compared, `BestCardTest`, `OffersTest`) + IT **59** (`WalletIT`, `BestCardIT`,
+  `StreamIT` with two application contexts on one Redis, `ProjectionsIT`, `RecoRlsIT` on 8 tables), `RedisAclIT`
+  for the channel namespace, api-smoke 487 PASS / 0 FAIL with 42 of them P15, trail-check `p15` 7/7.
 - Context: MASTER_PLAN P15 asks for a wallet optimizer (dominance pruning, beam top-15, exhaustive 2- and 3-card
   combos, exclusive category assignment, caps per card per period, the marginal value of each next card),
   best-card-now over held cards with cap headroom, active offers and milestone proximity, and SSE with a one-time
