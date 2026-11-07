@@ -61,4 +61,12 @@ public final class AccountRepository implements AccountStore {
         : "UPDATE identity.accounts SET password_hash = :h WHERE id = :id";
     jdbc.sql(sql).param("h", passwordHash).param("id", id).update();
   }
+
+  @Override
+  public boolean updateTier(UUID id, String tier, long version) {
+    TenantScope.require();
+    return jdbc.sql("UPDATE identity.accounts SET tier_cache = :t, tier_version = :v"
+            + " WHERE id = :id AND tier_version < :v")
+        .param("t", tier).param("v", version).param("id", id).update() == 1;
+  }
 }

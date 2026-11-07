@@ -6,7 +6,7 @@ set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
 source scripts/lib/services.sh
-PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html p05-mfa-admin.html p06-gateway.html p07-ledger.html p08-ledger-plus.html p09-catalog.html p10-ingestion.html p11-portfolio.html p12-statements.html p12-calc.html p13-planning.html p14-reco.html p15-wallet-sse.html})
+PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html p05-mfa-admin.html p06-gateway.html p07-ledger.html p08-ledger-plus.html p09-catalog.html p10-ingestion.html p11-portfolio.html p12-statements.html p12-calc.html p13-planning.html p14-reco.html p15-wallet-sse.html p16-billing.html})
 BASE=http://127.0.0.1:8099
 fail=0
 
@@ -404,6 +404,61 @@ again=$(curl -s -o /dev/null -w '%{http_code}' --max-time 6 \
   "$BASE/api/v1/recommendations/stream?ticket=$tkt")
 if [[ $again == 401 ]]; then printf 'PASS  %-10s %s\n' p15-onceonly 401
 else printf 'FAIL  %-10s %s\n' p15-onceonly "$again"; fail=1; fi
+
+# P16: what p16-billing.html Live mode drives - on an account REGISTERED for this run. A persona would keep its
+# subscription from one run to the next, and the P15 lesson is that a check over state nobody created proves
+# nothing: so the checkout, the webhook, the invoice and the tier below all exist because this block made them.
+pl=$(curl -s --max-time 5 "$BASE/api/v1/plans")
+plv=$(printf '%s' "$pl" | python3 -c '
+import json, sys
+d = json.load(sys.stdin)["data"]
+p = {x["code"]: x for x in d}["PREMIUM"]
+print(len(d), p["totalPaise"] == p["pricePaise"] + (p["pricePaise"] * 1800 + 5000) // 10000)
+' 2>/dev/null)
+if [[ $plv == "3 True" ]]; then printf 'PASS  %-10s %s\n' p16-plans "3 plans, total = price + GST"
+else printf 'FAIL  %-10s %s\n' p16-plans "${pl:0:200}"; fail=1; fi
+rc=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$BASE/api/v1/entitlements/me")
+if [[ $rc == 401 ]]; then printf 'PASS  %-10s %s\n' p16-anon 401
+else printf 'FAIL  %-10s %s\n' p16-anon "$rc"; fail=1; fi
+# registration straight at the gateway with its own client address, so it does not share the trail proxy's
+# auth rate-limit bucket with the logins above
+acct=$(python3 scripts/lib/p16_smoke.py --account http://127.0.0.1:8080 http://127.0.0.1:8025 2>/dev/null | tail -n1)
+bt=$(printf '%s' "$acct" | jget access)
+if [[ -n ${bt:-} ]]; then printf 'PASS  %-10s %s\n' p16-account "registered + verified + signed in"
+else printf 'FAIL  %-10s %s\n' p16-account "${acct:0:200}"; fail=1; fi
+co=$(curl -s --max-time 15 -H "Authorization: Bearer $bt" -H 'Content-Type: application/json' \
+  -H "Idempotency-Key: $(cat /proc/sys/kernel/random/uuid)" \
+  -d '{"plan":"PREMIUM","paymentMethod":"pm_mock_delayed","billingState":"KA"}' "$BASE/api/v1/subscriptions/checkout")
+cov=$(printf '%s' "$co" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d["outcome"], d["subscription"]["status"])' 2>/dev/null)
+if [[ $cov == "pending incomplete" ]]; then printf 'PASS  %-10s %s\n' p16-checkout "202 pending"
+else printf 'FAIL  %-10s %s\n' p16-checkout "${co:0:200}"; fail=1; fi
+sst=""
+for _ in $(seq 1 40); do
+  sst=$(curl -s --max-time 5 -H "Authorization: Bearer $bt" "$BASE/api/v1/subscriptions/me" | jget status)
+  [[ $sst == active ]] && break
+  sleep 1
+done
+if [[ $sst == active ]]; then printf 'PASS  %-10s %s\n' p16-webhook "the provider's signed webhook activated it"
+else printf 'FAIL  %-10s %s\n' p16-webhook "status=$sst"; fail=1; fi
+iv=$(curl -s --max-time 5 -H "Authorization: Bearer $bt" "$BASE/api/v1/invoices" | python3 -c '
+import json, sys
+d = json.load(sys.stdin)["data"]
+i = d[0] if d else {}
+print(len(d), bool(i) and len(i["lines"]) == 3 and sum(l["amountPaise"] for l in i["lines"]) == i["totalPaise"])
+' 2>/dev/null)
+if [[ $iv == "1 True" ]]; then printf 'PASS  %-10s %s\n' p16-invoice "1 invoice, CGST + SGST add up"
+else printf 'FAIL  %-10s %s\n' p16-invoice "$iv"; fail=1; fi
+et=$(curl -s --max-time 5 -H "Authorization: Bearer $bt" "$BASE/api/v1/entitlements/me" | jget tier)
+if [[ $et == PREMIUM ]]; then printf 'PASS  %-10s %s\n' p16-tier PREMIUM
+else printf 'FAIL  %-10s %s\n' p16-tier "$et"; fail=1; fi
+cn=$(curl -s --max-time 5 -X POST -H "Authorization: Bearer $bt" "$BASE/api/v1/subscriptions/me:cancel" \
+  | jget status cancelAtPeriodEnd)
+if [[ $cn == "active True" ]]; then printf 'PASS  %-10s %s\n' p16-cancel "at period end"
+else printf 'FAIL  %-10s %s\n' p16-cancel "$cn"; fail=1; fi
+wsig=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 -H 'Content-Type: application/json' \
+  -d '{"id":"evt_trail","type":"payment.succeeded","data":{}}' "$BASE/api/v1/webhooks/mock")
+if [[ $wsig == 400 ]]; then printf 'PASS  %-10s %s\n' p16-unsigned 400
+else printf 'FAIL  %-10s %s\n' p16-unsigned "$wsig"; fail=1; fi
 
 echo "trail-check: $([[ $fail -eq 0 ]] && echo PASS || echo FAIL)"
 exit $fail

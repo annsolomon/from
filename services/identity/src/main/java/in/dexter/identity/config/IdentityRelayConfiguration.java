@@ -4,6 +4,9 @@ import in.dexter.events.InboxPurgeJob;
 import in.dexter.events.KafkaClients;
 import in.dexter.events.relay.OutboxRelay;
 import in.dexter.events.topics.TopicRegistry;
+import in.dexter.events.consumer.EventConsumer;
+import in.dexter.contracts.events.billing.EntitlementsChangedV1;
+import in.dexter.identity.app.TierService;
 import in.dexter.identity.app.IdentityEvents;
 import in.dexter.idempotency.IdempotencyPurgeJob;
 import java.time.Duration;
@@ -47,6 +50,10 @@ public class IdentityRelayConfiguration {
     Producer<String, byte[]> producer = KafkaClients.idempotentProducer(r.bootstrapServers(), SCHEMA + "-relay");
     TopicRegistry topics = new TopicRegistry(r.partitions(), r.replication());
     IdentityEvents.AGGREGATES.forEach(a -> topics.main(SCHEMA, a));
+    // P16 (A-67): the billing topic identity consumes, declared as billing declares it, plus the consumer's stages
+    topics.main("billing", "entitlements");
+    List<String> stages = EventConsumer.Settings.defaults("x", SCHEMA, "x", List.of("x")).stageNames();
+    topics.consumer(EntitlementsChangedV1.TOPIC, TierService.CONSUMER, stages);
     EnsureTopics ensureTopics = new EnsureTopics(topics, r.bootstrapServers());
     OutboxRelay.Settings d = OutboxRelay.Settings.defaults(SCHEMA);
     // Library defaults, but maintenance every 10 min (default 1 h) so a failed topic creation is retried soon.

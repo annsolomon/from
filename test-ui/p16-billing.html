@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dexter trail · P16 billing</title>
+  <link rel="stylesheet" href="trail.css">
+  <style>
+    .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .plan { border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; }
+    .plan h4 { margin: 0 0 4px; }
+    .plan .price { font-family: var(--mono); font-size: 18px; }
+    .plan .gst { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+    .chip { display: inline-block; border: 1px solid var(--line); border-radius: 10px; padding: 1px 8px;
+      font-family: var(--mono); font-size: 11px; margin: 2px 4px 2px 0; }
+    .chip.on { border-color: var(--ok); color: var(--ok); }
+    .chip.off { color: var(--muted); }
+    .chip.warn { border-color: var(--warn); color: var(--warn); }
+    .status { font-family: var(--mono); font-size: 15px; }
+    table.inv td.n, table.inv th.n { text-align: right; font-family: var(--mono); }
+    table.inv tr.line td { color: var(--muted); font-size: 11px; }
+    #hooks div { font-family: var(--mono); font-size: 11px; padding: 2px 0; border-bottom: 1px solid var(--line); }
+    pre.out { white-space: pre-wrap; max-height: 220px; overflow: auto; }
+  </style>
+</head>
+<body>
+<main>
+  <section class="card">
+    <h2>P16 · billing: plans, a checkout that survives a crash, webhooks in any order</h2>
+    <p class="mono" style="color:var(--muted);margin:0">
+      Dexter does not move money - a <strong>provider</strong> does, and here it is a mock that behaves like one:
+      it charges once per Idempotency-Key, answers "what happened to this charge?" by Dexter's own reference, and
+      calls back with <strong>HMAC-signed webhooks</strong>, late and in no particular order. The checkout is
+      Idempotency <strong>Mode B</strong>: the key is held across the provider call, so a crash between the charge
+      and the record is finished by a retry or the sweeper, never charged twice. A payment is decided once, so a
+      replayed or out-of-order webhook changes nothing. GST is the mock 18&nbsp;% split - CGST&nbsp;+&nbsp;SGST
+      inside the supplier's state (KA), IGST outside it. Testing aid only - deleted in P19.
+    </p>
+    <div id="tenant"></div>
+  </section>
+
+  <section class="card">
+    <h3>Plans <small class="mono">GET /v1/plans · public</small></h3>
+    <div class="plans" id="plans"></div>
+  </section>
+
+  <section class="card">
+    <h3>Checkout <small class="mono">POST /v1/subscriptions/checkout · Idempotency-Key required · step-up</small></h3>
+    <div class="row">
+      <label>plan <select class="in" id="plan"><option>PREMIUM</option><option>VIP</option><option>FREE</option></select></label>
+      <label>payment method <select class="in" id="pm">
+        <option value="pm_mock_success">pm_mock_success - succeeds</option>
+        <option value="pm_mock_decline">pm_mock_decline - declined</option>
+        <option value="pm_mock_insufficient">pm_mock_insufficient - declined</option>
+        <option value="pm_mock_delayed">pm_mock_delayed - pending, then succeeds</option>
+        <option value="pm_mock_delayed_decline">pm_mock_delayed_decline - pending, then declined</option>
+      </select></label>
+      <label>place of supply <select class="in" id="state">
+        <option value="KA">KA (supplier: CGST+SGST)</option><option value="MH">MH (IGST)</option>
+        <option value="DL">DL (IGST)</option><option value="TN">TN (IGST)</option></select></label>
+    </div>
+    <div class="row">
+      <label>Idempotency-Key <input class="in" id="key" size="38"></label>
+      <button class="ghost" id="newkey">new key</button>
+      <button id="buy">checkout</button>
+      <button class="ghost" id="again">send again (same key)</button>
+    </div>
+    <pre class="out" id="checkoutout"></pre>
+  </section>
+
+  <section class="card">
+    <h3>Subscription <small class="mono">GET /v1/subscriptions/me · POST /v1/subscriptions/me:cancel</small></h3>
+    <div class="row"><span class="status" id="substatus">-</span>
+      <button class="ghost" id="refresh">refresh</button><button class="ghost" id="cancel">cancel at period end</button></div>
+    <div class="mono" style="font-size:12px" id="subperiod"></div>
+  </section>
+
+  <section class="card">
+    <h3>Entitlements <small class="mono">GET /v1/entitlements/me · cached 60 s · the tier also goes into the next token</small></h3>
+    <div id="ent"></div>
+  </section>
+
+  <section class="card">
+    <h3>Invoices <small class="mono">GET /v1/invoices · keyset, newest first</small></h3>
+    <table class="inv" id="inv"><thead><tr><th>number</th><th>regime</th><th class="n">subtotal</th>
+      <th class="n">tax</th><th class="n">total</th></tr></thead><tbody></tbody></table>
+  </section>
+
+  <section class="card">
+    <h3>The provider's webhooks</h3>
+    <p class="mono" style="color:var(--muted);font-size:11px;margin:0 0 6px" id="hooknote"></p>
+    <div class="row" id="hookbuttons">
+      <label><input type="checkbox" id="hold"> hold webhooks (deliver them by hand)</label>
+      <button class="ghost" id="deliverall">deliver held, in order</button>
+      <button class="ghost" id="reverse">deliver held, outcome first (out of order)</button>
+      <button class="ghost" id="replay">replay the last delivered</button>
+    </div>
+    <div id="hooks"></div>
+  </section>
+
+  <section class="card"><h3>Events</h3><div id="events"></div></section>
+  <section class="card"><h3>Log</h3><div id="log"></div></section>
+</main>
+<script src="trail.js"></script>
+<script>
+(() => {
+  Trail.mountHeader('Billing', 'P16');
+  Trail.mountLog(document.getElementById('log'));
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const rs = p => '₹' + (p / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const out = (id, v) => { $(id).textContent = typeof v === 'string' ? v : JSON.stringify(v, null, 2); };
+  const need = req => (req.tenant ? null : Trail.problem(401, 'UNAUTHENTICATED', 'log in as a persona first'));
+
+  // ---------------------------------------------------------------- Mock mode: billing's bookkeeping, for real
+  // Unlike the optimizer (P15), none of this is a search: it is a state machine and one rounding rule, so Mock does
+  // it here rather than replaying fixtures. The plans are the migration's own rows.
+  const PLANS = [
+    { code: 'FREE', name: 'Free', pricePaise: 0, interval: 'month', entitlements: { cardsMax: 3, budgetsMax: 3, statementUploadsPerMonth: 2, walletOptimizer: false, bestCardNow: false, adFree: false, prioritySupport: false } },
+    { code: 'PREMIUM', name: 'Premium', pricePaise: 19900, interval: 'month', entitlements: { cardsMax: 10, budgetsMax: 20, statementUploadsPerMonth: 20, walletOptimizer: true, bestCardNow: true, adFree: true, prioritySupport: false } },
+    { code: 'VIP', name: 'VIP', pricePaise: 49900, interval: 'month', entitlements: { cardsMax: 50, budgetsMax: 100, statementUploadsPerMonth: 100, walletOptimizer: true, bestCardNow: true, adFree: true, prioritySupport: true } },
+  ];
+  const SUPPLIER = 'KA';
+  const LIVE = ['incomplete', 'trialing', 'active', 'past_due'];
+  const ENTITLED = ['trialing', 'active', 'past_due'];
+  /** 18 % HALF_UP to the paisa - the shared Gst.on, in integers so no float ever touches money. */
+  const gst = p => Math.floor((p * 1800 + 5000) / 10000);
+  const planView = p => ({ ...p, gstPaise: gst(p.pricePaise), totalPaise: p.pricePaise + gst(p.pricePaise) });
+  const M = { accounts: {}, held: [], delivered: null, serial: 0 };
+  const acct = id => (M.accounts[id] = M.accounts[id] || { subs: [], payments: [], invoices: [], events: new Set(), entVersion: 0, lastTier: 'FREE' });
+  const live = a => a.subs.find(s => LIVE.includes(s.status));
+  const tierOf = a => { const s = live(a); return s && ENTITLED.includes(s.status) ? s.planCode : 'FREE'; };
+  const monthLater = iso => { const d = new Date(iso); d.setUTCMonth(d.getUTCMonth() + 1); return d.toISOString(); };
+  const fy = iso => { const d = new Date(new Date(iso).getTime() + 330 * 60000); const y = d.getUTCMonth() >= 3 ? d.getUTCFullYear() : d.getUTCFullYear() - 1; return y + '-' + String((y + 1) % 100).padStart(2, '0'); };
+  const refreshEntitlements = (accountId, a) => {
+    const t = tierOf(a);
+    if (t === a.lastTier) return;
+    a.lastTier = t; a.entVersion++;
+    Trail.events.emit('billing.entitlements.changed', accountId, { tier: t, version: a.entVersion }, accountId);
+  };
+  const subChanged = (accountId, s) => Trail.events.emit('billing.subscription.changed', s.id,
+    { subscriptionId: s.id, planCode: s.planCode, status: s.status, cancelAtPeriodEnd: s.cancelAtPeriodEnd, version: s.version }, accountId);
+  /** PaymentOutcomes.apply: a payment is decided once; everything after that is "no change". */
+  const apply = (accountId, payId, next, failureCode) => {
+    const a = acct(accountId);
+    const p = a.payments.find(x => x.id === payId);
+    if (!p || p.status !== 'pending' || next === 'pending') return 'no_change';
+    const now = new Date().toISOString();
+    p.status = next; p.decidedAt = now; p.failureCode = next === 'failed' ? (failureCode || 'declined') : null; p.version++;
+    const s = a.subs.find(x => x.id === p.subscriptionId);
+    if (next === 'failed') { if (s.status === 'incomplete') { s.status = 'incomplete_expired'; s.endedAt = now; s.version++; } return 'applied'; }
+    if (s.status === 'incomplete') {
+      Object.assign(s, { status: 'active', currentPeriodStart: now, currentPeriodEnd: monthLater(now), version: s.version + 1 });
+      subChanged(accountId, s);
+    }
+    const plan = PLANS.find(x => x.code === s.planCode);
+    const tax = gst(plan.pricePaise);
+    const intra = s.billingState === SUPPLIER;
+    const lines = [{ lineNo: 1, kind: 'item', description: 'Dexter ' + plan.name + ' - 1 month', rateBps: null, amountPaise: plan.pricePaise }]
+      .concat(intra ? [{ lineNo: 2, kind: 'cgst', description: 'CGST 9%', rateBps: 900, amountPaise: Math.floor((tax + 1) / 2) },
+                       { lineNo: 3, kind: 'sgst', description: 'SGST 9%', rateBps: 900, amountPaise: tax - Math.floor((tax + 1) / 2) }]
+                    : [{ lineNo: 2, kind: 'igst', description: 'IGST 18%', rateBps: 1800, amountPaise: tax }]);
+    a.invoices.unshift({ id: Trail.uuidv7(), number: 'DX/' + fy(now) + '/' + String(++M.serial).padStart(6, '0'), issuedAt: now,
+      taxRegime: intra ? 'intra' : 'inter', supplierState: SUPPLIER, placeOfSupply: s.billingState, subtotalPaise: plan.pricePaise,
+      taxPaise: tax, totalPaise: plan.pricePaise + tax, paymentId: p.id, subscriptionId: s.id, lines });
+    p.invoiceId = a.invoices[0].id;
+    refreshEntitlements(accountId, a);
+    return 'applied';
+  };
+  /** The mock provider's callbacks: created, then the outcome; delivered after a delay unless held. */
+  const schedule = (accountId, p, finalStatus, failure, after) => {
+    const mk = (type, status) => ({ id: 'evt_' + Trail.uuidv4().replace(/-/g, ''), type, accountId, reference: p.id, status, failureCode: status === 'failed' ? failure : null });
+    const evs = [mk('payment.created', 'pending'), mk(finalStatus === 'succeeded' ? 'payment.succeeded' : 'payment.failed', finalStatus)];
+    setTimeout(() => {
+      if ($('hold').checked) { M.held.push(...evs); renderHooks(); return; }
+      evs.forEach(deliver);
+    }, after);
+  };
+  /** POST /v1/webhooks/mock: the event id is the replay guard; the outcome goes through apply(). */
+  const deliver = ev => {
+    const a = acct(ev.accountId);
+    let line;
+    if (a.events.has(ev.id)) line = 'duplicate';
+    else { a.events.add(ev.id); line = 'processed, ' + apply(ev.accountId, ev.reference, ev.status, ev.failureCode); }
+    M.delivered = ev;
+    const d = document.createElement('div');
+    d.textContent = new Date().toISOString().slice(11, 19) + '  ' + ev.type + '  ' + ev.id.slice(0, 14) + '…  → ' + line;
+    $('hooks').prepend(d);
+    if (Trail.persona && Trail.persona.accountId === ev.accountId) refreshAll();
+    return line;
+  };
+  const OUTCOMES = {
+    pm_mock_success: ['succeeded', null, false], pm_mock_decline: ['failed', 'card_declined', false],
+    pm_mock_insufficient: ['failed', 'insufficient_funds', false], pm_mock_delayed: ['succeeded', null, true],
+    pm_mock_delayed_decline: ['failed', 'card_declined', true],
+  };
+  const subView = s => ({ ...s });
+  Trail.mock('GET', /^\/api\/v1\/plans$/, () => ({ data: PLANS.map(planView) }));
+  Trail.mock('POST', /^\/api\/v1\/subscriptions\/checkout$/, Trail.idempotent((m, req) => need(req) || (() => {
+    const b = req.body || {};
+    const errors = [];
+    if (!/^pm_[a-z0-9_]{1,60}$/.test(b.paymentMethod || '')) errors.push({ field: 'paymentMethod', code: 'INVALID' });
+    if (!/^[A-Z]{2}$/.test(b.billingState || '')) errors.push({ field: 'billingState', code: 'INVALID' });
+    if (errors.length) return Trail.problem(400, 'VALIDATION_FAILED', 'Request validation failed', { errors });
+    const plan = PLANS.find(p => p.code === String(b.plan || '').toUpperCase());
+    if (!plan) return Trail.problem(404, 'PLAN_NOT_FOUND', 'No plan ' + b.plan);
+    if (!plan.pricePaise) return Trail.problem(422, 'PLAN_NOT_PURCHASABLE', 'FREE cannot be bought');
+    const accountId = req.tenant.accountId;
+    const a = acct(accountId);
+    if (live(a)) return Trail.problem(409, 'SUBSCRIPTION_EXISTS', 'The account already has a subscription; cancel it first');
+    const now = new Date().toISOString();
+    const s = { id: Trail.uuidv7(), planCode: plan.code, planName: plan.name, interval: 'month', status: 'incomplete',
+      currentPeriodStart: null, currentPeriodEnd: null, cancelAtPeriodEnd: false, canceledAt: null, endedAt: null,
+      provider: 'mock', billingState: b.billingState, createdAt: now, version: 0 };
+    a.subs.unshift(s);
+    const p = { id: Trail.uuidv7(), subscriptionId: s.id, amountPaise: plan.pricePaise + gst(plan.pricePaise), currency: 'INR',
+      status: 'pending', failureCode: null, providerPaymentId: null, createdAt: now, decidedAt: null, version: 0 };
+    a.payments.push(p);
+    const [finalStatus, failure, delayed] = OUTCOMES[b.paymentMethod] || ['failed', 'payment_method_invalid', false];
+    p.providerPaymentId = 'pay_mock_' + p.id.replace(/-/g, '');
+    if (!delayed) apply(accountId, p.id, finalStatus, failure);
+    schedule(accountId, p, finalStatus, failure, delayed ? 2500 : 300);
+    const view = { subscription: subView(s), payment: { ...p }, invoiceId: p.invoiceId || null };
+    if (p.status === 'succeeded') return Trail.reply(201, { outcome: 'succeeded', code: null, detail: null, ...view }, { location: '/v1/subscriptions/me' });
+    if (p.status === 'pending') return Trail.reply(202, { outcome: 'pending', code: null, detail: 'The provider has not decided yet', ...view });
+    return Trail.reply(402, { outcome: 'failed', code: 'PAYMENT_DECLINED', detail: 'The payment was declined (' + p.failureCode + ')', ...view });
+  })()));
+  Trail.mock('GET', /^\/api\/v1\/subscriptions\/me$/, (m, req) => need(req) || (() => {
+    const a = acct(req.tenant.accountId);
+    const s = live(a) || a.subs[0];
+    return s ? subView(s) : Trail.problem(404, 'SUBSCRIPTION_NOT_FOUND', 'No subscription yet');
+  })());
+  Trail.mock('POST', /^\/api\/v1\/subscriptions\/me:cancel$/, (m, req) => need(req) || (() => {
+    const accountId = req.tenant.accountId;
+    const s = live(acct(accountId));
+    if (!s) return Trail.problem(404, 'SUBSCRIPTION_NOT_FOUND', 'No live subscription');
+    if (!ENTITLED.includes(s.status)) return Trail.problem(409, 'SUBSCRIPTION_NOT_CANCELABLE', 'A ' + s.status + ' subscription cannot be canceled');
+    if (!s.cancelAtPeriodEnd) {
+      Object.assign(s, { cancelAtPeriodEnd: true, canceledAt: new Date().toISOString(), version: s.version + 1 });
+      subChanged(accountId, s);
+    }
+    return subView(s);
+  })());
+  Trail.mock('GET', /^\/api\/v1\/entitlements\/me$/, (m, req) => need(req) || (() => {
+    const a = acct(req.tenant.accountId);
+    const s = live(a);
+    const tier = tierOf(a);
+    return { tier, planCode: tier, subscriptionStatus: s ? s.status : null,
+      entitlements: { ...PLANS.find(p => p.code === tier).entitlements }, overrides: [], version: a.entVersion };
+  })());
+  Trail.mock('GET', /^\/api\/v1\/invoices$/, (m, req) => need(req)
+    || { data: acct(req.tenant.accountId).invoices, page: { limit: 25, hasMore: false, nextCursor: null } });
+
+  // ---------------------------------------------------------------- rendering
+  const renderPlans = list => {
+    $('plans').innerHTML = (list || []).map(p => `<div class="plan"><h4>${esc(p.name)} <small class="mono">${esc(p.code)}</small></h4>
+      <div class="price">${rs(p.totalPaise)}</div>
+      <div class="gst">${rs(p.pricePaise)} + ${rs(p.gstPaise)} GST / ${esc(p.interval)}</div>
+      <div>${Object.entries(p.entitlements).map(([k, v]) => `<span class="chip ${v === false ? 'off' : 'on'}">${esc(k)}${typeof v === 'boolean' ? '' : ' ' + esc(v)}</span>`).join('')}</div></div>`).join('');
+  };
+  const renderSub = (status, body) => {
+    if (status === 404) { $('substatus').textContent = 'no subscription'; $('subperiod').textContent = ''; return; }
+    if (status !== 200 || !body) { $('substatus').textContent = 'HTTP ' + status; return; }
+    $('substatus').innerHTML = `<span class="chip ${body.status === 'active' ? 'on' : body.status === 'incomplete' ? 'warn' : ''}">${esc(body.status)}</span> ${esc(body.planCode)}${body.cancelAtPeriodEnd ? ' <span class="chip warn">cancels at period end</span>' : ''}`;
+    $('subperiod').textContent = body.currentPeriodStart ? `period ${body.currentPeriodStart} → ${body.currentPeriodEnd} · version ${body.version}` : `version ${body.version}`;
+  };
+  const renderEnt = body => {
+    if (!body || !body.entitlements) { $('ent').textContent = '-'; return; }
+    $('ent').innerHTML = `<div class="status">tier <strong>${esc(body.tier)}</strong> <small class="mono">version ${body.version}</small></div>
+      <div>${Object.entries(body.entitlements).map(([k, v]) => `<span class="chip ${v === false ? 'off' : 'on'}">${esc(k)} ${esc(v)}</span>`).join('')}</div>`;
+  };
+  const renderInvoices = list => {
+    $('inv').querySelector('tbody').innerHTML = (list || []).map(i => `<tr><td class="mono">${esc(i.number)}</td>
+      <td>${esc(i.taxRegime)} (${esc(i.placeOfSupply)})</td><td class="n">${rs(i.subtotalPaise)}</td><td class="n">${rs(i.taxPaise)}</td>
+      <td class="n"><strong>${rs(i.totalPaise)}</strong></td></tr>` + (i.lines || []).map(l => `<tr class="line"><td></td>
+      <td>${esc(l.kind)}${l.rateBps ? ' ' + (l.rateBps / 100) + '%' : ''}</td><td colspan="2">${esc(l.description)}</td>
+      <td class="n">${rs(l.amountPaise)}</td></tr>`).join('')).join('') || '<tr><td colspan="5" class="mono">no invoices yet</td></tr>';
+  };
+  const renderHooks = () => {
+    const mock = Trail.mode === 'mock';
+    $('hooknote').textContent = mock
+      ? `Mock: the provider's callbacks for this browser. ${M.held.length} held.`
+      : 'Live: the mock provider posts its signed webhooks to billing itself (POST /v1/webhooks/mock) - watch the subscription move without touching anything here.';
+    for (const id of ['hold', 'deliverall', 'reverse', 'replay']) $(id).disabled = !mock;
+  };
+  // ---------------------------------------------------------------- actions
+  const refreshAll = async () => {
+    const s = await Trail.api('GET', '/api/v1/subscriptions/me');
+    renderSub(s.status, s.data);
+    const e = await Trail.api('GET', '/api/v1/entitlements/me');
+    renderEnt(e.status === 200 ? e.data : null);
+    const i = await Trail.api('GET', '/api/v1/invoices');
+    renderInvoices(i.status === 200 && i.data ? i.data.data : []);
+    renderHooks();
+  };
+  const send = async () => {
+    const body = { plan: $('plan').value, paymentMethod: $('pm').value, billingState: $('state').value };
+    const r = await Trail.api('POST', '/api/v1/subscriptions/checkout', { body, headers: { 'Idempotency-Key': $('key').value } });
+    out('checkoutout', `HTTP ${r.status}${r.headers['idempotent-replayed'] ? '  (Idempotent-Replayed: true)' : ''}\n` + JSON.stringify(r.data, null, 2));
+    await refreshAll();
+    if (r.status === 202 && Trail.mode !== 'mock') {   // Live: the provider's webhook will decide it - poll for it
+      for (let i = 0; i < 20; i++) {
+        await new Promise(res => setTimeout(res, 1000));
+        const s = await Trail.api('GET', '/api/v1/subscriptions/me');
+        renderSub(s.status, s.data);
+        if (s.data && s.data.status !== 'incomplete') { await refreshAll(); break; }
+      }
+    }
+    return r;
+  };
+  $('newkey').onclick = () => { $('key').value = Trail.uuidv4(); };
+  $('buy').onclick = () => { $('key').value = Trail.uuidv4(); return send(); };
+  $('again').onclick = send;
+  $('refresh').onclick = refreshAll;
+  $('cancel').onclick = async () => {
+    const r = await Trail.api('POST', '/api/v1/subscriptions/me:cancel');
+    out('checkoutout', `cancel → HTTP ${r.status}\n` + JSON.stringify(r.data, null, 2));
+    await refreshAll();
+  };
+  $('deliverall').onclick = () => { const evs = M.held.splice(0); evs.forEach(deliver); renderHooks(); };
+  $('reverse').onclick = () => { const evs = M.held.splice(0).reverse(); evs.forEach(deliver); renderHooks(); };
+  $('replay').onclick = () => { if (M.delivered) deliver(M.delivered); };
+  Trail.mountEvents($('events'), { livePath: '/api/_dev/outbox/recent' });
+  // exposed for the headless check (jsdom) and for poking at from the console
+  window.P16 = { M, gst, deliver, send, refreshAll };
+  $('key').value = Trail.uuidv4();
+  (async () => {
+    try {
+      await Trail.loadSeed();
+    } catch (e) { /* the page works without the seed fixtures */ }
+    Trail.mountTenantSwitcher($('tenant'), { onSwitch: () => refreshAll() });
+    const p = await Trail.api('GET', '/api/v1/plans');
+    if (p.status === 200 && p.data) renderPlans(p.data.data);
+    await refreshAll();
+  })();
+})();
+</script>
+</body>
+</html>

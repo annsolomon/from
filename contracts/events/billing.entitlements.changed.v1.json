@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dexter.in/events/billing.entitlements.changed.v1.json",
+  "title": "billing.entitlements.changed v1 - an account's tier or effective feature map changed (topic dexter.billing.entitlements.v1, key = account id).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "accountId",
+    "tier",
+    "entitlements",
+    "version",
+    "changedAt"
+  ],
+  "properties": {
+    "accountId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "tier": {
+      "type": "string",
+      "enum": [
+        "FREE",
+        "PREMIUM",
+        "VIP"
+      ]
+    },
+    "entitlements": {
+      "description": "the effective feature map: the plan's, with unexpired overrides laid over it",
+      "type": "object"
+    },
+    "version": {
+      "description": "grows by one per change for the account; consumers ignore anything not newer than what they hold",
+      "type": "integer",
+      "minimum": 1
+    },
+    "changedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

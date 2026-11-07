@@ -281,3 +281,28 @@ result's state hash no longer matches the inputs, so a read is always current an
 
 A recomputed result that is **unchanged** is not an error and not an event: equal state hash means equal inputs, so
 `reco.recommendation.updated` is published only when the answer actually moved.
+
+### billing (P16, `BillingErrors` + core codes)
+
+| Code | Status | When |
+|---|---|---|
+| `USER_TOKEN_REQUIRED` | 403 | A billing endpoint called with an admin-console token: a subscription belongs to one end-user account. |
+| `PLAN_NOT_FOUND` | 404 | `GET /v1/plans/{code}` or a checkout naming a plan that does not exist. |
+| `PLAN_NOT_PURCHASABLE` | 422 | A checkout for FREE (nothing to charge) or a retired plan. |
+| `SUBSCRIPTION_EXISTS` | 409 | A checkout while the account has a live subscription - including one still waiting on its payment (`incomplete`). Enforced by the database (`subscriptions_one_live`), so it also answers a concurrent race with different keys. Cancel and wait for the period to end. |
+| `SUBSCRIPTION_NOT_FOUND` | 404 | `GET /v1/subscriptions/me` for an account that never had one; a cancel with no live subscription. |
+| `SUBSCRIPTION_NOT_CANCELABLE` | 409 | A cancel of a subscription that is not trialing, active or past due. |
+| `PAYMENT_DECLINED` | 402 | The provider declined the charge. Not a ProblemDetail: the checkout's 402 body is the stored `CheckoutView` (it is what the Idempotency-Key replays), carrying `code` and `detail` as a problem would, plus the failed payment's `failureCode`. Retry with a new key. |
+| `PAYMENT_NOT_COMPLETED` | 402 | The same shape, for a checkout that never reached the provider and was closed by the Mode B sweeper: nothing was charged. Retry with a new key. |
+| `PROVIDER_UNAVAILABLE` | 503 | The provider did not answer. Whether it charged is unknown, so the key is kept: retry the **same** key after `Retry-After` (a retry inside the lease gets 409 `IDEMPOTENCY_IN_PROGRESS`), or let the sweeper finish it. Never charged twice: the provider call is idempotent on the key. |
+| `PROVIDER_UNKNOWN` | 404 | `POST /v1/webhooks/{provider}` for a provider billing has no adapter for. |
+| `WEBHOOK_SIGNATURE_INVALID` | 400 | No `Webhook-Signature`, a malformed one, one outside ±5 minutes (`reason: STALE`), or one that does not match the raw body (`reason: MISMATCH`). |
+| `WEBHOOK_INVALID` | 400 | A correctly signed body that is not an event the adapter understands. |
+| `IDEMPOTENCY_KEY_REQUIRED` | 400 | A checkout without an Idempotency-Key. |
+| `IDEMPOTENCY_IN_PROGRESS` | 409 | A checkout retried while the first attempt with that key still holds its lease (`Retry-After`). |
+| `IDEMPOTENCY_KEY_REUSED` | 422 | The same key with a different plan, payment method or place of supply. |
+| `STEP_UP_REQUIRED` | 401 | A checkout or cancel without a sign-in in the last 10 minutes (and MFA, when enrolled). |
+
+A webhook that names no Dexter payment is acknowledged `200 ignored`, not an error: a provider retries anything that
+is not 2xx, and there is nothing to retry.
+

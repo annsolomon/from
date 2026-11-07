@@ -12,6 +12,8 @@ import in.dexter.contracts.events.ledger.ExpenseStateV1;
 import in.dexter.contracts.events.ledger.ImportCompletedV1;
 import in.dexter.contracts.events.planning.BudgetThresholdCrossedV1;
 import in.dexter.contracts.events.planning.LiabilityChangedV1;
+import in.dexter.contracts.events.billing.EntitlementsChangedV1;
+import in.dexter.contracts.events.billing.SubscriptionChangedV1;
 import in.dexter.contracts.events.portfolio.CardChangedV1;
 import in.dexter.contracts.events.reco.RecommendationUpdatedV1;
 import in.dexter.contracts.events.portfolio.LinkConfirmedV1;
@@ -126,6 +128,14 @@ class SchemaContractTest {
         "3f0c1b6d2a94e7580c13bb47aa29e6f1b8d450723ce9a1f6284db35c907e4a18",
         UUID.fromString("0192f1e2-0000-7000-8000-000000000e02").toString(), "mock-saffron-millennia-cashback",
         660_000L, 8400, 3, 2, "2026-10-31T09:15:00Z"));
+    // P16 billing
+    SAMPLES.put("billing.subscription.changed.v1.json", new SubscriptionChangedV1(
+        UUID.fromString("0192f1e2-0000-7000-8000-000000000f01"), "PREMIUM", "active", "2026-11-08T09:00:00Z",
+        "2026-12-08T09:00:00Z", false, 1, "2026-11-08T09:00:00Z"));
+    SAMPLES.put("billing.entitlements.changed.v1.json", new EntitlementsChangedV1(
+        UUID.fromString("0192f1e2-0000-7000-8000-000000000f02"), "PREMIUM",
+        new java.util.TreeMap<>(Map.of("adFree", true, "cardsMax", 10, "walletOptimizer", true)), 1,
+        "2026-11-08T09:00:00Z"));
   }
 
   static JsonNode schema(String file) throws IOException {

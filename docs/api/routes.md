@@ -208,6 +208,21 @@ A push reaches a viewer whatever instance recomputed, because a recompute publis
 the stored result is the system of record, and a missed push is corrected by the next one, by the heartbeat
 failing, or by the reconnect replay.
 
+## `/v1/plans`, `/v1/subscriptions`, `/v1/entitlements`, `/v1/invoices`, `/v1/webhooks` (P16, billing)
+
+Prices are paise before GST; a checkout charges the price plus 18 % (ADR-0022 §6). The checkout and the cancel are
+billing changes, so both need a recent sign-in (step-up, MASTER_PLAN 7.1).
+
+| Path | What it does |
+|---|---|
+| `GET /v1/plans` / `GET /v1/plans/{code}` | public: the active plans with their price, GST, total and feature map (three rows, not paged, A-93) |
+| `POST /v1/subscriptions/checkout` | Idempotency-Key **required**, step-up, **Mode B**: `{plan, paymentMethod: pm_..., billingState}` → 201 succeeded, 202 pending (the provider's webhook decides it), 402 failed. 409 `SUBSCRIPTION_EXISTS` while another subscription is live |
+| `GET /v1/subscriptions/me` | the live subscription, else the newest one (ETag); 404 for an account that never had one |
+| `POST /v1/subscriptions/me:cancel` | step-up, optional Idempotency-Key: cancel at the end of the period; the plan's entitlements last until then. Repeating it changes nothing |
+| `GET /v1/entitlements/me` | the tier and the effective feature map (plan + unexpired overrides), cached 60 s per account; the tier is also the `tier` claim of the next token identity issues |
+| `GET /v1/invoices` / `GET /v1/invoices/{id}` | the account's invoices, newest first (keyset), each with its lines: the item and CGST + SGST or IGST |
+| `POST /v1/webhooks/{provider}` | public; the provider's HMAC signature (`Webhook-Signature: t=..,v1=..`, ±5 min) is the credential. 200 `processed` / `duplicate` / `ignored`; 400 for a bad signature or payload, 404 for an unknown provider |
+
 ## Not routed (on purpose)
 
 - `/oauth2/token` (service client credentials) and `/internal/**`: service-to-service only, never at the edge.

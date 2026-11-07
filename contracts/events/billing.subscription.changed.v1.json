@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dexter.in/events/billing.subscription.changed.v1.json",
+  "title": "billing.subscription.changed v1 - a subscription started, was set to cancel, went past due, was canceled or expired (topic dexter.billing.subscription.v1, key = account id).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "subscriptionId",
+    "planCode",
+    "status",
+    "currentPeriodStart",
+    "currentPeriodEnd",
+    "cancelAtPeriodEnd",
+    "version",
+    "changedAt"
+  ],
+  "properties": {
+    "subscriptionId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "planCode": {
+      "type": "string",
+      "enum": [
+        "PREMIUM",
+        "VIP"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "trialing",
+        "active",
+        "past_due",
+        "canceled",
+        "expired"
+      ]
+    },
+    "currentPeriodStart": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "currentPeriodEnd": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "cancelAtPeriodEnd": {
+      "type": "boolean"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "changedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

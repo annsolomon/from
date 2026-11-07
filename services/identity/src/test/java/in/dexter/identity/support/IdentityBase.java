@@ -73,6 +73,7 @@ public abstract class IdentityBase {
     r.add("dexter.identity.phone-pepper", () -> PEPPER);
     r.add("dexter.identity.mail.mode", () -> "memory");
     r.add("dexter.identity.relay.enabled", () -> "false");
+    r.add("dexter.identity.consumers.enabled", () -> "false");
     r.add("dexter.identity.service-clients.ledger.secret", () -> "ledger-test-secret");
     r.add("dexter.identity.service-clients.catalog.secret", () -> "");
     // P05: Redis as the restricted service user (infra/redis/acl.tmpl), the identity_admin pool on the same DB

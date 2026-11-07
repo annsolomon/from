@@ -34,6 +34,10 @@
 #   P15: reco B via the gateway (scripts/lib/p15_smoke.py): the wallet optimizer checked by its own identities (a
 #        rupee routed once, marginal value as the step up, value = the cards' values), best-card-now with the cap
 #        headroom an expense on that card moves, and the SSE stream - a one-time 60s ticket, then a real read.
+#   P16: billing via the gateway (scripts/lib/p16_smoke.py) on accounts the smoke registers itself: plans, a
+#        decline, a checkout (replay, 422, a second one refused), invoices with GST lines that add up, entitlements,
+#        the tier arriving in a REFRESHED token over Kafka, a delayed payment decided by the provider's own HTTP
+#        webhook, cancel at period end, webhook signatures and replay. Every collection is asserted NOT EMPTY first.
 # Later phases append their checks below the P00 block. Output also goes to $SMOKE_OUT if set.
 set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -188,6 +192,11 @@ log "# P15 reco B via gateway (:8080): the wallet optimizer, best-card-now with 
 p15=$(python3 "$ROOT/scripts/lib/p15_smoke.py" "http://localhost:8080" 2>&1); p15rc=$?
 while IFS= read -r line; do log "$line"; done <<< "$p15"
 [[ $p15rc -eq 0 ]] || fail=1
+# ------------------------------------------------------------------ P16: billing through the gateway
+log "# P16 billing via gateway (:8080): checkout (Mode B) with the mock provider, webhooks, invoices, the tier in a token"
+p16=$(python3 "$ROOT/scripts/lib/p16_smoke.py" "http://localhost:8080" "http://127.0.0.1:8025" 2>&1); p16rc=$?
+while IFS= read -r line; do log "$line"; done <<< "$p16"
+[[ $p16rc -eq 0 ]] || fail=1
 # Outbox -> Kafka (MASTER_PLAN 6.3): every identity event written above is published by the relay within 30 s.
 COMPOSE=(docker compose --env-file "$ROOT/.env" -f "$ROOT/infra/compose/docker-compose.yml")
 outbox() { "${COMPOSE[@]}" exec -T postgres psql -U "${POSTGRES_USER:-postgres}" -d identity -tA -c "$1" 2>/dev/null | tr -d '[:space:]'; }
@@ -268,6 +277,29 @@ done
 inbox=$("${COMPOSE[@]}" exec -T postgres psql -U "${POSTGRES_USER:-postgres}" -d planning -tA -c "SELECT count(*) FROM planning.inbox WHERE consumer = 'budget-spend'" 2>/dev/null | tr -d '[:space:]')
 if [[ ${inbox:-0} -gt 0 ]]; then log "PASS  budget-spend inbox: $inbox ledger events consumed"
 else log "FAIL  budget-spend inbox: no ledger events consumed"; fail=1; fi
+
+# P16: billing's outbox drains to both topics; the provider's webhooks were all processed; identity consumed the tier
+bp=x; bpub=0
+for _ in $(seq 1 30); do
+  bp=$("${COMPOSE[@]}" exec -T postgres psql -U "${POSTGRES_USER:-postgres}" -d billing -tA -c "SELECT count(*) FROM billing.outbox WHERE published_at IS NULL" 2>/dev/null | tr -d '[:space:]')
+  bpub=$("${COMPOSE[@]}" exec -T postgres psql -U "${POSTGRES_USER:-postgres}" -d billing -tA -c "SELECT count(*) FROM billing.outbox WHERE published_at IS NOT NULL AND event_type LIKE 'billing.%'" 2>/dev/null | tr -d '[:space:]')
+  [[ $bp == 0 && ${bpub:-0} -gt 0 ]] && break
+  sleep 1
+done
+if [[ $bp == 0 && ${bpub:-0} -gt 0 ]]; then log "PASS  billing outbox -> Kafka: $bpub events published, 0 pending"
+else log "FAIL  billing outbox -> Kafka: pending=$bp published=$bpub"; fail=1; fi
+for t in dexter.billing.subscription.v1 dexter.billing.entitlements.v1; do
+  n=$("${COMPOSE[@]}" exec -T kafka /opt/kafka/bin/kafka-get-offsets.sh --bootstrap-server localhost:9092 \
+    --topic "$t" 2>/dev/null | awk -F: '{s+=$3} END {print s+0}')
+  if [[ ${n:-0} -gt 0 ]]; then log "PASS  $t: $n events"; else log "FAIL  $t: no events"; fail=1; fi
+done
+wh=$("${COMPOSE[@]}" exec -T postgres psql -U "${POSTGRES_USER:-postgres}" -d billing -tA -c "SELECT count(*) || ' ' || count(*) FILTER (WHERE processed_at IS NULL) FROM billing.webhook_events WHERE provider = 'mock' AND provider_event_id NOT LIKE 'evt_smoke_%'" 2>/dev/null | tr -s '[:space:]' ' ')
+read -r whn whopen <<< "$wh"
+if [[ ${whn:-0} -gt 0 && ${whopen:-1} == 0 ]]; then log "PASS  billing webhook_events: $whn provider deliveries over HTTP, all processed"
+else log "FAIL  billing webhook_events: total=${whn:-?} unprocessed=${whopen:-?}"; fail=1; fi
+tin=$("${COMPOSE[@]}" exec -T postgres psql -U "${POSTGRES_USER:-postgres}" -d identity -tA -c "SELECT count(*) FROM identity.inbox WHERE consumer = 'billing-tier'" 2>/dev/null | tr -d '[:space:]')
+if [[ ${tin:-0} -gt 0 ]]; then log "PASS  billing-tier inbox: $tin entitlement events consumed by identity"
+else log "FAIL  billing-tier inbox: identity consumed no billing events"; fail=1; fi
 
 log "# summary: $([[ $fail -eq 0 ]] && echo PASS || echo FAIL)"
 exit $fail

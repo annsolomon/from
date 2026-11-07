@@ -112,6 +112,10 @@ dexter:
       username: identity_relay
       password: ${PG_PW_IDENTITY_RELAY:${PG_PW_RELAY:}}
       bootstrap-servers: ${KAFKA_BOOTSTRAP:127.0.0.1:${KAFKA_PORT:9092}}
+    # P16 billing-tier (dexter.billing.entitlements.v1): the tier that goes into the next token
+    consumers:
+      enabled: ${IDENTITY_CONSUMERS_ENABLED:true}
+      bootstrap-servers: ${KAFKA_BOOTSTRAP:127.0.0.1:${KAFKA_PORT:9092}}
 
 ---
 spring:

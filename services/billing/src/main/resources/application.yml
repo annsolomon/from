@@ -6,6 +6,29 @@ spring:
       enabled: true
   main:
     banner-mode: "off"
+  # P16: runtime pool = billing_app (RLS-bound, NOBYPASSRLS). Passwords come from the environment (.env in dev).
+  datasource:
+    url: jdbc:postgresql://${DEXTER_PG_HOST:127.0.0.1}:${POSTGRES_PORT:5432}/billing?ApplicationName=billing
+    username: billing_app
+    password: ${PG_PW_BILLING_APP:${PG_PW_APP:}}
+    hikari:
+      maximum-pool-size: ${BILLING_DB_POOL:20}
+      connection-timeout: 5000
+  # P16: entitlements cache (dexter-cache). Per-service ACL user (infra/redis/acl.tmpl: keys billing:*).
+  data:
+    redis:
+      host: ${DEXTER_REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      username: billing
+      password: ${REDIS_PW_BILLING:${REDIS_PW_SERVICE:}}
+      timeout: 200ms
+      connect-timeout: 1s
+  # Migrations run as the schema owner (MASTER_PLAN 3.1); the app role has no DDL rights.
+  flyway:
+    user: billing_owner
+    password: ${PG_PW_BILLING_OWNER:${PG_PW_OWNER:}}
+    schemas: billing
+    clean-disabled: true
 
 server:
   port: ${PORT_BILLING:8087}
@@ -29,6 +52,44 @@ logging:
   pattern:
     # X-Request-Id on every console line (dexter-web RequestIdFilter puts it in the MDC)
     level: "%5p [%X{requestId:-}]"
+
+dexter:
+  db:
+    schema: billing
+  # Keyset cursors (MASTER_PLAN 4.2): HMAC keys from the environment.
+  cursor:
+    active-kid: c1
+    keys:
+      c1: ${BILLING_CURSOR_KEY_C1:}
+  # Every request needs a user token from identity (audience "billing"), except the plans and the webhooks
+  # (@PublicEndpoint: the provider's signature is the webhook's credential).
+  security:
+    jwks-uri: ${IDENTITY_JWKS_URI:http://127.0.0.1:${PORT_IDENTITY:8081}/.well-known/jwks.json}
+    issuer: ${IDENTITY_ISSUER:https://identity.dexter.internal}
+    audience: billing
+  billing:
+    provider: ${BILLING_PROVIDER:mock}
+    supplier-state: ${BILLING_SUPPLIER_STATE:KA}
+    checkout:
+      lease: ${BILLING_CHECKOUT_LEASE:30s}
+    jobs:
+      enabled: ${BILLING_JOBS_ENABLED:true}
+      sweep-every: ${BILLING_SWEEP_EVERY:15s}
+      period-end-every: ${BILLING_PERIOD_END_EVERY:60s}
+      past-due-grace: ${BILLING_PAST_DUE_GRACE:3d}
+    # The mock payment provider (dev/test double): its webhooks are HMAC-signed with this secret and posted back to
+    # this service's own /v1/webhooks/mock (blank base URL = this instance's port).
+    mock-provider:
+      webhook-secret: ${BILLING_MOCK_WEBHOOK_SECRET:}
+      webhook-base-url: ${BILLING_MOCK_WEBHOOK_BASE_URL:}
+      webhook-delay: ${BILLING_MOCK_WEBHOOK_DELAY:300ms}
+      delayed-outcome-after: ${BILLING_MOCK_DELAYED_AFTER:3s}
+    relay:
+      enabled: ${BILLING_RELAY_ENABLED:true}
+      url: jdbc:postgresql://${DEXTER_PG_HOST:127.0.0.1}:${POSTGRES_PORT:5432}/billing?ApplicationName=billing-relay
+      username: billing_relay
+      password: ${PG_PW_BILLING_RELAY:${PG_PW_RELAY:}}
+      bootstrap-servers: ${KAFKA_BOOTSTRAP:127.0.0.1:${KAFKA_PORT:9092}}
 
 ---
 spring:

@@ -4,6 +4,7 @@ import com.nimbusds.jose.jwk.JWKSet;
 import in.dexter.core.time.Clocks;
 import in.dexter.db.page.KeysetPager;
 import in.dexter.db.tenant.TenantTx;
+import in.dexter.events.InboxGuard;
 import in.dexter.events.OutboxWriter;
 import in.dexter.identity.app.AccessTokens;
 import in.dexter.identity.app.AccountStore;
@@ -28,6 +29,7 @@ import in.dexter.identity.app.SessionStore;
 import in.dexter.identity.app.SigningKeyService;
 import in.dexter.identity.app.SigningKeyStore;
 import in.dexter.identity.app.Throttles;
+import in.dexter.identity.app.TierService;
 import in.dexter.identity.app.UserSecondFactor;
 import in.dexter.identity.app.VerificationTokenStore;
 import in.dexter.identity.domain.PasswordPolicy;
@@ -168,6 +170,12 @@ public class IdentityConfiguration {
   @Bean
   AccountStore accountStore(JdbcClient jdbc) {
     return new AccountRepository(jdbc);
+  }
+
+  /** P16: the tier billing announces, kept for the next token (consumer billing-tier). */
+  @Bean
+  TierService tierService(TenantTx tx, InboxGuard inbox, AccountStore accounts, JsonMapper mapper) {
+    return new TierService(tx, inbox, accounts, mapper);
   }
 
   @Bean

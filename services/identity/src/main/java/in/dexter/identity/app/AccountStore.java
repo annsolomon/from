@@ -17,4 +17,11 @@ public interface AccountStore {
 
   /** New password hash. {@code changed=false} is a transparent rehash (parameters upgraded), not a user change. */
   void updatePasswordHash(UUID id, String passwordHash, boolean changed);
+
+  /**
+   * P16: the tier billing announced, applied only when {@code version} is newer than the one the row holds (billing's
+   * per-account entitlement version). Does not touch {@code version}/{@code updated_at}: it is not a profile edit, so a
+   * client's If-Match on {@code /v1/me} stays valid. Returns false for a stale (or unknown) account.
+   */
+  boolean updateTier(UUID id, String tier, long version);
 }

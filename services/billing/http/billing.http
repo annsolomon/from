@@ -7,3 +7,40 @@ GET http://localhost:8087/actuator/health/liveness
 
 ### billing prometheus
 GET http://localhost:8087/actuator/prometheus
+
+### P16 plans (public)
+GET http://localhost:8080/v1/plans
+
+### P16 one plan
+GET http://localhost:8080/v1/plans/premium
+
+### P16 checkout (step-up: a token from a login in the last 10 minutes). pm_mock_success | pm_mock_decline |
+### pm_mock_insufficient | pm_mock_delayed | pm_mock_delayed_decline
+POST http://localhost:8080/v1/subscriptions/checkout
+Authorization: Bearer {{token}}
+Idempotency-Key: {{$uuid}}
+Content-Type: application/json
+
+{"plan": "PREMIUM", "paymentMethod": "pm_mock_success", "billingState": "KA"}
+
+### P16 the account's subscription
+GET http://localhost:8080/v1/subscriptions/me
+Authorization: Bearer {{token}}
+
+### P16 cancel at period end (step-up)
+POST http://localhost:8080/v1/subscriptions/me:cancel
+Authorization: Bearer {{token}}
+
+### P16 entitlements (cached 60 s)
+GET http://localhost:8080/v1/entitlements/me
+Authorization: Bearer {{token}}
+
+### P16 invoices (keyset)
+GET http://localhost:8080/v1/invoices?limit=25
+Authorization: Bearer {{token}}
+
+### P16 a webhook without a signature: 400 WEBHOOK_SIGNATURE_INVALID
+POST http://localhost:8080/v1/webhooks/mock
+Content-Type: application/json
+
+{"id": "evt_manual", "type": "payment.succeeded", "data": {}}

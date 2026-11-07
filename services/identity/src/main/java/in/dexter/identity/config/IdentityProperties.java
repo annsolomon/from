@@ -32,6 +32,7 @@ public record IdentityProperties(
     @DefaultValue Mail mail,
     @DefaultValue Hashing hashing,
     @DefaultValue Relay relay,
+    @DefaultValue Consumers consumers,
     @DefaultValue Security security,
     @DefaultValue Admin admin) {
 
@@ -71,6 +72,9 @@ public record IdentityProperties(
   /** Outbox relay (MASTER_PLAN 6.3) as identity_relay, plus topic creation and the idempotency-key purge. */
   public record Relay(@DefaultValue("false") boolean enabled, String url, String username, String password,
       String bootstrapServers, @DefaultValue("3") int partitions, @DefaultValue("1") short replication) {}
+
+  /** P16: the billing-tier consumer on {@code dexter.billing.entitlements.v1} (MASTER_PLAN 6.2 retries). */
+  public record Consumers(@DefaultValue("false") boolean enabled, String bootstrapServers) {}
 
   /**
    * P05: second factor and throttling (MASTER_PLAN 7.1). Login: {@code free} failures without delay, then
