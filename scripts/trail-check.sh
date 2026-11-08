@@ -6,7 +6,7 @@ set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
 source scripts/lib/services.sh
-PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html p05-mfa-admin.html p06-gateway.html p07-ledger.html p08-ledger-plus.html p09-catalog.html p10-ingestion.html p11-portfolio.html p12-statements.html p12-calc.html p13-planning.html p14-reco.html p15-wallet-sse.html p16-billing.html})
+PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html p05-mfa-admin.html p06-gateway.html p07-ledger.html p08-ledger-plus.html p09-catalog.html p10-ingestion.html p11-portfolio.html p12-statements.html p12-calc.html p13-planning.html p14-reco.html p15-wallet-sse.html p16-billing.html p17-commerce.html})
 BASE=http://127.0.0.1:8099
 fail=0
 
@@ -459,6 +459,50 @@ wsig=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 -H 'Content-Type: app
   -d '{"id":"evt_trail","type":"payment.succeeded","data":{}}' "$BASE/api/v1/webhooks/mock")
 if [[ $wsig == 400 ]]; then printf 'PASS  %-10s %s\n' p16-unsigned 400
 else printf 'FAIL  %-10s %s\n' p16-unsigned "$wsig"; fail=1; fi
+
+# P17: what p17-commerce.html Live mode drives - on a deal and an account CREATED for this run (p17_smoke.py --setup:
+# an operator creates the deal in a fresh category, a new account is registered). The feed is asserted to hold
+# exactly that deal before anything is said about its saving, its link or the application.
+p17=$(python3 scripts/lib/p17_smoke.py --setup http://127.0.0.1:8080 http://127.0.0.1:8025 2>/dev/null | tail -n1)
+read -r p17cat p17deal p17path ct <<< "$(printf '%s' "$p17" | jget category dealId clickPath access)"
+if [[ -n ${ct:-} && -n ${p17deal:-} ]]; then printf 'PASS  %-10s %s\n' p17-setup "deal + account created for this run"
+else printf 'FAIL  %-10s %s\n' p17-setup "${p17:0:200}"; fail=1; fi
+fd=$(curl -s --max-time 5 "$BASE/api/v1/deals?category=$p17cat" | python3 -c '
+import json, sys
+d = json.load(sys.stdin)["data"]
+print(len(d), d[0]["id"] if d else "-", d[0]["clickPath"].startswith("/r/") if d else False, "landingUrl" in (d[0] if d else {}))
+' 2>/dev/null)
+if [[ $fd == "1 $p17deal True False" ]]; then printf 'PASS  %-10s %s\n' p17-feed "public, exactly the deal created, signed link, no affiliate URL"
+else printf 'FAIL  %-10s %s\n' p17-feed "$fd"; fail=1; fi
+gs=$(curl -s --max-time 5 "$BASE/api/v1/deals/$p17deal" | jget totalSavingsPaise)
+if [[ $gs == 700000 ]]; then printf 'PASS  %-10s %s\n' p17-golden "₹75,000 -> ₹7,000"
+else printf 'FAIL  %-10s %s\n' p17-golden "$gs"; fail=1; fi
+rd=$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' --max-time 5 "$BASE/api$p17path")
+if [[ $rd == "302 https://merchant.example/smoke?ref=dexter&subid="* ]]; then printf 'PASS  %-10s %s\n' p17-redirect "302 + subid"
+else printf 'FAIL  %-10s %s\n' p17-redirect "$rd"; fail=1; fi
+bad=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$BASE/api/r/$(printf 'A%.0s' $(seq 1 86))")
+if [[ $bad == 400 ]]; then printf 'PASS  %-10s %s\n' p17-badlink 400
+else printf 'FAIL  %-10s %s\n' p17-badlink "$bad"; fail=1; fi
+an=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$BASE/api/v1/card-applications")
+if [[ $an == 401 ]]; then printf 'PASS  %-10s %s\n' p17-anon 401
+else printf 'FAIL  %-10s %s\n' p17-anon "$an"; fail=1; fi
+cid=$(curl -s --max-time 5 "$BASE/api/v1/catalog/cards/mock-saffron-millennia-cashback" | jget id)
+ap=$(curl -s --max-time 10 -H "Authorization: Bearer $ct" -H 'Content-Type: application/json' \
+  -H "Idempotency-Key: $(cat /proc/sys/kernel/random/uuid)" -d "{\"cardProductId\":\"$cid\"}" \
+  "$BASE/api/v1/card-applications" | jget status)
+apl=$(curl -s --max-time 5 -H "Authorization: Bearer $ct" "$BASE/api/v1/card-applications" | python3 -c '
+import json, sys; d = json.load(sys.stdin)["data"]; print(len(d), d[0]["status"] if d else "-")' 2>/dev/null)
+if [[ $ap == submitted && $apl == "1 submitted" ]]; then printf 'PASS  %-10s %s\n' p17-apply "201 submitted, listed (1)"
+else printf 'FAIL  %-10s %s\n' p17-apply "apply=$ap list=$apl"; fail=1; fi
+ad=$(curl -s --max-time 5 -H "Authorization: Bearer $ct" "$BASE/api/v1/ads/serve?placement=home" | python3 -c '
+import json, sys; d = json.load(sys.stdin); print(d["placement"], d["ad"] is not None or d["reason"] in ("NO_FILL", "FREQUENCY_CAPPED"))' 2>/dev/null)
+if [[ $ad == "home True" ]]; then printf 'PASS  %-10s %s\n' p17-ads "an ad or a reason, never an error"
+else printf 'FAIL  %-10s %s\n' p17-ads "$ad"; fail=1; fi
+pb=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 -H 'Content-Type: application/json' \
+  -d '{"ref":"trail","status":"pending","amountPaise":1,"commissionPaise":0,"occurredAt":"2026-11-08T00:00:00Z"}' \
+  "$BASE/api/v1/webhooks/affiliate/mock")
+if [[ $pb == 400 ]]; then printf 'PASS  %-10s %s\n' p17-unsigned 400
+else printf 'FAIL  %-10s %s\n' p17-unsigned "$pb"; fail=1; fi
 
 echo "trail-check: $([[ $fail -eq 0 ]] && echo PASS || echo FAIL)"
 exit $fail

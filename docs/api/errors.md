@@ -306,3 +306,29 @@ A recomputed result that is **unchanged** is not an error and not an event: equa
 A webhook that names no Dexter payment is acknowledged `200 ignored`, not an error: a provider retries anything that
 is not 2xx, and there is nothing to retry.
 
+### commerce (P17, `CommerceErrors` + core codes)
+
+| Code | Status | When |
+|---|---|---|
+| `USER_TOKEN_REQUIRED` | 403 | A card-application endpoint called with an admin-console token. |
+| `ADMIN_TOKEN_REQUIRED` | 403 | `/v1/admin/commerce/**` with a user token, or an admin token holding no operator role (SUPPORT, CATALOG_EDITOR, SUPER_ADMIN). |
+| `DEAL_NOT_FOUND` | 404 | `GET /v1/deals/{id}` for no deal, a draft, or one that is not live now (paused, ended, outside its validity). |
+| `CLICK_TOKEN_INVALID` | 400 | `GET /r/{token}` with a token that is not one this service signed (altered, truncated, another key). |
+| `CLICK_TOKEN_EXPIRED` | 410 | A signed link past its 7 days: re-open the deal for a fresh one. |
+| `DEAL_UNAVAILABLE` | 410 | A valid link to a deal that has since ended or been paused. No click is logged. |
+| `AD_NOT_FOUND` | 410 | A valid ad link whose creative or campaign is no longer active. |
+| `UNKNOWN_CARD_PRODUCT` | 400 | Field error on `cardProductId` (code `VALIDATION_FAILED`): the catalog has not published that card. |
+| `APPLICATION_EXISTS` | 409 | An application while one for the same card is submitted or in review. Enforced by the database (`card_applications_one_open`), so a concurrent race with different keys gets it too. |
+| `APPLICATION_NOT_FOUND` | 404 | No such application for this caller. |
+| `APPLICATION_NOT_OPEN` | 409 | Withdrawing an application that is already decided or withdrawn. |
+| `APPLICATION_TRANSITION_INVALID` | 409 | A decision the status does not allow (e.g. approving a rejected one; `in_review` from `in_review`). |
+| `PLACEMENT_UNKNOWN` | 400 | `GET /v1/ads/serve` for a placement that does not exist (`home`, `deal-detail`, `dashboard`). |
+| `NETWORK_UNKNOWN` | 404 | A postback for an affiliate network with no configured secret. |
+| `POSTBACK_SIGNATURE_INVALID` | 400 | No `Postback-Signature`, a malformed or stale one, or one that does not match the raw body. |
+| `CAMPAIGN_NOT_FOUND` / `CREATIVE_NOT_FOUND` | 404 | Admin campaign endpoints for an id that does not exist. |
+| `STATS_RANGE_INVALID` | 400 | `from`/`to` not `YYYY-MM-DD`, `from > to`, or more than 92 days. |
+| `VERSION_CONFLICT` | 412 | A decision, deal status or campaign change whose If-Match is not the current version. |
+
+An unattributable postback (its `subid` names no logged click) is still stored and answered `created`: the network's
+numbers must reconcile with ours even when the click is older than the raw-click retention.
+

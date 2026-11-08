@@ -217,7 +217,8 @@
   const secretB32 = () => Array.from(crypto.getRandomValues(new Uint8Array(32)), b => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'[b & 31]).join('');
   const b64 = o => btoa(JSON.stringify(o)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   const M = { users: new Map(), admins: new Map(), challenges: new Map(), fails: new Map(), refresh: new Map(), invites: new Map(), elevations: new Map(), mail: [] };
-  const PERMS = { SUPPORT: ['accounts:read', 'audit:read'], CATALOG_EDITOR: ['catalog:read', 'catalog:write', 'catalog:publish'],
+  const PERMS = { SUPPORT: ['accounts:read', 'audit:read', 'commerce:read', 'commerce:decide'],
+    CATALOG_EDITOR: ['catalog:read', 'catalog:write', 'catalog:publish', 'commerce:read', 'commerce:write'],
     FINANCE: ['accounts:read', 'billing:read', 'billing:refund'] };
   PERMS.SUPER_ADMIN = [...new Set([...Object.values(PERMS).flat(), 'accounts:write', 'admins:read', 'admins:write'])];
   const jwt = c => b64({ alg: 'ES256', typ: 'at+jwt', kid: 'mock' }) + '.' + b64(c) + '.mock-signature';

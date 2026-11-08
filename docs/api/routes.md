@@ -109,6 +109,8 @@ breaker (Resilience4j, per service) and a 10 s response timeout.
 | `/v1/card-applications` | `POST /v1/card-applications` | commerce | token | write | P17 |
 | `/v1/card-applications/**` | `GET /v1/card-applications/0192a5a1-0000-7000-8000-000000000e03` | commerce | token | read | P17 |
 | `/v1/ads/**` | `GET /v1/ads/serve?placement=home` | commerce | public | read | P17 |
+| `/v1/admin/commerce/**` | `POST /v1/admin/commerce/card-applications/0192a5a1-0000-7000-8000-000000000e04:decide` | commerce | token | write | P17 |
+| `/r/**` | `GET /r/AQFkAAAAAAAAAAAAAAAAAAAAAA` | commerce | public | read | P17 |
 | `/v1/notifications` | `GET /v1/notifications` | audit | token | read | P18 |
 | `/v1/notifications/**` | `POST /v1/notifications/0192a5a1-0000-7000-8000-000000000f02:read` | audit | token | write | P18 |
 | `/v1/notification-prefs` | `GET /v1/notification-prefs` | audit | token | read | P18 |
@@ -222,6 +224,26 @@ billing changes, so both need a recent sign-in (step-up, MASTER_PLAN 7.1).
 | `GET /v1/entitlements/me` | the tier and the effective feature map (plan + unexpired overrides), cached 60 s per account; the tier is also the `tier` claim of the next token identity issues |
 | `GET /v1/invoices` / `GET /v1/invoices/{id}` | the account's invoices, newest first (keyset), each with its lines: the item and CGST + SGST or IGST |
 | `POST /v1/webhooks/{provider}` | public; the provider's HMAC signature (`Webhook-Signature: t=..,v1=..`, ±5 min) is the credential. 200 `processed` / `duplicate` / `ignored`; 400 for a bad signature or payload, 404 for an unknown provider |
+
+## `/v1/deals`, `/r/{token}`, `/v1/card-applications`, `/v1/ads`, `/v1/webhooks/affiliate`, `/v1/admin/commerce` (P17, commerce)
+
+The feed, a deal, the ad slot and the redirect are public; a user token, when sent, must verify (else 401) and then
+personalises card-match and ad-free. Money is paise, rates basis points (ADR-0023).
+
+| Path | What it does |
+|---|---|
+| `GET /v1/deals?category=&limit=&cursor=` | the ranked marketplace: `score = 0.8·(0.6·cardMatch + 0.4·savingsNorm) + 0.2·sponsor` over the bounded active set, keyset-paged on (score, priority, id). Each deal has its saving at its reference spend, `cardMatch` `held` / `open` / `other` (a ranking branch, never a filter) and a signed `clickPath` |
+| `GET /v1/deals/{id}?spendPaise=` | one live deal with each component's saving at that spend (default: the reference spend); every component is capped on its own (₹75,000 at 10 % cap ₹5,000 + 5 % cap ₹2,000 = ₹7,000) |
+| `GET /r/{token}` | the signed click redirect: 302 to the merchant with `subid=<click id>` (or to the ad's URL), `Cache-Control: no-store`, `Referrer-Policy: no-referrer`. 400 `CLICK_TOKEN_INVALID` for an altered token, 410 `CLICK_TOKEN_EXPIRED` after 7 days, 410 `DEAL_UNAVAILABLE` once the deal ended |
+| `POST /v1/card-applications` | user token, Idempotency-Key **required**: `{cardProductId}` → 201 submitted. 400 `UNKNOWN_CARD_PRODUCT` (field error) for a card the catalog has not published, 409 `APPLICATION_EXISTS` while one is open for the same card |
+| `GET /v1/card-applications` / `GET /v1/card-applications/{id}` | the account's applications, newest first (keyset), each with its status history |
+| `POST /v1/card-applications/{id}:withdraw` | withdraw an open application (409 `APPLICATION_NOT_OPEN` once decided) |
+| `GET /v1/ads/serve?placement=` | one ad or none: `{placement, ad, reason}` with reason `AD_FREE` (billing's `adFree` entitlement), `NO_FILL` or `FREQUENCY_CAPPED`. Weighted rotation; per-visitor frequency caps |
+| `POST /v1/webhooks/affiliate/{network}` | public; `Postback-Signature: t=..,v1=..` (±5 min) is the credential. `{ref, subid, status, amountPaise, commissionPaise, occurredAt}` → 200 `created` / `updated` / `duplicate` (idempotent by network + ref). 404 `NETWORK_UNKNOWN`, 400 `POSTBACK_SIGNATURE_INVALID` |
+| `POST /v1/admin/commerce/deals` / `GET` / `GET /{id}` / `POST /{id}:status` (If-Match) | `commerce:write` / `commerce:read`: deals and their status (draft → active ⇄ paused → ended) |
+| `GET /v1/admin/commerce/card-applications` / `GET /{id}` / `POST /{id}:decide` (If-Match) | `commerce:read` / `commerce:decide`: the open queue, oldest first; `{decision: in_review \| approved \| rejected, reason}` (a rejection needs a reason) |
+| `POST /v1/admin/commerce/campaigns` / `GET` / `GET /{id}` / `PUT /{id}` (If-Match) / `DELETE /{id}` / `POST /{id}/creatives` / `PUT /{id}/creatives/{cid}` (If-Match) | `commerce:write` / `commerce:read`: campaign CRUD (DELETE ends it) and its creatives |
+| `GET /v1/admin/commerce/stats?from=&to=` | `commerce:read`: per deal clicks, daily uniques, conversions and approved commission; per campaign impressions and clicks — from the maintained counters, IST days, at most 92 |
 
 ## Not routed (on purpose)
 

@@ -63,7 +63,8 @@ class AdminIT extends IdentityIT {
     JsonNode claims = claims(c.access());
     assertThat(claims.get("scope").asString()).isEqualTo("admin");
     assertThat(MfaFlowIT.texts(claims.get("roles"))).containsExactly("SUPPORT");
-    assertThat(MfaFlowIT.texts(claims.get("perms"))).containsExactlyInAnyOrder("accounts:read", "audit:read");
+    assertThat(MfaFlowIT.texts(claims.get("perms"))).containsExactlyInAnyOrder("accounts:read", "audit:read",
+        "commerce:read", "commerce:decide");
     assertThat(MfaFlowIT.texts(claims.get("amr"))).contains("mfa");
 
     Res me = get("/v1/admin/me", bearer(c.access()));

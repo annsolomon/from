@@ -6,6 +6,30 @@ spring:
       enabled: true
   main:
     banner-mode: "off"
+  # P17: runtime pool = commerce_app (RLS-bound, NOBYPASSRLS). Passwords come from the environment (.env in dev).
+  datasource:
+    url: jdbc:postgresql://${DEXTER_PG_HOST:127.0.0.1}:${POSTGRES_PORT:5432}/commerce?ApplicationName=commerce
+    username: commerce_app
+    password: ${PG_PW_COMMERCE_APP:${PG_PW_APP:}}
+    hikari:
+      maximum-pool-size: ${COMMERCE_DB_POOL:20}
+      connection-timeout: 5000
+  # P17: click / impression counters, uniques, frequency caps. Per-service ACL user (infra/redis/acl.tmpl: keys
+  # commerce:*; every compound step is a Lua script of the ACL's commands).
+  data:
+    redis:
+      host: ${DEXTER_REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      username: commerce
+      password: ${REDIS_PW_COMMERCE:${REDIS_PW_SERVICE:}}
+      timeout: 200ms
+      connect-timeout: 1s
+  # Migrations run as the schema owner (MASTER_PLAN 3.1); the app role has no DDL rights.
+  flyway:
+    user: commerce_owner
+    password: ${PG_PW_COMMERCE_OWNER:${PG_PW_OWNER:}}
+    schemas: commerce
+    clean-disabled: true
 
 server:
   port: ${PORT_COMMERCE:8088}
@@ -29,6 +53,51 @@ logging:
   pattern:
     # X-Request-Id on every console line (dexter-web RequestIdFilter puts it in the MDC)
     level: "%5p [%X{requestId:-}]"
+
+dexter:
+  db:
+    schema: commerce
+  # Keyset cursors (MASTER_PLAN 4.2): HMAC keys from the environment.
+  cursor:
+    active-kid: c1
+    keys:
+      c1: ${COMMERCE_CURSOR_KEY_C1:}
+  # Card applications need a user token (audience "commerce") and /v1/admin/commerce/** an admin token. The feed,
+  # a deal, the ad slot and /r/{token} are public with an optional user token (ViewerResolver); the affiliate
+  # postbacks are public and HMAC-signed.
+  security:
+    jwks-uri: ${IDENTITY_JWKS_URI:http://127.0.0.1:${PORT_IDENTITY:8081}/.well-known/jwks.json}
+    issuer: ${IDENTITY_ISSUER:https://identity.dexter.internal}
+    audience: commerce
+  commerce:
+    clicks:
+      # HMAC key of the /r/{token} links (base64, >= 32 bytes) and the salt of the ip / user-agent / visitor hashes
+      token-key: ${COMMERCE_CLICK_TOKEN_KEY:}
+      link-ttl: ${COMMERCE_LINK_TTL:7d}
+      hash-salt: ${COMMERCE_HASH_SALT:}
+    feed:
+      max-active: ${COMMERCE_FEED_MAX_ACTIVE:500}
+    admin:
+      db-url: ""
+      db-username: commerce_admin
+      db-password: ${PG_PW_COMMERCE_ADMIN:${PG_PW_ADMIN:}}
+      db-pool-size: 5
+    jobs:
+      enabled: ${COMMERCE_JOBS_ENABLED:true}
+      flush-every: ${COMMERCE_FLUSH_EVERY:10s}
+    # Affiliate networks and their postback HMAC secrets (blank = the network is not accepted). `mock` is the dev
+    # network the smoke and the trail page post as.
+    affiliate-secrets:
+      mock: ${COMMERCE_AFFILIATE_SECRET_MOCK:}
+    consumers:
+      enabled: ${COMMERCE_CONSUMERS_ENABLED:true}
+      bootstrap-servers: ${KAFKA_BOOTSTRAP:127.0.0.1:${KAFKA_PORT:9092}}
+    relay:
+      enabled: ${COMMERCE_RELAY_ENABLED:true}
+      url: jdbc:postgresql://${DEXTER_PG_HOST:127.0.0.1}:${POSTGRES_PORT:5432}/commerce?ApplicationName=commerce-relay
+      username: commerce_relay
+      password: ${PG_PW_COMMERCE_RELAY:${PG_PW_RELAY:}}
+      bootstrap-servers: ${KAFKA_BOOTSTRAP:127.0.0.1:${KAFKA_PORT:9092}}
 
 ---
 spring:

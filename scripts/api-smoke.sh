@@ -38,6 +38,10 @@
 #        decline, a checkout (replay, 422, a second one refused), invoices with GST lines that add up, entitlements,
 #        the tier arriving in a REFRESHED token over Kafka, a delayed payment decided by the provider's own HTTP
 #        webhook, cancel at period end, webhook signatures and replay. Every collection is asserted NOT EMPTY first.
+#   P17: commerce via the gateway (scripts/lib/p17_smoke.py) on deals, campaigns and accounts the smoke creates: the
+#        ranked feed, the savings golden, card-match after portfolio's event, the signed redirect, postbacks
+#        (created / replayed / approved), the flushed stats, an application decided by an operator, a frequency
+#        cap, ad-free after a real PREMIUM checkout. Every collection is asserted NOT EMPTY first.
 # Later phases append their checks below the P00 block. Output also goes to $SMOKE_OUT if set.
 set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -197,6 +201,12 @@ log "# P16 billing via gateway (:8080): checkout (Mode B) with the mock provider
 p16=$(python3 "$ROOT/scripts/lib/p16_smoke.py" "http://localhost:8080" "http://127.0.0.1:8025" 2>&1); p16rc=$?
 while IFS= read -r line; do log "$line"; done <<< "$p16"
 [[ $p16rc -eq 0 ]] || fail=1
+
+# ------------------------------------------------------------------ P17: commerce through the gateway
+log "# P17 commerce via gateway (:8080): deals, signed clicks, postbacks, applications, ads with caps and ad-free"
+p17=$(python3 "$ROOT/scripts/lib/p17_smoke.py" "http://localhost:8080" "http://127.0.0.1:8025" 2>&1); p17rc=$?
+while IFS= read -r line; do log "$line"; done <<< "$p17"
+[[ $p17rc -eq 0 ]] || fail=1
 # Outbox -> Kafka (MASTER_PLAN 6.3): every identity event written above is published by the relay within 30 s.
 COMPOSE=(docker compose --env-file "$ROOT/.env" -f "$ROOT/infra/compose/docker-compose.yml")
 outbox() { "${COMPOSE[@]}" exec -T postgres psql -U "${POSTGRES_USER:-postgres}" -d identity -tA -c "$1" 2>/dev/null | tr -d '[:space:]'; }
@@ -300,6 +310,33 @@ else log "FAIL  billing webhook_events: total=${whn:-?} unprocessed=${whopen:-?}
 tin=$("${COMPOSE[@]}" exec -T postgres psql -U "${POSTGRES_USER:-postgres}" -d identity -tA -c "SELECT count(*) FROM identity.inbox WHERE consumer = 'billing-tier'" 2>/dev/null | tr -d '[:space:]')
 if [[ ${tin:-0} -gt 0 ]]; then log "PASS  billing-tier inbox: $tin entitlement events consumed by identity"
 else log "FAIL  billing-tier inbox: identity consumed no billing events"; fail=1; fi
+
+# P17: commerce's outbox drains to its topic; its three consumers consumed catalog, portfolio and billing events; the
+# raw tables and the maintained counters hold what the smoke created (asserted non-empty, then consistent)
+cq() { "${COMPOSE[@]}" exec -T postgres psql -U "${POSTGRES_USER:-postgres}" -d commerce -tA -c "$1" 2>/dev/null | tr -d '[:space:]'; }
+cp_=x; cpub=0
+for _ in $(seq 1 30); do
+  cp_=$(cq "SELECT count(*) FROM commerce.outbox WHERE published_at IS NULL")
+  cpub=$(cq "SELECT count(*) FROM commerce.outbox WHERE published_at IS NOT NULL AND event_type LIKE 'commerce.%'")
+  [[ $cp_ == 0 && ${cpub:-0} -gt 0 ]] && break
+  sleep 1
+done
+if [[ $cp_ == 0 && ${cpub:-0} -gt 0 ]]; then log "PASS  commerce outbox -> Kafka: $cpub events published, 0 pending"
+else log "FAIL  commerce outbox -> Kafka: pending=$cp_ published=$cpub"; fail=1; fi
+n=$("${COMPOSE[@]}" exec -T kafka /opt/kafka/bin/kafka-get-offsets.sh --bootstrap-server localhost:9092 \
+  --topic dexter.commerce.application.v1 2>/dev/null | awk -F: '{s+=$3} END {print s+0}')
+if [[ ${n:-0} -gt 0 ]]; then log "PASS  dexter.commerce.application.v1: $n events"; else log "FAIL  dexter.commerce.application.v1: no events"; fail=1; fi
+for c in catalog-cards held-cards ad-free; do
+  m=$(cq "SELECT count(*) FROM commerce.inbox WHERE consumer = '$c'")
+  if [[ ${m:-0} -gt 0 ]]; then log "PASS  commerce $c inbox: $m events consumed"
+  else log "FAIL  commerce $c inbox: nothing consumed"; fail=1; fi
+done
+raw=$(cq "SELECT count(*) FROM commerce.deal_clicks"); counted=$(cq "SELECT coalesce(sum(clicks), 0) FROM commerce.deal_click_counters")
+if [[ ${raw:-0} -gt 0 && ${counted:-0} -gt 0 && ${counted:-0} -le ${raw:-0} ]]; then log "PASS  commerce clicks: $raw raw rows, $counted flushed into the counters"
+else log "FAIL  commerce clicks: raw=${raw:-?} counted=${counted:-?}"; fail=1; fi
+conv=$(cq "SELECT count(*) FROM commerce.conversions WHERE click_id IS NOT NULL"); imp=$(cq "SELECT count(*) FROM commerce.ad_impressions_raw")
+if [[ ${conv:-0} -gt 0 && ${imp:-0} -gt 0 ]]; then log "PASS  commerce: $conv attributed conversions, $imp ad impressions"
+else log "FAIL  commerce: conversions=${conv:-?} impressions=${imp:-?}"; fail=1; fi
 
 log "# summary: $([[ $fail -eq 0 ]] && echo PASS || echo FAIL)"
 exit $fail

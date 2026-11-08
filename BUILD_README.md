@@ -266,6 +266,14 @@ on top of `9430059` gets its own run).
 
 ## 3. Verification of previous phase
 
+### P16 re-verified in the P17 chat (latest report on `verify-reports`: CI run 42450718047, git 2a0fcb2, 2026-11-08)
+
+Read, not re-run: `RUN.txt` says `verify_full=success`, `trail_check=success` for `2a0fcb2` (the P16 docs commit on
+top of `9430059`). `steps.tsv` has all **22** steps PASS, no SKIP; all 25 reactor modules SUCCESS; `services/billing`
+surefire + failsafe XML **64 tests, 0 failures, 0 errors**; api-smoke **529 PASS / 0 FAIL**; trail-check **105 PASS /
+0 FAIL / 0 SKIP** including `p16-*` 9/9 (the account, checkout, webhook, invoice, tier and cancel checks all ran on an
+account the block registered itself). P16 stands as DONE; nothing to fix before P17.
+
 ### P15 re-verified in the P16 chat (latest report on `verify-reports`: CI run 42134809373, git 67eb956, 2026-11-06)
 
 Read, not re-run: `RUN.txt` says `verify_full=success`, `trail_check=success` for `67eb956` (the P15 docs commit on

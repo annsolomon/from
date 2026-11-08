@@ -36,7 +36,8 @@ public final class RouteTable {
           "/v1/plans", "/v1/plans/**", "/v1/subscriptions/**", "/v1/entitlements/**", "/v1/invoices",
           "/v1/invoices/**", "/v1/webhooks/**"),
       ServiceRoute.of("commerce",
-          "/v1/deals", "/v1/deals/**", "/v1/card-applications", "/v1/card-applications/**", "/v1/ads/**"),
+          "/v1/deals", "/v1/deals/**", "/v1/card-applications", "/v1/card-applications/**", "/v1/ads/**",
+          "/v1/admin/commerce/**", "/r/**"),
       ServiceRoute.of("audit",
           "/v1/notifications", "/v1/notifications/**", "/v1/notification-prefs", "/v1/notification-prefs/**",
           "/v1/privacy/**", "/v1/admin/audit", "/v1/admin/audit/**", "/v1/admin/audit:*",
@@ -44,8 +45,9 @@ public final class RouteTable {
 
   /**
    * Reachable without a token (early rejection is skipped; the service applies its own rules). Sign-in flows,
-   * JWKS, public catalog / plans / deals / ads reads, provider webhooks (HMAC-verified by the service) and the SSE
-   * stream (one-time ticket in the query, EventSource cannot send headers).
+   * JWKS, public catalog / plans / deals / ads reads, the signed click redirect {@code /r/{token}} (P17: the token is
+   * the credential, a browser follows it without headers), provider webhooks (HMAC-verified by the service) and the
+   * SSE stream (one-time ticket in the query, EventSource cannot send headers).
    */
   public static final List<PublicRoute> PUBLIC = List.of(
       new PublicRoute("POST", "/v1/auth/register"),
@@ -67,6 +69,7 @@ public final class RouteTable {
       new PublicRoute("GET", "/v1/deals"),
       new PublicRoute("GET", "/v1/deals/**"),
       new PublicRoute("GET", "/v1/ads/serve"),
+      new PublicRoute("GET", "/r/**"),
       new PublicRoute("POST", "/v1/webhooks/**"),
       new PublicRoute("GET", "/v1/recommendations/stream"));
 

@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dexter.in/events/commerce.application.status-changed.v1.json",
+  "title": "commerce.application.status-changed v1 - a card application was submitted, reviewed, approved, rejected or withdrawn (topic dexter.commerce.application.v1, key = account id).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "applicationId",
+    "cardProductId",
+    "status",
+    "previousStatus",
+    "reason",
+    "version",
+    "changedAt"
+  ],
+  "properties": {
+    "applicationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "cardProductId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "submitted",
+        "in_review",
+        "approved",
+        "rejected",
+        "withdrawn"
+      ]
+    },
+    "previousStatus": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^(submitted|in_review)$"
+    },
+    "reason": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 500
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "changedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

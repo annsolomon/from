@@ -14,6 +14,7 @@ import in.dexter.contracts.events.planning.BudgetThresholdCrossedV1;
 import in.dexter.contracts.events.planning.LiabilityChangedV1;
 import in.dexter.contracts.events.billing.EntitlementsChangedV1;
 import in.dexter.contracts.events.billing.SubscriptionChangedV1;
+import in.dexter.contracts.events.commerce.ApplicationStatusChangedV1;
 import in.dexter.contracts.events.portfolio.CardChangedV1;
 import in.dexter.contracts.events.reco.RecommendationUpdatedV1;
 import in.dexter.contracts.events.portfolio.LinkConfirmedV1;
@@ -136,6 +137,10 @@ class SchemaContractTest {
         UUID.fromString("0192f1e2-0000-7000-8000-000000000f02"), "PREMIUM",
         new java.util.TreeMap<>(Map.of("adFree", true, "cardsMax", 10, "walletOptimizer", true)), 1,
         "2026-11-08T09:00:00Z"));
+    // P17 commerce
+    SAMPLES.put("commerce.application.status-changed.v1.json", new ApplicationStatusChangedV1(
+        UUID.fromString("0192f1e2-0000-7000-8000-000000000c01"), UUID.fromString("0192f1e2-0000-7000-8000-000000000c02"),
+        "approved", "in_review", "Meets the issuer's criteria", 2, "2026-11-08T12:00:00Z"));
   }
 
   static JsonNode schema(String file) throws IOException {

@@ -7,3 +7,62 @@ GET http://localhost:8088/actuator/health/liveness
 
 ### commerce prometheus
 GET http://localhost:8088/actuator/prometheus
+
+### P17 the marketplace feed (public; a user token personalises card-match)
+GET http://localhost:8080/v1/deals?limit=10
+Authorization: Bearer {{token}}
+
+### P17 one deal with its savings at a spend (₹75,000)
+GET http://localhost:8080/v1/deals/{{dealId}}?spendPaise=7500000
+
+### P17 the signed redirect (clickPath from the feed): 302 to the merchant with subid=<click id>
+GET http://localhost:8080{{clickPath}}
+
+### P17 apply for a card (Idempotency-Key required)
+POST http://localhost:8080/v1/card-applications
+Authorization: Bearer {{token}}
+Idempotency-Key: {{$uuid}}
+Content-Type: application/json
+
+{"cardProductId": "{{cardProductId}}"}
+
+### P17 my applications
+GET http://localhost:8080/v1/card-applications
+Authorization: Bearer {{token}}
+
+### P17 an ad for a slot (home | deal-detail | dashboard)
+GET http://localhost:8080/v1/ads/serve?placement=home
+Authorization: Bearer {{token}}
+
+### P17 affiliate postback (Postback-Signature: t=<unix>,v1=<hex HMAC-SHA256 of "<t>." + body>)
+POST http://localhost:8080/v1/webhooks/affiliate/mock
+Postback-Signature: {{postbackSignature}}
+Content-Type: application/json
+
+{"ref": "ord-1", "subid": "{{clickId}}", "status": "approved", "amountPaise": 250000, "commissionPaise": 10000, "occurredAt": "2026-11-08T10:00:00Z"}
+
+### P17 admin: create a deal (commerce:write)
+POST http://localhost:8080/v1/admin/commerce/deals
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"merchantId": "0192f1e2-0000-7000-8000-00000000e001", "merchantName": "Mock Mart", "title": "10% off, capped",
+ "categoryPath": "shopping.online", "components": [{"kind": "percent", "valueBps": 1000, "capPaise": 500000},
+ {"kind": "percent", "valueBps": 500, "capPaise": 200000}], "eligibleCardProducts": [], "referenceSpendPaise": 7500000,
+ "network": "mock", "landingUrl": "https://merchant.example/p", "commissionBps": 400}
+
+### P17 admin: the open application queue, then a decision (If-Match = the application's version)
+GET http://localhost:8080/v1/admin/commerce/card-applications
+Authorization: Bearer {{adminToken}}
+
+###
+POST http://localhost:8080/v1/admin/commerce/card-applications/{{applicationId}}:decide
+Authorization: Bearer {{adminToken}}
+If-Match: "1"
+Content-Type: application/json
+
+{"decision": "approved", "reason": "Meets the issuer's criteria"}
+
+### P17 admin: stats over IST days
+GET http://localhost:8080/v1/admin/commerce/stats?from=2026-11-01&to=2026-11-08
+Authorization: Bearer {{adminToken}}

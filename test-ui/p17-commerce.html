@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dexter trail · P17 commerce</title>
+  <link rel="stylesheet" href="trail.css">
+  <style>
+    .deal { border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; margin: 6px 0; }
+    .deal h4 { margin: 0 0 4px; }
+    .deal .save { font-family: var(--mono); font-size: 16px; }
+    .chip { display: inline-block; border: 1px solid var(--line); border-radius: 10px; padding: 1px 8px;
+      font-family: var(--mono); font-size: 11px; margin: 2px 4px 2px 0; }
+    .chip.on { border-color: var(--ok); color: var(--ok); }
+    .chip.warn { border-color: var(--warn); color: var(--warn); }
+    .chip.off { color: var(--muted); }
+    table.lines td.n, table.lines th.n { text-align: right; font-family: var(--mono); }
+    .ad { border: 1px dashed var(--line); border-radius: 6px; padding: 8px 10px; }
+    #clicks div, #conv div { font-family: var(--mono); font-size: 11px; padding: 2px 0; border-bottom: 1px solid var(--line); }
+    pre.out { white-space: pre-wrap; max-height: 220px; overflow: auto; }
+  </style>
+</head>
+<body>
+<main>
+  <section class="card">
+    <h2>P17 · commerce: deals that rank, links that are signed, money that is counted once</h2>
+    <p class="mono" style="color:var(--muted);margin:0">
+      The marketplace ranks deals by <strong>0.8·(0.6·card-match + 0.4·savings) + 0.2·sponsor</strong> -
+      card-match is a ranking branch, never a filter, so a deal for a card you do not hold is still listed, lower.
+      A deal's saving is every component on the full spend, <strong>each capped on its own</strong>
+      (₹75,000 at 10&nbsp;% cap ₹5,000 + 5&nbsp;% cap ₹2,000 = ₹7,000). Every click goes through a
+      <strong>signed, expiring /r/ link</strong>: one raw row, one Redis increment, a 302 with the click id as
+      <code>subid</code>; the counters are flushed every 10&nbsp;s. Affiliate <strong>postbacks</strong> are
+      HMAC-signed and idempotent by (network, ref). One open <strong>card application</strong> per card; an operator
+      decides. Ads rotate by weight, stop at each visitor's <strong>frequency cap</strong>, and PREMIUM is
+      <strong>ad-free</strong>. Testing aid only - deleted in P19.
+    </p>
+    <div id="tenant"></div>
+  </section>
+
+  <section class="card">
+    <h3>Marketplace <small class="mono">GET /v1/deals · public, a token personalises · keyset on (score, priority, id)</small></h3>
+    <div class="row">
+      <label>category <input class="in" id="category" size="22" placeholder="e.g. shopping"></label>
+      <button id="load">load</button><button class="ghost" id="more">next page</button>
+      <label><input type="checkbox" id="holdA"> I hold the Saffron card (Mock: portfolio.card.added)</label>
+    </div>
+    <div id="feed"></div>
+  </section>
+
+  <section class="card">
+    <h3>A deal's saving <small class="mono">GET /v1/deals/{id}?spendPaise=</small></h3>
+    <div class="row"><label>spend ₹ <input class="in" id="spend" size="10" value="75000"></label>
+      <button id="calc">calculate</button></div>
+    <table class="lines" id="lines"><thead><tr><th>component</th><th class="n">saving</th></tr></thead><tbody></tbody></table>
+  </section>
+
+  <section class="card">
+    <h3>Clicks and conversions <small class="mono">GET /r/{token} · POST /v1/webhooks/affiliate/{network}</small></h3>
+    <p class="mono" style="color:var(--muted);font-size:11px;margin:0 0 6px" id="clicknote"></p>
+    <div class="row">
+      <button class="ghost" id="tamper">click a tampered link</button>
+      <button class="ghost" id="postback">network reports a conversion (pending)</button>
+      <button class="ghost" id="approve">network approves it</button>
+      <button class="ghost" id="replay">replay the last postback</button>
+      <button class="ghost" id="flush">flush the counters</button>
+    </div>
+    <div id="clicks"></div><div id="conv"></div>
+    <pre class="out" id="countersout"></pre>
+  </section>
+
+  <section class="card">
+    <h3>Card applications <small class="mono">POST /v1/card-applications · Idempotency-Key required</small></h3>
+    <div class="row"><label>card product <input class="in" id="product" size="38"></label>
+      <button id="apply">apply</button><button class="ghost" id="applyagain">apply again (new key)</button>
+      <button class="ghost" id="decide">operator: in_review → approved (Mock)</button></div>
+    <pre class="out" id="appout"></pre>
+    <div id="apps"></div>
+  </section>
+
+  <section class="card">
+    <h3>Ads <small class="mono">GET /v1/ads/serve?placement= · weighted rotation · frequency cap · ad-free</small></h3>
+    <div class="row"><label>placement <select class="in" id="placement"><option>home</option><option>deal-detail</option>
+      <option>dashboard</option></select></label><button id="serve">serve</button>
+      <label><input type="checkbox" id="premium"> PREMIUM (Mock: billing.entitlements.changed adFree)</label></div>
+    <div class="ad" id="ad">-</div>
+  </section>
+
+  <section class="card"><h3>Events</h3><div id="events"></div></section>
+  <section class="card"><h3>Log</h3><div id="log"></div></section>
+</main>
+<script src="trail.js"></script>
+<script>
+(() => {
+  Trail.mountHeader('Commerce', 'P17');
+  Trail.mountLog(document.getElementById('log'));
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const rs = p => '₹' + (p / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const out = (id, v) => { $(id).textContent = typeof v === 'string' ? v : JSON.stringify(v, null, 2); };
+  const need = req => (req.tenant ? null : Trail.problem(401, 'UNAUTHENTICATED', 'log in as a persona first'));
+
+  // ---------------------------------------------------------------- Mock mode: commerce's arithmetic, for real
+  // The saving, the score and the caps are integer rules (paise, basis points), so Mock computes them exactly as
+  // the service does (Savings, DealRanking, the Redis cap script) instead of replaying fixtures.
+  const SAFFRON = '0192f1e2-0000-7000-8000-0000000ca001';
+  const OTHER_CARD = '0192f1e2-0000-7000-8000-0000000ca002';
+  const pct = (bps, cap) => ({ kind: 'percent', valueBps: bps, capPaise: cap, valuePaise: null, minSpendPaise: 0 });
+  const DEALS = [
+    { id: '0192f1e2-0000-7000-8000-0000000d0001', merchantName: 'Mock Mart', title: '10 % + 5 % on electronics', categoryPath: 'shopping.electronics',
+      components: [pct(1000, 500000), pct(500, 200000)], eligible: [], referenceSpendPaise: 7500000, sponsored: false, sponsorWeight: 0, priority: 0 },
+    { id: '0192f1e2-0000-7000-8000-0000000d0002', merchantName: 'Saffron Travel', title: '12 % on flights with Saffron', categoryPath: 'travel.flights',
+      components: [pct(1200, 300000)], eligible: [SAFFRON], referenceSpendPaise: 2000000, sponsored: false, sponsorWeight: 0, priority: 0 },
+    { id: '0192f1e2-0000-7000-8000-0000000d0003', merchantName: 'Cafe Mock', title: '₹150 off above ₹1,000', categoryPath: 'dining.cafes',
+      components: [{ kind: 'flat', valueBps: null, capPaise: null, valuePaise: 15000, minSpendPaise: 100000 }], eligible: [], referenceSpendPaise: 150000,
+      sponsored: true, sponsorWeight: 60, priority: 0 },
+    { id: '0192f1e2-0000-7000-8000-0000000d0004', merchantName: 'Other Bank Shop', title: '5 % with the other card', categoryPath: 'shopping.online',
+      components: [pct(500, 100000)], eligible: [OTHER_CARD], referenceSpendPaise: 1000000, sponsored: false, sponsorWeight: 0, priority: 0 },
+  ];
+  const NAMES = { [SAFFRON]: 'Saffron Millennia Cashback (mock)', [OTHER_CARD]: 'Other Bank Card (mock)' };
+  /** Savings.of: every component on the full spend, each capped on its own; never more than the spend. */
+  const savings = (components, spend) => {
+    const lines = components.map(c => {
+      if (spend <= 0 || spend < (c.minSpendPaise || 0)) return { component: c, savingPaise: 0 };
+      if (c.kind === 'percent') return { component: c, savingPaise: Math.min(Math.floor(spend * c.valueBps / 10000), c.capPaise) };
+      return { component: c, savingPaise: Math.min(c.valuePaise, spend) };
+    });
+    return { lines, total: Math.min(lines.reduce((s, l) => s + l.savingPaise, 0), spend) };
+  };
+  /** DealRanking.score in bps: (48·cardMatch + 32·savingsNorm + 20·sponsor) / 100. */
+  const MATCH = { held: 10000, open: 5000, other: 0 };
+  const score = (match, norm, sponsored, w) => Math.floor((48 * MATCH[match] + 32 * norm + 20 * (sponsored ? w * 100 : 0)) / 100);
+  const matchOf = (d, held) => (d.eligible.length === 0 ? 'open' : d.eligible.some(e => held.has(e)) ? 'held' : 'other');
+  const M = { held: new Map(), clicks: [], counters: {}, pending: {}, uniques: new Set(), conversions: new Map(), lastPostback: null,
+    apps: new Map(), caps: new Map(), adFree: new Map(), clickSeq: 0 };
+  const heldOf = accountId => M.held.get(accountId) || new Set();
+  const ranked = (accountId, category) => {
+    const held = heldOf(accountId);
+    const live = DEALS.filter(d => !category || d.categoryPath === category || d.categoryPath.startsWith(category + '.'));
+    const sv = live.map(d => savings(d.components, d.referenceSpendPaise).total);
+    const max = Math.max(0, ...sv);
+    return live.map((d, i) => {
+      const m = matchOf(d, held);
+      return { d, savingsPaise: sv[i], cardMatch: m, scoreBps: score(m, max ? Math.floor(sv[i] * 10000 / max) : 0, d.sponsored, d.sponsorWeight) };
+    }).sort((a, b) => b.scoreBps - a.scoreBps || b.d.priority - a.d.priority || (a.d.id < b.d.id ? -1 : 1));
+  };
+  const token = (kind, target, accountId) => 'mock.' + kind + '.' + target + '.' + (accountId || '-') + '.' + Trail.uuidv4().slice(0, 8);
+  const view = (r, accountId) => ({ id: r.d.id, merchantName: r.d.merchantName, title: r.d.title, categoryPath: r.d.categoryPath,
+    components: r.d.components, eligibleCards: r.d.eligible.map(c => ({ cardProductId: c, name: NAMES[c] || null })),
+    referenceSpendPaise: r.d.referenceSpendPaise, savingsPaise: r.savingsPaise, cardMatch: r.cardMatch, sponsored: r.d.sponsored,
+    scoreBps: r.scoreBps, clickPath: '/r/' + token('d', r.d.id, accountId) });
+  Trail.mock('GET', /^\/api\/v1\/deals$/, (m, req) => {
+    const accountId = req.tenant ? req.tenant.accountId : null;
+    const all = ranked(accountId, req.query.category).map(r => view(r, accountId));
+    const limit = Math.min(Number(req.query.limit || 25), 100);
+    let from = 0;
+    if (req.query.cursor) {
+      try { from = Number(Trail.cursor.decode(req.query.cursor).k[0]); } catch (e) { return Trail.problem(400, 'CURSOR_INVALID', 'Invalid cursor'); }
+    }
+    const items = all.slice(from, from + limit);
+    const more = from + limit < all.length;
+    return { data: items, page: { limit, hasMore: more, nextCursor: more ? Trail.cursor.encode({ k: [from + limit] }) : null } };
+  });
+  Trail.mock('GET', /^\/api\/v1\/deals\/([0-9a-f-]{36})$/, (m, req) => {
+    const accountId = req.tenant ? req.tenant.accountId : null;
+    const r = ranked(accountId).find(x => x.d.id === m[1]);
+    if (!r) return Trail.problem(404, 'DEAL_NOT_FOUND', 'No live deal with that id');
+    const spend = req.query.spendPaise !== undefined ? Number(req.query.spendPaise) : r.d.referenceSpendPaise;
+    const s = savings(r.d.components, spend);
+    return { deal: view(r, accountId), spendPaise: spend, lines: s.lines, totalSavingsPaise: s.total };
+  });
+  const istDay = () => new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10);
+  /** GET /r/{token}: verify, log one raw row, count it (and a unique per visitor-day), redirect with subid. */
+  Trail.mock('GET', /^\/api\/r\/(.+)$/, (m) => {
+    const p = m[1].split('.');
+    if (p.length !== 5 || p[0] !== 'mock') return Trail.problem(400, 'CLICK_TOKEN_INVALID', 'This link is not valid');
+    const deal = DEALS.find(d => d.id === p[2]);
+    if (!deal) return Trail.problem(410, 'DEAL_UNAVAILABLE', 'This deal has ended');
+    const clickId = Trail.uuidv7();
+    const visitor = p[3] === '-' ? 'anon' : p[3];
+    M.clicks.unshift({ id: clickId, dealId: deal.id, accountId: p[3] === '-' ? null : p[3], at: new Date().toISOString() });
+    const k = deal.id + '|' + istDay();
+    const c = (M.pending[k] = M.pending[k] || { clicks: 0, uniques: 0 });
+    c.clicks++;
+    if (!M.uniques.has(k + '|' + visitor)) { M.uniques.add(k + '|' + visitor); c.uniques++; }
+    return Trail.reply(302, null, { location: 'https://merchant.example/p?ref=dexter&subid=' + clickId, 'cache-control': 'no-store', 'referrer-policy': 'no-referrer' });
+  });
+  const flush = () => {   // CounterFlusher: drain the pending increments into the counter rows
+    for (const [k, v] of Object.entries(M.pending)) {
+      const row = (M.counters[k] = M.counters[k] || { clicks: 0, uniques: 0, conversions: 0, commissionPaise: 0 });
+      row.clicks += v.clicks; row.uniques += v.uniques;
+    }
+    M.pending = {};
+    return M.counters;
+  };
+  /** PostbackService: idempotent by (network, ref); pending -> approved | rejected; decided is final. */
+  const receive = doc => {
+    const key = 'mock|' + doc.ref;
+    const click = M.clicks.find(c => c.id === doc.subid);
+    const day = (click ? click.dealId : 'none') + '|' + istDay();
+    const row = (M.counters[day] = M.counters[day] || { clicks: 0, uniques: 0, conversions: 0, commissionPaise: 0 });
+    const stored = M.conversions.get(key);
+    if (!stored) {
+      const c = { id: Trail.uuidv7(), ...doc, dealId: click ? click.dealId : null };
+      M.conversions.set(key, c);
+      if (click) { row.conversions++; if (doc.status === 'approved') row.commissionPaise += doc.commissionPaise; }
+      return { outcome: 'created', conversionId: c.id, status: c.status };
+    }
+    if (stored.status !== 'pending' || doc.status === 'pending') return { outcome: 'duplicate', conversionId: stored.id, status: stored.status };
+    stored.status = doc.status;
+    if (doc.status === 'approved' && stored.dealId) row.commissionPaise += doc.commissionPaise;
+    return { outcome: 'updated', conversionId: stored.id, status: stored.status };
+  };
+  Trail.mock('POST', /^\/api\/v1\/webhooks\/affiliate\/([a-z0-9-]+)$/, (m, req) => {
+    if (m[1] !== 'mock') return Trail.problem(404, 'NETWORK_UNKNOWN', 'No affiliate network ' + m[1]);
+    if (!Object.keys(req.headers || {}).some(k => k.toLowerCase() === 'postback-signature')) return Trail.problem(400, 'POSTBACK_SIGNATURE_INVALID', 'Signature missing');
+    return receive(req.body || {});
+  });
+  /** Card applications: published cards only, one open per card, the operator moves it on. */
+  const appsOf = accountId => [...M.apps.values()].filter(a => a.accountId === accountId).sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+  const OPEN = ['submitted', 'in_review'];
+  Trail.mock('POST', /^\/api\/v1\/card-applications$/, Trail.idempotent((m, req) => need(req) || (() => {
+    const card = (req.body || {}).cardProductId;
+    if (!NAMES[card]) return Trail.problem(400, 'VALIDATION_FAILED', 'Request validation failed', { errors: [{ field: 'cardProductId', code: 'UNKNOWN_CARD_PRODUCT', message: 'No such card in the catalog' }] });
+    const accountId = req.tenant.accountId;
+    if (appsOf(accountId).some(a => a.cardProductId === card && OPEN.includes(a.status))) {
+      return Trail.problem(409, 'APPLICATION_EXISTS', 'You already have an open application for this card');
+    }
+    const now = new Date().toISOString();
+    const a = { id: Trail.uuidv7(), accountId, cardProductId: card, status: 'submitted', history: [{ status: 'submitted', at: now, by: accountId, reason: null }],
+      reason: null, version: 1, createdAt: now, updatedAt: now, decidedAt: null };
+    M.apps.set(a.id, a);
+    Trail.events.emit('commerce.application.status-changed', a.id, { applicationId: a.id, cardProductId: card, status: 'submitted', previousStatus: null, version: 1 }, accountId);
+    return Trail.reply(201, { ...a, accountId: undefined }, { location: '/v1/card-applications/' + a.id, etag: '"1"' });
+  })()));
+  Trail.mock('GET', /^\/api\/v1\/card-applications$/, (m, req) => need(req)
+    || { data: appsOf(req.tenant.accountId), page: { limit: 25, hasMore: false, nextCursor: null } });
+  const decide = (a, next, reason) => {
+    const prev = a.status;
+    const now = new Date().toISOString();
+    Object.assign(a, { status: next, reason: reason || null, version: a.version + 1, updatedAt: now, decidedAt: ['approved', 'rejected'].includes(next) ? now : null });
+    a.history = a.history.concat([{ status: next, at: now, by: 'operator', reason: reason || null }]);
+    Trail.events.emit('commerce.application.status-changed', a.id, { applicationId: a.id, status: next, previousStatus: prev, reason: a.reason, version: a.version }, a.accountId);
+  };
+  /** Ads: weighted draw, the cap checked and counted in one step, ad-free from the entitlement. */
+  const CAMPAIGNS = [
+    { id: '0192f1e2-0000-7000-8000-0000000ad101', name: 'Mock Bank FD', weight: 3, cap: 3, placements: ['home', 'dashboard'],
+      creatives: [{ id: '0192f1e2-0000-7000-8000-0000000ad201', headline: 'Fixed deposits at 7.5 %', body: 'Mock Bank', weight: 1 }] },
+    { id: '0192f1e2-0000-7000-8000-0000000ad102', name: 'Mock Insurance', weight: 1, cap: 2, placements: ['home', 'deal-detail'],
+      creatives: [{ id: '0192f1e2-0000-7000-8000-0000000ad202', headline: 'Term cover from ₹490/month', body: 'Mock Insure', weight: 1 }] },
+  ];
+  const serve = (placement, accountId) => {
+    if (!['home', 'deal-detail', 'dashboard'].includes(placement)) return Trail.problem(400, 'PLACEMENT_UNKNOWN', 'No placement ' + placement);
+    if (accountId && M.adFree.get(accountId)) return { placement, ad: null, reason: 'AD_FREE' };
+    let options = CAMPAIGNS.filter(c => c.placements.includes(placement)).flatMap(c => c.creatives.map(k => ({ c, k, w: c.weight * k.weight })));
+    if (!options.length) return { placement, ad: null, reason: 'NO_FILL' };
+    const visitor = accountId || 'anon';
+    while (options.length) {
+      const total = options.reduce((s, o) => s + o.w, 0);
+      let roll = Math.floor(Math.random() * total);
+      const pick = options.find(o => (roll -= o.w) < 0);
+      const ck = pick.c.id + '|' + visitor;
+      const n = M.caps.get(ck) || 0;
+      if (n < pick.c.cap) {
+        M.caps.set(ck, n + 1);
+        return { placement, ad: { creativeId: pick.k.id, campaignId: pick.c.id, headline: pick.k.headline, body: pick.k.body, imageUrl: null,
+          clickPath: '/r/' + token('a', pick.k.id, accountId) }, reason: null };
+      }
+      options = options.filter(o => o.c.id !== pick.c.id);
+    }
+    return { placement, ad: null, reason: 'FREQUENCY_CAPPED' };
+  };
+  Trail.mock('GET', /^\/api\/v1\/ads\/serve$/, (m, req) => serve(req.query.placement, req.tenant ? req.tenant.accountId : null));
+
+  // ---------------------------------------------------------------- rendering
+  let cursor = null;
+  const renderDeals = (list, append) => {
+    const html = (list || []).map(d => `<div class="deal" data-id="${esc(d.id)}"><h4>${esc(d.title)} <small class="mono">${esc(d.merchantName)} · ${esc(d.categoryPath)}</small></h4>
+      <div class="save">saves ${rs(d.savingsPaise)} <small class="mono">on ${rs(d.referenceSpendPaise)}</small></div>
+      <div><span class="chip ${d.cardMatch === 'held' ? 'on' : d.cardMatch === 'other' ? 'off' : ''}">card-match ${esc(d.cardMatch)}</span>
+        ${d.sponsored ? '<span class="chip warn">sponsored</span>' : ''}<span class="chip">score ${d.scoreBps} bps</span>
+        ${(d.eligibleCards || []).map(c => `<span class="chip">${esc(c.name || c.cardProductId)}</span>`).join('')}</div>
+      <div class="row"><button class="ghost" data-act="detail">savings</button><button class="ghost" data-act="click">click (signed /r/ link)</button></div></div>`).join('');
+    $('feed').innerHTML = (append ? $('feed').innerHTML : '') + (html || '<div class="mono">no deals</div>');
+  };
+  const loadFeed = async append => {
+    const q = '/api/v1/deals?limit=3' + ($('category').value ? '&category=' + encodeURIComponent($('category').value) : '')
+      + (append && cursor ? '&cursor=' + encodeURIComponent(cursor) : '');
+    const r = await Trail.api('GET', q);
+    if (r.status === 200) { renderDeals(r.data.data, append); cursor = r.data.page.nextCursor; $('more').disabled = !cursor; }
+    return r;
+  };
+  let current = null;
+  const detail = async id => {
+    current = id;
+    const spend = Math.round(Number($('spend').value || 0) * 100);
+    const r = await Trail.api('GET', '/api/v1/deals/' + id + '?spendPaise=' + spend);
+    if (r.status !== 200) { $('lines').querySelector('tbody').innerHTML = `<tr><td colspan="2">HTTP ${r.status}</td></tr>`; return r; }
+    const label = c => (c.kind === 'percent' ? (c.valueBps / 100) + ' % cap ' + rs(c.capPaise) : rs(c.valuePaise) + ' off') + (c.minSpendPaise ? ' above ' + rs(c.minSpendPaise) : '');
+    $('lines').querySelector('tbody').innerHTML = r.data.lines.map(l => `<tr><td>${esc(label(l.component))}</td><td class="n">${rs(l.savingPaise)}</td></tr>`).join('')
+      + `<tr><td><strong>total on ${rs(r.data.spendPaise)}</strong></td><td class="n"><strong>${rs(r.data.totalSavingsPaise)}</strong></td></tr>`;
+    return r;
+  };
+  let lastClick = null;
+  const click = async path => {
+    if (Trail.mode !== 'mock') {   // Live: a browser cannot read a cross-origin redirect - follow it in a new tab
+      window.open('/api' + path, '_blank', 'noopener');
+      const d = document.createElement('div');
+      d.textContent = new Date().toISOString().slice(11, 19) + '  ' + path.slice(0, 30) + '…  → opened (302 to the merchant)';
+      $('clicks').prepend(d);
+      return { status: 302, headers: {} };
+    }
+    const r = await Trail.api('GET', '/api' + path);
+    const loc = r.headers && r.headers.location;
+    if (loc && loc.includes('subid=')) lastClick = loc.split('subid=')[1];
+    const d = document.createElement('div');
+    d.textContent = new Date().toISOString().slice(11, 19) + '  ' + path.slice(0, 30) + '…  → HTTP ' + r.status + (loc ? '  ' + loc : '');
+    $('clicks').prepend(d);
+    return r;
+  };
+  const renderApps = list => {
+    $('apps').innerHTML = (list || []).map(a => `<div class="mono" style="font-size:12px">${esc(a.id.slice(0, 13))}… ${esc(NAMES[a.cardProductId] || a.cardProductId)}
+      <span class="chip ${a.status === 'approved' ? 'on' : a.status === 'rejected' || a.status === 'withdrawn' ? 'off' : 'warn'}">${esc(a.status)}</span>
+      v${a.version} · ${a.history.map(h => esc(h.status)).join(' → ')}</div>`).join('') || '<div class="mono">no applications</div>';
+  };
+  const refreshApps = async () => {
+    const r = await Trail.api('GET', '/api/v1/card-applications');
+    renderApps(r.status === 200 && r.data ? r.data.data : []);
+    return r;
+  };
+  const apply = async () => {
+    const r = await Trail.api('POST', '/api/v1/card-applications', { body: { cardProductId: $('product').value }, headers: { 'Idempotency-Key': Trail.uuidv4() } });
+    out('appout', `HTTP ${r.status}\n` + JSON.stringify(r.data, null, 2));
+    await refreshApps();
+    return r;
+  };
+  const postback = async status => {
+    const doc = { ref: (M.lastRef = status === 'pending' || !M.lastRef ? 'trail-' + Trail.uuidv4().slice(0, 8) : M.lastRef), subid: lastClick,
+      status, amountPaise: 250000, commissionPaise: 10000, occurredAt: new Date().toISOString() };
+    M.lastPostback = doc;
+    return sendPostback(doc);
+  };
+  const sendPostback = async doc => {
+    const r = await Trail.api('POST', '/api/v1/webhooks/affiliate/mock', { body: doc, headers: { 'Postback-Signature': 't=0,v1=' + '0'.repeat(64) } });
+    const d = document.createElement('div');
+    d.textContent = `postback ${doc.ref} ${doc.status} → HTTP ${r.status} ${r.data && r.data.outcome ? r.data.outcome : (r.data && r.data.code) || ''}`;
+    $('conv').prepend(d);
+    return r;
+  };
+  const showAd = async () => {
+    const r = await Trail.api('GET', '/api/v1/ads/serve?placement=' + $('placement').value);
+    const a = r.data && r.data.ad;
+    $('ad').innerHTML = r.status !== 200 ? 'HTTP ' + r.status : a ? `<strong>${esc(a.headline)}</strong> · ${esc(a.body)} <span class="chip">${esc(a.clickPath.slice(0, 18))}…</span>`
+      : `<span class="chip off">no ad: ${esc(r.data.reason)}</span>`;
+    return r;
+  };
+  const renderNotes = () => {
+    $('clicknote').textContent = Trail.mode === 'mock'
+      ? 'Mock: a click is logged and counted here; postbacks are accepted with any signature header (Live checks the HMAC).'
+      : 'Live: postbacks need the network secret (scripts/lib/p17_smoke.py signs them) - the buttons show the 400 an unsigned one gets.';
+    for (const id of ['flush', 'decide', 'holdA', 'premium']) $(id).disabled = Trail.mode !== 'mock';
+  };
+  // ---------------------------------------------------------------- actions
+  $('load').onclick = () => { cursor = null; return loadFeed(false); };
+  $('more').onclick = () => loadFeed(true);
+  $('feed').onclick = async e => {
+    const b = e.target.closest('button'); if (!b) return;
+    const id = b.closest('.deal').dataset.id;
+    if (b.dataset.act === 'detail') return detail(id);
+    const r = await Trail.api('GET', '/api/v1/deals/' + id);
+    if (r.status === 200) return click(r.data.deal.clickPath);
+  };
+  $('calc').onclick = () => current && detail(current);
+  $('tamper').onclick = () => click('/r/' + 'A'.repeat(86));
+  $('postback').onclick = () => postback('pending');
+  $('approve').onclick = () => postback('approved');
+  $('replay').onclick = () => M.lastPostback && sendPostback(M.lastPostback);
+  $('flush').onclick = () => out('countersout', flush());
+  $('holdA').onchange = () => {
+    if (!Trail.persona) return;
+    const id = Trail.persona.accountId;
+    const s = new Set(heldOf(id));
+    if ($('holdA').checked) s.add(SAFFRON); else s.delete(SAFFRON);
+    M.held.set(id, s);
+    Trail.events.emit($('holdA').checked ? 'portfolio.card.added' : 'portfolio.card.removed', SAFFRON, { cardProductId: SAFFRON }, id);
+    return loadFeed(false);
+  };
+  $('premium').onchange = () => {
+    if (!Trail.persona) return;
+    M.adFree.set(Trail.persona.accountId, $('premium').checked);
+    Trail.events.emit('billing.entitlements.changed', Trail.persona.accountId, { tier: $('premium').checked ? 'PREMIUM' : 'FREE', adFree: $('premium').checked }, Trail.persona.accountId);
+  };
+  $('apply').onclick = apply;
+  $('applyagain').onclick = apply;
+  $('decide').onclick = async () => {
+    const a = Trail.persona && appsOf(Trail.persona.accountId).find(x => OPEN.includes(x.status));
+    if (!a) return out('appout', 'no open application');
+    if (a.status === 'submitted') decide(a, 'in_review');
+    decide(a, 'approved', 'Meets the issuer\'s criteria (mock)');
+    return refreshApps();
+  };
+  $('serve').onclick = showAd;
+  Trail.mountEvents($('events'), { livePath: '/api/_dev/outbox/recent' });
+  // exposed for the headless check (jsdom) and for poking at from the console
+  window.P17 = { M, savings, score, ranked, serve, receive, flush, loadFeed, detail, click, apply, postback, refreshApps, decide, appsOf, SAFFRON };
+  $('product').value = SAFFRON;
+  (async () => {
+    try {
+      await Trail.loadSeed();
+    } catch (e) { /* the page works without the seed fixtures */ }
+    Trail.mountTenantSwitcher($('tenant'), { onSwitch: () => { renderNotes(); loadFeed(false); refreshApps(); } });
+    renderNotes();
+    await loadFeed(false);
+  })();
+})();
+</script>
+</body>
+</html>
