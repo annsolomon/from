@@ -38,7 +38,7 @@ import tools.jackson.databind.ObjectMapper;
  *   <tr><td>anything else</td><td>fails at once with {@code payment_method_invalid}</td></tr>
  * </table>
  *
- * Charges are idempotent on the caller's key, {@link #lookup} answers by Dexter's reference, and every webhook is
+ * Charges are idempotent on the caller's account-scoped key, {@link #lookup} answers by Dexter's reference, and every webhook is
  * HMAC-signed ({@link WebhookSignature}) and delivered later, on another thread, through a {@link Sink} - over HTTP
  * to billing's own {@code /v1/webhooks/mock} in a running stack, captured in tests so they can deliver it twice, out
  * of order, or not at all. State lives in this JVM: it is a dev and test double, one instance only (BUILD_README §7).
@@ -78,7 +78,7 @@ public final class MockPaymentProvider implements PaymentProvider, AutoCloseable
   private final Sink sink;
   private final ObjectMapper mapper;
   private final Clock clock;
-  private final Map<UUID, Charge> byKey = new ConcurrentHashMap<>();
+  private final Map<String, Charge> byKey = new ConcurrentHashMap<>();
   private final Map<UUID, Charge> byReference = new ConcurrentHashMap<>();
   private final AtomicInteger charges = new AtomicInteger();
   private final AtomicBoolean unavailable = new AtomicBoolean();
@@ -115,7 +115,7 @@ public final class MockPaymentProvider implements PaymentProvider, AutoCloseable
     if (unavailable.get()) {
       throw new Unavailable("mock provider is down", null);
     }
-    Charge c = byKey.computeIfAbsent(r.idempotencyKey(), k -> create(r));
+    Charge c = byKey.computeIfAbsent(r.providerIdempotencyKey(), k -> create(r));
     return result(c);
   }
 

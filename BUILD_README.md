@@ -39,8 +39,12 @@ README; the code is in the repo (clone it). The old repo zip is not needed: noth
 ## 2. In progress (exact stopping point)
 
 - **P16 (2026-11-08) r1:** P15 re-verified from the latest report on `verify-reports` (run 42134809373, git
-  `67eb956`: 22/22 + trail-check PASS, §3). Billing built in one pass and pushed for CI; next action is reading that
-  run's report on `verify-reports` and fixing until `verify.sh full` and `trail-check.sh` are both green.
+  `67eb956`: 22/22 + trail-check PASS, §3). Billing built in one pass and pushed for CI.
+- **P16 r2:** run 42410455200 (r1): unit green, billing IT 48/52, trail-check's P16 block 9/9 on the live stack. The
+  four failures were two causes: the mock provider keyed charges on the bare Idempotency-Key, so two accounts using
+  the same key shared one charge (IdempotencyContract case 6 caught it: `payments_provider_payment_id_key`) - the
+  provider key is now account + key; and three RlsProofKit statements ended in `SELECT 1`, which `executeUpdate`
+  refuses. The other trail-check FAILs were knock-on (Maven failed, so the seed never loaded). Next: read r2's run.
 - **P12a (2026-10-27):** code complete. Evidence: CI run 40416356611 (git `29c4146`) — every Maven module and IT
   green, ai-parser pytest 72/72, trail-check PASS; the only failure was api-smoke P12 (the presigned PUT from the smoke
   script raised a transport error on the runner; the same flow passes against SeaweedFS 4.22 with identities in the

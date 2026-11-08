@@ -23,6 +23,11 @@ class BillingRlsIT extends BillingIT {
   static final String PLAN = "'0192f1e2-0000-7000-8000-00000000b002'";
 
   /** A closed subscription of the tenant parameter (closed, so two of them never meet subscriptions_one_live). */
+  // The kit runs each statement with executeUpdate, so each ends in the DML under test (P16 r1 ended two in
+  // "SELECT 1", which returns a result set).
+  static final String SUB_INSERT = "INSERT INTO billing.subscriptions (id, account_id, plan_id, status,"
+      + " current_period_start, current_period_end, provider, billing_state) VALUES (gen_random_uuid(), ?, " + PLAN
+      + ", 'canceled', now() - interval '1 month', now(), 'mock', 'KA')";
   static final String SUB = "WITH s AS (INSERT INTO billing.subscriptions (id, account_id, plan_id, status,"
       + " current_period_start, current_period_end, provider, billing_state) VALUES (gen_random_uuid(), ?, " + PLAN
       + ", 'canceled', now() - interval '1 month', now(), 'mock', 'KA') RETURNING id, account_id)";
@@ -30,6 +35,14 @@ class BillingRlsIT extends BillingIT {
       + " amount_paise, status, provider, payment_method, decided_at) SELECT gen_random_uuid(), account_id, id,"
       + " gen_random_uuid(), 23482, 'succeeded', 'mock', 'pm_mock_success', now() FROM s"
       + " RETURNING id, account_id, subscription_id)";
+  static final String PAY_INSERT = SUB + " INSERT INTO billing.payments (id, account_id, subscription_id, idem_key,"
+      + " amount_paise, status, provider, payment_method, decided_at) SELECT gen_random_uuid(), account_id, id,"
+      + " gen_random_uuid(), 23482, 'succeeded', 'mock', 'pm_mock_success', now() FROM s";
+  static final String INV_INSERT = PAY + " INSERT INTO billing.invoices (id, account_id, subscription_id, payment_id,"
+      + " number, issued_at, period_start, period_end, supplier_state, place_of_supply, tax_regime, subtotal_paise,"
+      + " tax_paise, total_paise) SELECT gen_random_uuid(), account_id, subscription_id, id,"
+      + " 'DX/2026-27/' || lpad(nextval('billing.invoice_number_seq')::text, 6, '0'), now(), now(),"
+      + " now() + interval '1 month', 'KA', 'KA', 'intra', 19900, 3582, 23482 FROM p";
   static final String INV = PAY + ", i AS (INSERT INTO billing.invoices (id, account_id, subscription_id, payment_id,"
       + " number, issued_at, period_start, period_end, supplier_state, place_of_supply, tax_regime, subtotal_paise,"
       + " tax_paise, total_paise) SELECT gen_random_uuid(), account_id, subscription_id, id,"
@@ -47,17 +60,17 @@ class BillingRlsIT extends BillingIT {
 
   @Test
   void subscriptions() throws Exception {
-    kit("subscriptions", SUB + " SELECT 1", "UPDATE billing.subscriptions SET account_id = ?").proveAll();
+    kit("subscriptions", SUB_INSERT, "UPDATE billing.subscriptions SET account_id = ?").proveAll();
   }
 
   @Test
   void payments() throws Exception {
-    kit("payments", PAY + " SELECT 1", "UPDATE billing.payments SET account_id = ?").proveAll();
+    kit("payments", PAY_INSERT, "UPDATE billing.payments SET account_id = ?").proveAll();
   }
 
   @Test
   void invoices() throws Exception {
-    kit("invoices", INV + " SELECT 1", null).proveAll(); // written once: the app role has no UPDATE
+    kit("invoices", INV_INSERT, null).proveAll(); // written once: the app role has no UPDATE
   }
 
   @Test
