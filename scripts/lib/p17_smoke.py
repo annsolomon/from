@@ -10,7 +10,7 @@ projection) before the application, billing's entitlements (a real PREMIUM check
 projection) before AD_FREE, and the counter flusher (Redis -> Postgres every 10 s) before the stats.
 
   admin creates deals in a fresh category -> the public feed ranks them (NOT EMPTY) -> the golden saving ->
-  a user holds the card -> card-match moves its deal first -> the signed redirect (302, subid) -> an altered
+  a user holds the card -> card-match lifts its deal past the equal-savings one -> the signed redirect (302, subid) -> an altered
   token 400 -> a signed postback created / replayed / approved -> stats show the click, the conversion and the
   commission -> a card application (201, duplicate 409) decided by an operator (in_review -> approved) ->
   a campaign with a frequency cap -> capped serves -> PREMIUM is ad-free -> the ad click -> isolation.
@@ -181,10 +181,15 @@ def main():
                                                  "statementDay": 5, "dueOffsetDays": 20, "nickname": "Smoke P17"},
                       bearer(tok, **{"Idempotency-Key": str(uuid.uuid4())}))
     check("user adds the Saffron card in portfolio: 201", s == 201, (s, mine))
-    first = wait(lambda: (lambda its: its and its[0]["id"] == for_card["id"] and its[0]["cardMatch"] == "held")(
-        feed(category, tok)[1]))
-    check("card-match: after portfolio.card.added reaches commerce, the card's deal ranks first (held)", first,
-          feed(category, tok)[1][:1])
+    # The anonymous order is golden (open, saves 7,000), open (saves 1,500), for_card (saves 1,500, card-only).
+    # Holding the card lifts for_card from OTHER (0) to HELD (1.0): 0.48 + its savings term = 5,485 bps, above the
+    # equal-savings open deal (3,085) but not above golden (5,600) - card-match is 48 % of the score, not a trump.
+    lifted = wait(lambda: (lambda ids_: ids_ == [golden["id"], for_card["id"], open_deal["id"]])(
+        [x["id"] for x in feed(category, tok)[1]]))
+    held_row = next((x for x in feed(category, tok)[1] if x["id"] == for_card["id"]), {})
+    check("card-match: after portfolio.card.added reaches commerce, the card's deal (held) overtakes the "
+          "equal-savings open deal, and the bigger saving still leads", lifted and held_row.get("cardMatch") == "held"
+          and held_row.get("scoreBps") == 5485, [(x["title"], x["cardMatch"], x["scoreBps"]) for x in feed(category, tok)[1]])
     _, mine_feed = feed(category, tok)
     check("card-match ranks, never filters: all three deals still listed", len(mine_feed) == 3, len(mine_feed))
 
