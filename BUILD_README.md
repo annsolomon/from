@@ -1,17 +1,17 @@
 # Dexter v2 — Build README (living handoff)
 
-**Last updated:** 2026-11-08 · **Chat/phase:** P16 (billing) · **Model:** Claude Opus 5.5
-**P16 is DONE (CI run 42449818720, git `9430059`).** Billing is a real service: plans, a checkout that is Idempotency **Mode B** across a
-mock payment provider (key + incomplete subscription + pending payment, then the provider call, then the outcome and
-the stored response), one `PaymentOutcomes.apply` that every source of an outcome goes through (a payment is decided
-once — which is what makes replayed and out-of-order webhooks harmless), a stale-checkout sweeper and a period-end
-job through owner functions, HMAC-signed replay-safe webhooks, invoices with the mock GST split, and entitlements
-cached 60 s and announced on change — consumed by identity so a **refreshed token carries the new tier** (ADR-0022,
-A-92..A-98). P15 was re-verified first from the latest report on `verify-reports` (CI run 42134809373, git
-`67eb956`): `verify.sh full` **PASS** 22/22 + `trail-check.sh` **PASS** — §3.
-Next chat: **P17** (commerce: deals, affiliate tracking, card applications, ads). Upload `MASTER_PLAN.md` + this
-README; the code is in the repo (clone it). Verify P16 from the latest report on `verify-reports` (the docs commit
-on top of `9430059` gets its own run).
+**Last updated:** 2026-11-08 · **Chat/phase:** P17 (commerce) · **Model:** Claude Opus 5.5
+**P17 is DONE (CI run 42502207781, git `ed71c5d`).** Commerce is a real service: a marketplace of deals whose saving is
+every component on the full spend, **each capped on its own** (₹75,000 → ₹7,000), ranked in integer basis points by
+`0.8·(0.6·cardMatch + 0.4·savingsNorm) + 0.2·sponsor` with card-match a ranking branch, never a filter; every outbound
+link a **signed, expiring `/r/{token}`** that logs one raw click (daily partitions) and one Redis increment, drained
+every 10 s by an ACL-safe Lua get-and-unlink so concurrent flushers never double count; **HMAC-signed affiliate
+postbacks** idempotent by (network, ref); **card applications** with one open per card enforced by the database and
+an operator's decision on the admin pool; and **ads** with weighted rotation, per-visitor frequency caps checked and
+counted atomically, and PREMIUM **ad-free** from `billing.entitlements.changed` (ADR-0023, A-99..A-108). P16 was
+re-verified first from the latest report on `verify-reports` (CI run 42450718047, git `2a0fcb2`) — §3.
+Next chat: **P18** (audit, notifications, privacy — export/delete saga; its consumers include the events P16 and P17 now publish). Upload `MASTER_PLAN.md` + this
+file; verify P17 from the latest report on `verify-reports` first.
 
 ## 1. Phase status
 
@@ -34,12 +34,25 @@ on top of `9430059` gets its own run).
 | P14 | Reco A | **DONE** 2026-10-31 | `verify.sh full` PASS 22/22 + `trail-check.sh` PASS (CI run 41226988389, git `88a3cb8`): all 25 reactor modules SUCCESS, `services/reco` unit **41** + IT **37** (spend profile vs a recomputed sum over 150 random ops, projections and their version guards, the debounced sweep, `/v1/recommendations*` over HTTP, RLS on 6 tables), `libs/portfolio-calc` unit 44, api-smoke **444 PASS / 0 FAIL** with 37 of them P14 (the profile arriving over real Kafka, the 60/40 identity on every row, the explanation adding up line by line, a held card marked then unmarked through `portfolio.card.*`), trail-check `p14-{anon,cold,profile,blend,explain,badids}` 6/6 | ADR-0020, A-78 (spend_profile rebuilt from a per-month table), A-79 (card terms + rules as two projections), A-80 (`window_code`), A-81 (the root/depth share assumption), A-82 (`RewardTerms` moved into `libs/portfolio-calc`), A-83 (no catalog fan-out), A-84 (`reco.claim_dirty`, an owner function — the app pool cannot claim across accounts). DoD all ticked (§3) |
 | P15 | Reco B (optimizer/SSE) | **DONE** 2026-11-05 | `verify.sh full` PASS 22/22 + `trail-check.sh` PASS (CI run 41952698922, git `35a2ed7`): all 25 reactor modules SUCCESS, `services/reco` unit **69** + IT **59** (the optimizer against an independent brute force over every subset and every routing, best-card-now with an exhausted cap and a merchant query, offers, the SSE stream across **two application contexts** on one Redis, a ticket usable once, RLS on 8 tables), `libs/portfolio-calc` unit 44, api-smoke **487 PASS / 0 FAIL** with **42** of them P15 (the wallet identities over a live stack — a rupee routed once, each size's marginal value, a wallet's value and fees as its cards' — best-card-now's parts adding up with a reward never past the headroom beside it, an expense attributed to a card moving that card's period spend over real Kafka, and a real SSE read through the gateway), trail-check `p15-{anon,wallet,bestcard,badamount,ticket,stream,onceonly}` 7/7 | ADR-0021, A-85 (a rule's cap is one cap, not one per root — a **P14 correctness fix**, `ENGINE_VERSION` → 2), A-86 (`card_period_spend` from the ledger's own `userCardId`), A-87 (a service's own `<svc>:*` Redis channel namespace), A-88 (`mvn -U` in CI), A-89 (a merchant rule earned **nothing** — a second P14 correctness fix, `ENGINE_VERSION` → 3), A-90 (the failing service's log snapshotted before the next step overwrites it), A-91 (every step timed, the long poles under `timeout`), and dominance pruning **reported rather than applied** (ADR-0021 §3). DoD all ticked (§3) |
 | P16 | Billing | **DONE** 2026-11-08 | `verify.sh full` PASS 22/22 + `trail-check.sh` PASS (CI run 42449818720, git `9430059`): all 25 reactor modules SUCCESS, `services/billing` unit **12** + IT **52** (the four named tests — a replayed webhook delivered 3× in a row and 10× at once has one effect; "succeeded" before "created" and "failed" before "created"; a crash after the provider call finished by the **sweeper** with no webhook delivered, by the client's own retry, and an attempt that never reached the provider closed as `not_submitted`; one live subscription enforced by the database against 10 concurrent checkouts — plus the Idempotency and Pagination contracts, RLS on 8 tables, the period-end job, the 60 s cache), `services/identity` IT 65 → **67** (`TierIT`), api-smoke **529 PASS / 0 FAIL** with **42** of them P16 (on accounts the smoke **registers itself**, every collection asserted non-empty first: the tier arriving in a refreshed token over Kafka, a delayed payment decided by the provider's own HTTP webhook, invoices whose lines add up to the charge, webhook replay through the gateway, and billing's outbox, both topics, 6 webhook deliveries and identity's `billing-tier` inbox), trail-check `p16-*` **9/9**, 105 PASS / 0 FAIL / 0 SKIP overall | ADR-0022, A-92 (`incomplete` is live, so a racing second checkout is refused before any charge), A-93 (plans not paged), A-94 (`incomplete` / `incomplete_expired`, and what the period-end job does), A-95 (identity's `tier_version` + `billing-tier` consumer), A-96 (`billing_interval`), A-97 (the provider's key is account + Idempotency-Key — **a real bug the contract test caught in r1**), A-98 (mock webhook delivery `http`/`memory`). DoD all ticked (§3) |
-| P17 | Commerce | NOT STARTED | — | |
+| P17 | Commerce | **DONE** 2026-11-08 | `verify.sh full` PASS 22/22 + `trail-check.sh` PASS (CI run 42502207781, git `ed71c5d`): all 25 reactor modules SUCCESS, `services/commerce` unit **18** + IT **49** (the five named tests — the savings golden through the domain and the API; a postback replayed 3× and delivered 8× at once creates one conversion, counts it once and its commission once; 200 clicks from 8 threads with the flusher draining concurrently → exactly 200 counted = 200 raw rows, 5 uniques per deal; a cap of 3 holds for 6 sequential and **10 concurrent** serves and per anonymous visitor; a second open application refused, and 10 concurrent applications with different keys → one — plus the Idempotency and Pagination contracts, RLS proved on 8 tables (the gate checks all 13), the projections' version guards), identity IT +0 (count 5, SUPPORT perms), api-smoke **576 PASS / 0 FAIL** with **49** of them P17 (deals, campaigns and accounts the smoke **creates**, every collection asserted non-empty first: card-match after portfolio's event over Kafka, the redirect, postbacks, the flushed stats, an operator's decision, a frequency cap, ad-free after a real PREMIUM checkout, plus commerce's outbox, topic, three inboxes, raw rows and counters), trail-check `p17-*` **9/9**, 115 PASS / 0 FAIL / 0 SKIP overall | ADR-0023, A-99 (same chat as P16), A-100 (deal administration), A-101 (conversions unique per network), A-102 (history is a jsonb array), A-103 (optional verified token on public routes; `/r/**` and `/v1/admin/commerce/**` routed), A-104 (Redis Lua counters inside the ACL; conversions counted in the postback's transaction), A-105 (ad-free from the entitlements event), A-106 (`commerce:*` permissions), A-107 (application versions start at 1), A-108 (no P17a/b split). DoD all ticked (§3) |
 | P18 | Audit/notify/privacy | NOT STARTED | — | |
 | P19 | Hardening & release | NOT STARTED | — | |
 
 ## 2. In progress (exact stopping point)
 
+- **P17 is DONE** (CI run 42502207781, git `ed71c5d`): nothing in progress. Three rounds: r1 compiled and unit-tested green
+  first time and had commerce IT at 48/49 — the one failure was the list-plan check on a 60-row account, where a
+  bitmap scan + a 60-row Sort is the planner's right answer; r2 asked about a heavy account (3,000 rows) and went
+  green in `ci`, with `verify.sh full` failing one smoke check that had the arithmetic wrong (it expected the held
+  card's ₹1,500 deal above an open ₹7,000 one; the service correctly kept 5,600 > 5,485 bps). r3 fixed the check.
+- Files touched in P17: `services/commerce/**` (whole service), `services/identity` (commerce permissions migration,
+  `AdminIT`, health IT count), `services/gateway` (`RouteTable`: `/r/**` public, `/v1/admin/commerce/**`),
+  `contracts` (`commerce.application.status-changed`), `scripts/lib/p17_smoke.py`, `scripts/api-smoke.sh`,
+  `scripts/trail-check.sh`, `test-ui/p17-commerce.html` + index (+ the P05 mock's permissions), `docs/adr/0023-*`,
+  `docs/api/{routes,errors}.md`, `.env.example` (`COMMERCE_CURSOR_KEY_C1`, `COMMERCE_CLICK_TOKEN_KEY`,
+  `COMMERCE_HASH_SALT`, `COMMERCE_AFFILIATE_SECRET_MOCK`).
+- Next concrete action: P18. Its consumers: `commerce.application.status-changed` (notify the applicant), billing's
+  two events, and everything audit records.
 - **P16 is DONE** (CI run 42449818720, git `9430059`): nothing in progress. Two rounds: r1 compiled and unit-tested green first time, and
   its run had billing IT at 48/52 and trail-check's P16 block already 9/9 on the live stack; the four failures were
   one real bug (A-97: two accounts sharing an Idempotency-Key UUID shared a provider charge) and one test-side
@@ -281,6 +294,30 @@ top of `35a2ed7`). `steps.tsv` has all **22** steps PASS, no SKIP; all 25 reacto
 unit **69** + IT **59**, 0 failures; api-smoke **487 PASS / 0 FAIL / 0 SKIP**; trail-check **95 PASS / 0 FAIL / 0
 SKIP** including `p15-*` 7/7. The two "skip" strings in the smoke log are PASS lines whose text contains the word.
 P15 stands as DONE; nothing to fix before P16.
+
+### P17 against its DoD (CI run 42502207781, git `ed71c5d`, 2026-11-08)
+
+MASTER_PLAN P17 ticks one box, IT-GREEN; as for P15/P16 the table takes the phase's schema, endpoints and named tests
+as the requirements.
+
+| DoD / requirement | Result | Evidence |
+|---|---|---|
+| IT-GREEN | **PASS** | `verify.sh full` 22/22, commerce IT 49/0/0, unit 18/0/0; trail-check PASS, 0 SKIP |
+| Schema: deals (components jsonb, eligible cards, validity, sponsorship), deal_clicks (daily partitions), counters, conversions (unique ref), card_applications (+ history, one open per card), campaigns / creatives / placements, ad_impressions_raw (daily partitions) | PASS | `V202611081201__commerce_core.sql`, `V202611081202__commerce_ads.sql` (+ the three projections). Every table ENABLE + FORCE + policy (`rls-gate` PASS); `CommerceRlsIT`: full kit on the three user-written tables, the TRACKER-only tables (a user can neither write them nor read another account's rows), deals written only by operators and drafts hidden, operators see every account's applications and FINANCE / USER on the admin pool see none |
+| Savings components, each capped separately — golden ₹75,000 → ₹7,000 | PASS | `SavingsTest` (golden, below caps, flat + minimum spend, rounding down, never above the spend), `DealsIT.goldenSavingsThroughTheApi`, smoke and trail `p17-golden` on deals created in the run |
+| Ranking 0.8·relevance + 0.2·sponsor, relevance 0.6·card-match + 0.4·savings, card-match a branch not a gate | PASS | `DealRankingTest` (the weights in bps, normalisation, a total order paged without repeats or gaps), `DealsIT` (the held card's deal first and the others still listed; sponsorship = exactly 2,000 bps), `ProjectionsIT` (a removed card stops matching); smoke over portfolio's real event: the held deal overtakes the equal-savings one at exactly 5,485 bps |
+| Keyset feed | PASS | `DealsIT.theFeedPagesEveryDealOnceInRankOrder` (12 deals, 3 pages, sorted, a cursor bound to its category → 400) |
+| Signed redirect links, raw clicks partitioned, Redis counters flushed every 10 s | PASS | `ClickTokenTest` (every flipped bit invalid, another key invalid, expiry at its instant), `ClicksIT` (302 + `subid`, no-store, no-referrer, attributed to the token's viewer; altered 400, expired 410, ended 410 with no row; counters 3 clicks / 2 uniques; a failed write's deltas come back); smoke: the stats show the click after the live 10 s flusher; api-smoke: raw rows > 0 and counted ≤ raw |
+| Affiliate postbacks idempotent (`provider_ref` unique) | PASS | `PostbackIT` (signature missing / tampered / stale, unknown network, invalid payload, an unattributable one kept), smoke through the gateway |
+| Card applications with status history; admin decide | PASS | `CardApplicationsIT` (published cards only, a retired one refused, key required, admin token refused; decide in_review → approved with If-Match 412/428, a rejection needs a reason, decided is final; an event per change with previous status, reason, version), the Idempotency and Pagination contracts (incl. the list plan on 63,000 rows, no Sort); smoke: an operator decides through the gateway |
+| Ads: campaigns, creatives, placements, impressions, weighted rotation, ad-free through entitlements | PASS | `CommerceDomainTest` (rotation bands exact, 100,000 draws within 1 % of 6:3:1), `AdsIT` (CRUD with If-Match, unknown placement, both creatives served, the ad click counted in the stats, an ended campaign's link 410; ad-free on, off, and a stale event ignored); smoke: ad-free after a real PREMIUM checkout over Kafka |
+| Named: **savings golden** | PASS | `SavingsTest.goldenSeventyFiveThousandSavesSevenThousand` + the API test + smoke + trail |
+| Named: **postback replay** | PASS | `PostbackIT.aReplayedPostbackChangesNothing` (1 + 3 replays → 1 row, conversions 1, commission 0 while pending, approval → 10,000 once, then final) and `concurrentDeliveriesOfOnePostbackCreateOneConversion` (8 at once → 1 created) |
+| Named: **counter flush correctness under concurrency** | PASS | `ClicksIT.counterFlushIsExactUnderConcurrency`: 8 threads × 25 redirects while a flusher drains in a loop → 200 raw rows, 200 counted, 5 uniques per deal, nothing left in Redis |
+| Named: **frequency cap** | PASS | `AdsIT.theFrequencyCapHoldsPerVisitorAndUnderConcurrency`: cap 3 → 3 of 6, another visitor their own 3, **10 concurrent serves → 3** (and 3 raw impressions), anonymous visitors capped by (ip, user agent); smoke: cap 2 → exactly 2 of 4 |
+| Named: **duplicate application** | PASS | `CardApplicationsIT.aSecondOpenApplicationForTheSameCardIsRefused`: 409, another card fine, **10 concurrent with different keys → 1**, one event; withdrawn → may apply again |
+| Trail: `test-ui/p17-commerce.html` | PASS | jsdom Mock run 29/29 (the golden, the weights, held card first, paging, redirect + tamper, counters, postbacks created / updated / duplicate counted once, 201 / 409 / 400 applications and a decision, cap then FREQUENCY_CAPPED, AD_FREE); trail-check `p17-*` 9/9 on a deal and account created for the run |
+| P15 lessons applied | PASS | no smoke or trail check reads seeded commerce state — deals, campaigns and accounts are created by the check and every collection is asserted non-empty first; no launcher in `$( )` |
 
 ### P16 against its DoD (CI run 42449818720, git `9430059`, 2026-11-08)
 
@@ -622,6 +659,53 @@ Issues found in P01's own code during self-review and fixed:
 4. The web test asserted an exact `Content-Type`; now a compatible-type check (a charset suffix must not fail it).
 
 ## 4. What exists now
+
+**P17 Commerce (DONE, CI run 42502207781, git `ed71c5d`)** — ADR-0023, A-99..A-108, MASTER_PLAN P17
+
+- `services/commerce` (was a skeleton): `domain` (pure) — `SavingComponent` / `Savings` (each component capped on
+  its own), `DealRanking` (integer bps, total order, page-after), `ClickToken` (48 bytes + 16-byte HMAC, 7 days),
+  `PostbackSignature`, `AdRotation` (injected roll), `Hashing` (salted visitor hashes), `ApplicationStatus`,
+  `ConversionStatus`. `app` — `DealService` (feed + detail), `DealAdminService`, `ClickService` (the redirect),
+  `CounterFlusher`, `PostbackService`, `ApplicationService` / `ApplicationAdminService`, `AdService` /
+  `AdAdminService`, `StatsService`, `ProjectionService` (three consumers), ports `DealStore`, `TrackingStore`,
+  `ApplicationStore`, `AdStore`, `ProjectionStore`, `CounterBuffer`. `infra` — `CommerceRepository` (one per pool),
+  `AdRepository`, `RedisCounterBuffer` (four Lua scripts of the ACL's commands). `config` — two pools (app +
+  `AdminPool` as commerce_admin), `ViewerResolver` (the optional verified token), `CommerceJobs` (flush every 10 s on
+  every instance, a final flush on stop), relay (topic `dexter.commerce.application.v1`, the three consumed topics and
+  their stages, daily partitions of the raw tables 3 ahead / 90 days kept), consumers `catalog-cards`, `held-cards`,
+  `ad-free`.
+- Actors: TRACKER (raw rows, counters, conversions), PROJECTOR (card projection), PUBLIC (anonymous reads); operators
+  SUPPORT / CATALOG_EDITOR / SUPER_ADMIN on the admin pool with `commerce:read|write|decide` from identity
+  (`V202611081300__identity_commerce_permissions.sql`).
+- Redis (ACL user `commerce`, keys `commerce:*`): `commerce:cnt:<dc|du|ai|ac>:<IST day>:<id>` pending increments,
+  `commerce:uq:<day>:<deal>:<visitor>` (SET NX, 48 h), `commerce:fc:<campaign>:<visitor>` (TTL = the window).
+- Endpoints (full table in `docs/api/routes.md`; the gateway gained `/r/**` public and `/v1/admin/commerce/**`):
+
+| Method | Path | Auth | Idempotency | Paging |
+|---|---|---|---|---|
+| GET | `/v1/deals`, `/v1/deals/{id}` | public, optional user token | — | keyset (score, priority, id) |
+| GET | `/r/{token}` | the signed token | — | — |
+| POST | `/v1/card-applications` | user | **REQ** | — |
+| GET | `/v1/card-applications`, `/{id}`; POST `/{id}:withdraw` | user | — | keyset |
+| GET | `/v1/ads/serve?placement=` | public, optional user token | — | — |
+| POST | `/v1/webhooks/affiliate/{network}` | public (HMAC) | (network, ref) | — |
+| * | `/v1/admin/commerce/{deals,card-applications,campaigns,stats}` | admin, `commerce:*` | If-Match on changes | keyset |
+
+- Event: `commerce.application.status-changed` v1 (`dexter.commerce.application.v1`, key = account, aggregate =
+  application, its version from 1). Consumers: none yet (P18 notifications).
+
+**Query→Index (P17)** — the full tables head `V202611081201__commerce_core.sql` and `V202611081202__commerce_ads.sql`:
+
+| Query | Index |
+|---|---|
+| the feed's bounded active set | `deals_active (priority DESC, id)` partial on active |
+| a click by id (postback attribution) | `deal_clicks_pkey (created_at, id)` — created_at is the UUIDv7's own time, one partition |
+| counter flush upsert / stats by day | `deal_click_counters_pkey (deal_id, day)`, `ad_counters_pkey (creative_id, day)` |
+| postback replay guard | `conversions_network_provider_ref_key` |
+| one open application per card | `card_applications_one_open` (partial unique) |
+| `GET /v1/card-applications` | `card_applications_list (account_id, created_at DESC, id DESC)` — PlanAssert: no Seq Scan, no Sort on 63k rows |
+| the operators' queue | `card_applications_queue (created_at, id)` partial on open |
+| live campaigns for a placement | `campaigns_active` GIN (placements) partial on active + `creatives_campaign_active` |
 
 **P16 Billing (DONE, CI run 42449818720, git `9430059`)** — ADR-0022, A-92..A-98, MASTER_PLAN P16
 
@@ -1210,6 +1294,7 @@ Croma Online vs label Croma).
 | 0014 | Catalog: published face + editor drafts + immutable versions (trigger), publish in one transaction (no-op by content hash), rule overlap impossible (EXCLUDE gist), snapshot = API = compacted event, public reads with a sentinel tenant, editor-only admin pool, search through an owner SECURITY DEFINER function | Accepted: proven by CI run 39046289166 |
 | 0016 | Portfolio A: catalog as a version-guarded projection written only by the PROJECTOR actor, soft-removed cards with a live-only unique key, computed billing cycles with statements materialised on posting + an owner-function closer, rewards earned at record time on catalog terms into an append-only points ledger (FIFO expiry), auto-match as scored suggestions from both sides, exact reducing-balance EMI, consumers ensure their source topics | Accepted: proven by CI run 39703341828 |
 | 0018 | The calc library: BigDecimal **rupees** inside with the original's rounding points (paise only at the boundary) so the ported fixtures hold to the paisa, bps for rates, final classes of static methods with `Lot` mutable and package-private, all 31 old calc tests ported and green with no value needing explanation, `emi/CardEmiCalculator` not ported (P11's `EmiMath` is v2's EMI engine and rounds differently), preconditions rejected instead of dereferenced, `/v1/calc/*` stateless and capped | Accepted: proven by CI run 40962182275 (portfolio-calc unit 40, `CalcIT` 16, api-smoke P12 calc 27, trail-check `p12-calc` 4) |
+| 0023 | Commerce: integer savings capped per component and an integer score (card-match a ranking branch), an in-memory rank over the bounded active set paged by a signed keyset cursor, the optional verified token on public routes, the signed `/r/` link as the click's only credential, raw clicks + Lua counters drained atomically inside the Redis ACL, postbacks idempotent by (network, ref) counted in their own transaction, one open application per card in the database, weighted rotation + atomic frequency caps, ad-free from the entitlements event | Accepted: proven by CI run 42502207781 (P17) |
 | 0022 | Billing: the checkout as Mode B in three phases and never abandoned after the provider call; one `PaymentOutcomes.apply` for every source of an outcome (a payment is decided once); the sweeper and period-end job through owner functions; `incomplete` counts as live; signature = credential, event id = replay guard; GST computed once and split; entitlements computed on read and announced on change; the tier reaching the token through identity's own projection | Accepted (P16, CI run 42449818720) |
 | 0021 | Reco B: a wallet valued **as a wallet** (a rupee routed once, caps per card, fees and milestones following the routed spend), exact routing of the contested roots with a greedy fallback that says so, **dominance pruning reported rather than applied** because every quantity that decides a wallet is per card and non-additive, nothing cached, best-card-now on this month's per-card spend with the purchase's exact category path, and SSE behind a one-time ticket fanned out over Redis pub/sub after the commit | Accepted (P15): proved by CI run 41952698922 (git `35a2ed7`) |
 | 0020 | Reco A: a rolling spend window **rebuilt** from exact per-month deltas (a window cannot be incremented — an expense leaves it because time passed), the inbox as the exactly-once guard for spend while the per-aggregate projections are version-guarded, `rateBps` as a value rate shared with portfolio rather than reimplemented (A-82), the root/depth share as one explicit assumption reported in every explanation, a fee-waiver **ramp** so a recommendation cannot flip on a rupee, savings normalized against the best candidate, no catalog fan-out (the read notices through the state hash), and a state hash of the **inputs** including the engine's own version | Accepted (P14): proved by CI run 41226988389 (git `88a3cb8`) |
@@ -1319,9 +1404,35 @@ Croma Online vs label Croma).
 | 2026-10-31 | P14 | A-84: the sweeper's claim is **`reco.claim_dirty`**, a `SECURITY DEFINER` function owned by `reco_owner` and granted to `reco_app`, not plain SQL in the repository. | A sweep spans accounts and `rec_state`'s tenant policy shows the app pool exactly one row — its own — so the claim written as app-pool SQL returned zero rows every pass, whatever actor the job carried (the `SWEEPER` tenant matches no `account_id` at all). Caught by the P14 CI run: four `DebounceIT` tests expected a claim and got none. Same remedy as portfolio's `close_ended_statements` (P11), chosen over a second RLS policy because the function can only ever do this one thing. Proved against a real Postgres before the fix was pushed: the shipped SQL claims 0, `claim_dirty` claims the batch and clears it. | P15's SSE reads the same claim; any later cross-account job in reco gets an owner function, not a policy. |
 | 2026-10-30 | P13 | A-77: the event the plan calls `planning.budget.threshold_crossed` is published as **`planning.budget.threshold-crossed`** (hyphen, not underscore); the schema file, `BudgetThresholdCrossedV1.TYPE` and the docs all use the hyphen. | `Topics.name` (P02, ADR-0006) validates every service/aggregate/action segment against `[a-z][a-z0-9-]{0,39}`, so `EventType.of` throws on an underscore — it is the first two-word action in the system, and the library's own rule is dashes. Found by the P13 CI run: the static initializer of `PlanningEvents` threw, which surfaced as a 500 on `POST /v1/liabilities` and a `NoClassDefFoundError` in the consumer. | Any later two-word action uses a dash too. |
 | 2026-10-27 | P12a | A-72: the object store runs with S3 identities rendered at every start from `OBJECTSTORE_ACCESS_KEY/_SECRET_KEY` (`infra/objectstore/render-s3.sh`, one dev identity); anonymous requests are refused; the healthcheck is `/healthz`. `dexter-objectstore` gains `delete` and `presignInternal`. `IdempotencyContract` gains `writesEvent()` (upload creation writes no event). | ADR-0003 deferred identities to P12; statements must never be public. | P19: per-service identities + bucket policies. |
+| 2026-11-08 | P17 | A-99: P17 was built in the same chat as P16 (the user's "go on next"), with the standing discipline unchanged: P16 re-verified from `verify-reports` first (§3). | One chat per phase is the convention, not a rule the plan states; the handoff is this file either way. | — |
+| 2026-11-08 | P17 | A-100: deal administration (`POST/GET /v1/admin/commerce/deals`, `POST /{id}:status` with If-Match; draft → active ⇄ paused → ended) beside the plan's campaign CRUD, decide and stats. | Deals have to come from somewhere; a migration is no place for marketplace data, and the smoke and trail must create their own (the P15 lesson). | P19 admin console |
+| 2026-11-08 | P17 | A-101: conversions are unique on **(network, provider_ref)**, not `provider_ref` alone. | A ref is unique within the network that issued it; two networks may reuse one. | Any real affiliate adapter |
+| 2026-11-08 | P17 | A-102: `status_history` is one `jsonb` array (appended with `||`), not `jsonb[]`. | Same content; a jsonb array is what the JDBC layer and the API round-trip without a custom array type. | — |
+| 2026-11-08 | P17 | A-103: the feed, a deal, the ad slot and the redirect are public **with an optional token that must verify** (config's `ViewerResolver`: none = anonymous, invalid = 401, admin/service = anonymous); the gateway routes `/r/**` (public) and `/v1/admin/commerce/**` to commerce. | `@PublicEndpoint` skips the interceptor, and card-match / ad-free need the viewer. Ignoring a bad token would hide a client bug as silent de-personalisation. The redirect must be public (a browser follows it with no header) and the admin API needed a route. | Gateway route table |
+| 2026-11-08 | P17 | A-104: counters are Redis **Lua scripts of the ACL's commands** (INCR + SET NX for uniques; drain = SCAN + get-and-unlink; restore = add back), not SADD dirty sets or GETDEL; every instance flushes. Conversions and approved commission are added to the deal's counter row **in the postback's own transaction**. | The per-service ACL (P02b) allows get/set/incr/pexpire/unlink/scan/eval only; widening it for every service was not needed. An atomic drain needs no leader. Counting conversions where they are decided makes a replay unable to count twice. | P18 if it reads counters |
+| 2026-11-08 | P17 | A-105: ad-free is commerce's projection of `billing.entitlements.changed` (`adFree`), not the token's `tier` claim. | Fresher than any token (a PREMIUM purchase shows within seconds, smoke-proven), and the entitlement — not the tier — is what an ad holiday override would change. | `entitlement_overrides` writers (§7) |
+| 2026-11-08 | P17 | A-106: identity gains `commerce:read`, `commerce:write`, `commerce:decide` (SUPPORT: read + decide; CATALOG_EDITOR: read + write; SUPER_ADMIN: all), expand-only. | The admin endpoints need permissions; the seeded admin's standing roles already cover both duties. `AdminIT`'s exact SUPPORT set and the P05 mock follow. | P19 admin console |
+| 2026-11-08 | P17 | A-107: a card application's version starts at **1** (the submission's event carries aggregate version 1). | The first event of an aggregate is version 1 elsewhere in the event model; ETag `"1"` after apply. | P18 consumer of the event |
+| 2026-11-08 | P17 | A-108: no P17a/P17b split — ads were built in P17 with the rest. | The ads reuse the counter, token and projection machinery the deals needed; splitting would have duplicated the scaffolding across two rounds. | — |
 
 ## 7. Known gaps / tech debt (honest, never deleted silently)
 
+- **P17 commerce (ADR-0023):**
+  - **A drained counter batch lost to a crash is not reconciled.** The flusher restores a batch whose write fails, but a
+    process killed between the drain and the commit loses that batch (≤ 10 s of counts). The raw rows are the truth;
+    a reconcile job (raw → counters per day) is not built.
+  - **Anonymous visitor identity is best-effort.** It is the salted (first X-Forwarded-For hop, user agent), so an
+    anonymous client can dodge its frequency cap or inflate uniques by varying either. Signed-in visitors are exact.
+  - **Raw clicks are kept 90 days**; a postback for an older click is stored unattributed (click_id NULL).
+  - **Affiliate networks:** only `mock`, secrets from env; no adapter, no pull reconciliation, no payout.
+  - **Deals:** status is the only change after creation (no edit of components or dates); merchants are free text +
+    an id not checked against ledger's merchants; the feed ranks ≤ 500 active deals per request with no cache.
+  - **Ads:** no budgets or pacing, no creative upload (image URLs only), ad clicks are counters without raw rows, no
+    `NO_FILL` test (the IT database is shared by every campaign test).
+  - **Card applications:** no issuer integration; decisions are manual; the applicant is not notified until P18
+    consumes `commerce.application.status-changed`.
+  - **`entitlement_overrides` still has no writer** (ad holidays, perks) — the ad-free path is ready for one.
+  - The trail page's Live postback buttons cannot sign (the secret is server-side): they show the 400.
 - **P16 billing (ADR-0022 "what this phase does not do"):**
   - **No renewal charging.** A period that ends without a cancel goes `past_due`, keeps the plan for a 3-day grace,
     then `expired`. Renewal is an off-session Mode B charge keyed by (subscription, period) and belongs with a real
@@ -1638,6 +1749,10 @@ press **Lab status / start**, then **Get a valid token**. (After a manual `run.s
 
 ## 10. Changelog (one line per response)
 
+- 2026-11-08 P17 r4 (docs): BUILD_README evidence for CI run 42502207781, git `ed71c5d` (header, §1, §2, §3 P16 re-verification + P17 DoD, §4, §5, A-99..A-108, §7), ADR-0023 Accepted.
+- 2026-11-08 P17 r3: **green** — CI run 42502207781, git `ed71c5d`: `verify.sh full` PASS 22/22 + `trail-check.sh` PASS, commerce unit 18 + IT 49, api-smoke **576 PASS / 0 FAIL** (49 of them P17's), `p17-*` 9/9, trail-check 115/0/0. The fix: the smoke's card-match check had the arithmetic wrong (a held ₹1,500 deal does not outrank an open ₹7,000 one: 5,485 < 5,600 bps).
+- 2026-11-08 P17 r2: the list-plan check asks about a heavy account (3,000 rows): at 60 rows a bitmap scan + Sort is the planner's right plan. `ci` green; verify failed one smoke check (r3).
+- 2026-11-08 P17 r1: re-verified P16 from `verify-reports` (run 42450718047, `2a0fcb2`), then built commerce in one pass (two migrations, 9 domain classes, 12 app services, Lua counters, three consumers, admin pool, identity permissions, gateway routes, contract, ADR-0023, 12 ITs, smoke, trail page). Compiled and unit-tested green first time; commerce IT 48/49.
 - 2026-11-08 P16 r3 (docs): BUILD_README evidence for CI run 42449818720, git `9430059` (§1, §2, §3 P15 re-verification + P16 DoD, §4, §5, A-92..A-98, §7), ADR-0022 Accepted.
 - 2026-11-08 P16 r2: **green** — CI run 42449818720, git `9430059`: `verify.sh full` PASS 22/22 + `trail-check.sh` PASS, billing unit 12 + IT 52, identity IT 67, api-smoke **529 PASS / 0 FAIL** (42 of them P16's), `p16-*` 9/9, trail-check 105/0/0. Fixed r1's two causes: the provider key scoped by account (A-97, caught by the contract test) and RLS kit statements ending in DML.
 - 2026-11-08 P16 r1: re-verified P15 from `verify-reports` (run 42134809373, `67eb956`, 22/22 + trail-check PASS), then built billing in one pass (schema, Mode B checkout, mock provider, webhooks, invoices with the mock GST split, entitlements + cache, period-end job, sweeper) and identity's `billing-tier` consumer. Proved outside Maven first: domain harness 1493 checks, the whole billing SQL flow + RLS + owner functions as `billing_app` on Postgres 16, a javac pass over billing/identity with the platform sources (no unresolved references of our own), jsdom 36/36. First CI run: compiled and unit-green; IT 48/52.

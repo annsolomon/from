@@ -1,6 +1,6 @@
 # ADR-0023: Commerce — a ranked marketplace, signed clicks counted once, idempotent postbacks, capped ads
 
-- Status: Proposed (P17) — set to Accepted with the CI run that proves it (BUILD_README §3).
+- Status: Accepted — proven by CI run 42502207781 (git `ed71c5d`): `verify.sh full` 22/22 + `trail-check.sh` PASS (BUILD_README §3).
 - Context: MASTER_PLAN P17 asks for deals with savings components (each capped separately; ₹75,000 → ₹7,000),
   ranking `score = 0.8·relevance + 0.2·sponsor` with `relevance = 0.6·cardMatch + 0.4·savingsNorm` and card-match as
   a ranking branch (not a gate), a keyset feed, signed redirect links with raw clicks (partitioned) and Redis
