@@ -1,6 +1,10 @@
 # ADR-0022: Billing — a checkout that survives a crash, a payment decided once, and a tier that reaches the token
 
-- Status: Proposed (P16) — accepted once a CI run proves it (BUILD_README §1).
+- Status: Accepted (P16), proved by CI run 42449818720 (git `9430059`): `verify.sh full` PASS 22/22 +
+  `trail-check.sh` PASS. Proof: billing unit **12** + IT **52** (the four named tests in `WebhookIT`,
+  `ModeBRecoveryIT`, `OneActiveSubscriptionIT`; the Idempotency and Pagination contracts; RLS on 8 tables),
+  identity IT 67 with `TierIT`, api-smoke 529 PASS / 0 FAIL with 42 of them P16, trail-check `p16-*` 9/9. r1 found
+  A-97 (a provider key not scoped by account) through `IdempotencyContract.keysAreTenantScoped`.
 - Context: MASTER_PLAN P16 asks for plans, subscriptions, entitlements, payments behind a provider adapter with a mock
   provider (success, failure, delayed HMAC-signed webhooks), invoices with a mock GST split, replay-safe webhooks,
   Mode B idempotency for checkout, seven endpoints and two events. Named tests: a replayed webhook has a single

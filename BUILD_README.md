@@ -1,15 +1,17 @@
 # Dexter v2 — Build README (living handoff)
 
-**Last updated:** 2026-11-05 · **Chat/phase:** P15 (reco B) · **Model:** Claude Opus 5
-**P15 is DONE (CI run 41952698922, git `35a2ed7`).** A wallet valued as a wallet — each category root routed to
-exactly one card, caps counted per card, fees and milestones following the routed spend, and the marginal value of
-each next card — plus best-card-now over the cards an account holds (cap headroom this month, active offers, a
-milestone this purchase would reach) and an SSE stream behind a one-time 60-second ticket, fanned out over Redis
-pub/sub so a push reaches a viewer whatever instance recomputed (ADR-0021, A-85..A-91). P14 was re-verified first
-from the latest report on `verify-reports` (run 41228253757, git `fa8113c`): `verify.sh full` **PASS** 22/22 +
-`trail-check.sh` **PASS** — §3.
-Next chat: **P16** (billing: plans, subscriptions, entitlements, payments, webhooks). Upload `MASTER_PLAN.md` + this
-README; the code is in the repo (clone it). The old repo zip is not needed: nothing is left to port (ADR-0018 §6).
+**Last updated:** 2026-11-08 · **Chat/phase:** P16 (billing) · **Model:** Claude Opus 5.5
+**P16 is DONE (CI run 42449818720, git `9430059`).** Billing is a real service: plans, a checkout that is Idempotency **Mode B** across a
+mock payment provider (key + incomplete subscription + pending payment, then the provider call, then the outcome and
+the stored response), one `PaymentOutcomes.apply` that every source of an outcome goes through (a payment is decided
+once — which is what makes replayed and out-of-order webhooks harmless), a stale-checkout sweeper and a period-end
+job through owner functions, HMAC-signed replay-safe webhooks, invoices with the mock GST split, and entitlements
+cached 60 s and announced on change — consumed by identity so a **refreshed token carries the new tier** (ADR-0022,
+A-92..A-98). P15 was re-verified first from the latest report on `verify-reports` (CI run 42134809373, git
+`67eb956`): `verify.sh full` **PASS** 22/22 + `trail-check.sh` **PASS** — §3.
+Next chat: **P17** (commerce: deals, affiliate tracking, card applications, ads). Upload `MASTER_PLAN.md` + this
+README; the code is in the repo (clone it). Verify P16 from the latest report on `verify-reports` (the docs commit
+on top of `9430059` gets its own run).
 
 ## 1. Phase status
 
@@ -31,20 +33,24 @@ README; the code is in the repo (clone it). The old repo zip is not needed: noth
 | P13 | Planning | **DONE** 2026-10-30 | `verify.sh full` PASS 22/22 + `trail-check.sh` PASS (CI run 41096207559, git `d03ca6b`): planning unit 28 + IT 53 (budgets, spend projection incl. the 23:30-IST month end and thresholds once per period, `SpendPropertyIT` 600 random ops vs a recomputed SUM, liabilities + schedule, scenarios, RLS proof on 6 tables, PaginationContract 9, IdempotencyContract 2 × 6), `libs/portfolio-calc` unit 44 (40 + `EmiMathTest` 4 after A-74), api-smoke 407 PASS / 0 FAIL (79 P13: budgets fed by real ledger events over Kafka, planning outbox → `dexter.planning.{budget,liability}.v1`, `budget-spend` inbox 18 events), trail-check `p13-{anon,budget,spend,emi,schedule,scenario}` 6/6 | ADR-0019, A-74 (`EmiMath` moved into `libs/portfolio-calc`), A-75 (`/v1/budgets/category-potential` deferred), A-76 (routes/patchable fields), A-77 (`threshold-crossed`, not `threshold_crossed`). DoD all ticked (§3) |
 | P14 | Reco A | **DONE** 2026-10-31 | `verify.sh full` PASS 22/22 + `trail-check.sh` PASS (CI run 41226988389, git `88a3cb8`): all 25 reactor modules SUCCESS, `services/reco` unit **41** + IT **37** (spend profile vs a recomputed sum over 150 random ops, projections and their version guards, the debounced sweep, `/v1/recommendations*` over HTTP, RLS on 6 tables), `libs/portfolio-calc` unit 44, api-smoke **444 PASS / 0 FAIL** with 37 of them P14 (the profile arriving over real Kafka, the 60/40 identity on every row, the explanation adding up line by line, a held card marked then unmarked through `portfolio.card.*`), trail-check `p14-{anon,cold,profile,blend,explain,badids}` 6/6 | ADR-0020, A-78 (spend_profile rebuilt from a per-month table), A-79 (card terms + rules as two projections), A-80 (`window_code`), A-81 (the root/depth share assumption), A-82 (`RewardTerms` moved into `libs/portfolio-calc`), A-83 (no catalog fan-out), A-84 (`reco.claim_dirty`, an owner function — the app pool cannot claim across accounts). DoD all ticked (§3) |
 | P15 | Reco B (optimizer/SSE) | **DONE** 2026-11-05 | `verify.sh full` PASS 22/22 + `trail-check.sh` PASS (CI run 41952698922, git `35a2ed7`): all 25 reactor modules SUCCESS, `services/reco` unit **69** + IT **59** (the optimizer against an independent brute force over every subset and every routing, best-card-now with an exhausted cap and a merchant query, offers, the SSE stream across **two application contexts** on one Redis, a ticket usable once, RLS on 8 tables), `libs/portfolio-calc` unit 44, api-smoke **487 PASS / 0 FAIL** with **42** of them P15 (the wallet identities over a live stack — a rupee routed once, each size's marginal value, a wallet's value and fees as its cards' — best-card-now's parts adding up with a reward never past the headroom beside it, an expense attributed to a card moving that card's period spend over real Kafka, and a real SSE read through the gateway), trail-check `p15-{anon,wallet,bestcard,badamount,ticket,stream,onceonly}` 7/7 | ADR-0021, A-85 (a rule's cap is one cap, not one per root — a **P14 correctness fix**, `ENGINE_VERSION` → 2), A-86 (`card_period_spend` from the ledger's own `userCardId`), A-87 (a service's own `<svc>:*` Redis channel namespace), A-88 (`mvn -U` in CI), A-89 (a merchant rule earned **nothing** — a second P14 correctness fix, `ENGINE_VERSION` → 3), A-90 (the failing service's log snapshotted before the next step overwrites it), A-91 (every step timed, the long poles under `timeout`), and dominance pruning **reported rather than applied** (ADR-0021 §3). DoD all ticked (§3) |
-| P16 | Billing | WRITTEN (r1 pushed for CI) | — | ADR-0022 (Proposed). Proved outside Maven: domain harness 1493 checks, the billing SQL flow + RLS + owner functions on Postgres 16, jsdom 36/36 |
+| P16 | Billing | **DONE** 2026-11-08 | `verify.sh full` PASS 22/22 + `trail-check.sh` PASS (CI run 42449818720, git `9430059`): all 25 reactor modules SUCCESS, `services/billing` unit **12** + IT **52** (the four named tests — a replayed webhook delivered 3× in a row and 10× at once has one effect; "succeeded" before "created" and "failed" before "created"; a crash after the provider call finished by the **sweeper** with no webhook delivered, by the client's own retry, and an attempt that never reached the provider closed as `not_submitted`; one live subscription enforced by the database against 10 concurrent checkouts — plus the Idempotency and Pagination contracts, RLS on 8 tables, the period-end job, the 60 s cache), `services/identity` IT 65 → **67** (`TierIT`), api-smoke **529 PASS / 0 FAIL** with **42** of them P16 (on accounts the smoke **registers itself**, every collection asserted non-empty first: the tier arriving in a refreshed token over Kafka, a delayed payment decided by the provider's own HTTP webhook, invoices whose lines add up to the charge, webhook replay through the gateway, and billing's outbox, both topics, 6 webhook deliveries and identity's `billing-tier` inbox), trail-check `p16-*` **9/9**, 105 PASS / 0 FAIL / 0 SKIP overall | ADR-0022, A-92 (`incomplete` is live, so a racing second checkout is refused before any charge), A-93 (plans not paged), A-94 (`incomplete` / `incomplete_expired`, and what the period-end job does), A-95 (identity's `tier_version` + `billing-tier` consumer), A-96 (`billing_interval`), A-97 (the provider's key is account + Idempotency-Key — **a real bug the contract test caught in r1**), A-98 (mock webhook delivery `http`/`memory`). DoD all ticked (§3) |
 | P17 | Commerce | NOT STARTED | — | |
 | P18 | Audit/notify/privacy | NOT STARTED | — | |
 | P19 | Hardening & release | NOT STARTED | — | |
 
 ## 2. In progress (exact stopping point)
 
-- **P16 (2026-11-08) r1:** P15 re-verified from the latest report on `verify-reports` (run 42134809373, git
-  `67eb956`: 22/22 + trail-check PASS, §3). Billing built in one pass and pushed for CI.
-- **P16 r2:** run 42410455200 (r1): unit green, billing IT 48/52, trail-check's P16 block 9/9 on the live stack. The
-  four failures were two causes: the mock provider keyed charges on the bare Idempotency-Key, so two accounts using
-  the same key shared one charge (IdempotencyContract case 6 caught it: `payments_provider_payment_id_key`) - the
-  provider key is now account + key; and three RlsProofKit statements ended in `SELECT 1`, which `executeUpdate`
-  refuses. The other trail-check FAILs were knock-on (Maven failed, so the seed never loaded). Next: read r2's run.
+- **P16 is DONE** (CI run 42449818720, git `9430059`): nothing in progress. Two rounds: r1 compiled and unit-tested green first time, and
+  its run had billing IT at 48/52 and trail-check's P16 block already 9/9 on the live stack; the four failures were
+  one real bug (A-97: two accounts sharing an Idempotency-Key UUID shared a provider charge) and one test-side
+  mistake (three RlsProofKit statements ended in `SELECT 1`). r2 fixed both and went green.
+- Files touched in P16: `services/billing/**` (whole service), `services/identity` (tier migration, `TierService`,
+  consumer config, relay topics, `AccountStore.updateTier`, `TierIT`, health IT count), `contracts` (two events),
+  `scripts/lib/p16_smoke.py`, `scripts/api-smoke.sh`, `scripts/trail-check.sh`, `test-ui/p16-billing.html` +
+  index, `docs/adr/0022-*`, `docs/api/{routes,errors}.md`, `.env.example` (`BILLING_CURSOR_KEY_C1`,
+  `BILLING_MOCK_WEBHOOK_SECRET`).
+- Next concrete action: P17. Commerce is the first writer `entitlement_overrides` was built for (perks, ad holidays;
+  §7), and its ads are gated by the `adFree` entitlement.
 - **P12a (2026-10-27):** code complete. Evidence: CI run 40416356611 (git `29c4146`) — every Maven module and IT
   green, ai-parser pytest 72/72, trail-check PASS; the only failure was api-smoke P12 (the presigned PUT from the smoke
   script raised a transport error on the runner; the same flow passes against SeaweedFS 4.22 with identities in the
@@ -259,6 +265,40 @@ README; the code is in the repo (clone it). The old repo zip is not needed: noth
 - **P02b scope (A-13):** `dexter-security` (resource server, JWKS cache + unknown-kid refetch, `AuthContext`, audience check, `@RequiresStepUp`, `@RequiresPermission`, service-token client, test JWKS/JWT factory; pins nimbus + bouncycastle, verified on Maven Central), `dexter-cache` (ADR-0004, generation keys, Redis ACLs, cache contract), `ArchRules` (pins archunit), demo module switched from the `X-Demo-Account` test header to `AuthContext`, `p02-*.html` trail page + lab endpoints (idempotency replay/409/422, outbox → Kafka → projection, DLQ).
 
 ## 3. Verification of previous phase
+
+### P15 re-verified in the P16 chat (latest report on `verify-reports`: CI run 42134809373, git 67eb956, 2026-11-06)
+
+Read, not re-run: `RUN.txt` says `verify_full=success`, `trail_check=success` for `67eb956` (the P15 docs commit on
+top of `35a2ed7`). `steps.tsv` has all **22** steps PASS, no SKIP; all 25 reactor modules SUCCESS; `services/reco`
+unit **69** + IT **59**, 0 failures; api-smoke **487 PASS / 0 FAIL / 0 SKIP**; trail-check **95 PASS / 0 FAIL / 0
+SKIP** including `p15-*` 7/7. The two "skip" strings in the smoke log are PASS lines whose text contains the word.
+P15 stands as DONE; nothing to fix before P16.
+
+### P16 against its DoD (CI run 42449818720, git `9430059`, 2026-11-08)
+
+MASTER_PLAN P16 ticks one box, IT-GREEN; as for P15 the table takes the phase's schema, endpoints, events and named
+tests as the requirements.
+
+| DoD / requirement | Result | Evidence |
+|---|---|---|
+| IT-GREEN | **PASS** | `verify.sh full` 22/22, billing IT 52/0/0, unit 12/0/0; trail-check PASS, 0 SKIP |
+| Schema: plans, subscriptions (+ one-live partial unique), payments, invoices + invoice_lines, webhook_events, entitlement_overrides | PASS | `V202611080901__billing_core.sql`; plus `entitlement_state` for the event's per-account version (ADR-0022 §7). Every tenant table ENABLE + FORCE + policy (`rls-gate` PASS) and proved by `BillingRlsIT` (8 tests); plans are global read, written by no runtime role |
+| Mock GST 18 %: CGST/SGST vs IGST by state, documented | PASS | `TaxInvoice` on the shared `Gst.on`; `TaxInvoiceTest` (Rs 199 → 35.82 = 17.91 + 17.91; odd paisa to CGST; same total intra/inter over 700 prices); `InvoicesIT`; smoke: KA → item+cgst+sgst, MH → item+igst, lines add up to the charge; ADR-0022 §6 |
+| Provider adapter interface + MockPaymentProvider (success, failure, delayed HMAC-signed webhooks) | PASS | `PaymentProvider` (5 methods, its Mode B contract in the javadoc), `MockPaymentProvider` (5 test tokens, charges once per account-scoped key, lookup by reference, signed `payment.created` + outcome on a timer); smoke and trail-check saw the **real HTTP** delivery activate a delayed payment |
+| Mode B idempotency for checkout | PASS | `CheckoutService` (three phases, never abandoned after the call); `CheckoutIdempotencyContractIT` 6/6 (20 parallel → 1 subscription, 1 event; a failure in phase 1 leaves no key); `CheckoutIT` provider outage → 503 keeps the key, 409 inside the lease, retry after it charges once |
+| `GET /v1/plans` | PASS | `PlansIT`, smoke (public, 3 plans, total = price + GST) |
+| `POST /v1/subscriptions/checkout` (Idem: REQ, step-up) | PASS | `CheckoutIT` (201/402/202, 400 missing key, 400 for a card number as payment method, 422 FREE, 404, unknown field, 401 `STEP_UP_REQUIRED` at 20 min, 403 admin token), smoke |
+| `GET /v1/subscriptions/me`, `POST /v1/subscriptions/me:cancel` | PASS | `CheckoutIT.cancelIsAtPeriodEnd…` (idempotent, still PREMIUM), `PeriodEndIT` (canceled at period end → FREE; past due → expired after the grace), smoke, trail `p16-cancel` |
+| `GET /v1/entitlements/me` (cached 60 s; the tier claim on refresh) | PASS | `EntitlementsIT` (FREE default, overrides over the plan, expired ignored, cache hit then drop after a commit); `TierIT` (refresh carries PREMIUM, then VIP; a duplicate and an older version change nothing); smoke **"a refreshed token carries tier PREMIUM"** over real Kafka |
+| `POST /v1/webhooks/{provider}` (signature, replay-safe) | PASS | `WebhookIT` (tampered, unsigned, stale → 400 with `reason`; unknown provider 404; no-payment 200 ignored; junk 400); smoke through the gateway |
+| `GET /v1/invoices` (keyset) | PASS | `InvoicesPaginationContractIT` 9/9 incl. the plan on **60,060 invoices / 1,001 accounts** (`invoices_list`, no Sort, no Seq Scan), `InvoicesIT` |
+| Events `billing.subscription.changed`, `billing.entitlements.changed` | PASS | schemas + records + `SchemaContractTest` samples; outbox rows asserted per transition in the ITs; smoke: 5 published, 0 pending, both topics non-empty, identity's `billing-tier` inbox 2 |
+| Named: **webhook replay → a single effect** | PASS | `WebhookIT.aReplayedWebhookHasASingleEffect`: 1 + 3 sequential + 10 concurrent deliveries → 1 `webhook_events` row, 1 invoice, 1 of each event, the payment's version moved once by the decision |
+| Named: **out-of-order webhooks (succeeded before created)** | PASS | `WebhookIT.outOfOrderWebhooksSucceededBeforeCreated` (+ the failed-before-created twin): the late "created" is `no_change`, the payment stays decided, one activation |
+| Named: **Mode B crash recovery → the sweeper resolves it** | PASS | `ModeBRecoveryIT`: the crash hook throws after the provider charged; the key stays `in_progress:payment_created`, the sweeper leaves it alone inside the lease, then finishes it from the provider's record (**no webhook delivered**), and the client's retry replays the stored 201 — charges created: 1 |
+| Named: **only one active subscription can exist** | PASS | `OneActiveSubscriptionIT`: the index refuses a second active/trialing/past_due/incomplete row; a second checkout → 409; **10 concurrent checkouts with different keys** → exactly one 201, one payment, one charge |
+| Trail: `test-ui/p16-billing.html` | PASS | jsdom Mock run 36/36 (decline, success, replay, 422, 409, invoice lines, held webhooks delivered out of order, replay = duplicate, isolation); trail-check `p16-*` 9/9 on a freshly registered account |
+| P15 lessons applied | PASS | no smoke or trail check reads seeded billing state — both register their own accounts and assert non-empty first; no launcher in `$( )`; the new steps are bounded by the existing `timeout`s |
 
 ### P15 against its DoD (CI run 41952698922, git 35a2ed7, 2026-11-05)
 
@@ -574,6 +614,52 @@ Issues found in P01's own code during self-review and fixed:
 4. The web test asserted an exact `Content-Type`; now a compatible-type check (a charset suffix must not fail it).
 
 ## 4. What exists now
+
+**P16 Billing (DONE, CI run 42449818720, git `9430059`)** — ADR-0022, A-92..A-98, MASTER_PLAN P16
+
+- `services/billing` (was a skeleton): `domain` (pure) — `TaxInvoice` (mock GST on `Gst.on`), `IndianStates`,
+  `PaymentStatus` (decided once), `Subscriptions` (live/entitled sets, period end in IST, the period-end rules),
+  `Entitlements` (tier, plan + unexpired overrides), `WebhookSignature` (HMAC, ±5 min, constant time),
+  `InvoiceNumbers` (`DX/<FY>/<serial>`). `app` — `CheckoutService` (Mode B + `recoverStale`), `PaymentOutcomes`
+  (the one apply), `WebhookService`, `SubscriptionService` (me, cancel, `endPeriods`), `EntitlementService`
+  (cached read, `refresh` + event), `PlanService`, `InvoiceService`, the `PaymentProvider` port. `infra` —
+  `BillingRepository`, `InvoiceRepository` (keyset `LIST`), `provider/MockPaymentProvider` + `HttpWebhookSink` /
+  `MemoryWebhookSink`. `config` — wiring, `BillingJobs` (sweeper every 15 s, period end every 60 s, every
+  instance, SKIP LOCKED), relay (topics `dexter.billing.{subscription,entitlements}.v1`, idempotency purge).
+- Owner functions (the only cross-account reach): `billing.payment_account` (webhook pre-auth),
+  `billing.claim_stale_checkouts`, `billing.claim_period_ends`; `idempotency_keys_owner` policy so the owner can see
+  the keys under FORCE RLS (A-84's lesson applied up front).
+- `services/identity`: `V202611081000__identity_tier.sql` (`tier_version`), `TierService` = consumer `billing-tier`
+  on `dexter.billing.entitlements.v1` (inbox + `WHERE tier_version < :v`), declared with its stages by identity's
+  relay (A-67).
+- Endpoints (gateway routes already existed from P06; endpoint table in `docs/api/routes.md`):
+
+| Method | Path | Auth | Idempotency | Paging |
+|---|---|---|---|---|
+| GET | `/v1/plans`, `/v1/plans/{code}` | public | — | not paged (A-93) |
+| POST | `/v1/subscriptions/checkout` | user, step-up | **REQ, Mode B** | — |
+| GET | `/v1/subscriptions/me` | user | — | — (ETag) |
+| POST | `/v1/subscriptions/me:cancel` | user, step-up | optional | — |
+| GET | `/v1/entitlements/me` | user | — | — (cached 60 s) |
+| GET | `/v1/invoices`, `/v1/invoices/{id}` | user | — | keyset |
+| POST | `/v1/webhooks/{provider}` | public (HMAC) | provider event id | — |
+
+- Events: `billing.subscription.changed` v1 (`dexter.billing.subscription.v1`, key = account, aggregate =
+  subscription, its version) and `billing.entitlements.changed` v1 (`dexter.billing.entitlements.v1`, aggregate =
+  account, `entitlement_state.version`). Consumers: identity `billing-tier` (P16); audit/notifications (P18).
+
+**Query→Index (P16)** — the full table heads `V202611080901__billing_core.sql`:
+
+| Query | Index |
+|---|---|
+| the account's live subscription (checkout guard, `/me`, entitlements) | `subscriptions_one_live` (partial unique) |
+| the newest subscription (`/me` fallback) | `subscriptions_list (account_id, created_at DESC, id DESC)` |
+| period-end claim | `subscriptions_period_end (current_period_end)` partial on trialing/active/past_due |
+| a payment by Idempotency-Key (Mode B recovery) | `payments_idem_key UNIQUE (account_id, idem_key)` |
+| stale Mode B keys (sweeper) | `idempotency_keys_stale (locked_until)` partial on in_progress |
+| `GET /v1/invoices` | `invoices_list (account_id, issued_at DESC, id DESC)` — PlanAssert: no Seq Scan, no Sort on 60k rows |
+| an invoice's lines (`= ANY(:ids)`) | `invoice_lines_pkey (invoice_id, line_no)` |
+| webhook replay guard | `webhook_events_pkey (provider, provider_event_id)` |
 
 **P15 Reco B: the wallet optimizer, best-card-now, SSE (DONE, CI run 41952698922, git `35a2ed7`)** — ADR-0021,
 A-85..A-91, MASTER_PLAN P15
@@ -1116,6 +1202,7 @@ Croma Online vs label Croma).
 | 0014 | Catalog: published face + editor drafts + immutable versions (trigger), publish in one transaction (no-op by content hash), rule overlap impossible (EXCLUDE gist), snapshot = API = compacted event, public reads with a sentinel tenant, editor-only admin pool, search through an owner SECURITY DEFINER function | Accepted: proven by CI run 39046289166 |
 | 0016 | Portfolio A: catalog as a version-guarded projection written only by the PROJECTOR actor, soft-removed cards with a live-only unique key, computed billing cycles with statements materialised on posting + an owner-function closer, rewards earned at record time on catalog terms into an append-only points ledger (FIFO expiry), auto-match as scored suggestions from both sides, exact reducing-balance EMI, consumers ensure their source topics | Accepted: proven by CI run 39703341828 |
 | 0018 | The calc library: BigDecimal **rupees** inside with the original's rounding points (paise only at the boundary) so the ported fixtures hold to the paisa, bps for rates, final classes of static methods with `Lot` mutable and package-private, all 31 old calc tests ported and green with no value needing explanation, `emi/CardEmiCalculator` not ported (P11's `EmiMath` is v2's EMI engine and rounds differently), preconditions rejected instead of dereferenced, `/v1/calc/*` stateless and capped | Accepted: proven by CI run 40962182275 (portfolio-calc unit 40, `CalcIT` 16, api-smoke P12 calc 27, trail-check `p12-calc` 4) |
+| 0022 | Billing: the checkout as Mode B in three phases and never abandoned after the provider call; one `PaymentOutcomes.apply` for every source of an outcome (a payment is decided once); the sweeper and period-end job through owner functions; `incomplete` counts as live; signature = credential, event id = replay guard; GST computed once and split; entitlements computed on read and announced on change; the tier reaching the token through identity's own projection | Accepted (P16, CI run 42449818720) |
 | 0021 | Reco B: a wallet valued **as a wallet** (a rupee routed once, caps per card, fees and milestones following the routed spend), exact routing of the contested roots with a greedy fallback that says so, **dominance pruning reported rather than applied** because every quantity that decides a wallet is per card and non-additive, nothing cached, best-card-now on this month's per-card spend with the purchase's exact category path, and SSE behind a one-time ticket fanned out over Redis pub/sub after the commit | Accepted (P15): proved by CI run 41952698922 (git `35a2ed7`) |
 | 0020 | Reco A: a rolling spend window **rebuilt** from exact per-month deltas (a window cannot be incremented — an expense leaves it because time passed), the inbox as the exactly-once guard for spend while the per-aggregate projections are version-guarded, `rateBps` as a value rate shared with portfolio rather than reimplemented (A-82), the root/depth share as one explicit assumption reported in every explanation, a fee-waiver **ramp** so a recommendation cannot flip on a rupee, savings normalized against the best candidate, no catalog fan-out (the read notices through the state hash), and a state hash of the **inputs** including the engine's own version | Accepted (P14): proved by CI run 41226988389 (git `88a3cb8`) |
 | 0019 | Planning: a budget's per-period spend maintained as a delta from `ledger.expense.*` with the **inbox** as the exactly-once guard (a per-row `projected_version` compare would be wrong — one period row aggregates many expenses with independent version sequences), an edit settling both sides from `before`/`after`, no backfill so a new budget starts at zero and the row floors there, periods repeating from `starts_on` on the ledger's own IST day, a threshold alerting once per period enforced by a primary key, liabilities on the shared `EmiMath` with the schedule written once, and scenarios as a copy of the account rather than a live view | Accepted: proven by CI run 41096207559 (planning unit 28 + IT 53, api-smoke P13 79, trail-check `p13` 6) |
@@ -1126,6 +1213,13 @@ Croma Online vs label Croma).
 
 | Date | Phase | Change | Reason | Affects later phases |
 |---|---|---|---|---|
+| 2026-11-08 | P16 | A-92: the one-subscription partial unique index covers **`incomplete`** too (incomplete, trialing, active, past_due), not just the plan's three. | Without it two checkouts with different keys both pass the "is anything live?" check, both charge, and only collide at activation with the money taken. Counting the checkout in flight refuses the second at insert, before the provider is called (`OneActiveSubscriptionIT`: 10 concurrent → 1). | P17/P18 read "live" as this set |
+| 2026-11-08 | P16 | A-93: `GET /v1/plans` is not keyset-paged. | `plans.code` is CHECKed to FREE/PREMIUM/VIP: at most three rows, ever. A cursor over three rows is ceremony. | — |
+| 2026-11-08 | P16 | A-94: subscription statuses gain `incomplete` and `incomplete_expired` (Stripe's names), neither publishing an event; cancel is at period end only, and a period-end job moves canceling → `canceled`, others → `past_due`, past due → `expired` after a 3-day grace. | A checkout needs a state before its payment is decided; nobody else has anything to do with a subscription that never started. Renewal charging is not built (§7), so an uncanceled period must end somewhere honest rather than stay "active" for free. | P18 notifications consume `subscription.changed` |
+| 2026-11-08 | P16 | A-95: identity consumes `billing.entitlements.changed` (consumer `billing-tier`) into `accounts.tier_cache`, with a new `tier_version` column (expand-only migration) guarding the update; `entitlement_state` in billing holds the per-account version. | The plan says the tier is "embedded as the `tier` claim when the token refreshes" — identity issues the token, so identity needs the tier, and events are the rule for cross-service state (MASTER_PLAN 2.2). A subscription's own version restarts per subscription, so it cannot order these events. | Identity now has a consumer; P18's delete saga must include it |
+| 2026-11-08 | P16 | A-96: the plan's `interval` column is `billing_interval`; the API field stays `interval`. | `INTERVAL` is a Postgres type keyword; an unquoted column of that name invites parse trouble (A-80's `window_code` precedent). | — |
+| 2026-11-08 | P16 | A-97: the provider-side idempotency key is **account + Idempotency-Key** (`ChargeRequest.providerIdempotencyKey`), not the bare key. | Idempotency-Keys are unique per account (MASTER_PLAN 5.1), but Dexter is one merchant to the provider. r1 keyed the mock on the bare UUID and `IdempotencyContract.keysAreTenantScoped` caught two accounts sharing a charge (`payments_provider_payment_id_key`). A real adapter must send the same composite. | Any provider adapter (Razorpay/Stripe) |
+| 2026-11-08 | P16 | A-98: the mock provider's webhook delivery is a setting, `dexter.billing.mock-provider.delivery=http|memory` (identity's mail-transport pattern); tests use memory. | The replay and ordering tests need to decide when, how often and in what order a webhook arrives; the sweeper test needs it to never arrive. The running stack uses http, so smoke and trail-check exercise the real signed delivery. | — |
 | 2026-09-21 | P00 | A-01: `platform-bom` is the **parent** of the root POM (it inherits `spring-boot-starter-parent`) instead of an import-scoped BOM. | Maven 3.9 cannot import a BOM from the same reactor on a clean first build. | All modules inherit versions through root → platform-bom. |
 | 2026-09-21 | P00 | A-02: third-party libraries that Boot does not manage (uuid-creator, nimbus, bouncycastle, resilience4j, archunit, wiremock, rest-assured) and plugins (jacoco, jib) are pinned in `platform-bom` **in the phase that first uses them**. | Each pin gets verified against Maven Central when it is added, not guessed in P00. | P01 pins uuid-creator + jacoco. P02 pins nimbus, bouncycastle, archunit, resilience4j. P03 pins rest-assured/wiremock. P19 pins jib. |
 | 2026-09-21 | P00 | A-03: the fallback in 2.3 becomes "Java 21 on Boot 4.0.8", not "Boot 3.5.x". | Boot 3.5 reached end of life on 2026-06-30. | ADR-0001. |
@@ -1220,6 +1314,24 @@ Croma Online vs label Croma).
 
 ## 7. Known gaps / tech debt (honest, never deleted silently)
 
+- **P16 billing (ADR-0022 "what this phase does not do"):**
+  - **No renewal charging.** A period that ends without a cancel goes `past_due`, keeps the plan for a 3-day grace,
+    then `expired`. Renewal is an off-session Mode B charge keyed by (subscription, period) and belongs with a real
+    adapter.
+  - **No plan change, proration or refund.** A second checkout is refused while one is live. A payment that
+    succeeds for a checkout the sweeper already closed (while another subscription is live) is invoiced and logged
+    `PAYMENT_SUCCEEDED_ON_CLOSED_SUBSCRIPTION`; nothing refunds it.
+  - **`entitlement_overrides` has no writer** (the read path, precedence and expiry are built and tested). An
+    override lapsing on its own shows after the 60 s cache and announces no event.
+  - **The mock provider's state is in one JVM**: with two billing instances, one's sweeper would close the other's
+    charges as `not_submitted`. Dev/test double only.
+  - **No billing admin endpoints** (`billing_admin` has no policies yet): support/finance views are P18/P19.
+  - The GST rule and the state list are mock tax logic, documented as such (ADR-0022 §6).
+  - Identity's tier is eventually consistent: a token issued before the event arrives keeps the old tier until it
+    expires (≤ 10 min), like every claim.
+- Resolved in P16: "Idempotency Mode B sweeper (stale in_progress rows) is P16" — built as
+  `billing.claim_stale_checkouts` (an owner function plus `idempotency_keys_owner`, rather than the relay-role
+  sweeper policy that note suggested).
 - **P14 reco (ADR-0020 "what this phase does not do"):**
   - **Merchant-level rules are scored as the category rule they sit under.** A rule can carry a `merchantId` and the
     projection stores it, but the spend profile has no merchant dimension, so a merchant-specific reward is not
@@ -1518,6 +1630,9 @@ press **Lab status / start**, then **Get a valid token**. (After a manual `run.s
 
 ## 10. Changelog (one line per response)
 
+- 2026-11-08 P16 r3 (docs): BUILD_README evidence for CI run 42449818720, git `9430059` (§1, §2, §3 P15 re-verification + P16 DoD, §4, §5, A-92..A-98, §7), ADR-0022 Accepted.
+- 2026-11-08 P16 r2: **green** — CI run 42449818720, git `9430059`: `verify.sh full` PASS 22/22 + `trail-check.sh` PASS, billing unit 12 + IT 52, identity IT 67, api-smoke **529 PASS / 0 FAIL** (42 of them P16's), `p16-*` 9/9, trail-check 105/0/0. Fixed r1's two causes: the provider key scoped by account (A-97, caught by the contract test) and RLS kit statements ending in DML.
+- 2026-11-08 P16 r1: re-verified P15 from `verify-reports` (run 42134809373, `67eb956`, 22/22 + trail-check PASS), then built billing in one pass (schema, Mode B checkout, mock provider, webhooks, invoices with the mock GST split, entitlements + cache, period-end job, sweeper) and identity's `billing-tier` consumer. Proved outside Maven first: domain harness 1493 checks, the whole billing SQL flow + RLS + owner functions as `billing_app` on Postgres 16, a javac pass over billing/identity with the platform sources (no unresolved references of our own), jsdom 36/36. First CI run: compiled and unit-green; IT 48/52.
 - 2026-11-05 P15 r13: **green** — CI run 41952698922 (git `35a2ed7`): `verify.sh full` PASS 22/22 + `trail-check.sh` PASS, api-smoke **487 PASS / 0 FAIL** (42 of them P15's), `p15-*` 7/7, reco unit **69** + IT **59** → **P15 DONE**. §1, §2 (the P16 handoff), §3 (the DoD table), §4, §6, the ADR index and ADR-0021's Status all carry the run id.
 - 2026-11-05 P15 r11–r12: the first run to reach the live stack twice, and it found that **nine best-card-now assertions had been passing vacuously** — asha's seeded cards emitted no portfolio event, so reco's held projection had never heard of them, and best-card-now ranks *held* cards, so the endpoint was answering with an empty list and every identity over it held trivially. The smoke now creates a holding on a card reco ranks, waits for `portfolio.card.added`, and asserts the answer is **not empty**; trail-check's `p15-bestcard` went from `0 held cards` to `1`. Also: the unissued-ticket check had asked with `Accept: application/json` and read the 406 as a missing error mapping — it is the opposite (ADR-0021 §15). Then r12's own diagnostic **hung the whole 90-minute job** with an empty log: `out=$(run.sh services)` waits for the write end of its pipe. r13 removed the substitution, timed every step into the report and bounded the long poles under `timeout` (A-90, A-91). One flake (`services-up` for reco) was re-run on the identical commit rather than hardened around, and passed.
 - 2026-11-01 P15 r8–r10: four real defects in one round, two of them **P14 bugs**. A rule written for a merchant earned nothing anywhere (A-89, `ENGINE_VERSION` → 3) — and fixing it exposed that crediting such a rule in the *ranking* turns "9 % at one shop" into "9 % on everything", so `Rules.share` now excludes merchant rules outright. `StreamService.open` read the stored result outside a tenant transaction. Reco's own interceptor rejected the public stream path. A migration count was stale. The near miss worth keeping: the unit test for A-89 used `"m-1"` as a merchant id, which `Rule.shared()` treats as "no merchant", so it passed either way and only the IT with real UUIDs failed — merchant ids in tests are UUIDs now.
