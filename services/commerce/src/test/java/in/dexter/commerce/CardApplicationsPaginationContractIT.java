@@ -20,7 +20,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 
 /**
  * MASTER_PLAN 4.5 on GET /v1/card-applications (newest first), plus the list plan on 60,000 applications of 1,000
- * accounts (card_applications_list, no Sort). Seeded rows are withdrawn so the one-open-per-card index never
+ * accounts and one heavy account of 3,000 (card_applications_list, no Sort). Seeded rows are withdrawn so the one-open-per-card index never
  * meets them.
  */
 class CardApplicationsPaginationContractIT extends CommerceIT {
@@ -57,7 +57,9 @@ class CardApplicationsPaginationContractIT extends CommerceIT {
       seedFor(UUID.nameUUIDFromBytes(("bulk-application-acct-" + i).getBytes()), 60, null,
           Instant.parse("2025-01-01T00:00:00Z").plus(i, ChronoUnit.MINUTES));
     }
-    seedFor(HEAVY, 60, null, Instant.parse("2025-06-01T00:00:00Z"));
+    // the account the plan is asked about is a heavy one: 3,000 applications, so a Sort over its rows would cost
+    // what the index avoids (at 60 rows the planner may rightly prefer a bitmap scan + a 60-row sort, P17 r1)
+    seedFor(HEAVY, 3000, null, Instant.parse("2025-06-01T00:00:00Z"));
     ADMIN.sql("ANALYZE commerce.card_applications").update();
     bulk = true;
   }
