@@ -10,7 +10,7 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
 public record AuditProperties(
     @DefaultValue Admin admin,
     @DefaultValue Store store,
-    @DefaultValue Notify notify,
+    @DefaultValue Notify notifications,
     @DefaultValue Privacy privacy,
     @DefaultValue Jobs jobs,
     @DefaultValue Consumers consumers,

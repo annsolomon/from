@@ -71,7 +71,7 @@ dexter:
       bucket: ${AUDIT_BUCKET:dexter-audit}
       access-key: ${OBJECTSTORE_ACCESS_KEY:dexter-dev}
       secret-key: ${OBJECTSTORE_SECRET_KEY:}
-    notify:
+    notifications:
       backoff-base: ${AUDIT_NOTIFY_BACKOFF_BASE:30s}
       backoff-cap: 1h
       max-attempts: 6

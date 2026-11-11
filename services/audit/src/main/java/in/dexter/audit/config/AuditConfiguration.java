@@ -123,7 +123,7 @@ public class AuditConfiguration {
   /** The mock transport (tests add a controllable one as @Primary). */
   @Bean
   NotificationSender notificationSender(AuditProperties p) {
-    return new MockNotificationSender(p.notify().mockFailFirst());
+    return new MockNotificationSender(p.notifications().mockFailFirst());
   }
 
   @Bean
@@ -149,7 +149,7 @@ public class AuditConfiguration {
   @Bean
   NotificationService notificationService(TenantTx tx, NotificationRepository store, NotificationSender sender,
       AuditProperties p, Clock clock) {
-    AuditProperties.Notify n = p.notify();
+    AuditProperties.Notify n = p.notifications();
     return new NotificationService(tx, store, sender, new Backoff(n.backoffBase(), n.backoffCap(), n.maxAttempts()),
         clock);
   }

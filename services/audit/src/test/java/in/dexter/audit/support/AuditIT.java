@@ -116,9 +116,9 @@ public abstract class AuditIT {
     r.add("dexter.audit.privacy.services", () -> "identity,ledger");
     r.add("dexter.audit.privacy.phase-timeout", () -> "1s");
     r.add("dexter.audit.privacy.max-attempts", () -> "3");
-    r.add("dexter.audit.notify.backoff-base", () -> "200ms");
-    r.add("dexter.audit.notify.backoff-cap", () -> "10s");
-    r.add("dexter.audit.notify.max-attempts", () -> "4");
+    r.add("dexter.audit.notifications.backoff-base", () -> "200ms");
+    r.add("dexter.audit.notifications.backoff-cap", () -> "10s");
+    r.add("dexter.audit.notifications.max-attempts", () -> "4");
   }
 
   // ------------------------------------------------------------------------------------------- tokens
