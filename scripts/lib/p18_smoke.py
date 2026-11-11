@@ -23,6 +23,7 @@ Env: P18_PSQL (a psql command line to the stack's Postgres as the superuser, e.g
 import io
 import json
 import os
+import random
 import shlex
 import subprocess
 import sys
@@ -135,6 +136,14 @@ def main():
     a, b = p16.fresh_account("smokep18a"), p16.fresh_account("smokep18b")
     populate(a, card, "A")
     populate(b, card, "B")
+    # identity: a phone, sealed under the account's own data key (the key the deletion must shred)
+    s, h, me = call("GET", GW + "/v1/me", headers=bearer(a["access"]))
+    phone = "+91 9%09d" % random.randint(0, 999_999_999)
+    s, _, me = call("PATCH", GW + "/v1/me", {"phone": phone}, bearer(a["access"], **{"If-Match": h.get("etag", '"0"')}))
+    check("A: identity phone saved (sealed under A's data key): 200", s == 200 and (me or {}).get("phone"), (s, me))
+    check("identity: A's data key exists and is live before the deletion (NOT EMPTY)",
+          sql("identity", f"SELECT count(*) FROM identity.account_keys WHERE account_id = '{a['account']}'"
+                          " AND destroyed_at IS NULL AND length(dek_enc) > 0") == "1")
     for svc in SERVICES:
         ok = wait(lambda: (remaining(svc, a["account"]) or 0) > 0 and (remaining(svc, b["account"]) or 0) > 0,
                   seconds=60)

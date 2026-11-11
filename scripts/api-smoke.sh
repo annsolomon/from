@@ -354,15 +354,17 @@ while IFS= read -r line; do log "$line"; done <<< "$p18"
 # commerce's events, the gateway's activity and every participant's acknowledgements; every participant consumed
 # the saga's requests (its 'privacy' inbox) and published its acknowledgements
 aq() { "${COMPOSE[@]}" exec -T postgres psql -U "${POSTGRES_USER:-postgres}" -d "$1" -tA -c "$2" 2>/dev/null | tr -d '[:space:]'; }
-ap_=x; apub=0
+# (the deleted account's published outbox rows are erased with it, so the topic is what is counted)
+ap_=x
 for _ in $(seq 1 30); do
   ap_=$(aq audit "SELECT count(*) FROM audit.outbox WHERE published_at IS NULL")
-  apub=$(aq audit "SELECT count(*) FROM audit.outbox WHERE published_at IS NOT NULL AND event_type = 'audit.privacy.requested'")
-  [[ $ap_ == 0 && ${apub:-0} -gt 0 ]] && break
+  [[ $ap_ == 0 ]] && break
   sleep 1
 done
-if [[ $ap_ == 0 && ${apub:-0} -gt 0 ]]; then log "PASS  audit outbox -> Kafka: $apub saga requests published, 0 pending"
-else log "FAIL  audit outbox -> Kafka: pending=$ap_ published=$apub"; fail=1; fi
+apub=$("${COMPOSE[@]}" exec -T kafka /opt/kafka/bin/kafka-get-offsets.sh --bootstrap-server localhost:9092 \
+  --topic dexter.audit.privacy.v1 2>/dev/null | awk -F: '{s+=$3} END {print s+0}')
+if [[ $ap_ == 0 && ${apub:-0} -gt 0 ]]; then log "PASS  audit outbox -> Kafka: dexter.audit.privacy.v1 holds $apub saga requests, 0 pending"
+else log "FAIL  audit outbox -> Kafka: pending=$ap_ on the topic=$apub"; fail=1; fi
 for c in events privacy-acks; do
   m=$(aq audit "SELECT count(*) FROM audit.inbox WHERE consumer = '$c'")
   if [[ ${m:-0} -gt 0 ]]; then log "PASS  audit $c inbox: $m events consumed"
