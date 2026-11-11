@@ -116,7 +116,7 @@ class AuditChainIT extends AuditIT {
     }
     // even the owner and the superuser meet the trigger
     assertThatThrownBy(() -> ADMIN.sql("DELETE FROM audit.audit_log").update())
-        .hasMessageContaining("append-only");
+        .hasStackTraceContaining("audit_log is append-only");
   }
 
   @Test
