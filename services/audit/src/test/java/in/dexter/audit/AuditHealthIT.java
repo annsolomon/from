@@ -29,7 +29,9 @@ class AuditHealthIT extends AuditIT {
         + " WHERE p.relname = 'audit_log'")).as("monthly, this month and ahead").isGreaterThanOrEqualTo(4);
     assertThat(count("SELECT count(1) FROM pg_inherits i JOIN pg_class p ON p.oid = i.inhparent"
         + " WHERE p.relname = 'activity_events'")).as("daily, today and ahead").isGreaterThanOrEqualTo(4);
-    assertThat(count("SELECT count(1) FROM audit.chain_head WHERE id = 1 AND hash = sha256(convert_to("
-        + "'dexter-audit-genesis', 'UTF8')) AND seq >= 0")).isEqualTo(1);
+    // the chain starts at the genesis hash: the head itself while the log is empty, else seq 1's prev_hash
+    assertThat(count("SELECT count(1) FROM audit.chain_head h WHERE h.id = 1 AND sha256(convert_to("
+        + "'dexter-audit-genesis', 'UTF8')) = CASE WHEN h.seq = 0 THEN h.hash ELSE (SELECT l.prev_hash FROM"
+        + " audit.audit_log l WHERE l.seq = 1) END")).isEqualTo(1);
   }
 }

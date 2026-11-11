@@ -104,13 +104,14 @@ class AuditChainIT extends AuditIT {
     for (String role : List.of("app", "admin", "relay", "readonly")) {
       try (Connection c = DriverManager.getConnection(DB.url(), DB.role(role), ServiceDb.PW);
           Statement s = c.createStatement()) {
+        // readonly sessions are read-only transactions as well: refused either way
         assertThatThrownBy(() -> s.executeUpdate("UPDATE audit.audit_log SET action = 'x.y'")).as(role)
-            .hasMessageContaining("permission denied");
+            .hasMessageMatching("(?s).*(permission denied|read-only transaction).*");
         assertThatThrownBy(() -> s.executeUpdate("DELETE FROM audit.audit_log")).as(role)
-            .hasMessageContaining("permission denied");
+            .hasMessageMatching("(?s).*(permission denied|read-only transaction).*");
         assertThatThrownBy(() -> s.executeUpdate("INSERT INTO audit.audit_log (seq, occurred_at, id, actor_type,"
             + " action, prev_hash, hash) VALUES (999999, now(), gen_random_uuid(), 'system', 'x.y', sha256('a'),"
-            + " sha256('b'))")).as(role).hasMessageContaining("permission denied");
+            + " sha256('b'))")).as(role).hasMessageMatching("(?s).*(permission denied|read-only transaction).*");
       }
     }
     // even the owner and the superuser meet the trigger

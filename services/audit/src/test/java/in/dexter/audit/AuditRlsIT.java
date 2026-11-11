@@ -25,20 +25,20 @@ class AuditRlsIT extends AuditIT {
 
   @Test
   void notifications() throws Exception {
-    kit("audit.notifications", "INSERT INTO audit.notifications (id, account_id, channel, category, template, payload,"
+    kit("notifications", "INSERT INTO audit.notifications (id, account_id, channel, category, template, payload,"
         + " status, source_event_id) VALUES (gen_random_uuid(), ?, 'inapp', 'budget', 'budget.threshold', '{}',"
         + " 'sent', gen_random_uuid())", "UPDATE audit.notifications SET account_id = ?").proveAll();
   }
 
   @Test
   void notificationPrefs() throws Exception {
-    kit("audit.notification_prefs", "INSERT INTO audit.notification_prefs (account_id) VALUES (?)",
+    kit("notification_prefs", "INSERT INTO audit.notification_prefs (account_id) VALUES (?)",
         "UPDATE audit.notification_prefs SET account_id = ?").proveAll();
   }
 
   @Test
   void privacyRequests() throws Exception {
-    kit("audit.privacy_requests", "INSERT INTO audit.privacy_requests (id, account_id, kind, status, phase, services,"
+    kit("privacy_requests", "INSERT INTO audit.privacy_requests (id, account_id, kind, status, phase, services,"
         + " next_check_at) VALUES (gen_random_uuid(), ?, 'export', 'running', 'export', '{}', now())", null).proveAll();
     // a user may create only a running request, and never move one along themselves
     UUID a = UUID.randomUUID();

@@ -19,7 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
 /**
- * MASTER_PLAN 4.5 on GET /v1/notifications (the in-app inbox, newest first), plus the list plan on 30,000 in-app
+ * MASTER_PLAN 4.5 on GET /v1/notifications (the in-app inbox, newest first), plus the list plan on 60,000 in-app
  * notifications of 1,000 accounts and one heavy account of 3,000 (notifications_inbox, no Sort).
  */
 class NotificationsPaginationContractIT extends AuditIT {
@@ -54,7 +54,7 @@ class NotificationsPaginationContractIT extends AuditIT {
       return;
     }
     for (int i = 1; i <= 1000; i++) {
-      seedFor(UUID.nameUUIDFromBytes(("bulk-notification-acct-" + i).getBytes()), 30, null,
+      seedFor(UUID.nameUUIDFromBytes(("bulk-notification-acct-" + i).getBytes()), 60, null,
           Instant.parse("2025-01-01T00:00:00Z").plus(i, ChronoUnit.MINUTES));
     }
     seedFor(HEAVY, 3000, null, Instant.parse("2025-06-01T00:00:00Z"));
