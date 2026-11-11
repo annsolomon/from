@@ -7,3 +7,32 @@ GET http://localhost:8089/actuator/health/liveness
 
 ### audit prometheus
 GET http://localhost:8089/actuator/prometheus
+
+### P18: the in-app inbox (a user token from identity's /v1/auth/login)
+GET http://localhost:8080/v1/notifications
+Authorization: Bearer {{token}}
+
+### P18: preferences (If-Match "0" before the first save)
+PATCH http://localhost:8080/v1/notification-prefs
+Authorization: Bearer {{token}}
+If-Match: "0"
+Content-Type: application/json
+
+{"muted": ["commerce"], "push": false}
+
+### P18: export my data (step-up: a fresh sign-in)
+POST http://localhost:8080/v1/privacy/export
+Authorization: Bearer {{token}}
+Idempotency-Key: {{$uuid}}
+
+### P18: the audit log (admin token with audit:read)
+GET http://localhost:8080/v1/admin/audit?limit=20
+Authorization: Bearer {{adminToken}}
+
+### P18: verify the chain
+POST http://localhost:8080/v1/admin/audit:verify-chain
+Authorization: Bearer {{adminToken}}
+
+### P18: activity dashboard
+GET http://localhost:8080/v1/admin/activity/dashboard?hours=24
+Authorization: Bearer {{adminToken}}

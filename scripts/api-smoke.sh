@@ -42,6 +42,11 @@
 #        ranked feed, the savings golden, card-match after portfolio's event, the signed redirect, postbacks
 #        (created / replayed / approved), the flushed stats, an application decided by an operator, a frequency
 #        cap, ad-free after a real PREMIUM checkout. Every collection is asserted NOT EMPTY first.
+#   P18: audit, notifications, privacy via the gateway (scripts/lib/p18_smoke.py) on two accounts the smoke registers
+#        and gives data in all seven participating services: notifications over Kafka (an email retried once, then
+#        sent), preferences, an export (7 parts + audit's, zipped, presigned), a deletion through freeze / erase /
+#        shred / local after which every service holds 0 rows of A and still holds B's, the log, the chain, anchors
+#        and the activity dashboard. Then audit's outbox, topics and inboxes, and every participant's privacy inbox.
 # Later phases append their checks below the P00 block. Output also goes to $SMOKE_OUT if set.
 set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -337,6 +342,41 @@ else log "FAIL  commerce clicks: raw=${raw:-?} counted=${counted:-?}"; fail=1; f
 conv=$(cq "SELECT count(*) FROM commerce.conversions WHERE click_id IS NOT NULL"); imp=$(cq "SELECT count(*) FROM commerce.ad_impressions_raw")
 if [[ ${conv:-0} -gt 0 && ${imp:-0} -gt 0 ]]; then log "PASS  commerce: $conv attributed conversions, $imp ad impressions"
 else log "FAIL  commerce: conversions=${conv:-?} impressions=${imp:-?}"; fail=1; fi
+
+# ------------------------------------------------------------------ P18: audit, notifications, privacy
+log "# P18 audit via gateway (:8080): notifications, preferences, an export and a deletion across all services"
+export P18_PSQL="${COMPOSE[*]} exec -T postgres psql -U ${POSTGRES_USER:-postgres}"
+p18=$(python3 "$ROOT/scripts/lib/p18_smoke.py" "http://localhost:8080" "http://127.0.0.1:8025" 2>&1); p18rc=$?
+while IFS= read -r line; do log "$line"; done <<< "$p18"
+[[ $p18rc -eq 0 ]] || fail=1
+
+# P18: audit's outbox drains to dexter.audit.privacy.v1; its consumers consumed identity's / planning's / billing's /
+# commerce's events, the gateway's activity and every participant's acknowledgements; every participant consumed
+# the saga's requests (its 'privacy' inbox) and published its acknowledgements
+aq() { "${COMPOSE[@]}" exec -T postgres psql -U "${POSTGRES_USER:-postgres}" -d "$1" -tA -c "$2" 2>/dev/null | tr -d '[:space:]'; }
+ap_=x; apub=0
+for _ in $(seq 1 30); do
+  ap_=$(aq audit "SELECT count(*) FROM audit.outbox WHERE published_at IS NULL")
+  apub=$(aq audit "SELECT count(*) FROM audit.outbox WHERE published_at IS NOT NULL AND event_type = 'audit.privacy.requested'")
+  [[ $ap_ == 0 && ${apub:-0} -gt 0 ]] && break
+  sleep 1
+done
+if [[ $ap_ == 0 && ${apub:-0} -gt 0 ]]; then log "PASS  audit outbox -> Kafka: $apub saga requests published, 0 pending"
+else log "FAIL  audit outbox -> Kafka: pending=$ap_ published=$apub"; fail=1; fi
+for c in events privacy-acks; do
+  m=$(aq audit "SELECT count(*) FROM audit.inbox WHERE consumer = '$c'")
+  if [[ ${m:-0} -gt 0 ]]; then log "PASS  audit $c inbox: $m events consumed"
+  else log "FAIL  audit $c inbox: nothing consumed"; fail=1; fi
+done
+act=$(aq audit "SELECT count(*) FROM audit.activity_events")
+if [[ ${act:-0} -gt 0 ]]; then log "PASS  audit activity: $act sampled gateway requests recorded"
+else log "FAIL  audit activity: none recorded"; fail=1; fi
+for svc in identity ledger portfolio planning reco billing commerce; do
+  pin=$(aq "$svc" "SELECT count(*) FROM $svc.inbox WHERE consumer = 'privacy'")
+  pk=$(aq "$svc" "SELECT count(*) FROM $svc.outbox WHERE event_type = '$svc.privacy.completed' AND published_at IS NOT NULL")
+  if [[ ${pin:-0} -gt 0 && ${pk:-0} -gt 0 ]]; then log "PASS  $svc privacy: $pin saga requests consumed, $pk acknowledgements published"
+  else log "FAIL  $svc privacy: consumed=${pin:-?} acknowledged=${pk:-?}"; fail=1; fi
+done
 
 log "# summary: $([[ $fail -eq 0 ]] && echo PASS || echo FAIL)"
 exit $fail

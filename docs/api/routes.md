@@ -117,7 +117,7 @@ breaker (Resilience4j, per service) and a 10 s response timeout.
 | `/v1/notification-prefs/**` | `PUT /v1/notification-prefs/email` | audit | token | write | P18 |
 | `/v1/privacy/**` | `POST /v1/privacy/export` | audit | token | write | P18 |
 | `/v1/admin/audit` | `GET /v1/admin/audit` | audit | token | read | P18 |
-| `/v1/admin/audit/**` | `GET /v1/admin/audit/0192a5a1-0000-7000-8000-000000000f03` | audit | token | read | P18 |
+| `/v1/admin/audit/**` | `GET /v1/admin/audit/privacy-requests/0192a5a1-0000-7000-8000-000000000f03` | audit | token | read | P18 |
 | `/v1/admin/audit:*` | `POST /v1/admin/audit:verify-chain` | audit | token | write | P18 |
 | `/v1/admin/activity/**` | `GET /v1/admin/activity/dashboard` | audit | token | read | P18 |
 
@@ -244,6 +244,23 @@ personalises card-match and ad-free. Money is paise, rates basis points (ADR-002
 | `GET /v1/admin/commerce/card-applications` / `GET /{id}` / `POST /{id}:decide` (If-Match) | `commerce:read` / `commerce:decide`: the open queue, oldest first; `{decision: in_review \| approved \| rejected, reason}` (a rejection needs a reason) |
 | `POST /v1/admin/commerce/campaigns` / `GET` / `GET /{id}` / `PUT /{id}` (If-Match) / `DELETE /{id}` / `POST /{id}/creatives` / `PUT /{id}/creatives/{cid}` (If-Match) | `commerce:write` / `commerce:read`: campaign CRUD (DELETE ends it) and its creatives |
 | `GET /v1/admin/commerce/stats?from=&to=` | `commerce:read`: per deal clicks, daily uniques, conversions and approved commission; per campaign impressions and clicks — from the maintained counters, IST days, at most 92 |
+
+## `/v1/notifications`, `/v1/notification-prefs`, `/v1/privacy`, `/v1/admin/audit`, `/v1/admin/activity` (P18, audit)
+
+User endpoints take a user token (audience `audit`); admin endpoints an admin token with `audit:read` (SUPPORT,
+SUPER_ADMIN) or `audit:verify` (SUPER_ADMIN). ADR-0024.
+
+| Path | What it does |
+|---|---|
+| `GET /v1/notifications?unread=&limit=&cursor=` | the in-app inbox, newest first (keyset), each with its rendered `title` / `body`, plus `unread` (the count of unread in-app notifications). Notifications come from identity's security alerts, planning's budget thresholds, billing's subscription changes, commerce's application decisions and a ready export |
+| `POST /v1/notifications/{id}:read` | marks one in-app notification read (404 `NOTIFICATION_NOT_FOUND` for someone else's) |
+| `GET /v1/notification-prefs` / `PATCH` (If-Match, `"0"` before the first save) | `{email, push, muted}`: channel switches and muted categories (`budget`, `billing`, `commerce`, `privacy`). Security cannot be muted (400 `NOT_MUTABLE`) and always goes in-app and by email |
+| `POST /v1/privacy/export` / `POST /v1/privacy/delete` | step-up (a sign-in within 10 minutes), Idempotency-Key **required**: 202 with the request. 409 `PRIVACY_REQUEST_RUNNING` while one of the kind runs. An export ends as one zip (every service's JSON part and audit's own); a deletion freezes the account, erases or anonymizes it in every service, shreds its data key and leaves only a pseudonymous record |
+| `GET /v1/privacy/requests` / `GET /v1/privacy/requests/{id}` | the account's requests: phase, attempt, every service's answer per phase, and for a completed export `downloadUrl` (presigned, valid until `downloadExpiresAt`, 24 h after completion). A completed deletion no longer belongs to the account |
+| `GET /v1/admin/audit?actorId=&action=&targetType=&targetId=&from=&to=&limit=&cursor=` | `audit:read`: the hash-chained log, newest first (keyset on `seq`), each entry with its `hash` |
+| `POST /v1/admin/audit:verify-chain` | `audit:read`: walks the chain to the head — every row's link, every row's hash recomputed from its columns, every anchor against its row and its exported copy — and answers `{ok, checked, headSeq, brokenAt, reason, anchorsChecked}`. The run is itself audited |
+| `GET /v1/admin/audit/privacy-requests/{id}` / `POST /{id}:resume` | `audit:read` / `audit:verify`: a request's full state (incl. a pseudonymized one); resume a `failed` request at its phase, asking only the services that have not answered (409 `PRIVACY_REQUEST_NOT_FAILED`) |
+| `GET /v1/admin/activity/dashboard?hours=` | `audit:read`: requests, 4xx, 5xx, average and max latency per hour and per service over the last `hours` (1..336), from the hourly aggregate of the gateway's sampled activity |
 
 ## Not routed (on purpose)
 

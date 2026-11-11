@@ -21,7 +21,7 @@ class BillingHealthIT extends BillingIT {
 
     // Flyway also records the schema-creation row, which is not of type SQL
     assertThat(count("SELECT count(1) FROM billing.flyway_schema_history WHERE success AND type = 'SQL'"))
-        .isEqualTo(2);
+        .isEqualTo(3); // P18 V202611111000__billing_privacy
     assertThat(one("SELECT tableowner FROM pg_tables WHERE schemaname = 'billing' AND tablename = 'subscriptions'"))
         .isEqualTo("billing_owner");
   }

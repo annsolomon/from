@@ -22,7 +22,7 @@ class CommerceHealthIT extends CommerceIT {
   @Test
   void migrationsRanAsTheOwner() {
     assertThat(count("SELECT count(1) FROM commerce.flyway_schema_history WHERE success AND type = 'SQL'"))
-        .isEqualTo(3);
+        .isEqualTo(4); // P18 V202611111000__commerce_privacy
     assertThat(ADMIN.sql("SELECT tableowner FROM pg_tables WHERE schemaname = 'commerce' AND tablename = 'deals'")
         .query(String.class).single()).isEqualTo("commerce_owner");
     assertThat(ADMIN.sql("SELECT string_agg(code, ',' ORDER BY code) FROM commerce.placements").query(String.class)

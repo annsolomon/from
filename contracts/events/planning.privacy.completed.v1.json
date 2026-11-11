@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dexter.in/events/planning.privacy.completed.v1.json",
+  "title": "planning.privacy.completed v1 - planning ran one phase of a privacy request (topic dexter.planning.privacy.v1, key = account id).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "requestId",
+    "service",
+    "phase",
+    "attempt",
+    "rows",
+    "remaining",
+    "partKey",
+    "completedAt"
+  ],
+  "properties": {
+    "requestId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "service": {
+      "type": "string",
+      "enum": [
+        "planning"
+      ]
+    },
+    "phase": {
+      "type": "string",
+      "enum": [
+        "freeze",
+        "erase",
+        "shred",
+        "export"
+      ]
+    },
+    "attempt": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "rows": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "remaining": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "partKey": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^privacy/[0-9a-f-]{36}/[a-z][a-z0-9-]{1,31}\\.json$"
+    },
+    "completedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

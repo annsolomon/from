@@ -279,6 +279,13 @@ file; verify P17 from the latest report on `verify-reports` first.
 
 ## 3. Verification of previous phase
 
+### P17 re-verified in the P18 chat (latest report on `verify-reports`: CI run 42503399884, git 9b2ed44, 2026-11-08)
+
+Read, not re-run: `RUN.txt` says `verify_full=success`, `trail_check=success` for `9b2ed44` (the P17 docs commit on
+top of `ed71c5d`). `steps.tsv` has all **22** steps PASS, no SKIP; `services/commerce` surefire + failsafe XML **67
+tests, 0 failures**; api-smoke **576 PASS / 0 FAIL**; trail-check **115 PASS / 0 FAIL / 0 SKIP** including `p17-*`
+9/9 (on deals, campaigns and an account the block created itself). P17 stands as DONE; nothing to fix before P18.
+
 ### P16 re-verified in the P17 chat (latest report on `verify-reports`: CI run 42450718047, git 2a0fcb2, 2026-11-08)
 
 Read, not re-run: `RUN.txt` says `verify_full=success`, `trail_check=success` for `2a0fcb2` (the P16 docs commit on

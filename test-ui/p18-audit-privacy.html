@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dexter trail · P18 audit, notifications, privacy</title>
+  <link rel="stylesheet" href="trail.css">
+  <style>
+    .chip { display: inline-block; border: 1px solid var(--line); border-radius: 10px; padding: 1px 8px;
+      font-family: var(--mono); font-size: 11px; margin: 2px 4px 2px 0; }
+    .chip.on { border-color: var(--ok); color: var(--ok); }
+    .chip.off { color: var(--muted); }
+    .chip.bad { border-color: var(--bad, #c33); color: var(--bad, #c33); }
+    .chip.warn { border-color: var(--warn); color: var(--warn); }
+    .note { border-bottom: 1px solid var(--line); padding: 4px 0; }
+    .note.unread strong { color: var(--ok); }
+    .note small { color: var(--muted); font-family: var(--mono); }
+    table.t td, table.t th { font-family: var(--mono); font-size: 11px; padding: 2px 6px; text-align: left; }
+    pre.out { white-space: pre-wrap; max-height: 220px; overflow: auto; }
+  </style>
+</head>
+<body>
+<main>
+  <section class="card">
+    <h2>P18 · audit, notifications, privacy</h2>
+    <p class="mono" style="color:var(--muted);margin:0">
+      Every audited action is one link of a <strong>hash chain</strong>: each row carries the previous row's hash and
+      its own, so editing a row - or rewriting every row after it - is caught by <em>verify-chain</em> (and by the
+      anchors exported along the way). Events from identity, planning, billing and commerce become
+      <strong>notifications</strong>: in-app always, email and push by preference, security never muted, a failed
+      delivery retried with exponential backoff. A <strong>privacy request</strong> is a saga across seven services:
+      an export zips every service's part; a deletion freezes the account, erases it everywhere, shreds its data key and
+      leaves a pseudonym. Mock does all of it in this browser; Live drives the real stack. Testing aid only - deleted in
+      P19.
+    </p>
+    <div id="tenant"></div>
+  </section>
+
+  <section class="card">
+    <h3>Inbox <small class="mono">GET /v1/notifications · keyset, newest first · POST /{id}:read</small></h3>
+    <div class="row" id="simrow">
+      <span class="mono" style="font-size:11px">Mock - an event arrives:</span>
+      <button class="ghost" id="evBudget">budget 80 % crossed</button>
+      <button class="ghost" id="evSub">subscription active</button>
+      <button class="ghost" id="evApp">application approved</button>
+      <button class="ghost" id="evSec">security: MFA disabled</button>
+    </div>
+    <div class="row"><span id="unread" class="chip">unread -</span>
+      <label><input type="checkbox" id="onlyUnread"> unread only</label>
+      <button class="ghost" id="reload">reload</button></div>
+    <div id="inbox"></div>
+    <h4>Deliveries (email / push) <small class="mono">retried at base · 2^(n-1); Mock refuses each first attempt</small></h4>
+    <table class="t" id="deliveries"><thead><tr><th>channel</th><th>template</th><th>status</th><th>attempts</th>
+      <th>next attempt</th></tr></thead><tbody></tbody></table>
+  </section>
+
+  <section class="card">
+    <h3>Preferences <small class="mono">GET / PATCH /v1/notification-prefs · If-Match</small></h3>
+    <div class="row">
+      <label><input type="checkbox" id="pEmail"> email</label>
+      <label><input type="checkbox" id="pPush"> push</label>
+      <span class="mono" style="font-size:11px">mute:</span>
+      <label><input type="checkbox" class="mute" value="budget"> budget</label>
+      <label><input type="checkbox" class="mute" value="billing"> billing</label>
+      <label><input type="checkbox" class="mute" value="commerce"> commerce</label>
+      <label><input type="checkbox" class="mute" value="privacy"> privacy</label>
+      <label><input type="checkbox" class="mute" value="security"> security (refused)</label>
+      <button id="savePrefs">save</button>
+    </div>
+    <pre class="out" id="prefsout"></pre>
+  </section>
+
+  <section class="card">
+    <h3>Privacy <small class="mono">POST /v1/privacy/export · /delete · step-up · Idempotency-Key required</small></h3>
+    <div class="row">
+      <button id="export">export my data</button>
+      <button class="ghost" id="delete">delete my account</button>
+      <label><input type="checkbox" id="silent"> Mock: ledger stays silent (timeouts, re-asks)</label>
+    </div>
+    <div id="request"></div>
+    <pre class="out" id="privacyout"></pre>
+  </section>
+
+  <section class="card">
+    <h3>Audit log <small class="mono">GET /v1/admin/audit · POST /v1/admin/audit:verify-chain · audit:read</small></h3>
+    <div class="row">
+      <button id="verify">verify chain</button>
+      <button class="ghost" id="tamper">Mock: edit a row behind the trigger</button>
+      <button class="ghost" id="untamper">Mock: undo the edit</button>
+      <span id="verdict" class="chip">-</span>
+    </div>
+    <table class="t" id="log"><thead><tr><th>seq</th><th>action</th><th>actor</th><th>target</th><th>hash</th></tr></thead>
+      <tbody></tbody></table>
+  </section>
+
+  <section class="card"><h3>Events</h3><div id="events"></div></section>
+  <section class="card"><h3>Log</h3><div id="logpane"></div></section>
+</main>
+<script src="trail.js"></script>
+<script>
+(() => {
+  Trail.mountHeader('Audit & privacy', 'P18');
+  Trail.mountLog(document.getElementById('logpane'));
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const rs = p => '₹' + (p / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const out = (id, v) => { $(id).textContent = typeof v === 'string' ? v : JSON.stringify(v, null, 2); };
+  const need = req => (req.tenant ? null : Trail.problem(401, 'UNAUTHENTICATED', 'log in as a persona first'));
+  const hex = async s => {
+    const b = new TextEncoder().encode(s);
+    if (globalThis.crypto && crypto.subtle) {
+      return [...new Uint8Array(await crypto.subtle.digest('SHA-256', b))].map(x => x.toString(16).padStart(2, '0')).join('');
+    }
+    let h = 0xcbf29ce484222325n;   // no WebCrypto: FNV-1a, enough to show the links
+    for (const x of b) { h ^= BigInt(x); h = (h * 0x100000001b3n) & 0xffffffffffffffffn; }
+    return h.toString(16).padStart(64, '0');
+  };
+
+  // ---------------------------------------------------------------- Mock mode: the rules, the chain, the saga
+  const SERVICES = ['identity', 'ledger', 'portfolio', 'planning', 'reco', 'billing', 'commerce'];
+  const MUTABLE = ['budget', 'billing', 'commerce', 'privacy'];
+  const BASE_MS = 2000, MAX_ATTEMPTS = 6, PHASE_TIMEOUT_MS = 3000, MAX_ASKS = 5;
+  const M = { accounts: {}, chain: [], genesis: null, tampered: null };
+  const acct = id => (M.accounts[id] = M.accounts[id] || { notes: [], prefs: { email: true, push: true, muted: [], version: 0 },
+    requests: [], deleted: false });
+  /** NotificationRules.channels: in-app always; email / push by preference; security never muted, always by email. */
+  const channels = (category, wantsPush, p) => {
+    if (category === 'security') return ['inapp', 'email'];
+    if (p.muted.includes(category)) return [];
+    return ['inapp'].concat(p.email ? ['email'] : [], wantsPush && p.push ? ['push'] : []);
+  };
+  /** Templates.render. */
+  const render = (t, p) => ({
+    'budget.threshold': () => ({ title: `Budget ${p.name}: ${p.threshold}% used`, body: `You have spent ${rs(p.spentPaise)} of ${rs(p.limitPaise)} this ${p.period} period.` }),
+    'billing.subscription': () => ({ title: 'Subscription ' + p.status, body: `Your ${p.planCode} subscription is ${p.status}.` }),
+    'commerce.application': () => ({ title: 'Card application ' + p.status.replace('_', ' '), body: 'Your card application is now ' + p.status.replace('_', ' ') + '.' }),
+    'security.mfa_disabled': () => ({ title: 'Two-factor authentication off', body: 'Two-factor authentication was turned off for your account. If this wasn\'t you, secure your account.' }),
+    'privacy.export-ready': () => ({ title: 'Your data export is ready', body: 'Download it within 24 hours from Privacy settings.' }),
+  }[t] || (() => ({ title: t, body: '' })))();
+  /** audit.append: one writer, gap-free seq, hash = H(prev || canonical row). */
+  const canonical = r => [r.seq, r.at, r.actorType, r.actorId, r.action, r.targetType, r.targetId, JSON.stringify(r.details)].join('|');
+  const append = async (actorType, actorId, action, targetType, targetId, details = {}) => {
+    M.genesis = M.genesis || await hex('dexter-audit-genesis');
+    const prev = M.chain.length ? M.chain[M.chain.length - 1].hash : M.genesis;
+    const row = { seq: M.chain.length + 1, at: new Date().toISOString(), actorType, actorId, action, targetType, targetId, details, prevHash: prev };
+    row.hash = await hex(prev + canonical(row));
+    M.chain.push(row);
+    return row;
+  };
+  /** :verify-chain - every link, every row's hash recomputed. */
+  const verify = async () => {
+    let prev = M.genesis || await hex('dexter-audit-genesis');
+    for (const r of M.chain) {
+      if (r.prevHash !== prev) return { ok: false, checked: r.seq - 1, brokenAt: r.seq, reason: 'prev_hash does not match the previous row\'s hash' };
+      if (await hex(prev + canonical(r)) !== r.hash) return { ok: false, checked: r.seq - 1, brokenAt: r.seq, reason: 'the row\'s content does not match its hash' };
+      prev = r.hash;
+    }
+    return { ok: true, checked: M.chain.length, headSeq: M.chain.length, brokenAt: null, reason: null };
+  };
+  const notify = async (accountId, category, template, payload, wantsPush) => {
+    const a = acct(accountId);
+    const now = Date.now();
+    for (const ch of channels(category, wantsPush, a.prefs)) {
+      a.notes.unshift({ id: Trail.uuidv7(), channel: ch, category, template, payload, status: ch === 'inapp' ? 'sent' : 'pending',
+        attempts: 0, nextAttemptAt: ch === 'inapp' ? null : now, createdAt: new Date(now).toISOString(), readAt: null });
+    }
+  };
+  /** The worker: claim what is due; Mock's transport refuses each first attempt. */
+  const deliverDue = () => {
+    const now = Date.now();
+    for (const a of Object.values(M.accounts)) {
+      for (const n of a.notes) {
+        if (n.status !== 'pending' || n.nextAttemptAt > now) continue;
+        n.attempts++;
+        if (n.attempts <= 1) {
+          n.nextAttemptAt = n.attempts >= MAX_ATTEMPTS ? null : now + BASE_MS * 2 ** (n.attempts - 1);
+          n.status = n.nextAttemptAt ? 'pending' : 'failed';
+          n.lastError = 'mock transport refused attempt ' + n.attempts;
+        } else { n.status = 'sent'; n.nextAttemptAt = null; n.lastError = null; }
+      }
+    }
+    if (Trail.mode === 'mock' && Trail.persona) renderDeliveries(acct(Trail.persona.accountId).notes);
+  };
+  setInterval(deliverDue, 250);
+  /** A simulated event, as the events consumer would handle it. */
+  const event = async (kind, accountId) => {
+    const e = {
+      budget: ['planning.budget.threshold-crossed', 'budget', 'budget.threshold', { name: 'Eating out', period: 'monthly', threshold: 80, limitPaise: 1000000, spentPaise: 812500 }, false],
+      sub: ['billing.subscription.changed', 'billing', 'billing.subscription', { planCode: 'PREMIUM', status: 'active' }, false],
+      app: ['commerce.application.status-changed', 'commerce', 'commerce.application', { status: 'approved' }, true],
+      sec: ['identity.security.alert', 'security', 'security.mfa_disabled', { kind: 'MFA_DISABLED' }, false],
+    }[kind];
+    if (kind !== 'budget') await append('system', null, e[0], kind === 'sec' ? 'account' : kind, accountId, { source: e[0].split('.')[0] });
+    await notify(accountId, e[1], e[2], e[3], e[4]);
+    Trail.events.emit(e[0], Trail.uuidv7(), e[3], accountId);
+  };
+  /** The saga: remote phases ask the services that have not answered; a phase times out and re-asks. */
+  const PHASES = { delete: ['freeze', 'erase', 'shred', 'local'], export: ['export', 'archive'] };
+  const servicesFor = phase => (phase === 'freeze' || phase === 'shred' ? ['identity'] : SERVICES);
+  const remote = phase => ['freeze', 'erase', 'shred', 'export'].includes(phase);
+  const ask = (r, services) => {
+    Trail.events.emit('audit.privacy.requested', r.id, { requestId: r.id, kind: r.kind, phase: r.phase, attempt: r.attempt, services }, r.accountId);
+    for (const svc of services) {
+      if (svc === 'ledger' && $('silent').checked && r.attempt < 3) continue;   // silent: answers the third ask
+      setTimeout(() => ack(r, svc, r.phase), 150 + Math.random() * 400);
+    }
+  };
+  const enter = (r, phase) => {
+    r.phase = phase; r.attempt = 1; r.deadline = Date.now() + PHASE_TIMEOUT_MS;
+    if (remote(phase)) ask(r, servicesFor(phase)); else setTimeout(() => finishLocal(r), 200);
+  };
+  const ack = (r, svc, phase) => {
+    if (r.status !== 'running' || r.phase !== phase) return;
+    const rows = 3 + svc.length % 5;
+    (r.steps[phase] = r.steps[phase] || {})[svc] = { rows, remaining: phase === 'export' || phase === 'freeze' || (phase === 'erase' && svc === 'identity') ? rows : 0, done: true, attempt: r.attempt };
+    Trail.events.emit(svc + '.privacy.completed', r.id, { requestId: r.id, service: svc, phase, rows }, r.accountId);
+    if (servicesFor(phase).every(s => r.steps[phase] && r.steps[phase][s])) enter(r, PHASES[r.kind][PHASES[r.kind].indexOf(phase) + 1]);
+    refreshRequest();
+  };
+  const tick = () => {
+    for (const a of Object.values(M.accounts)) {
+      for (const r of a.requests) {
+        if (r.status !== 'running' || !remote(r.phase) || Date.now() < r.deadline) continue;
+        const waiting = servicesFor(r.phase).filter(s => !(r.steps[r.phase] || {})[s]);
+        if (r.attempt >= MAX_ASKS) { r.status = 'failed'; r.error = 'no answer from ' + waiting.join(', '); continue; }
+        r.attempt++; r.deadline = Date.now() + PHASE_TIMEOUT_MS; ask(r, waiting);
+        refreshRequest();
+      }
+    }
+  };
+  setInterval(tick, 300);
+  const finishLocal = async r => {
+    const a = acct(r.accountId);
+    if (r.kind === 'export') {
+      r.archiveKey = 'privacy/' + r.id + '/export.zip';
+      r.downloadUrl = 'http://localhost:8333/dexter-audit/' + r.archiveKey + '?X-Amz-Expires=86400';
+      r.steps.archive = { audit: { files: SERVICES.map(s => s + '.json').concat('audit.json', 'manifest.json') } };
+      await notify(r.accountId, 'privacy', 'privacy.export-ready', { request: r.id }, false);
+      await append('system', null, 'privacy.export.completed', 'privacy_request', r.id, {});
+    } else {
+      const subject = (await hex('subject|' + r.accountId)).slice(0, 64);
+      r.steps.local = { audit: { rows: a.notes.length, remaining: 0, done: true } };
+      a.notes = []; a.deleted = true;
+      r.subjectRef = subject;
+      await append('system', null, 'privacy.delete.completed', 'subject', subject, { request: r.id });
+    }
+    r.status = 'completed'; r.phase = 'done'; r.completedAt = new Date().toISOString();
+    refreshRequest(); refreshInbox();
+  };
+  const view = r => ({ id: r.id, kind: r.kind, status: r.status, phase: r.phase, attempt: r.attempt, services: SERVICES,
+    steps: r.steps, createdAt: r.createdAt, completedAt: r.completedAt || null, error: r.error || null,
+    downloadUrl: r.downloadUrl || null, subjectRef: r.subjectRef || null });
+
+  Trail.mock('GET', /^\/api\/v1\/notifications$/, (m, req) => need(req) || (() => {
+    const a = acct(req.tenant.accountId);
+    const inapp = a.notes.filter(n => n.channel === 'inapp');
+    const items = (req.query.unread === 'true' ? inapp.filter(n => !n.readAt) : inapp)
+      .map(n => ({ id: n.id, category: n.category, template: n.template, ...render(n.template, n.payload), payload: n.payload, createdAt: n.createdAt, readAt: n.readAt }));
+    return { data: items, page: { limit: 25, hasMore: false, nextCursor: null }, unread: inapp.filter(n => !n.readAt).length };
+  })());
+  Trail.mock('POST', /^\/api\/v1\/notifications\/([0-9a-f-]{36}):read$/, (m, req) => need(req) || (() => {
+    const n = acct(req.tenant.accountId).notes.find(x => x.id === m[1] && x.channel === 'inapp');
+    if (!n) return Trail.problem(404, 'NOTIFICATION_NOT_FOUND', 'No notification with that id');
+    n.readAt = n.readAt || new Date().toISOString();
+    return { id: n.id, template: n.template, ...render(n.template, n.payload), readAt: n.readAt };
+  })());
+  const prefsView = p => ({ inapp: true, email: p.email, push: p.push, muted: [...p.muted].sort(), mutable: MUTABLE, version: p.version });
+  Trail.mock('GET', /^\/api\/v1\/notification-prefs$/, (m, req) => need(req)
+    || Trail.reply(200, prefsView(acct(req.tenant.accountId).prefs), { etag: '"' + acct(req.tenant.accountId).prefs.version + '"' }));
+  Trail.mock('PATCH', /^\/api\/v1\/notification-prefs$/, (m, req) => need(req) || (() => {
+    const p = acct(req.tenant.accountId).prefs;
+    const im = (req.headers['If-Match'] || req.headers['if-match'] || '').replace(/"/g, '');
+    if (im === '') return Trail.problem(428, 'PRECONDITION_REQUIRED', 'If-Match is required');
+    const b = req.body || {};
+    const bad = (b.muted || []).filter(x => !MUTABLE.includes(x));
+    if (bad.length) return Trail.problem(400, 'VALIDATION_FAILED', 'Request validation failed', { errors: bad.map(x => ({ field: 'muted', code: 'NOT_MUTABLE', message: x })) });
+    if (Number(im) !== p.version) return Trail.problem(412, 'VERSION_CONFLICT', 'The preferences changed; reload them');
+    Object.assign(p, { email: b.email ?? p.email, push: b.push ?? p.push, muted: b.muted ?? p.muted, version: p.version + 1 });
+    return Trail.reply(200, prefsView(p), { etag: '"' + p.version + '"' });
+  })());
+  const privacy = kind => Trail.idempotent((m, req) => need(req) || (async () => {
+    const a = acct(req.tenant.accountId);
+    if (a.requests.some(r => r.kind === kind && r.status === 'running')) return Trail.problem(409, 'PRIVACY_REQUEST_RUNNING', 'A ' + kind + ' request is already running for this account');
+    const r = { id: Trail.uuidv7(), accountId: req.tenant.accountId, kind, status: 'running', steps: {}, createdAt: new Date().toISOString() };
+    a.requests.unshift(r);
+    await append('user', r.accountId, 'privacy.' + kind + '.requested', 'privacy_request', r.id, {});
+    enter(r, PHASES[kind][0]);
+    return Trail.reply(202, view(r), { location: '/v1/privacy/requests/' + r.id });
+  })());
+  Trail.mock('POST', /^\/api\/v1\/privacy\/export$/, privacy('export'));
+  Trail.mock('POST', /^\/api\/v1\/privacy\/delete$/, privacy('delete'));
+  Trail.mock('GET', /^\/api\/v1\/privacy\/requests\/([0-9a-f-]{36})$/, (m, req) => need(req) || (() => {
+    const r = acct(req.tenant.accountId).requests.find(x => x.id === m[1]);
+    return r && !(r.kind === 'delete' && r.status === 'completed') ? view(r) : Trail.problem(404, 'PRIVACY_REQUEST_NOT_FOUND', 'No privacy request with that id');
+  })());
+  Trail.mock('GET', /^\/api\/v1\/admin\/audit$/, () => ({ data: M.chain.slice().reverse().map(r => ({ seq: r.seq, occurredAt: r.at, actorType: r.actorType, actorId: r.actorId, action: r.action, targetType: r.targetType, targetId: r.targetId, details: r.details, hash: r.hash })), page: { limit: 25, hasMore: false, nextCursor: null } }));
+  Trail.mock('POST', /^\/api\/v1\/admin\/audit:verify-chain$/, async () => {
+    const v = await verify();
+    await append('admin', 'trail-operator', 'audit.chain.verified', null, null, { ok: v.ok, checked: v.checked });
+    return v;
+  });
+
+  // ---------------------------------------------------------------- rendering
+  const renderInbox = body => {
+    const items = (body && body.data) || [];
+    $('unread').textContent = 'unread ' + (body ? body.unread : '-');
+    $('inbox').innerHTML = items.map(n => `<div class="note ${n.readAt ? '' : 'unread'}"><strong>${esc(n.title)}</strong>
+      <span class="chip">${esc(n.category)}</span><br>${esc(n.body)} <small>${esc(n.createdAt)}</small>
+      ${n.readAt ? '' : `<button class="ghost" data-read="${esc(n.id)}">mark read</button>`}</div>`).join('') || '<div class="mono">no notifications</div>';
+    $('inbox').querySelectorAll('[data-read]').forEach(b => { b.onclick = async () => { await Trail.api('POST', `/api/v1/notifications/${b.dataset.read}:read`); refreshInbox(); }; });
+  };
+  const renderDeliveries = notes => {
+    $('deliveries').querySelector('tbody').innerHTML = notes.filter(n => n.channel !== 'inapp').map(n => `<tr><td>${esc(n.channel)}</td>
+      <td>${esc(n.template)}</td><td><span class="chip ${n.status === 'sent' ? 'on' : n.status === 'failed' ? 'bad' : 'warn'}">${esc(n.status)}</span></td>
+      <td>${n.attempts}</td><td>${n.nextAttemptAt ? new Date(n.nextAttemptAt).toISOString().slice(11, 23) : '-'}</td></tr>`).join('')
+      || '<tr><td colspan="5">Live: deliveries are the worker\'s (audit.notifications); Mock shows them here</td></tr>';
+  };
+  const renderLog = rows => {
+    $('log').querySelector('tbody').innerHTML = (rows || []).map(r => `<tr><td>${r.seq}</td><td>${esc(r.action)}</td>
+      <td>${esc(r.actorType)}${r.actorId ? ' ' + esc(String(r.actorId).slice(0, 8)) : ''}</td><td>${esc(r.targetType || '')} ${esc(String(r.targetId || '').slice(0, 12))}</td>
+      <td>${esc(String(r.hash).slice(0, 16))}…</td></tr>`).join('');
+  };
+  let current = null;
+  const renderRequest = r => {
+    if (!r) { $('request').textContent = ''; return; }
+    const phases = PHASES[r.kind] || [];
+    $('request').innerHTML = `<div><span class="chip ${r.status === 'completed' ? 'on' : r.status === 'failed' ? 'bad' : 'warn'}">${esc(r.status)}</span>
+      ${esc(r.kind)} · phase <strong>${esc(r.phase)}</strong> · attempt ${r.attempt}${r.error ? ' · ' + esc(r.error) : ''}</div>
+      <table class="t"><thead><tr><th>phase</th>${SERVICES.map(s => `<th>${s}</th>`).join('')}</tr></thead><tbody>
+      ${phases.filter(remote).map(ph => `<tr><td>${ph}</td>${SERVICES.map(s => { const x = ((r.steps || {})[ph] || {})[s];
+        return `<td>${servicesFor(ph).includes(s) ? (x ? (x.done ? '✓ ' : '… ') + x.rows + '/' + x.remaining : '…') : '-'}</td>`; }).join('')}</tr>`).join('')}
+      </tbody></table>${r.downloadUrl ? `<div><a href="${esc(r.downloadUrl)}">download export.zip</a> (24 h)</div>` : ''}`;
+  };
+  // ---------------------------------------------------------------- actions
+  const refreshInbox = async () => {
+    const r = await Trail.api('GET', '/api/v1/notifications' + ($('onlyUnread').checked ? '?unread=true' : ''));
+    renderInbox(r.status === 200 ? r.data : null);
+    if (Trail.mode === 'mock' && Trail.persona) renderDeliveries(acct(Trail.persona.accountId).notes); else renderDeliveries([]);
+    return r;
+  };
+  const refreshPrefs = async () => {
+    const r = await Trail.api('GET', '/api/v1/notification-prefs');
+    if (r.status === 200) {
+      $('pEmail').checked = r.data.email; $('pPush').checked = r.data.push;
+      document.querySelectorAll('.mute').forEach(c => { c.checked = r.data.muted.includes(c.value); });
+      $('savePrefs').dataset.version = r.data.version;
+    }
+    out('prefsout', `HTTP ${r.status}\n` + JSON.stringify(r.data, null, 2));
+    return r;
+  };
+  const savePrefs = async () => {
+    const body = { email: $('pEmail').checked, push: $('pPush').checked, muted: [...document.querySelectorAll('.mute')].filter(c => c.checked).map(c => c.value) };
+    const r = await Trail.api('PATCH', '/api/v1/notification-prefs', { body, headers: { 'If-Match': '"' + ($('savePrefs').dataset.version || 0) + '"' } });
+    out('prefsout', `HTTP ${r.status}\n` + JSON.stringify(r.data, null, 2));
+    if (r.status === 200) $('savePrefs').dataset.version = r.data.version;
+    return r;
+  };
+  const refreshRequest = async () => {
+    if (!current) return null;
+    const r = await Trail.api('GET', '/api/v1/privacy/requests/' + current);
+    if (r.status === 200) renderRequest(r.data);
+    else if (Trail.mode === 'mock') {   // a completed deletion is no longer the account's: show it as the saga holds it
+      const mine = Object.values(M.accounts).flatMap(a => a.requests).find(x => x.id === current);
+      renderRequest(mine ? view(mine) : null);
+    }
+    return r;
+  };
+  const request = async kind => {
+    const r = await Trail.api('POST', '/api/v1/privacy/' + kind, { headers: { 'Idempotency-Key': Trail.uuidv4() } });
+    out('privacyout', `HTTP ${r.status}\n` + JSON.stringify(r.data, null, 2));
+    if (r.status === 202) { current = r.data.id; renderRequest(r.data); }
+    for (let i = 0; i < 60 && current && r.status === 202; i++) {
+      await new Promise(res => setTimeout(res, 1000));
+      const s = await refreshRequest();
+      if (s && s.status === 200 && s.data.status !== 'running') break;
+      if (s && s.status === 404) break;   // the deletion completed: the request is pseudonymous now
+    }
+    return r;
+  };
+  const refreshLog = async () => {
+    const r = await Trail.api('GET', '/api/v1/admin/audit');
+    renderLog(r.status === 200 ? r.data.data : []);
+    return r;
+  };
+  const verifyChain = async () => {
+    const r = await Trail.api('POST', '/api/v1/admin/audit:verify-chain');
+    $('verdict').className = 'chip ' + (r.status === 200 ? (r.data.ok ? 'on' : 'bad') : 'warn');
+    $('verdict').textContent = r.status === 200 ? (r.data.ok ? `ok · ${r.data.checked} rows` : `broken at ${r.data.brokenAt}: ${r.data.reason}`) : 'HTTP ' + r.status;
+    await refreshLog();
+    return r;
+  };
+  for (const [id, kind] of [['evBudget', 'budget'], ['evSub', 'sub'], ['evApp', 'app'], ['evSec', 'sec']]) {
+    $(id).onclick = async () => { if (!Trail.persona) return; await event(kind, Trail.persona.accountId); await refreshInbox(); await refreshLog(); };
+  }
+  $('reload').onclick = refreshInbox;
+  $('onlyUnread').onchange = refreshInbox;
+  $('savePrefs').onclick = savePrefs;
+  $('export').onclick = () => request('export');
+  $('delete').onclick = () => request('delete');
+  $('verify').onclick = verifyChain;
+  $('tamper').onclick = () => { const r = M.chain[0]; if (r) { M.tampered = JSON.stringify(r.details); r.details = { ...r.details, note: 'edited' }; } };
+  $('untamper').onclick = () => { const r = M.chain[0]; if (r && M.tampered) { r.details = JSON.parse(M.tampered); M.tampered = null; } };
+  const modeChanged = () => { for (const id of ['evBudget', 'evSub', 'evApp', 'evSec', 'tamper', 'untamper', 'silent']) $(id).disabled = Trail.mode !== 'mock'; };
+  Trail.mountEvents($('events'), { livePath: '/api/_dev/outbox/recent' });
+  window.P18 = { M, channels, render, verify, append, deliverDue, event, request, savePrefs, refreshInbox, refreshPrefs, verifyChain };
+  (async () => {
+    try { await Trail.loadSeed(); } catch (e) { /* the page works without the seed fixtures */ }
+    Trail.mountTenantSwitcher($('tenant'), { onSwitch: () => { refreshInbox(); refreshPrefs(); } });
+    modeChanged();
+    await refreshLog();
+  })();
+})();
+</script>
+</body>
+</html>

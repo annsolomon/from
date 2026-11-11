@@ -220,7 +220,7 @@
   const PERMS = { SUPPORT: ['accounts:read', 'audit:read', 'commerce:read', 'commerce:decide'],
     CATALOG_EDITOR: ['catalog:read', 'catalog:write', 'catalog:publish', 'commerce:read', 'commerce:write'],
     FINANCE: ['accounts:read', 'billing:read', 'billing:refund'] };
-  PERMS.SUPER_ADMIN = [...new Set([...Object.values(PERMS).flat(), 'accounts:write', 'admins:read', 'admins:write'])];
+  PERMS.SUPER_ADMIN = [...new Set([...Object.values(PERMS).flat(), 'accounts:write', 'admins:read', 'admins:write', 'audit:verify'])];
   const jwt = c => b64({ alg: 'ES256', typ: 'at+jwt', kid: 'mock' }) + '.' + b64(c) + '.mock-signature';
   const now = () => Math.floor(Date.now() / 1000);
   const claimsOf = req => { const h = Object.entries(req.headers || {}).find(([k]) => k.toLowerCase() === 'authorization');

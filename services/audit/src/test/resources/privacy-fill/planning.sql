@@ -1,0 +1,7 @@
+INSERT INTO planning.budgets (id, account_id, name, period, limit_paise, starts_on) VALUES (gen_random_uuid(), '${account}', 'x', 'monthly', 100000, DATE '2026-01-01');
+INSERT INTO planning.budget_period_spend (account_id, budget_id, period_start, spent_paise, projected_version) SELECT account_id, id, DATE '2026-01-01', 500, 1 FROM planning.budgets WHERE account_id = '${account}';
+INSERT INTO planning.budget_alerts_sent (account_id, budget_id, period_start, threshold, spent_paise) SELECT account_id, id, DATE '2026-01-01', 50, 50000 FROM planning.budgets WHERE account_id = '${account}';
+INSERT INTO planning.liabilities (id, account_id, kind, lender, principal_paise, apr_bps, tenure_months, start_date, emi_paise, total_interest_paise, total_payable_paise) VALUES (gen_random_uuid(), '${account}', 'loan', 'x', 1000000, 1200, 12, DATE '2026-01-01', 88849, 66185, 1066185);
+INSERT INTO planning.liability_schedule (liability_id, account_id, installment_no, due_on, principal_paise, interest_paise, total_paise, outstanding_after_paise) SELECT id, account_id, 1, DATE '2026-01-01', 78849, 10000, 88849, 921151 FROM planning.liabilities WHERE account_id = '${account}';
+INSERT INTO planning.scenarios (id, account_id, name, base_snapshot) VALUES (gen_random_uuid(), '${account}', 'x', '{}'::jsonb);
+INSERT INTO planning.idempotency_keys (account_id, idem_key, request_method, request_path, request_hash, state) VALUES ('${account}', gen_random_uuid(), 'POST', '/x', '\x00', 'in_progress');

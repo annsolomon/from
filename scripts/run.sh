@@ -42,6 +42,9 @@ start_services() {
   # Local runs use the dev profile (dev-only endpoints such as /_dev/p01 for the trail). Never in prod.
   export SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-dev}
   echo "SPRING_PROFILES_ACTIVE=$SPRING_PROFILES_ACTIVE"
+  # P18 (ADR-0024): the running stack takes part in the privacy saga. Set here, not in .env: verify.sh exports .env
+  # into the Maven ITs, whose service contexts must never start a privacy consumer.
+  export DEXTER_PRIVACY_ENABLED=${DEXTER_PRIVACY_ENABLED:-true}
   mkdir -p "$RUN_DIR/logs" "$RUN_DIR/pids"
   for entry in "${DEXTER_SERVICES[@]}"; do
     svc=${entry%%:*}; port=${entry##*:}

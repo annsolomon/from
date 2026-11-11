@@ -54,6 +54,16 @@ logging:
     level: "%5p [%X{requestId:-}]"
 
 dexter:
+  # P18 (ADR-0024): billing's part in the privacy saga (libs/dexter-privacy). Off unless DEXTER_PRIVACY_ENABLED=true (.env).
+  privacy:
+    enabled: ${DEXTER_PRIVACY_ENABLED:false}
+    phases: erase,export
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:127.0.0.1:${KAFKA_PORT:9092}}
+    store:
+      endpoint: http://127.0.0.1:${OBJECTSTORE_PORT:8333}
+      bucket: ${AUDIT_BUCKET:dexter-audit}
+      access-key: ${OBJECTSTORE_ACCESS_KEY:dexter-dev}
+      secret-key: ${OBJECTSTORE_SECRET_KEY:}
   db:
     schema: billing
   # Keyset cursors (MASTER_PLAN 4.2): HMAC keys from the environment.

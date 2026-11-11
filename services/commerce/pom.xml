@@ -28,6 +28,8 @@
     <dependency><groupId>in.dexter</groupId><artifactId>dexter-db</artifactId></dependency>
     <dependency><groupId>in.dexter</groupId><artifactId>dexter-idempotency</artifactId></dependency>
     <dependency><groupId>in.dexter</groupId><artifactId>dexter-events</artifactId></dependency>
+    <!-- P18 (ADR-0024): the privacy saga participant -->
+    <dependency><groupId>in.dexter</groupId><artifactId>dexter-privacy</artifactId></dependency>
     <dependency><groupId>in.dexter</groupId><artifactId>dexter-security</artifactId></dependency>
     <dependency><groupId>in.dexter</groupId><artifactId>dexter-contracts</artifactId></dependency>
     <!-- P17: click / impression counters, uniques and frequency caps in Redis (per-service ACL user `commerce`) -->

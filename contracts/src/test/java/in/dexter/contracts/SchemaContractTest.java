@@ -15,6 +15,8 @@ import in.dexter.contracts.events.planning.LiabilityChangedV1;
 import in.dexter.contracts.events.billing.EntitlementsChangedV1;
 import in.dexter.contracts.events.billing.SubscriptionChangedV1;
 import in.dexter.contracts.events.commerce.ApplicationStatusChangedV1;
+import in.dexter.contracts.events.audit.PrivacyRequestedV1;
+import in.dexter.contracts.events.privacy.PrivacyCompletedV1;
 import in.dexter.contracts.events.portfolio.CardChangedV1;
 import in.dexter.contracts.events.reco.RecommendationUpdatedV1;
 import in.dexter.contracts.events.portfolio.LinkConfirmedV1;
@@ -141,6 +143,16 @@ class SchemaContractTest {
     SAMPLES.put("commerce.application.status-changed.v1.json", new ApplicationStatusChangedV1(
         UUID.fromString("0192f1e2-0000-7000-8000-000000000c01"), UUID.fromString("0192f1e2-0000-7000-8000-000000000c02"),
         "approved", "in_review", "Meets the issuer's criteria", 2, "2026-11-08T12:00:00Z"));
+    // P18 privacy saga
+    UUID privacyRequest = UUID.fromString("0192f1e2-0000-7000-8000-000000000a01");
+    SAMPLES.put("audit.privacy.requested.v1.json", new PrivacyRequestedV1(privacyRequest, "delete", "erase", 1,
+        List.of("identity", "ledger", "portfolio", "planning", "reco", "billing", "commerce"), "2026-11-11T10:00:00Z"));
+    for (String svc : List.of("identity", "ledger", "portfolio", "planning", "reco", "billing", "commerce")) {
+      SAMPLES.put(svc + ".privacy.completed.v1.json", new PrivacyCompletedV1(privacyRequest, svc, "export", 2, 41, 41,
+          "privacy/" + privacyRequest + "/" + svc + ".json", "2026-11-11T10:00:05Z"));
+    }
+    SAMPLES.put("identity.privacy.completed.v1.json", new PrivacyCompletedV1(privacyRequest, "identity", "shred", 1, 2,
+        0, null, "2026-11-11T10:00:09Z"));
   }
 
   static JsonNode schema(String file) throws IOException {

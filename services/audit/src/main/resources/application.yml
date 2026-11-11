@@ -6,6 +6,20 @@ spring:
       enabled: true
   main:
     banner-mode: "off"
+  # P18: runtime pool = audit_app (RLS-bound, NOBYPASSRLS). Passwords come from the environment (.env in dev).
+  datasource:
+    url: jdbc:postgresql://${DEXTER_PG_HOST:127.0.0.1}:${POSTGRES_PORT:5432}/audit?ApplicationName=audit
+    username: audit_app
+    password: ${PG_PW_AUDIT_APP:${PG_PW_APP:}}
+    hikari:
+      maximum-pool-size: ${AUDIT_DB_POOL:20}
+      connection-timeout: 5000
+  # Migrations run as the schema owner (MASTER_PLAN 3.1); the app role has no DDL rights.
+  flyway:
+    user: audit_owner
+    password: ${PG_PW_AUDIT_OWNER:${PG_PW_OWNER:}}
+    schemas: audit
+    clean-disabled: true
 
 server:
   port: ${PORT_AUDIT:8089}
@@ -29,6 +43,60 @@ logging:
   pattern:
     # X-Request-Id on every console line (dexter-web RequestIdFilter puts it in the MDC)
     level: "%5p [%X{requestId:-}]"
+
+dexter:
+  db:
+    schema: audit
+  # Keyset cursors (MASTER_PLAN 4.2): HMAC keys from the environment.
+  cursor:
+    active-kid: c1
+    keys:
+      c1: ${AUDIT_CURSOR_KEY_C1:}
+  # The inbox, preferences and privacy requests take a user token (audience "audit"); /v1/admin/audit* and
+  # /v1/admin/activity/** an admin token with audit:read (audit:verify to resume a failed privacy request).
+  security:
+    jwks-uri: ${IDENTITY_JWKS_URI:http://127.0.0.1:${PORT_IDENTITY:8081}/.well-known/jwks.json}
+    issuer: ${IDENTITY_ISSUER:https://identity.dexter.internal}
+    audience: audit
+  audit:
+    admin:
+      db-url: ""
+      db-username: audit_admin
+      db-password: ${PG_PW_AUDIT_ADMIN:${PG_PW_ADMIN:}}
+      db-pool-size: 4
+    # The audit bucket: export parts (written by every participant) and archives, chain anchors.
+    store:
+      endpoint: http://127.0.0.1:${OBJECTSTORE_PORT:8333}
+      public-endpoint: ${OBJECTSTORE_PUBLIC_URL:http://localhost:${OBJECTSTORE_PORT:8333}}
+      bucket: ${AUDIT_BUCKET:dexter-audit}
+      access-key: ${OBJECTSTORE_ACCESS_KEY:dexter-dev}
+      secret-key: ${OBJECTSTORE_SECRET_KEY:}
+    notify:
+      backoff-base: ${AUDIT_NOTIFY_BACKOFF_BASE:30s}
+      backoff-cap: 1h
+      max-attempts: 6
+      # Dev: the mock transport refuses every email / push notification's first attempt, so the retry path runs.
+      mock-fail-first: ${AUDIT_MOCK_FAIL_FIRST:0}
+    privacy:
+      services: identity,ledger,portfolio,planning,reco,billing,commerce
+      phase-timeout: ${AUDIT_PRIVACY_PHASE_TIMEOUT:2m}
+      max-attempts: 5
+      # HMAC key of a completed deletion's pseudonym (base64, >= 32 bytes)
+      subject-key: ${AUDIT_SUBJECT_KEY:}
+    jobs:
+      enabled: ${AUDIT_JOBS_ENABLED:true}
+      notify-every: 1s
+      saga-every: 2s
+      anchor-every: ${AUDIT_ANCHOR_EVERY:24h}
+    consumers:
+      enabled: ${AUDIT_CONSUMERS_ENABLED:true}
+      bootstrap-servers: ${KAFKA_BOOTSTRAP:127.0.0.1:${KAFKA_PORT:9092}}
+    relay:
+      enabled: ${AUDIT_RELAY_ENABLED:true}
+      url: jdbc:postgresql://${DEXTER_PG_HOST:127.0.0.1}:${POSTGRES_PORT:5432}/audit?ApplicationName=audit-relay
+      username: audit_relay
+      password: ${PG_PW_AUDIT_RELAY:${PG_PW_RELAY:}}
+      bootstrap-servers: ${KAFKA_BOOTSTRAP:127.0.0.1:${KAFKA_PORT:9092}}
 
 ---
 spring:

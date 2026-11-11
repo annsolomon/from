@@ -332,3 +332,18 @@ is not 2xx, and there is nothing to retry.
 An unattributable postback (its `subid` names no logged click) is still stored and answered `created`: the network's
 numbers must reconcile with ours even when the click is older than the raw-click retention.
 
+### audit (P18, `AuditErrors` + core codes)
+
+| Code | Status | When |
+|---|---|---|
+| `USER_TOKEN_REQUIRED` | 403 | The inbox, preferences or privacy endpoints called with an admin-console token. |
+| `ADMIN_TOKEN_REQUIRED` | 403 | `/v1/admin/audit*` or `/v1/admin/activity/**` with a token holding neither SUPPORT nor SUPER_ADMIN. |
+| `NOTIFICATION_NOT_FOUND` | 404 | `:read` on a notification that is not this account's in-app one. |
+| `NOT_MUTABLE` | 400 | Field error on `muted` (code `VALIDATION_FAILED`): `security` or an unknown category. |
+| `PRIVACY_REQUEST_RUNNING` | 409 | An export (or a deletion) while one of the same kind is running for the account. Enforced by the database (`privacy_requests_one_running`). |
+| `PRIVACY_REQUEST_NOT_FOUND` | 404 | No such request for this caller (a completed deletion is pseudonymous and no longer the account's). |
+| `PRIVACY_REQUEST_NOT_FAILED` | 409 | `:resume` on a request that is running or completed. |
+| `AUDIT_FILTER_INVALID` | 400 | `targetId` without `targetType`, `from`/`to` not ISO-8601 instants, or `from` not before `to`. |
+| `STEP_UP_REQUIRED` | 401 | A privacy request without a sign-in in the last 10 minutes (and MFA when enrolled). |
+| `VERSION_CONFLICT` | 412 | A preferences PATCH whose If-Match is not the current version. |
+

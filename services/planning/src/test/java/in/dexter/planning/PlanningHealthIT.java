@@ -19,7 +19,7 @@ class PlanningHealthIT extends PlanningIT {
     assertThat(nf.body()).contains("\"requestId\":");
 
     assertThat(ADMIN.sql("SELECT count(1) FROM planning.flyway_schema_history WHERE success AND type = 'SQL'")
-        .query(Long.class).single()).as("the platform migration and the core one").isEqualTo(2);
+        .query(Long.class).single()).as("the platform migration, the core one and P18's privacy one").isEqualTo(3);
     assertThat(ADMIN.sql("SELECT tableowner FROM pg_tables WHERE schemaname = 'planning' AND tablename = 'budgets'")
         .query(String.class).single()).isEqualTo("planning_owner");
   }

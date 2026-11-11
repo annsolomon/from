@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dexter.in/events/audit.privacy.requested.v1.json",
+  "title": "audit.privacy.requested v1 - the privacy saga asks services to run one phase of an export or delete request (topic dexter.audit.privacy.v1, key = account id).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "requestId",
+    "kind",
+    "phase",
+    "attempt",
+    "services",
+    "requestedAt"
+  ],
+  "properties": {
+    "requestId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "export",
+        "delete"
+      ]
+    },
+    "phase": {
+      "type": "string",
+      "enum": [
+        "freeze",
+        "erase",
+        "shred",
+        "export"
+      ]
+    },
+    "attempt": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "services": {
+      "type": "array",
+      
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]{1,31}$"
+      }
+    },
+    "requestedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

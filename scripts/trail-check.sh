@@ -6,7 +6,7 @@ set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
 source scripts/lib/services.sh
-PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html p05-mfa-admin.html p06-gateway.html p07-ledger.html p08-ledger-plus.html p09-catalog.html p10-ingestion.html p11-portfolio.html p12-statements.html p12-calc.html p13-planning.html p14-reco.html p15-wallet-sse.html p16-billing.html p17-commerce.html})
+PAGES=(${1:-p00-infra.html p01-core.html p02-libs.html p03-harness.html p04-identity.html p05-mfa-admin.html p06-gateway.html p07-ledger.html p08-ledger-plus.html p09-catalog.html p10-ingestion.html p11-portfolio.html p12-statements.html p12-calc.html p13-planning.html p14-reco.html p15-wallet-sse.html p16-billing.html p17-commerce.html p18-audit-privacy.html})
 BASE=http://127.0.0.1:8099
 fail=0
 
@@ -503,6 +503,53 @@ pb=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 -H 'Content-Type: appli
   "$BASE/api/v1/webhooks/affiliate/mock")
 if [[ $pb == 400 ]]; then printf 'PASS  %-10s %s\n' p17-unsigned 400
 else printf 'FAIL  %-10s %s\n' p17-unsigned "$pb"; fail=1; fi
+
+# P18: what p18-audit-privacy.html Live mode drives - on an account CREATED for this run whose inbox is not empty
+# (p18_smoke.py --setup: a budget it crossed, notified over Kafka). The inbox is asserted non-empty before anything
+# is said about reading it; the export is followed to its zip through the presigned link.
+p18=$(python3 scripts/lib/p18_smoke.py --setup http://127.0.0.1:8080 http://127.0.0.1:8025 2>/dev/null | tail -n1)
+read -r p18acct ut <<< "$(printf '%s' "$p18" | jget account access)"
+if [[ -n ${ut:-} && -n ${p18acct:-} ]]; then printf 'PASS  %-10s %s\n' p18-setup "account created for this run"
+else printf 'FAIL  %-10s %s\n' p18-setup "${p18:0:200}"; fail=1; fi
+an=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$BASE/api/v1/notifications")
+if [[ $an == 401 ]]; then printf 'PASS  %-10s %s\n' p18-anon 401
+else printf 'FAIL  %-10s %s\n' p18-anon "$an"; fail=1; fi
+ib=$(curl -s --max-time 5 -H "Authorization: Bearer $ut" "$BASE/api/v1/notifications" | python3 -c '
+import json, sys
+d = json.load(sys.stdin); x = d["data"]
+print(len(x) > 0, d["unread"] > 0, x[0]["id"] if x else "-", bool(x and x[0]["title"]))' 2>/dev/null)
+read -r ibn ibu nid ibt <<< "$ib"
+if [[ $ibn == True && $ibu == True && $ibt == True ]]; then printf 'PASS  %-10s %s\n' p18-inbox "NOT EMPTY, unread, rendered"
+else printf 'FAIL  %-10s %s\n' p18-inbox "$ib"; fail=1; fi
+rd=$(curl -s --max-time 5 -X POST -H "Authorization: Bearer $ut" "$BASE/api/v1/notifications/$nid:read" | jget readAt)
+if [[ -n $rd && $rd != None ]]; then printf 'PASS  %-10s %s\n' p18-read "readAt set"
+else printf 'FAIL  %-10s %s\n' p18-read "$rd"; fail=1; fi
+pv=$(curl -s --max-time 5 -H "Authorization: Bearer $ut" "$BASE/api/v1/notification-prefs" | jget version)
+pp=$(curl -s --max-time 5 -X PATCH -H "Authorization: Bearer $ut" -H 'If-Match: "0"' -H 'Content-Type: application/json' \
+  -d '{"muted":["commerce"]}' "$BASE/api/v1/notification-prefs" | jget version)
+if [[ $pv == 0 && $pp == 1 ]]; then printf 'PASS  %-10s %s\n' p18-prefs "version 0 -> 1 with If-Match"
+else printf 'FAIL  %-10s %s\n' p18-prefs "get=$pv patch=$pp"; fail=1; fi
+ms=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 -X PATCH -H "Authorization: Bearer $ut" -H 'If-Match: "1"' \
+  -H 'Content-Type: application/json' -d '{"muted":["security"]}' "$BASE/api/v1/notification-prefs")
+if [[ $ms == 400 ]]; then printf 'PASS  %-10s %s\n' p18-security "cannot be muted (400)"
+else printf 'FAIL  %-10s %s\n' p18-security "$ms"; fail=1; fi
+nk=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 -X POST -H "Authorization: Bearer $ut" "$BASE/api/v1/privacy/export")
+if [[ $nk == 400 || $nk == 428 ]]; then printf 'PASS  %-10s %s\n' p18-nokey "$nk"
+else printf 'FAIL  %-10s %s\n' p18-nokey "$nk"; fail=1; fi
+xid=$(curl -s --max-time 10 -X POST -H "Authorization: Bearer $ut" -H "Idempotency-Key: $(cat /proc/sys/kernel/random/uuid)" \
+  "$BASE/api/v1/privacy/export" | jget id)
+xs=""; xurl=""
+for _ in $(seq 1 90); do
+  read -r xs xurl <<< "$(curl -s --max-time 5 -H "Authorization: Bearer $ut" "$BASE/api/v1/privacy/requests/$xid" | jget status downloadUrl)"
+  [[ $xs != running ]] && break
+  sleep 2
+done
+zip=$(curl -s --max-time 20 "$xurl" | head -c 2)
+if [[ $xs == completed && $zip == PK ]]; then printf 'PASS  %-10s %s\n' p18-export "completed across 7 services, the presigned zip downloads"
+else printf 'FAIL  %-10s %s\n' p18-export "status=$xs url=${xurl:0:80} magic=$zip"; fail=1; fi
+ad=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 -H "Authorization: Bearer $ut" "$BASE/api/v1/admin/audit")
+if [[ $ad == 403 ]]; then printf 'PASS  %-10s %s\n' p18-admin "a user token on the log: 403"
+else printf 'FAIL  %-10s %s\n' p18-admin "$ad"; fail=1; fi
 
 echo "trail-check: $([[ $fail -eq 0 ]] && echo PASS || echo FAIL)"
 exit $fail
