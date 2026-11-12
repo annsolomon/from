@@ -2,11 +2,12 @@ package in.dexter.identity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import in.dexter.identity.api.DevKeysController;
 import in.dexter.identity.support.IdentityIT;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import java.util.List;
 import org.springframework.context.ApplicationContext;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -28,10 +29,16 @@ class ProdProfileIT extends IdentityIT {
 
   @Autowired ApplicationContext ctx;
 
+  /** Every request path this context's controllers map that starts with /_dev. */
+  List<String> devPaths() {
+    return ctx.getBean("requestMappingHandlerMapping", RequestMappingHandlerMapping.class).getHandlerMethods().keySet()
+        .stream().flatMap(info -> info.getPatternValues().stream()).filter(path -> path.startsWith("/_dev")).toList();
+  }
+
   @Test
   void devEndpointsAreAbsent() {
     assertThat(ctx.getEnvironment().getActiveProfiles()).containsExactly("prod");
-    assertThat(ctx.getBeanNamesForType(DevKeysController.class)).isEmpty();
+    assertThat(devPaths()).isEmpty();
     assertThat(get("/_dev/p04/keys").status()).isIn(401, 403, 404);
   }
 }
