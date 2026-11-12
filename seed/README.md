@@ -8,7 +8,6 @@ Dev/test only. It is never a dependency of a service.
 ./scripts/seed.sh large            # 100,000 accounts, 5,000,000 expenses, 300,000 user cards (P19 load)
 ./scripts/seed.sh medium --seed 7 --regen --no-load
 ./scripts/seed.sh check medium     # determinism: second generation must give the same checksum
-./scripts/seed.sh fixtures         # regenerate test-ui/fixtures/seed/*.json (commit them)
 ```
 
 Output lands in `target/seed/<size>-<seed>/`:
