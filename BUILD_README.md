@@ -1,17 +1,19 @@
 # Dexter v2 — Build README (living handoff)
 
-**Last updated:** 2026-11-08 · **Chat/phase:** P17 (commerce) · **Model:** Claude Opus 5.5
-**P17 is DONE (CI run 42502207781, git `ed71c5d`).** Commerce is a real service: a marketplace of deals whose saving is
-every component on the full spend, **each capped on its own** (₹75,000 → ₹7,000), ranked in integer basis points by
-`0.8·(0.6·cardMatch + 0.4·savingsNorm) + 0.2·sponsor` with card-match a ranking branch, never a filter; every outbound
-link a **signed, expiring `/r/{token}`** that logs one raw click (daily partitions) and one Redis increment, drained
-every 10 s by an ACL-safe Lua get-and-unlink so concurrent flushers never double count; **HMAC-signed affiliate
-postbacks** idempotent by (network, ref); **card applications** with one open per card enforced by the database and
-an operator's decision on the admin pool; and **ads** with weighted rotation, per-visitor frequency caps checked and
-counted atomically, and PREMIUM **ad-free** from `billing.entitlements.changed` (ADR-0023, A-99..A-108). P16 was
-re-verified first from the latest report on `verify-reports` (CI run 42450718047, git `2a0fcb2`) — §3.
-Next chat: **P18** (audit, notifications, privacy — export/delete saga; its consumers include the events P16 and P17 now publish). Upload `MASTER_PLAN.md` + this
-file; verify P17 from the latest report on `verify-reports` first.
+**Last updated:** 2026-11-12 · **Chat/phase:** P18 (audit, notifications, privacy) · **Model:** Claude Opus 5.5
+**P18 is DONE (CI run 43142625115, git `2635579`).** Audit is a real service: every audited action is one link of a
+**hash chain** written by a single SQL function under an advisory lock (gap-free `seq`, `hash = SHA-256(prev ‖
+canonical row)`, an append-only trigger even for the owner), anchored to the object store, and `:verify-chain` names
+the first broken row — or the anchor a rewritten tail fails; gateway **activity** lands once per request in daily
+partitions with an hourly aggregate for the admin dashboard; events from identity, planning, billing and commerce
+become **notifications** by the rules (in-app always, email / push by preference, security never muted), delivered by
+a SKIP LOCKED worker with **exponential backoff**; and **privacy requests** run as a resumable saga across all seven
+services through a new library, `libs/dexter-privacy`, and per-service SQL that finds the account's tables itself: an
+export zips every part behind a 24-hour link, a deletion freezes the account, erases (or, for financial rows,
+re-keys) it everywhere, shreds its data key and leaves a pseudonym (ADR-0024, A-109..A-119). P17 was re-verified
+first from the latest report on `verify-reports` (CI run 42503399884, git `9b2ed44`) — §3.
+Next chat: **P19** (hardening & release). Upload `MASTER_PLAN.md` + this file; verify P18 from the latest report on
+`verify-reports` first.
 
 ## 1. Phase status
 
@@ -35,249 +37,57 @@ file; verify P17 from the latest report on `verify-reports` first.
 | P15 | Reco B (optimizer/SSE) | **DONE** 2026-11-05 | `verify.sh full` PASS 22/22 + `trail-check.sh` PASS (CI run 41952698922, git `35a2ed7`): all 25 reactor modules SUCCESS, `services/reco` unit **69** + IT **59** (the optimizer against an independent brute force over every subset and every routing, best-card-now with an exhausted cap and a merchant query, offers, the SSE stream across **two application contexts** on one Redis, a ticket usable once, RLS on 8 tables), `libs/portfolio-calc` unit 44, api-smoke **487 PASS / 0 FAIL** with **42** of them P15 (the wallet identities over a live stack — a rupee routed once, each size's marginal value, a wallet's value and fees as its cards' — best-card-now's parts adding up with a reward never past the headroom beside it, an expense attributed to a card moving that card's period spend over real Kafka, and a real SSE read through the gateway), trail-check `p15-{anon,wallet,bestcard,badamount,ticket,stream,onceonly}` 7/7 | ADR-0021, A-85 (a rule's cap is one cap, not one per root — a **P14 correctness fix**, `ENGINE_VERSION` → 2), A-86 (`card_period_spend` from the ledger's own `userCardId`), A-87 (a service's own `<svc>:*` Redis channel namespace), A-88 (`mvn -U` in CI), A-89 (a merchant rule earned **nothing** — a second P14 correctness fix, `ENGINE_VERSION` → 3), A-90 (the failing service's log snapshotted before the next step overwrites it), A-91 (every step timed, the long poles under `timeout`), and dominance pruning **reported rather than applied** (ADR-0021 §3). DoD all ticked (§3) |
 | P16 | Billing | **DONE** 2026-11-08 | `verify.sh full` PASS 22/22 + `trail-check.sh` PASS (CI run 42449818720, git `9430059`): all 25 reactor modules SUCCESS, `services/billing` unit **12** + IT **52** (the four named tests — a replayed webhook delivered 3× in a row and 10× at once has one effect; "succeeded" before "created" and "failed" before "created"; a crash after the provider call finished by the **sweeper** with no webhook delivered, by the client's own retry, and an attempt that never reached the provider closed as `not_submitted`; one live subscription enforced by the database against 10 concurrent checkouts — plus the Idempotency and Pagination contracts, RLS on 8 tables, the period-end job, the 60 s cache), `services/identity` IT 65 → **67** (`TierIT`), api-smoke **529 PASS / 0 FAIL** with **42** of them P16 (on accounts the smoke **registers itself**, every collection asserted non-empty first: the tier arriving in a refreshed token over Kafka, a delayed payment decided by the provider's own HTTP webhook, invoices whose lines add up to the charge, webhook replay through the gateway, and billing's outbox, both topics, 6 webhook deliveries and identity's `billing-tier` inbox), trail-check `p16-*` **9/9**, 105 PASS / 0 FAIL / 0 SKIP overall | ADR-0022, A-92 (`incomplete` is live, so a racing second checkout is refused before any charge), A-93 (plans not paged), A-94 (`incomplete` / `incomplete_expired`, and what the period-end job does), A-95 (identity's `tier_version` + `billing-tier` consumer), A-96 (`billing_interval`), A-97 (the provider's key is account + Idempotency-Key — **a real bug the contract test caught in r1**), A-98 (mock webhook delivery `http`/`memory`). DoD all ticked (§3) |
 | P17 | Commerce | **DONE** 2026-11-08 | `verify.sh full` PASS 22/22 + `trail-check.sh` PASS (CI run 42502207781, git `ed71c5d`): all 25 reactor modules SUCCESS, `services/commerce` unit **18** + IT **49** (the five named tests — the savings golden through the domain and the API; a postback replayed 3× and delivered 8× at once creates one conversion, counts it once and its commission once; 200 clicks from 8 threads with the flusher draining concurrently → exactly 200 counted = 200 raw rows, 5 uniques per deal; a cap of 3 holds for 6 sequential and **10 concurrent** serves and per anonymous visitor; a second open application refused, and 10 concurrent applications with different keys → one — plus the Idempotency and Pagination contracts, RLS proved on 8 tables (the gate checks all 13), the projections' version guards), identity IT +0 (count 5, SUPPORT perms), api-smoke **576 PASS / 0 FAIL** with **49** of them P17 (deals, campaigns and accounts the smoke **creates**, every collection asserted non-empty first: card-match after portfolio's event over Kafka, the redirect, postbacks, the flushed stats, an operator's decision, a frequency cap, ad-free after a real PREMIUM checkout, plus commerce's outbox, topic, three inboxes, raw rows and counters), trail-check `p17-*` **9/9**, 115 PASS / 0 FAIL / 0 SKIP overall | ADR-0023, A-99 (same chat as P16), A-100 (deal administration), A-101 (conversions unique per network), A-102 (history is a jsonb array), A-103 (optional verified token on public routes; `/r/**` and `/v1/admin/commerce/**` routed), A-104 (Redis Lua counters inside the ACL; conversions counted in the postback's transaction), A-105 (ad-free from the entitlements event), A-106 (`commerce:*` permissions), A-107 (application versions start at 1), A-108 (no P17a/b split). DoD all ticked (§3) |
-| P18 | Audit/notify/privacy | NOT STARTED | — | |
+| P18 | Audit/notify/privacy | **DONE** 2026-11-12 | `verify.sh full` PASS 22/22 + `trail-check.sh` PASS (CI run 43142625115, git `2635579`): all **26** reactor modules SUCCESS (+ `libs/dexter-privacy`), `services/audit` unit **9** + IT **28** (incl. `PrivacySagaAcrossServicesIT`: seven databases migrated by their own services' migrations, the library code, audit on Kafka), `dexter-privacy` unit 4; api-smoke **659 PASS / 0 FAIL** (83 of them P18's), trail-check **125 PASS / 0 FAIL / 0 SKIP** (`p18-*` 9/9) | ADR-0024, A-109..A-119; seven rounds (§2) |
 | P19 | Hardening & release | NOT STARTED | — | |
 
 ## 2. In progress (exact stopping point)
 
-- **P17 is DONE** (CI run 42502207781, git `ed71c5d`): nothing in progress. Three rounds: r1 compiled and unit-tested green
-  first time and had commerce IT at 48/49 — the one failure was the list-plan check on a 60-row account, where a
-  bitmap scan + a 60-row Sort is the planner's right answer; r2 asked about a heavy account (3,000 rows) and went
-  green in `ci`, with `verify.sh full` failing one smoke check that had the arithmetic wrong (it expected the held
-  card's ₹1,500 deal above an open ₹7,000 one; the service correctly kept 5,600 > 5,485 bps). r3 fixed the check.
-- Files touched in P17: `services/commerce/**` (whole service), `services/identity` (commerce permissions migration,
-  `AdminIT`, health IT count), `services/gateway` (`RouteTable`: `/r/**` public, `/v1/admin/commerce/**`),
-  `contracts` (`commerce.application.status-changed`), `scripts/lib/p17_smoke.py`, `scripts/api-smoke.sh`,
-  `scripts/trail-check.sh`, `test-ui/p17-commerce.html` + index (+ the P05 mock's permissions), `docs/adr/0023-*`,
-  `docs/api/{routes,errors}.md`, `.env.example` (`COMMERCE_CURSOR_KEY_C1`, `COMMERCE_CLICK_TOKEN_KEY`,
-  `COMMERCE_HASH_SALT`, `COMMERCE_AFFILIATE_SECRET_MOCK`).
-- Next concrete action: P18. Its consumers: `commerce.application.status-changed` (notify the applicant), billing's
-  two events, and everything audit records.
-- **P16 is DONE** (CI run 42449818720, git `9430059`): nothing in progress. Two rounds: r1 compiled and unit-tested green first time, and
-  its run had billing IT at 48/52 and trail-check's P16 block already 9/9 on the live stack; the four failures were
-  one real bug (A-97: two accounts sharing an Idempotency-Key UUID shared a provider charge) and one test-side
-  mistake (three RlsProofKit statements ended in `SELECT 1`). r2 fixed both and went green.
-- Files touched in P16: `services/billing/**` (whole service), `services/identity` (tier migration, `TierService`,
-  consumer config, relay topics, `AccountStore.updateTier`, `TierIT`, health IT count), `contracts` (two events),
-  `scripts/lib/p16_smoke.py`, `scripts/api-smoke.sh`, `scripts/trail-check.sh`, `test-ui/p16-billing.html` +
-  index, `docs/adr/0022-*`, `docs/api/{routes,errors}.md`, `.env.example` (`BILLING_CURSOR_KEY_C1`,
-  `BILLING_MOCK_WEBHOOK_SECRET`).
-- Next concrete action: P17. Commerce is the first writer `entitlement_overrides` was built for (perks, ad holidays;
-  §7), and its ads are gated by the `adFree` entitlement.
-- **P12a (2026-10-27):** code complete. Evidence: CI run 40416356611 (git `29c4146`) — every Maven module and IT
-  green, ai-parser pytest 72/72, trail-check PASS; the only failure was api-smoke P12 (the presigned PUT from the smoke
-  script raised a transport error on the runner; the same flow passes against SeaweedFS 4.22 with identities in the
-  sandbox). r5 (`92463a7`) made the smoke report the error: a timeout — SeaweedFS reserves volumes per bucket and the runner's
-  free-disk cap was used up by the first two buckets. r6 (`81d63ae`): 256 MB volumes, `-volume.max=64` → **all green,
-  P12a DONE** (run 40419721529).
-- **P15 (2026-11-05):** **DONE** — CI run 41952698922, git `35a2ed7`, `verify_full=success` +
-  `trail_check=success`, 22/22 steps, api-smoke 487 PASS / 0 FAIL. **Next action: P16 (billing).** Verify P15 first
-  from the latest report on `verify-reports`, the way this chat verified P14 (§3).
-
-  Thirteen rounds, and the last four are the ones worth reading, because all four were my own mistakes rather than
-  the plan's:
-  - **r8–r9 found two real P14 bugs**, not P15 bugs: a rule's cap was applied once per category root (A-85) and a
-    rule written for a merchant earned nothing at all (A-89). `ENGINE_VERSION` went 1 → 2 → 3. The §7 rule written
-    at the end of P14 — *bump it the moment the arithmetic changes* — earned its keep inside one phase.
-  - **r11–r12: nine best-card-now assertions had been passing vacuously.** asha's seeded cards were written
-    straight into portfolio's tables and emitted no event, so reco's held projection had never heard of them —
-    and best-card-now ranks *held* cards, so the live stack was answering with an empty list and every identity
-    over it held trivially. The smoke now creates a holding on a card reco ranks, waits for
-    `portfolio.card.added` to arrive, and asserts the answer is **not empty**. trail-check's `p15-bestcard` went
-    from `0 held cards` to `1 held cards` in the same stroke. **An identity asserted over an empty collection is
-    not a test** — worth checking for in every later phase's smoke.
-  - **r12 also hung the whole 90-minute job with an empty log.** The diagnostic I had just added captured
-    `run.sh services` output with `out=$(...)`; a command substitution waits for the write end of its pipe, and
-    something in that process tree held it for 83 minutes while every service was in fact healthy. r13 removed the
-    substitution (A-91) and bounded the long steps: `run_step` now times every step into the report, and maven,
-    api-smoke, services-up, k6, a docker pull and `run.sh core` each run under `timeout`. The timing is what
-    located the hang at all — the step before it had recorded, the step after it had not — and the same run
-    confirms the real cost of that step is **23 seconds**.
-  - **one flake, correctly left alone:** `services-up` failed once for reco and passed on a re-run of the identical
-    commit. Rather than "harden" something that was not broken, I re-ran it — and fixed the thing that made it
-    undiagnosable instead (A-90: trail-check.sh restarts the stack with `>` redirects and had been destroying the
-    only log that said why).
-
-- **What P15 inherited from P14, for reference:**
-  - **`Rules.share` (A-81) is the assumption P15 is meant to replace.** The profile is per category *root* while
-    rules go four labels deep, so a rule on `food.dining` is credited with 40 % of `food`. The optimizer has the
-    per-category detail; ADR-0020 §6 says so and every explanation already reports the `shareBps` it used.
-  - **`reco.claim_dirty` (A-84) is how anything in reco reaches across accounts.** SSE pushes from the sweep, and
-    the sweep claims through that owner function — not app-pool SQL, which sees one row. ADR-0020 §14.
-  - **`StateHash.ENGINE_VERSION` must be bumped** the moment P15 changes the scoring arithmetic, or every stored
-    result is served as fresh after the change (§7).
-  - **Reco's projections know nothing seeded** (§7): the demo stack gives it one rankable card and no held cards
-    until a run publishes them. If P15 wants a realistic optimizer demo, fixing that in the seed comes first.
-- **P13 (2026-10-30):** done. P14 built on: `libs/portfolio-calc` (A-82 moved `RewardTerms` there beside
-  `EmiMath`), the ledger/portfolio/catalog event contracts, and the one P13 endpoint still unbuilt —
-  `GET /v1/budgets/category-potential` (A-75), which is a catalog question and is still open for P15.
-- **P12b (2026-10-30):** done, nothing in progress. P13 started from: `libs/portfolio-calc` (pure, static, paise in
-  and out — `MinimumPaymentSimulator`, `ExitPathCalculator` and `RepaymentPathCalculator` are what a liability
-  projection and the sandbox want), `CalcService` (its validation and caps were already written; a planning
-  endpoint that needs the same engines calls the library, not `/v1/calc/*`), and the plan's own note that
-  `POST /v1/calc/emi` is served by portfolio (A-42) — planning does not re-serve it.
-
-### History (P13)
-
-- r1: the whole phase in one pass, then proved as far as the sandbox allows before pushing (no Maven Central, Java
-  21 against a Java 25 target, no Docker → no Maven, no Testcontainers). What was checked: the platform-migration
-  recipe reproduces portfolio's committed `V…__platform.sql` byte for byte; the pure domain compiles with javac
-  alone and 84 hand-written assertions over `BudgetPeriods` (weekly/monthly/custom, the 31st clamped through
-  February), `BudgetMath` (used bps, projection, thresholds), `LiabilityMath`, `ScenarioMath` and `Categories` all
-  hold — one of them caught a real bug: `surplusBefore` was using the *adjusted* income instead of the snapshot's
-  own (ADR-0019 §8). `EmiMath` was moved into the shared library (A-74) only after confirming it reproduces P13's
-  named golden (₹8,884.88 = 888488 paise) exactly, so planning has no second EMI. `p13-planning.html`'s Mock flow
-  ran in jsdom: 57/57 checks, 0 console errors — including the ledger→consumer delta, a subtree match counted, a
-  sibling category not, each threshold alerting once, and `MOCK_FIXTURE_ONLY` when the EMI terms leave the recorded
-  fixtures.
-
-### History (P12b)
-
-- r1: the whole port in one pass. Before pushing, the ported arithmetic was checked outside Maven (the sandbox has
-  no Maven Central and only Java 21): the library's main sources compile with javac alone, and a harness recomputed
-  **all 110 assertions** of the old repo's seven calc test classes plus 32 boundary/validation checks — every one
-  matched the old value to the paisa, including the 141-cycle minimum-payment case and the exit-path binary search.
-  `CalcService` was type-checked the same way (dexter-core's error package is Spring-free) and its 30 mapping and
-  validation paths run green. `p12-calc.html`'s Mock flow ran in jsdom: 12 fixtures replayed, 3 caps refused, 0
-  console errors.
-
-### History (P12a)
-
-- r1 (`2819dda`): all code; CI: static/unit (everything compiles) green; gateway `RateLimitIT` flake (continuous
-  refill let the 61st calc call through on a slow runner) stopped the reactor. r2 (`5ebfed0`): flake fixed; identity
-  `AdminIT` 503s — `RedisLoginThrottleIT` reset the shared Redis ACL user `identity` to its own password, breaking
-  every cached context after it (order-dependent). r3 (`7f58f5f`): shared password; portfolio 66/68 —
-  `PortfolioHealthIT` counted 2 migrations, uploads PlanAssert sorted (planner multiplied account × card
-  selectivities; 30 rows/account made the sort genuinely cheaper). r4 (`29c4146`): statistics on (account, card),
-  card index dropped, 300 uploads/account for the PlanAssert; maven fully green, api-smoke P12 PUT transport error.
-  r5 (`92463a7`): smoke diagnostics + retry → PUT timeout. r6 (`81d63ae`): SeaweedFS volume settings → all green.
-
-### History (P11)
-
-- r1 (`e335e27`): main code compiled; one test-compile error (Kafka record value must be bytes). r2 (`3e7277f`):
-  a pre-existing gateway flake (`ResilienceIT`'s SSE stub outlived its test and lacked `X-Backend`) failed
-  `RouteTableIT` before portfolio ran; r3 (`95bae52`) fixed the stub. 45 of 46 portfolio ITs green; the
-  PaginationContract rejected a cursor of another card (`CURSOR_FILTER_MISMATCH`): path ids were bound into the
-  cursor. r4 (`ed081e7`): path ids scope rows only; maven green, api-smoke 28/29 (the smoke expected a removed card
-  to read back; the API answers 404). r5 (`bac4db8`): smoke fixed. All green (run 39703341828).
-
-### History (P10)
-
-- The first "go with 11" run (2026-10-17) wrote the schema, the collector, the review/promoter code and the
-  dexter-objectstore move, then hit the usage limit before tests; the 2026-10-18 chat resumed from that tree.
-- r1 (`65450b9`): main code compiled; one test-compile error (duplicate local name). r2 (`c83e07e`): 26 of 27 ITs
-  green; `CatalogRlsIT` caught that the INGESTOR read policy also showed draft cards. r3 (`c68837d`): the policy
-  shows published cards only. All green (run 39109141399).
-
-### History (P09)
-
-- r1 (`523a63e`): compiled; 2 IT failures: search seq-scanned 50k cards — under catalog_app's RLS policy the
-  planner may not use the trigram index for LIKE/`%` (not leakproof), and the bulk insert left the GIN pending list
-  full; the list test's custom card 3 had a base rule without the fuel exclusion. r2 (`1135b29`): search through
-  the owner's SECURITY DEFINER `catalog.search_published_cards` (proved with auto_explain), VACUUM after the bulk
-  load, test card fixed. All green (run 39046289166).
-
-### History (P08)
-
-- r1 (`3899b7e`, docs `dd8ec91`): compiled; 2 IT failures: `MerchantApiIT` loaded the seed merchants in a static
-  `@BeforeAll` before Flyway had run (first class in the JVM); search's typo check needed word similarity 0.5 (the
-  pg_trgm default 0.6 rejects one wrong letter in a 6-letter word). r2 (`960e916`): merchants loaded per test after
-  the context; search sets `pg_trgm.word_similarity_threshold = 0.5` per transaction. All green (run 39042585515).
-
-### History (P07)
-
-- r1 (`9b71d4c`): everything green except ledger ITs: daily-totals upsert with a negative delta violated the
-  `total_paise >= 0` CHECK (Postgres checks the proposed INSERT row before ON CONFLICT) → 500 on PATCH/DELETE; the
-  date-range plan was bitmap + Sort. r2 (`4101870`): negative/in-place deltas via UPDATE; the date-range plan test
-  allows a bounded sort (A-47). All green (run 39023459091).
-
-### History (P06)
-
-- r1 (`ffd0cd8`/`1672c72`): everything green except `ResilienceIT` breaker test: a connection reset from the
-  service surfaced as Netty `NativeIoException` → 500. r2 (`ea0aeb7`): upstream `IOException` → 503; the open
-  circuit surfaced as SCG `ServiceUnavailableException` (`@ResponseStatus`) → 500. r3 (`aa88308`): mapped; Maven
-  green, p06 smoke crashed importing p04's helpers (Mailpit argv). r4 (`1b67d27`): fixed; one smoke check compared
-  JWKS as text. r5 (`cf48871`): all green (run 39020903788).
-
-- **P05 (2026-10-17): complete.** Nothing in progress. Next action: P06 (verify P05 first, then the gateway).
-  P06 starts from: identity's Live trail calls (incl. `/api/v1/admin/*`) go through `Trail.liveRoutes`; per-IP
-  throttling sees the socket address until the gateway forwards a trusted client IP; admin tokens carry `scope=admin`
-  (the gateway can route `/api/v1/admin/*` and must keep `Authorization` intact).
-
-### History (P05)
-
-- r1 (`b293e8b`): compiled first time; context failed: keyset base SQL contained `ORDER BY` (inside `ARRAY(...)`).
-- r2 (`c286445`): 60/65 ITs green; LockoutIT's own context had a different random KEK than the shared DB's signing
-  keys (AES-GCM open failed), `identity_admin` lacked SELECT on `admin_mfa_totp`, health IT counted 2 migrations.
-- r3 (`0b04cc0`): keys shared per JVM, column grants for `identity_admin` (no secrets/hashes), count 3.
-
-- **P04 r2 (2026-10-17): complete.** Nothing in progress. Next action: P05 (verify P04 first, then Identity B).
-  P05 starts from: `auth_find_login` returns `mfa_enabled=false` (replace it), `admin@demo.in` is still in
-  `identity.seed_stage.admins` (P05's migration makes it real; `full.seed-small` then loads it), `security.alert` v1
-  knows only `REFRESH_TOKEN_REUSE` (lockout kinds need v2 or a new type), the trail login for the admin persona calls
-  `/api/v1/admin/auth/login` (add it to `Trail.liveRoutes`).
-
-### History (P04)
-
-- r1 (`1e92d0a`): identity service, tests. CI run 39003284076: everything compiled; 40/41 ITs green — only
-  `IdentityHealthIT` expected 2 Flyway history rows (Flyway also records its schema-creation row, 3). Fixed in r2.
-- r2 (`077d181` code, `6e6ed9f` docs): smoke/trail/docs, relay topics first. Run on `077d181` was cancelled by the
-  docs push; run 39003795722 on `6e6ed9f` (same code) is the evidence.
-
-- **P03 r1 (2026-10-16): complete.** Nothing in progress. Next action: P04 (verify P03 first, then Identity A).
-  P04 owes the seed one step (ADR-0008): after `identity.accounts` exists, run `./scripts/seed.sh small` and fix
-  `seed/…/Tables.ACCOUNTS` + `Generator` if the loader reports a missing column (`display_name` is not seeded;
-  personas carry it in fixtures only).
-
-### History (P02)
-
-- **r10 (2026-10-04) stopped after:** `dexter-cache` (main + 3 unit test classes), Redis ACL infra + verify checks, `ArchRules` +
-  fixtures + `ArchRulesTest`, `TcpProxy`, `TestRedis` ACL kit, `CacheContract` + `LoadGate`, demo on cache
-  (`GET /demo/notes/{id}`, cached list, Path A in `NoteService`, Path B `NoteCacheInvalidation`), ITs `TenantCacheIT` (12),
-  `RedisAclIT` (2), `DemoCacheContractIT` (9), `DemoCacheInvalidationIT` (2). Docs: ADR-0004 §12, errors.md, runbook `redis-acl.md`.
-  **Sandbox evidence only (nothing run by Maven):**
-  - javac 25.0.1 type-check of every main + test file in `libs/` and `contracts/` against Spring Framework 7.0.9, Boot 4.0.8,
-    Spring Data Redis/Commons 4.0.7, Lettuce 6.8.2, ArchUnit 1.4.2, Micrometer 1.16.7, Jackson 3.1.5, JUnit 6.0.3, AssertJ 3.27.7,
-    Kafka 4.1.0, servlet 6.1 sources: **0 errors in r10 files** except references to jars without sources here
-    (Testcontainers, Hikari, pgjdbc, Nimbus — unchanged code paths). One real API error was found and fixed
-    (`containAnyMethodsThat` is a `JavaClass.Predicates` predicate, not a `ClassesShould` method).
-  - The five Lua scripts and the ACL template ran on a real Redis 7.0.15: every cache operation works as the service user;
-    foreign keys, `KEYS`, `FLUSHALL`, `CONFIG GET`, `DEL` and scripts reaching foreign keys are refused.
-  - `CacheKeys`/`CacheValue`/`CacheScope` assertions ran (harness): key formats, canonical params, codec edge cases.
-  - ArchUnit 1.4.2 reads Java 25 class files (1.4.1 added major 69; release notes checked).
-- **r11 (2026-10-04) completed P02:** `libs/dexter-lab` (dev-only P02 lab in ledger, A-23) + `test-ui/p02-libs.html` (Mock + Live)
-  + `scripts/lib/p02_smoke.py` (api-smoke P02 block, 36 checks) + trail-check P02 checks + `ledger.http` entries + infra
-  (database `lab` + roles `lab_*`, Redis user `lab`, always added by the init scripts; verify infra-checks adjusted).
-  Sandbox evidence: javac 25 type-check of every file in `libs/` + `contracts/` (incl. `dexter-lab` main + tests) — 0 errors
-  except references to jars without sources (Nimbus, pgjdbc, Hikari, Testcontainers, logback, uuid-creator); the trail
-  page script parses (node 22); `p02_smoke.py` ran green against a fake lab (logic only, not the Java lab).
-  **Nothing of P02b r10/r11 has been run by Maven or against real infra yet.**
-- **P02 is complete in code.** Remaining = evidence: `verify.sh full` (unit + ITs + api-smoke P02 block) and `trail-check.sh`.
-- **What to look for in the r10 report** (first Maven build of r10): enforcer convergence with spring-data-redis/lettuce/
-  netty/reactor/archunit; `DexterCacheAutoConfigurationTest`; Lettuce handshake as the ACL user (`client|setinfo` is in the
-  rule); `ArchRulesTest` (13) on the demo; `RedisAclIT` "no NOPERM swallowed"; timing-sensitive outage tests
-  (`TenantCacheIT.redisDownBypassesOnceThenTheBreakerSkipsRedis`, `DemoCacheInvalidationIT.aRedisOutageDuringPathBIsRetriedNotLost`).
-
-- **P02a is IT-GREEN** (r4 run, `verify.sh full` 17/17 PASS, 2026-09-27). History: r3 run failed at `dexter-events` (test bug: `EnvelopeCodecTest.roundTrip` compared `LongNode` vs `IntNode`); fixed in r4.
-- **P02b r6 stopped after:** `dexter-security` complete (main + tests), `TestJwt` kit, security tests in `dexter-test`, demo switched from `X-Demo-Account` to the verified token (`Tenant` argument) + `DemoAuthIT`, ADR-0007, errors.md security section, A-17..A-19.
-  Sandbox evidence only: javac 25 type-check of all new/changed main and test files against Spring Framework 7.0.9, Boot 4.0.8, Jackson 3.1.5, servlet 6.1, JUnit 6.0.3, AssertJ 3.27.7 sources: **0 errors in our files** apart from third-party jars that have no GitHub sources (uuid-creator, Hikari, pgjdbc, Testcontainers).
-  Caveat: Nimbus 10.x source is not on GitHub, so Nimbus calls were checked against the 5.x API mirror (same signatures for every call used). Nothing was run.
-- **Codespaces run 2026-09-27 (repo `/workspaces/p02`, code in `dexter-v2/`):** 16/17 PASS — static, infra, `full.maven` PASS, 10 services UP, api-smoke PASS; `full.k6-smoke` FAIL (k6 not installed).
-  **The `unzip -o ~/dexter-v2-P02-r6.zip` in that run failed (file not in `~`)**, so the run tested whatever code was already in the folder.
-  If that was not r6, `dexter-security` has still never been compiled by Maven. The report was not uploaded, so this is unconfirmed:
-  P02b stays **WRITTEN** until a report shows the security tests. Quick check in the Codespace:
-  `ls libs/dexter-security/src/main/java/in/dexter/security/jwt` (must list `JwtVerifier.java`).
-- **P02b security IT-GREEN — `verify.sh full` 17/17 PASS, 2026-10-04, repo `/workspaces/d2b`, Java 25.0.4** (run on r7 code with python3 installed by hand; r8 changed only scripts/devcontainer/README).
-  Report rows: `libs/dexter-security` unit 11/0/0/0, `libs/dexter-test` unit 35/0/0/0, IT 40/0/0/0. From `target/verify/mvn.log`:
-  `DexterSecurityAutoConfigurationTest` 4, `AuthContextTest` 5, `BearerTokensTest` 2, `ServiceTokenClientTest` 5, `JwtVerifierTest` 20,
-  `SecurityInterceptorTest` 10, `DemoAuthIT` 5 — all 0 failures/errors. Nimbus 10.9.1 compiled and behaved as the 5.x API check predicted.
-- **Codespaces run 2026-10-04 (first) on r7 (repo `/workspaces/d2b`, code at the root, devcontainer applied, Java 25.0.4):** `full.maven` **PASS** — first Maven build of `dexter-security` (Nimbus 10.9.1) and the JWT demo; infra, 10 services UP, k6 PASS. FAIL: `static.rls-gate`, `static.poms-wellformed`, `full.api-smoke`, report writer — all `python3: command not found` (the devcontainer base image has no Python). `static.skeletons` passed falsely for the same reason (empty module list). No report file, so per-test rows are unconfirmed.
-- **r8 fix:** devcontainer adds the Python feature; `verify.sh` installs python3 via apt when missing and stops if it can't; `static.skeletons` now fails on an empty module list.
-- **r7 fix:** `verify.sh full` installs k6 itself when it is missing (`scripts/install-tools.sh`, falls back to `~/.local/bin`, no sudo; log in `target/verify/k6-install.log`). The k6 step failed only because the devcontainer (which installs k6) is not at the repo root.
-- **Not started in P02b:** `dexter-cache` (ADR-0004) + generation keys + invalidation consumer base + cache contract, Redis ACLs, `ArchRules` (pin archunit 1.4.2, core artifact only), demo on cache, `p02-*.html` + lab endpoints (idempotency replay/409/422, outbox → Kafka → projection, DLQ, JWT playground).
-- **P02b scope (A-13):** `dexter-security` (resource server, JWKS cache + unknown-kid refetch, `AuthContext`, audience check, `@RequiresStepUp`, `@RequiresPermission`, service-token client, test JWKS/JWT factory; pins nimbus + bouncycastle, verified on Maven Central), `dexter-cache` (ADR-0004, generation keys, Redis ACLs, cache contract), `ArchRules` (pins archunit), demo module switched from the `X-Demo-Account` test header to `AuthContext`, `p02-*.html` trail page + lab endpoints (idempotency replay/409/422, outbox → Kafka → projection, DLQ).
+- **P18 is DONE** (CI run 43142625115, git `2635579`): nothing in progress. Seven rounds: r1 failed to compile on one
+  thing (a record component named `notify` clashes with `Object.notify()`); r2 had audit IT 22/28 — the saga across
+  all seven services green the first time it ran, the failures all test-side (RlsProofKit takes the bare table name;
+  the readonly role is refused by its read-only transaction; the genesis check must read seq 1's `prev_hash` once
+  the log has rows; the inbox plan check); r3/r4 settled the inbox plan (the SYSTEM policy's OR halves the planner's
+  per-account estimate, so the contract seeds 200 rows per account) and the trigger message (a root cause); r4 had
+  maven and trail-check green and two smoke checks wrong (a fresh account has no data key until something is sealed
+  under it — the smoke now saves A's phone; the deleted account's published outbox rows go with it, so the topic's
+  offsets prove publication); r5 hit a P15 fragility under the extra load — reco's Redis listener subscribed on the
+  startup path and timed out at 200 ms, so reco never came up and every saga waited on it — fixed in r6 (A-118);
+  r6 had one smoke check expecting psql's `t` where SQL renders `true`; r7 green.
+- Files touched in P18: `services/audit/**` (whole service), `libs/dexter-privacy/**` (new), every participant
+  (`identity`, `ledger`, `portfolio`, `planning`, `reco`, `billing`, `commerce`): `V202611111000__<svc>_privacy.sql`,
+  the library in its pom and `application.yml`, the health IT's migration count; `services/reco`
+  (`RecoStreamConfiguration`, `StreamIT`: A-118); `contracts` (`audit.privacy.requested`, `<svc>.privacy.completed`
+  ×7); root `pom.xml`; `scripts/run.sh` (`DEXTER_PRIVACY_ENABLED`), `scripts/lib/p18_smoke.py`,
+  `scripts/api-smoke.sh`, `scripts/trail-check.sh`; `test-ui/p18-audit-privacy.html` + index (+ the P05 mock's
+  SUPER_ADMIN permissions); `docs/adr/0024-*`, `docs/api/{routes,errors}.md`; `.env.example`
+  (`AUDIT_CURSOR_KEY_C1`, `AUDIT_SUBJECT_KEY`, `AUDIT_MOCK_FAIL_FIRST`, `AUDIT_NOTIFY_BACKOFF_BASE`,
+  `AUDIT_PRIVACY_PHASE_TIMEOUT`, `AUDIT_ANCHOR_EVERY`).
+- Next concrete action: P19 (hardening & release). Start with §7's P18 list: the uploaded statement files and other
+  objects a deletion leaves, a real email / push transport, the WORM anchor store.
 
 ## 3. Verification of previous phase
+
+### P18 against its DoD (CI run 43142625115, git `2635579`, 2026-11-12)
+
+MASTER_PLAN P18 ticks one box, IT-GREEN; as for P15–P17 the table takes the phase's schema, consumers, saga,
+endpoints and named tests as the requirements.
+
+| DoD / requirement | Result | Evidence |
+|---|---|---|
+| IT-GREEN | **PASS** | `verify.sh full` 22/22, audit IT 28/0/0 + unit 9/0/0, `dexter-privacy` unit 4/0/0, every participant's IT suite green with its new migration; trail-check PASS, 0 SKIP |
+| `audit_log`: monthly partitions, BRIN on occurred_at, REVOKE UPDATE/DELETE, single-writer chain under an advisory lock | PASS | `V202611111101__audit_core.sql`: partitioned by `occurred_at` (append time, A-111), BRIN + actor / target / action indexes, no role holds INSERT/UPDATE/DELETE (only `audit.append`, SECURITY DEFINER, `pg_advisory_xact_lock` + the chain head's row lock), a trigger refusing UPDATE/DELETE for everyone. `AuditChainIT.theLogIsAppendOnlyForEveryRole` (app, admin, relay, readonly refused; the superuser meets the trigger), `seqIsGapFreeUnderConcurrentAppends` (8 threads × 10 → 80 consecutive seqs, verifies) |
+| Daily anchor hash exported to object storage | PASS | the anchor job (A-112: keyed by seq, every 24 h in production, 1 min in dev) exports `anchors/<seq>.json` before storing the anchor; `AuditChainIT.anAnchorCatchesARewrittenTail` (every row re-chained after an edit passes every link — the anchor exported before it does not; a missing exported copy fails too); smoke: anchors exist on the stack |
+| `activity_events` (daily partitions, 90-day retention), `activity_hourly`, admin dashboard | PASS | `ActivityIT` (a redelivered event adds nothing — the event id is the key; 4xx / 5xx / avg / max per service and hour; hours 1..336; a user token 403); relay keeps 3 days ahead and drops after 90; smoke: dashboard NOT EMPTY from the gateway's sampled requests, `audit.activity_events` > 0 |
+| `notifications` (email / push / in-app, keyset inbox), `notification_prefs` | PASS | `NotificationsIT.eachEventNotifiesByTheRulesAndOnlyOnce` (9 rows from 4 events, a redelivery none, inbox newest first with rendered texts, read marks, someone else's 404), `preferencesMuteAndSwitchChannelsButNeverSecurity` (If-Match 428 / 412, security 400, muted budget → nothing, email off → in-app only); `NotificationsPaginationContractIT` (MASTER_PLAN 4.5 + the inbox plan on 200,000 rows, `notifications_inbox`, no Sort) |
+| Consumers: security alerts, budget thresholds, subscription changes, application status updates | PASS | `EventIngest` on identity's account / session / security / admin topics, `dexter.planning.budget.v1`, `dexter.billing.subscription.v1`, `dexter.commerce.application.v1` (audit entries + notifications in one transaction, inbox-deduplicated); smoke: B's inbox has the budget, subscription and application notices from the real producers over Kafka; `audit.inbox` for `events` and `privacy-acks` > 0 |
+| `privacy_requests`; export: each service a JSON part to object storage, zipped, presigned 24 h | PASS | `PrivacyIT.anExportZipsEveryServicesPartWithAuditsOwn` (step-up 401, key required, replay, 409 running, a redelivered acknowledgement changes nothing, zip = parts + `audit.json` + manifest, `X-Amz-Expires` ≈ 86,400, the ready notice); smoke: 7 parts, each NOT EMPTY with A's rows, nothing of B, no secrets, downloaded through the presigned link; trail `p18-export` downloads the zip |
+| Delete saga: identity freezes + revokes sessions; each service deletes / anonymizes and acks by event; identity destroys the DEK; audit keeps a pseudonymized record; timeout / retry; resumable | PASS | `PrivacyIT.aDeletionTimesOutReAsksTheSilentFailsResumesAndEndsPseudonymous` (a silent service re-asked alone each timeout, failed after 3, an operator's `:resume` with `audit:verify` asks only the unanswered, then shred, local, the pseudonym, nothing of the account left in audit); identity: `deletion_pending` + sessions revoked (`account_deletion`), shred empties `dek_enc` and tombstones the account (A-115) |
+| Named: **tampered row breaks chain verification** | PASS | `AuditChainIT.aTamperedRowBreaksChainVerification`: an edit behind the trigger → `brokenAt` = that row ("content does not match its hash"); its hash recomputed too → the next row's link breaks; restored → ok; every run audited. Trail Mock: tamper → broken at 1, undo → ok |
+| Named: **saga completes across all services and each service holds no rows for the account afterwards** | PASS | `PrivacySagaAcrossServicesIT` (A-110): seven databases migrated by `services/<svc>`'s own migrations, filled for A and B in every account table, answered by `PrivacyParticipant` on Kafka with each service's outbox relay; export then delete complete; `<svc>.privacy_remaining(A) = 0` in all seven and audit, B's counts unchanged, identity tombstoned with `dek_enc` empty, A's invoice kept under a stranger's id with its subscription ended. Live: api-smoke on two accounts the smoke registered and filled in all seven services through their APIs — 0 rows of A in every service and audit, B untouched, A cannot sign in, its live data key shredded |
+| Named: **notification retry with backoff** | PASS | `NotificationsIT.notificationRetryWithBackoff`: two refused attempts at +200 ms then +400 ms, sent on the third; a transport that never recovers fails it after the 4th with growing gaps, never retried again. Live: every email refused once by the mock transport, sent ≥ 2 s later (`attempts = 2`) |
+| Endpoints: `/v1/notifications` (keyset), `:read`, `/v1/notification-prefs`, `POST /v1/privacy/export|delete` (step-up, Idem REQ), `/v1/admin/audit` (keyset + filters), `:verify-chain`, `/v1/admin/activity/dashboard` | PASS | `AuditChainIT.eventsBecomeEntriesOnceAndOperatorsPageThem` (9 entries in pages of 3, newest first, no repeats; actor filter; `AUDIT_FILTER_INVALID`; user token and an admin without `audit:read` 403), `AuditRlsIT` (full kit on the inbox, preferences and requests; SYSTEM-only activity; the log, anchors and head for operators only); `docs/api/routes.md`, `errors.md` |
+| Trail: `test-ui/p18-audit-privacy.html` | PASS | jsdom Mock run 33/33 (the rules, rupees, read marks, a refused first delivery retried and sent, prefs 428 / 400 / 412, verify ok → tampered broken at 1 → restored, export across 7 services with a link, a deletion with a silent ledger re-asked until it answers, pseudonymous end); trail-check `p18-*` 9/9 on an account created for the run |
+| P15 lessons applied | PASS | nothing read from seeded state: both accounts are registered by the smoke and given data in all seven services through their APIs, and every service is asserted to hold rows for both before anything is exported or deleted; every collection (inbox, parts, log, anchors, dashboard, inboxes) asserted NOT EMPTY; no launcher in `$( )` |
 
 ### P17 re-verified in the P18 chat (latest report on `verify-reports`: CI run 42503399884, git 9b2ed44, 2026-11-08)
 
@@ -666,6 +476,40 @@ Issues found in P01's own code during self-review and fixed:
 4. The web test asserted an exact `Content-Type`; now a compatible-type check (a charset suffix must not fail it).
 
 ## 4. What exists now
+
+**P18 Audit, notifications, privacy (DONE, CI run 43142625115, git `2635579`)** — ADR-0024, A-109..A-119, MASTER_PLAN P18
+
+- `services/audit` (was a skeleton): `domain` (pure) — `ChainVerifier` (links, recomputed hashes, the head, anchors),
+  `Backoff`, `NotificationRules`, `Templates` (rupees from paise), `PrivacySaga` (phases, who runs them, when an
+  answer is done), `SubjectRef` (HMAC pseudonym). `app` — `AuditLogService` (list, verify, the anchor job),
+  `ActivityService`, `NotificationService` (notify, inbox, prefs, the delivery worker), `PrivacyService` (requests,
+  acknowledgements, the job, archive, the deletion's last step, resume), `EventIngest` (the `events` and `activity`
+  consumers), ports `AuditStore`, `ActivityStore`, `NotificationStore`, `PrivacyStore`, `ExportStore`,
+  `NotificationSender`. `infra` — one repository each (the audit and activity ones per pool), `S3ExportStore`,
+  `MockNotificationSender`. `config` — two pools (app + `AdminPool` as audit_admin), `AuditJobs` (worker 1 s, saga
+  2 s, anchor `anchor-every`), relay (topic `dexter.audit.privacy.v1`; every consumed topic as its producer declares
+  it; monthly `audit_log` partitions kept, daily `activity_events` 90 days), consumers `events`, `activity`,
+  `privacy-acks`.
+- Schema (`V202611111100__platform`, `V202611111101__audit_core`, `V202611111102__audit_privacy`): `audit_log`
+  (+ `chain_head`, `audit_anchors`, `audit.append`, `audit.chain_hash`), `activity_events`, `activity_hourly`,
+  `notifications`, `notification_prefs`, `privacy_requests`. Actors: SYSTEM (consumers, worker, saga, anchors),
+  users on their own inbox / prefs / requests, operators SUPPORT / SUPER_ADMIN on the admin pool (`audit:read`;
+  `audit:verify` new, SUPER_ADMIN, in identity's privacy migration).
+- `libs/dexter-privacy`: `PrivacyParticipant` (inbox → `<svc>.privacy_<phase>` → `privacy_remaining` → part →
+  outbox ack, one transaction), `PrivacyRequests`, `PrivacyAutoConfiguration` (consumer `privacy-<svc>`, its topics,
+  `dexter.privacy.enabled`, set by `run.sh` only).
+- Every participant: `<svc>.privacy_tables/_assert_visible/_scrub/_remaining/_erase/_export` (identity also
+  `_freeze`, `_shred`, `_export_account`; billing ends a live subscription and re-keys subscriptions, payments,
+  invoices, invoice lines and webhook events; commerce re-keys conversions), owner policies where a table lacked one.
+- Query → index (P18): append → `chain_head_pkey`; admin list → `audit_log_pkey` (seq DESC) / `audit_log_actor` /
+  `_target` / `_action`, windows via BRIN + pruning; verify → `audit_log_pkey`; activity once → `activity_events_pkey`;
+  dashboard → `activity_hourly_pkey`; inbox → `notifications_inbox` / `notifications_unread` (plan-asserted); one per
+  event and channel → `notifications_source_channel_key`; worker → `notifications_due`; one running request →
+  `privacy_requests_one_running`; the saga job → `privacy_requests_due`; a user's requests → `privacy_requests_list`.
+- Endpoints (full table in `docs/api/routes.md`; the gateway already routed every audit path): `GET /v1/notifications`,
+  `POST /v1/notifications/{id}:read`, `GET|PATCH /v1/notification-prefs`, `POST /v1/privacy/export|delete`,
+  `GET /v1/privacy/requests[/{id}]`, `GET /v1/admin/audit`, `POST /v1/admin/audit:verify-chain`,
+  `GET /v1/admin/audit/privacy-requests/{id}`, `POST …/{id}:resume`, `GET /v1/admin/activity/dashboard`.
 
 **P17 Commerce (DONE, CI run 42502207781, git `ed71c5d`)** — ADR-0023, A-99..A-108, MASTER_PLAN P17
 
@@ -1302,6 +1146,7 @@ Croma Online vs label Croma).
 | 0016 | Portfolio A: catalog as a version-guarded projection written only by the PROJECTOR actor, soft-removed cards with a live-only unique key, computed billing cycles with statements materialised on posting + an owner-function closer, rewards earned at record time on catalog terms into an append-only points ledger (FIFO expiry), auto-match as scored suggestions from both sides, exact reducing-balance EMI, consumers ensure their source topics | Accepted: proven by CI run 39703341828 |
 | 0018 | The calc library: BigDecimal **rupees** inside with the original's rounding points (paise only at the boundary) so the ported fixtures hold to the paisa, bps for rates, final classes of static methods with `Lot` mutable and package-private, all 31 old calc tests ported and green with no value needing explanation, `emi/CardEmiCalculator` not ported (P11's `EmiMath` is v2's EMI engine and rounds differently), preconditions rejected instead of dereferenced, `/v1/calc/*` stateless and capped | Accepted: proven by CI run 40962182275 (portfolio-calc unit 40, `CalcIT` 16, api-smoke P12 calc 27, trail-check `p12-calc` 4) |
 | 0023 | Commerce: integer savings capped per component and an integer score (card-match a ranking branch), an in-memory rank over the bounded active set paged by a signed keyset cursor, the optional verified token on public routes, the signed `/r/` link as the click's only credential, raw clicks + Lua counters drained atomically inside the Redis ACL, postbacks idempotent by (network, ref) counted in their own transaction, one open application per card in the database, weighted rotation + atomic frequency caps, ad-free from the entitlements event | Accepted: proven by CI run 42502207781 (P17) |
+| 0024 | Audit: one SQL writer under an advisory lock and one SQL canonical row for writer and verifier; verification to a head read first, anchors (by seq, exported before stored) catching a rewritten tail; notifications one row per (event, channel), a SKIP LOCKED worker with exponential backoff, security never muted; the privacy saga's whole state in one row, phases asked over the outbox and re-asked of the silent on timeout, resumable; each service's part SQL it owns that finds its account tables, run by `libs/dexter-privacy`; a deletion leaves a tombstone, a shredded key, re-keyed financial rows and a pseudonym | Accepted: proven by CI run 43142625115 (P18) |
 | 0022 | Billing: the checkout as Mode B in three phases and never abandoned after the provider call; one `PaymentOutcomes.apply` for every source of an outcome (a payment is decided once); the sweeper and period-end job through owner functions; `incomplete` counts as live; signature = credential, event id = replay guard; GST computed once and split; entitlements computed on read and announced on change; the tier reaching the token through identity's own projection | Accepted (P16, CI run 42449818720) |
 | 0021 | Reco B: a wallet valued **as a wallet** (a rupee routed once, caps per card, fees and milestones following the routed spend), exact routing of the contested roots with a greedy fallback that says so, **dominance pruning reported rather than applied** because every quantity that decides a wallet is per card and non-additive, nothing cached, best-card-now on this month's per-card spend with the purchase's exact category path, and SSE behind a one-time ticket fanned out over Redis pub/sub after the commit | Accepted (P15): proved by CI run 41952698922 (git `35a2ed7`) |
 | 0020 | Reco A: a rolling spend window **rebuilt** from exact per-month deltas (a window cannot be incremented — an expense leaves it because time passed), the inbox as the exactly-once guard for spend while the per-aggregate projections are version-guarded, `rateBps` as a value rate shared with portfolio rather than reimplemented (A-82), the root/depth share as one explicit assumption reported in every explanation, a fee-waiver **ramp** so a recommendation cannot flip on a rupee, savings normalized against the best candidate, no catalog fan-out (the read notices through the state hash), and a state hash of the **inputs** including the engine's own version | Accepted (P14): proved by CI run 41226988389 (git `88a3cb8`) |
@@ -1421,9 +1266,35 @@ Croma Online vs label Croma).
 | 2026-11-08 | P17 | A-106: identity gains `commerce:read`, `commerce:write`, `commerce:decide` (SUPPORT: read + decide; CATALOG_EDITOR: read + write; SUPER_ADMIN: all), expand-only. | The admin endpoints need permissions; the seeded admin's standing roles already cover both duties. `AdminIT`'s exact SUPPORT set and the P05 mock follow. | P19 admin console |
 | 2026-11-08 | P17 | A-107: a card application's version starts at **1** (the submission's event carries aggregate version 1). | The first event of an aggregate is version 1 elsewhere in the event model; ETag `"1"` after apply. | P18 consumer of the event |
 | 2026-11-08 | P17 | A-108: no P17a/P17b split — ads were built in P17 with the rest. | The ads reuse the counter, token and projection machinery the deals needed; splitting would have duplicated the scaffolding across two rounds. | — |
+| 2026-11-12 | P18 | A-109: the services' part of the saga is a shared library, `libs/dexter-privacy`, plus SQL each service owns (`<svc>.privacy_*`, SECURITY DEFINER, run by the app role) that **finds** the account tables (every table with `account_id`) and refuses to run if the owner cannot see one under FORCE RLS. Each participant's Kafka consumer is `privacy-<svc>` (its own retry stages and DLQ); it creates its own topics; it is enabled by `run.sh` (`DEXTER_PRIVACY_ENABLED`), never by `.env`. | Seven services each hand-writing a consumer, a relay change and a table list would drift; a table added later would silently survive a deletion. `.env` is exported into the Maven ITs by `verify.sh`, whose service contexts must never start a privacy consumer. A shared consumer name would put one service's retries in every service's retry topic. | Any new account table is erased and exported automatically (and needs an owner policy, or the saga refuses) |
+| 2026-11-12 | P18 | A-110: the named test "the saga completes across all services" is `PrivacySagaAcrossServicesIT` in the audit module — seven databases migrated by their own services' migration files, the participants' real library code on Kafka with each service's outbox relay, audit running for real — not seven booted Spring applications; the live stack proves the same through the gateway in api-smoke. | Booting eight applications in one JVM is slow and tests Spring wiring that each service's own suite already covers; what can break the saga is the SQL, the library and Kafka, all of which run for real here. | — |
+| 2026-11-12 | P18 | A-111: `audit_log` is partitioned on `occurred_at` = the **append** time (never decreasing along `seq`); the event's own time is `details.eventAt`. Extra columns `seq` (gap-free, PK with `occurred_at`) and `id`. No role holds INSERT: `audit.append` is the only writer. | A late event would otherwise need an old partition and make time order disagree with chain order; a single writer needs a single entry point. | — |
+| 2026-11-12 | P18 | A-112: anchors are keyed by **seq** and written every `anchor-every` (24 h in production, 1 min in dev) when the head moved, the exported copy put before the row; verification checks each anchor against its row and its exported copy. | A day-keyed table needs a special case for dev and for quiet days; by seq, the same job serves both, and a stored anchor never lacks its copy. | P19: WORM / signed anchors (§7) |
+| 2026-11-12 | P18 | A-113: notifications gain `category`, `source_event_id` (UNIQUE with channel — a redelivery is a no-op), `sent_at`, `read_at`, `last_error`, `version`; preferences are `{email, push, muted[]}` with in-app always on and `security` not mutable. Email and push go through a mock transport (dev refuses each first attempt so the retry path runs on every stack); the audit service holds no email address. | The plan's columns cannot dedupe or show read state; an email address is identity's personal data and a real provider is release work. | P19: a real transport (§7) |
+| 2026-11-12 | P18 | A-114: `privacy_requests` gains `phase`, `attempt`, `services`, `phase_started_at`, `next_check_at`, `archive_key/bytes`, `error`, `subject_ref`, `version`; status is running / completed / failed; an operator can `POST /v1/admin/audit/privacy-requests/{id}:resume` a failed one with the new `audit:verify` permission (SUPER_ADMIN, added in identity's privacy migration), which also guards nothing else. | The saga must resume from the database alone after any restart; "resumable" needs an operator's way back from failed. | — |
+| 2026-11-12 | P18 | A-115: a deletion leaves an identity **tombstone** (status deleted, `<id>@deleted.invalid`, no phone / name / usable password; the id never reused) with the DEK destroyed (`dek_enc` emptied, `destroyed_at`); billing's subscriptions, payments, invoices, invoice lines and webhook events and commerce's conversions are **re-keyed** to a fresh random id rather than deleted (a live subscription is ended first); earlier audit entries keep the raw account id — only the completion entry is named by the HMAC pseudonym. | Financial records must survive for accounting and tax; an append-only log cannot be rewritten without breaking its chain, and once identity's row is a tombstone the id resolves to nobody. "Holds no rows for the account" is checked as `privacy_remaining = 0`, which counts identity's live rows only. | — |
+| 2026-11-12 | P18 | A-116: the export link is presigned on each read of the request, valid until 24 h after completion (then `downloadUrl` is null); the archive is built in memory. | A link minted once and stored would be a bearer secret at rest; parts are small at this scale (§7). | — |
+| 2026-11-12 | P18 | A-117: the privacy endpoints are not run through `IdempotencyContract` — they take no body, so its different-body case has nothing to differ on; `PrivacyIT` covers replay, key required and 409. The inbox's `PaginationContract` asks its plan on 200 rows per account: the SYSTEM policy's OR halves the planner's estimate for an account it cannot know at plan time, and at 60 rows a Sort is the right plan. | Stated so the gap in the contract matrix is deliberate. | — |
+| 2026-11-12 | P18 | A-118 (P15 fix): reco's Redis listener container is no longer started by the context; a lifecycle bean subscribes it on a daemon thread and retries every 2 s. `StreamIT` waits for the subscription. | Under the eleven-service stack Lettuce's 200 ms handshake timed out on reco's startup path and reco never came up (r5) — contrary to ADR-0021's "a Redis that is down costs the stream, not the service". | — |
+| 2026-11-12 | P18 | A-119: only `POST /v1/notifications/{id}:read` (no read-all); operators read a request at `/v1/admin/audit/privacy-requests/{id}` (inside the routed `/v1/admin/audit/**`); the dashboard reads only `activity_hourly` (services and hours, no per-route breakdown). | Kept to what the plan names; a class-level mapping cannot express `/v1/notifications:read-all` without a second controller. | — |
 
 ## 7. Known gaps / tech debt (honest, never deleted silently)
 
+- **P18 audit / privacy (ADR-0024):**
+  - **Objects outside the databases survive a deletion.** Portfolio's uploaded statement files (quarantine and
+    clean keys) and the export archives themselves stay in the object store; Redis caches (identity sessions,
+    billing entitlements, commerce counters keyed by visitor hash) age out by TTL rather than being purged. Events in
+    Kafka keep the account id until topic retention (7 days) — and in DLQs until handled.
+  - **Access tokens already issued stay valid until they expire** (≤ 15 min) after the freeze; sign-in and refresh
+    are refused at once.
+  - **No real email / push transport**, and the audit service has no email address to send to (A-113).
+  - **Anchors are not tamper-proof storage**: the bucket is writable with the same credentials; P19 should make the
+    anchor store WORM (object lock) or sign anchors.
+  - **A participant's app role can erase any account** (the SECURITY DEFINER functions are the service's own trust
+    boundary; the request comes only from audit's topic). No rate limit on privacy requests beyond one running per
+    kind.
+  - **The export archive is built in memory**; fine at this scale, not for an account with years of rows.
+  - **Activity is sampled at the gateway** and the dashboard has no per-route view.
 - **P17 commerce (ADR-0023):**
   - **A drained counter batch lost to a crash is not reconciled.** The flusher restores a batch whose write fails, but a
     process killed between the drain and the commit loses that batch (≤ 10 s of counts). The raw rows are the truth;
@@ -1756,6 +1627,14 @@ press **Lab status / start**, then **Get a valid token**. (After a manual `run.s
 
 ## 10. Changelog (one line per response)
 
+- 2026-11-12 P18 r8 (docs): BUILD_README evidence for CI run 43142625115, git `2635579` (header, §1, §2, §3 P17 re-verification + P18 DoD, §4, §5, A-109..A-119, §7), ADR-0024 Accepted.
+- 2026-11-12 P18 r7: **green** — CI run 43142625115, git `2635579`: `verify.sh full` PASS 22/22 + `trail-check.sh` PASS, audit unit 9 + IT 28, api-smoke **659 PASS / 0 FAIL** (83 P18), `p18-*` 9/9, trail-check 125/0/0. The fix: SQL renders a boolean as `true`.
+- 2026-11-12 P18 r6: reco's stream subscription off the startup path (A-118); api-smoke 658/1.
+- 2026-11-12 P18 r5: smoke gives A a phone (a live DEK to shred) and counts the saga's topic; reco failed to start (Redis handshake under load).
+- 2026-11-11 P18 r4: inbox plan on 200 rows per account; the trigger's message as root cause; maven + trail-check green, api-smoke 2 FAIL (both the smoke's).
+- 2026-11-11 P18 r3: RlsProofKit bare table names, read-only role, genesis check.
+- 2026-11-11 P18 r2: `notify` record component → `notifications`; audit IT 22/28 with the saga across all services green.
+- 2026-11-11 P18 r1: audit service, `libs/dexter-privacy`, seven participant migrations, contracts, ADR-0024, smoke, trail page; failed to compile (`notify` clashes with `Object.notify()`).
 - 2026-11-08 P17 r4 (docs): BUILD_README evidence for CI run 42502207781, git `ed71c5d` (header, §1, §2, §3 P16 re-verification + P17 DoD, §4, §5, A-99..A-108, §7), ADR-0023 Accepted.
 - 2026-11-08 P17 r3: **green** — CI run 42502207781, git `ed71c5d`: `verify.sh full` PASS 22/22 + `trail-check.sh` PASS, commerce unit 18 + IT 49, api-smoke **576 PASS / 0 FAIL** (49 of them P17's), `p17-*` 9/9, trail-check 115/0/0. The fix: the smoke's card-match check had the arithmetic wrong (a held ₹1,500 deal does not outrank an open ₹7,000 one: 5,485 < 5,600 bps).
 - 2026-11-08 P17 r2: the list-plan check asks about a heavy account (3,000 rows): at 60 rows a bitmap scan + Sort is the planner's right plan. `ci` green; verify failed one smoke check (r3).

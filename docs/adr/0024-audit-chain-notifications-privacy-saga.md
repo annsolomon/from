@@ -1,6 +1,6 @@
 # ADR-0024: Audit — a hash-chained log, notifications with backoff, and a resumable privacy saga
 
-- Status: Proposed — proven when `verify.sh full` and `trail-check.sh` pass on CI (BUILD_README §3).
+- Status: Accepted — proven by CI run 43142625115, git `2635579` (P18, BUILD_README §3).
 - Context: MASTER_PLAN P18 asks for an append-only audit log (monthly partitions, BRIN, REVOKE UPDATE/DELETE, a
   single-writer hash chain under an advisory lock, a daily anchor hash exported to object storage), activity events
   (daily partitions, 90 days) with an hourly aggregate for an admin dashboard, notifications (email / push / in-app,
