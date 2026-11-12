@@ -20,6 +20,7 @@ grep -q 'dev-routes: true' services/gateway/src/main/resources/application.yml &
 grep -qE 'allowed-origins:.*(localhost|127\.0\.0\.1)' services/gateway/src/main/resources/application.yml \
   && add "gateway dev CORS origins"
 [[ -d libs/dexter-lab ]] && add "libs/dexter-lab exists"
+while IFS= read -r f; do add "code that reads the trail: $f"; done < <(grep -rl --exclude-dir=target 'test-ui' services libs seed/src 2>/dev/null)
 for i in "${items[@]}"; do echo "  - $i"; done
 if [[ $release -eq 1 ]]; then
   [[ ${#items[@]} -eq 0 ]] && { echo "release guard ($branch): clean"; exit 0; }

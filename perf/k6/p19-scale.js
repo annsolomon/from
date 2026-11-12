@@ -44,8 +44,20 @@ export const options = {
 // One session per VU per scenario (sign-in is Argon2-expensive and rate-limited by design). Access tokens live
 // 10 minutes, the run is longer: refresh at 8 minutes with the rotating refresh token (cheap, no Argon2), sign in
 // again only if that fails. (r2 kept one token for the whole run: everything after minute 10 was a 401.)
+// r3 (run 43289010503): VUs that failed to sign in retried on every iteration - 1.65M 503s from the identity route's
+// open breaker and 400k 429s, a login storm of the test's own making. Now a VU waits a random 0-30 s before its
+// first sign-in (400 VUs start at t=0) and backs off 10-30 s after a failed one, as a real client honouring
+// Retry-After would.
 const sessions = {};
+const notBefore = {};
 function me(offset) {
+  if (notBefore[offset] === undefined) {
+    notBefore[offset] = Date.now() + Math.random() * 30000;
+  }
+  if (!sessions[offset] && Date.now() < notBefore[offset]) {
+    sleep(Math.min(1, (notBefore[offset] - Date.now()) / 1000));
+    return null;
+  }
   let s = sessions[offset];
   if (s && Date.now() - s.at < 8 * 60 * 1000) return s.access;
   if (s && s.refresh) {
@@ -65,6 +77,7 @@ function me(offset) {
       ? { 'X-Forwarded-For': `198.18.${(__VU >> 8) & 255}.${__VU & 255}` } : {}) },
       tags: { class: CLASS.AUTH, name: 'POST /v1/auth/login' } });
   check(res, { 'login 200': r => r.status === 200 });
+  if (res.status !== 200) notBefore[offset] = Date.now() + 10000 + Math.random() * 20000;
   sessions[offset] = res.status === 200
     ? { access: res.json('accessToken'), refresh: res.json('refreshToken'), at: Date.now() } : null;
   return sessions[offset] ? sessions[offset].access : null;

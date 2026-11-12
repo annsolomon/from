@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.sql.DataSource;
+import org.jspecify.annotations.Nullable;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
@@ -111,8 +112,8 @@ public final class OutboxRelay implements AutoCloseable {
   private final AtomicLong leaderGauge;
   private final AtomicLong pending;
   private final String lagSql;
-  private long lastLagNanos;
   private Thread thread;
+  private Thread meter;
 
   public OutboxRelay(DataSource relayDataSource, Producer<String, byte[]> producer, Settings settings, Hooks hooks,
       List<Runnable> maintenanceTasks) {
@@ -145,6 +146,7 @@ public final class OutboxRelay implements AutoCloseable {
     }
     running = true;
     thread = Thread.ofVirtual().name("outbox-relay-" + s.schema()).start(this::loop);
+    meter = Thread.ofVirtual().name("outbox-lag-" + s.schema()).start(this::meterLoop);
   }
 
   /** Stops the loop and releases leadership (the lock is released when the connection closes). */
@@ -155,6 +157,10 @@ public final class OutboxRelay implements AutoCloseable {
       running = false;
       t = thread;
       thread = null;
+      if (meter != null) {
+        meter.interrupt();
+        meter = null;
+      }
     }
     if (t != null) {
       t.interrupt(); // wakes a standby/backoff sleep; the loop sees running=false and exits
@@ -231,7 +237,6 @@ public final class OutboxRelay implements AutoCloseable {
       do {
         n = relayBatch(c);
       } while (running && n >= s.batchSize());
-      measureLag(c);
       pg.getNotifications(waitMs); // returns early on NOTIFY, else after the poll interval
     }
   }
@@ -340,20 +345,49 @@ public final class OutboxRelay implements AutoCloseable {
     }
   }
 
-  /** The leader's lag gauges (P19: alert when the oldest unpublished row is older than 5 s), at most every 5 s. */
-  private void measureLag(Connection c) {
-    if (lastLagNanos != 0 && System.nanoTime() - lastLagNanos < 5_000_000_000L) {
-      return;
-    }
-    lastLagNanos = System.nanoTime();
-    try (PreparedStatement ps = c.prepareStatement(lagSql); ResultSet rs = ps.executeQuery()) {
-      if (rs.next()) {
-        lagMillis.set(Math.max(0, rs.getLong(1)));
-        pending.set(rs.getLong(2));
+  /**
+   * The leader's lag gauges (P19: the DexterOutboxLag alert), every 5 s on their own thread and connection. Not in
+   * the publish loop: when Kafka is down a batch can block for its whole delivery timeout, and the backlog must be
+   * visible exactly then (chaos test kafka-down; r1 on the release branch measured 0 pending during an outage).
+   */
+  private void meterLoop() {
+    Connection mc = null;
+    while (running) {
+      sleep(Duration.ofSeconds(5));
+      if (!running) {
+        break;
       }
-    } catch (SQLException e) {
-      log.debug("outbox relay {}: lag not measured: {}", s.schema(), e.toString());
+      if (!leader) {
+        mc = closeQuietly(mc);
+        continue;
+      }
+      try {
+        if (mc == null || mc.isClosed()) {
+          mc = dataSource.getConnection();
+        }
+        try (PreparedStatement ps = mc.prepareStatement(lagSql); ResultSet rs = ps.executeQuery()) {
+          if (rs.next()) {
+            lagMillis.set(Math.max(0, rs.getLong(1)));
+            pending.set(rs.getLong(2));
+          }
+        }
+      } catch (SQLException e) {
+        log.debug("outbox relay {}: lag not measured: {}", s.schema(), e.toString());
+        mc = closeQuietly(mc);
+      }
     }
+    closeQuietly(mc);
+  }
+
+  private static @Nullable Connection closeQuietly(@Nullable Connection c) {
+    if (c != null) {
+      try {
+        c.close();
+      } catch (SQLException ignored) {
+        // closing a broken connection
+      }
+    }
+    return null;
   }
 
   // ------------------------------------------------------------------------------- maintenance
