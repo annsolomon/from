@@ -1,7 +1,7 @@
 # ADR-0027: Security hardening — distroless images, Trivy and ZAP in every full run, mTLS as an option
 
-- Status: Proposed — P19 step 3; becomes Accepted with the CI run whose `full.image-scan` and `full.zap-baseline`
-  pass (BUILD_README §3).
+- Status: Accepted — proven by CI run 43309873447 (git `4eef6f3`): `full.image-scan` 10/10 clean, `full.zap-baseline`
+  0 FAIL-level; release branch CI run 43309975646 (BUILD_README §3).
 - Context: MASTER_PLAN P19 step 3: OWASP ZAP baseline against the gateway; dependency and image scans clean or
   waived in an ADR; mTLS option documented; pen-test checklist in `docs/security/`. MASTER_PLAN 7.x asks for
   distroless (Jib) images running as non-root. Until P19 there were no images, and the CI `trivy` job was a

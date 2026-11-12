@@ -1,6 +1,6 @@
 # ADR-0025: Observability — OpenTelemetry traces across Kafka, Prometheus metrics, provisioned dashboards and alerts
 
-- Status: Proposed — P19 step 1; becomes Accepted with the CI run whose `full.obs-check` passes (BUILD_README §3).
+- Status: Accepted — proven by CI run 43309873447 (git `4eef6f3`): `full.obs-check` 13/13, `static.obs-config` (BUILD_README §3).
 - Context: MASTER_PLAN P19 step 1 asks for OTel across all services; Grafana dashboards for RED metrics per
   service, DB pool, Kafka lag, outbox lag and SSE connections; alerts on error rate, p99, outbox lag > 5 s and a
   non-empty DLQ. The obs compose profile (collector, Tempo, Prometheus, Grafana) exists since P00 but nothing sent

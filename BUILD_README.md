@@ -1,19 +1,23 @@
 # Dexter v2 — Build README (living handoff)
 
-**Last updated:** 2026-11-12 · **Chat/phase:** P18 (audit, notifications, privacy) · **Model:** Claude Opus 5.5
-**P18 is DONE (CI run 43142625115, git `2635579`).** Audit is a real service: every audited action is one link of a
-**hash chain** written by a single SQL function under an advisory lock (gap-free `seq`, `hash = SHA-256(prev ‖
-canonical row)`, an append-only trigger even for the owner), anchored to the object store, and `:verify-chain` names
-the first broken row — or the anchor a rewritten tail fails; gateway **activity** lands once per request in daily
-partitions with an hourly aggregate for the admin dashboard; events from identity, planning, billing and commerce
-become **notifications** by the rules (in-app always, email / push by preference, security never muted), delivered by
-a SKIP LOCKED worker with **exponential backoff**; and **privacy requests** run as a resumable saga across all seven
-services through a new library, `libs/dexter-privacy`, and per-service SQL that finds the account's tables itself: an
-export zips every part behind a 24-hour link, a deletion freezes the account, erases (or, for financial rows,
-re-keys) it everywhere, shreds its data key and leaves a pseudonym (ADR-0024, A-109..A-119). P17 was re-verified
-first from the latest report on `verify-reports` (CI run 42503399884, git `9b2ed44`) — §3.
-Next chat: **P19** (hardening & release). Upload `MASTER_PLAN.md` + this file; verify P18 from the latest report on
-`verify-reports` first.
+**Last updated:** 2026-11-13 · **Chat/phase:** P19 (observability, hardening, scale proof, trail removal, release) · **Model:** Claude Opus 5.5
+**P19 is DONE (main: CI run 43309873447, git `4eef6f3`, `verify.sh full` 31/31 + trail-check; release branch
+`release/v2.0`: CI run 43309975646, git `9d1fedd`, `verify.sh full` 30/30 with no trail).** One trace now runs from the
+gateway through the outbox and Kafka into every consumer (OpenTelemetry via `libs/dexter-observability`); outbox lag,
+relay leadership, DLQ depth, handler latency, Kafka client lag and SSE streams are metrics, shown on three provisioned
+Grafana dashboards and watched by eight Prometheus alerts with runbooks; a DLQ replays with a tool. Vault holds every
+service's secrets — each process starts with only its own, read with its own token — and the identity KEK lives in
+Transit with a re-wrap job behind it. Every full run now also scans the ten distroless images (Trivy, clean after
+pinning fixed Jackson / Tomcat / lz4 / snappy), runs a signed-in ZAP baseline, four chaos experiments (Kafka down
+60 s, relay-leader kill -9, Postgres restart, Redis down) and a backup/restore drill of all nine databases. The scale
+proof ran on the large seed six times: the data-bound targets are met by wide margins (list query 0.18 ms at 5M rows,
+recompute 38 ms, event lag 0.6 s, a 30-minute SSE soak clean) and it found a real hotspot — Spring Cloud
+CircuitBreaker's default 25-call bulkhead opening the gateway's breakers — while the end-to-end latency and per-instance
+throughput rows are not met on one shared 4-vCPU runner (docs/perf/results.md; plan in §7). The trail is removed on
+`release/v2.0` (main keeps it) behind a two-way release guard (ADR-0025, ADR-0026, ADR-0027, A-120..A-133). P18 was
+re-verified first from the latest report on `verify-reports` (CI run 43173657246, git `e2d2589`) — §3.
+**Next:** the release itself is the owner's call — tag `v2.0.0` on `release/v2.0` per `docs/release/checklist.md`
+after the perf environment re-run (§7). Upload `MASTER_PLAN.md` + this file to continue.
 
 ## 1. Phase status
 
@@ -38,34 +42,55 @@ Next chat: **P19** (hardening & release). Upload `MASTER_PLAN.md` + this file; v
 | P16 | Billing | **DONE** 2026-11-08 | `verify.sh full` PASS 22/22 + `trail-check.sh` PASS (CI run 42449818720, git `9430059`): all 25 reactor modules SUCCESS, `services/billing` unit **12** + IT **52** (the four named tests — a replayed webhook delivered 3× in a row and 10× at once has one effect; "succeeded" before "created" and "failed" before "created"; a crash after the provider call finished by the **sweeper** with no webhook delivered, by the client's own retry, and an attempt that never reached the provider closed as `not_submitted`; one live subscription enforced by the database against 10 concurrent checkouts — plus the Idempotency and Pagination contracts, RLS on 8 tables, the period-end job, the 60 s cache), `services/identity` IT 65 → **67** (`TierIT`), api-smoke **529 PASS / 0 FAIL** with **42** of them P16 (on accounts the smoke **registers itself**, every collection asserted non-empty first: the tier arriving in a refreshed token over Kafka, a delayed payment decided by the provider's own HTTP webhook, invoices whose lines add up to the charge, webhook replay through the gateway, and billing's outbox, both topics, 6 webhook deliveries and identity's `billing-tier` inbox), trail-check `p16-*` **9/9**, 105 PASS / 0 FAIL / 0 SKIP overall | ADR-0022, A-92 (`incomplete` is live, so a racing second checkout is refused before any charge), A-93 (plans not paged), A-94 (`incomplete` / `incomplete_expired`, and what the period-end job does), A-95 (identity's `tier_version` + `billing-tier` consumer), A-96 (`billing_interval`), A-97 (the provider's key is account + Idempotency-Key — **a real bug the contract test caught in r1**), A-98 (mock webhook delivery `http`/`memory`). DoD all ticked (§3) |
 | P17 | Commerce | **DONE** 2026-11-08 | `verify.sh full` PASS 22/22 + `trail-check.sh` PASS (CI run 42502207781, git `ed71c5d`): all 25 reactor modules SUCCESS, `services/commerce` unit **18** + IT **49** (the five named tests — the savings golden through the domain and the API; a postback replayed 3× and delivered 8× at once creates one conversion, counts it once and its commission once; 200 clicks from 8 threads with the flusher draining concurrently → exactly 200 counted = 200 raw rows, 5 uniques per deal; a cap of 3 holds for 6 sequential and **10 concurrent** serves and per anonymous visitor; a second open application refused, and 10 concurrent applications with different keys → one — plus the Idempotency and Pagination contracts, RLS proved on 8 tables (the gate checks all 13), the projections' version guards), identity IT +0 (count 5, SUPPORT perms), api-smoke **576 PASS / 0 FAIL** with **49** of them P17 (deals, campaigns and accounts the smoke **creates**, every collection asserted non-empty first: card-match after portfolio's event over Kafka, the redirect, postbacks, the flushed stats, an operator's decision, a frequency cap, ad-free after a real PREMIUM checkout, plus commerce's outbox, topic, three inboxes, raw rows and counters), trail-check `p17-*` **9/9**, 115 PASS / 0 FAIL / 0 SKIP overall | ADR-0023, A-99 (same chat as P16), A-100 (deal administration), A-101 (conversions unique per network), A-102 (history is a jsonb array), A-103 (optional verified token on public routes; `/r/**` and `/v1/admin/commerce/**` routed), A-104 (Redis Lua counters inside the ACL; conversions counted in the postback's transaction), A-105 (ad-free from the entitlements event), A-106 (`commerce:*` permissions), A-107 (application versions start at 1), A-108 (no P17a/b split). DoD all ticked (§3) |
 | P18 | Audit/notify/privacy | **DONE** 2026-11-12 | `verify.sh full` PASS 22/22 + `trail-check.sh` PASS (CI run 43142625115, git `2635579`): all **26** reactor modules SUCCESS (+ `libs/dexter-privacy`), `services/audit` unit **9** + IT **28** (incl. `PrivacySagaAcrossServicesIT`: seven databases migrated by their own services' migrations, the library code, audit on Kafka), `dexter-privacy` unit 4; api-smoke **659 PASS / 0 FAIL** (83 of them P18's), trail-check **125 PASS / 0 FAIL / 0 SKIP** (`p18-*` 9/9) | ADR-0024, A-109..A-119; seven rounds (§2) |
-| P19 | Hardening & release | NOT STARTED | — | |
+| P19 | Hardening & release | **DONE** 2026-11-13 | `verify.sh full` PASS **31/31** + `trail-check.sh` PASS on main (CI run 43309873447, git `4eef6f3`): all 27 reactor modules SUCCESS (+ `libs/dexter-observability`), api-smoke **659 PASS / 0 FAIL**, trail-check 125/0/0, vault-check 6/6, obs-check 13/13 + DLQ replay from a real jar, ZAP 34 URLs 0 FAIL-level, chaos **16/16**, restore drill 9/9 databases identical, image scan 10/10 clean; **release branch** `release/v2.0` (no trail) `verify.sh full` PASS **30/30** (CI run 43309975646, git `9d1fedd`): `static.release-guard` clean, api-smoke 610/0 incl. nothing answering under `/_dev`; scale proof (run 43309886082) recorded in `docs/perf/results.md` | ADR-0025, ADR-0026, ADR-0027, A-120..A-133. DoD: chaos PASS, trail removed PASS, release branch green PASS, targets: data-bound met, end-to-end / throughput **gap with a plan** (§3, §7) |
 
 ## 2. In progress (exact stopping point)
 
-- **P18 is DONE** (CI run 43142625115, git `2635579`): nothing in progress. Seven rounds: r1 failed to compile on one
-  thing (a record component named `notify` clashes with `Object.notify()`); r2 had audit IT 22/28 — the saga across
-  all seven services green the first time it ran, the failures all test-side (RlsProofKit takes the bare table name;
-  the readonly role is refused by its read-only transaction; the genesis check must read seq 1's `prev_hash` once
-  the log has rows; the inbox plan check); r3/r4 settled the inbox plan (the SYSTEM policy's OR halves the planner's
-  per-account estimate, so the contract seeds 200 rows per account) and the trigger message (a root cause); r4 had
-  maven and trail-check green and two smoke checks wrong (a fresh account has no data key until something is sealed
-  under it — the smoke now saves A's phone; the deleted account's published outbox rows go with it, so the topic's
-  offsets prove publication); r5 hit a P15 fragility under the extra load — reco's Redis listener subscribed on the
-  startup path and timed out at 200 ms, so reco never came up and every saga waited on it — fixed in r6 (A-118);
-  r6 had one smoke check expecting psql's `t` where SQL renders `true`; r7 green.
-- Files touched in P18: `services/audit/**` (whole service), `libs/dexter-privacy/**` (new), every participant
-  (`identity`, `ledger`, `portfolio`, `planning`, `reco`, `billing`, `commerce`): `V202611111000__<svc>_privacy.sql`,
-  the library in its pom and `application.yml`, the health IT's migration count; `services/reco`
-  (`RecoStreamConfiguration`, `StreamIT`: A-118); `contracts` (`audit.privacy.requested`, `<svc>.privacy.completed`
-  ×7); root `pom.xml`; `scripts/run.sh` (`DEXTER_PRIVACY_ENABLED`), `scripts/lib/p18_smoke.py`,
-  `scripts/api-smoke.sh`, `scripts/trail-check.sh`; `test-ui/p18-audit-privacy.html` + index (+ the P05 mock's
-  SUPER_ADMIN permissions); `docs/adr/0024-*`, `docs/api/{routes,errors}.md`; `.env.example`
-  (`AUDIT_CURSOR_KEY_C1`, `AUDIT_SUBJECT_KEY`, `AUDIT_MOCK_FAIL_FIRST`, `AUDIT_NOTIFY_BACKOFF_BASE`,
-  `AUDIT_PRIVACY_PHASE_TIMEOUT`, `AUDIT_ANCHOR_EVERY`).
-- Next concrete action: P19 (hardening & release). Start with §7's P18 list: the uploaded statement files and other
-  objects a deletion leaves, a real email / push transport, the WORM anchor store.
+- **P19 is DONE**: nothing in progress. Main green at CI run 43309873447 (git `4eef6f3`), the release branch at CI run
+  43309975646 (git `9d1fedd`). Rounds: r1 (`3bc3909`) observability green first time (a trace across 9 services);
+  r2 (`c875c4f`) two identity ITs — four cached Spring contexts exhausted Postgres' connections (the new profile ITs
+  now use a 3-connection pool and close after the class) and Vault's `transit/rewrap` refuses AAD-bound ciphertext
+  (the reason for the re-wrap job); r3 (`283268f`) 30/31 — the first image scan found 13–17 HIGH/CRITICAL with fixes
+  per image (Jackson 2/3, Tomcat, lz4-java, snappy-java); r4 (`8b32d8c`) one gateway IT timed out once (RateLimitIT,
+  first in 30+ runs; ci passed the same commit); r5 (`936cca9`) **31/31**; the release branch's r1 failed on the
+  seed's trail-fixture test and r2 on chaos — the outbox-lag gauge read 0 during a Kafka outage because it was
+  measured in the blocked publish loop (A-130), fixed on main and both green since. The scale proof took six runs to
+  measure the system rather than the test (A-133), and r5's breaker log named the hotspot: the default 25-call
+  bulkhead (fixed in `4eef6f3`).
+- Files touched in P19: `libs/dexter-observability/**` (new), `libs/dexter-events` (`EventTracing`, `EventMetrics`,
+  `DlqReplay`, `OutboxRelay` gauges + meter thread, `EventConsumer`, autoconfig), `libs/dexter-test`
+  (`TestVault`, `ConsumerIT` replay tests), every service's `pom.xml` + `application.yml` (`management.*`),
+  `services/identity` (`KekRing`, `TransitKek`, `KekRewrap*`, `IdentityProperties`/`Configuration`/`Jobs`,
+  `V202611121000__identity_kek_rewrap.sql`, `TransitKekIT`, `KekRewrapIT`, `Prod/DevProfileIT`, health count),
+  `services/reco` (SSE gauge), `services/catalog|commerce` (traceparent supplier), `services/gateway` (pool, bulkhead
+  off, breaker log, `ResilienceIT`), `platform-bom` (pins), `infra/compose` (vault, prometheus/grafana mounts),
+  `infra/prometheus/alerts.yml`, `infra/grafana/{dashboards,provisioning/dashboards}`, `infra/docker/`,
+  `infra/security/`, `scripts/` (`verify.sh`, `run.sh`, `dlq-replay.sh`, `zap-baseline.sh`, `image-scan.sh`,
+  `restore-drill.sh`, `release-guard.sh`, `lib/{obs_check,obs_static,vault_tool,chaos,scale_report}.py`),
+  `perf/k6/{p19-scale.js,lib/base.js}`, `.github/workflows/` (SHA pins, `scale.yml`, verify-full on `release/**`),
+  `docs/adr/0025..0027`, `docs/runbooks/*`, `docs/security/*`, `docs/release/checklist.md`, `docs/perf/results.md`,
+  `.env.example`. Release branch only: the trail removal (A-129).
+- Next concrete action: the perf environment re-run of `scale.yml` (§7, docs/perf/results.md "Plan"), then the
+  release gates and the `v2.0.0` tag on `release/v2.0` (docs/release/checklist.md) — the tag is the owner's decision.
 
 ## 3. Verification of previous phase
+
+### P19 against its DoD (main: CI run 43309873447, git `4eef6f3`; release branch: CI run 43309975646, git `9d1fedd`; scale: run 43309886082; 2026-11-13)
+
+| DoD / requirement | Result | Evidence |
+|---|---|---|
+| **Targets met (or gaps documented with a plan)** | **PASS (gap + plan)** | `docs/perf/results.md` on the large seed (100k accounts, 5M expenses): list DB time **0.18 ms** (< 10), recompute p95 **38 ms** (< 2 s), event lag p95 **592 ms** (< 1 s), 30-min SSE soak 4,410 streams, back to 0 — met. End-to-end p99 (list 6.2 s, write 6.4 s, reco 6.1 s) and ledger 474 req/s — **not met** on one 4-vCPU runner hosting all ten services, the infrastructure and k6 (medians 2–3.5 s for every class = CPU queueing; ledger's SQL 0.18 ms, its pool waiting). Plan: dedicated perf environment (results.md, §7). Hotspot found and fixed: the gateway's default 25-call bulkhead (`ResilienceIT.manyConcurrentCallsToOneServiceAreNotRejected`) |
+| **Chaos tests pass** | **PASS** | `full.chaos` 16/16 on main and on the release branch: Kafka stopped 60 s — 20/20 writes 201 (slowest 0.03 s), `dexter_outbox_pending` = 20, end offsets +20 within ~10 s of Kafka returning, every consumer group of the topic at lag 0 (planning, portfolio, reco); a second ledger instance, the leader (`dexter_outbox_leader` = 1) killed -9, the other leads after ~1 s and publishes 10/10 writes; Postgres restarted — all ten services UP in 3 s, read 200 + write 201 through the gateway in 4 s; Redis stopped — reads 200 (limiter fails open), sign-in 503 (fails closed), sign-in back after Redis returns |
+| **Trail removed** | **PASS** | `release/v2.0` = main minus `test-ui/`, `trail-check.sh`, the trail compose profile + `infra/nginx`, dev CORS origins, the gateway's `/_dev` route, `libs/dexter-lab`, `P01LabController`, `DevKeysController`, `/_dev/**` as a default public path, `seed.sh fixtures`; `static.release-guard` "clean"; api-smoke: ledger `/_dev/p01`, `/_dev/p02`, identity and gateway `/_dev/p04/keys` all 404. `/_dev/**` excluded from prod on main too: `ProdProfileIT` (no `/_dev` mapping in the prod context, the path not 200) vs `DevProfileIT` (mapped and 200 in dev). CI guard: `release-guard.sh` fails a release branch on any trail/dev item, and fails `main` if it stops seeing them (15 today) |
+| **`verify.sh full` green on the release branch** | **PASS** | CI run 43309975646 (`release/v2.0`, git `9d1fedd`) `verify_full=success`, 30/30 steps (no trail-pager step), report on branch `verify-reports-release` |
+| Step 1: OTel, dashboards, alerts | PASS | `full.obs-check` 13/13: 10/10 targets up; 4 rule groups, 8 alerts, 3 recording rules healthy; histogram / outbox-lag / DLQ / Kafka-client / Hikari / SSE series from every service that owns them; 707 events handled; Tempo: spans from all 10 services and a trace gateway → ledger → Kafka → audit/planning/portfolio/reco with `consume <type>` spans; 3 dashboards loaded. `static.obs-config`: every panel and alert queries an exported metric, every alert has a runbook, promtool checks |
+| Step 2: Vault KV + Transit; Consul ADR | PASS | `full.vault-check` 6/6: 10/10 own secrets readable, cross-service reads 403, only identity may use Transit, **71 secrets across 10 processes, each its own only** (`/proc/<pid>/environ`), every account key / signing key / admin TOTP under `transit:dexter-kek` as Vault ciphertext. `TransitKekIT` 5 (real Vault: AAD bound, local-KEK data still opens, rotation, least privilege, signing), `KekRewrapIT` 2. ADR-0026 (Consul dropped) |
+| Step 3: ZAP, scans, mTLS doc, pen-test checklist | PASS | `full.zap-baseline`: 34 URLs (signed in), 0 FAIL-level; `full.image-scan`: 10/10 images non-root, 0 HIGH/CRITICAL with a fix (after A-132), no waivers; `docs/security/mtls.md`, `pentest-checklist.md`; ADR-0027 |
+| Step 4: scale proof | PASS (gap) | `seed.sh large` in ~3 min; k6 browse 50/25/24, idempotent writes with retries, cached reco, 30-min SSE soak; `docs/perf/results.md`; hotspot fixed (bulkhead) |
+| Step 6: runbooks | PASS | `docs/runbooks/`: alerts, deploy (+ rollback), key-rotation, partition-maintenance, dlq-replay (tool proven: `ConsumerIT` replay tests + a dry run from a real jar in every full run), restore (proven: `full.restore-drill` 9/9 databases identical — counts, key hashes, RLS) |
+| Step 8: partitioning playbook | PASS | `docs/runbooks/partitioning-playbook.md` (hash on `account_id`, online expand / backfill / switch / contract), not executed |
+| Step 9: release checklist + `v2.0.0` tag instructions | PASS | `docs/release/checklist.md`; the tag itself is not created (owner's decision) |
+| P15 lessons applied | PASS | every live check asserts on data the run created and NOT EMPTY: obs-check counts series per service and requires a cross-Kafka trace; vault-check requires secrets present in each process; chaos writes its own expenses and checks offsets moved by them; ZAP fails under 15 URLs; restore drill fails on 0 rows; release guard fails main if it sees nothing; no launcher in `$( )` (chaos and run.sh start JVMs with their own log files) |
 
 ### P18 re-verified in the P19 chat (latest report on `verify-reports`: CI run 43173657246, git e2d2589, 2026-11-12)
 
@@ -484,6 +509,47 @@ Issues found in P01's own code during self-review and fixed:
 4. The web test asserted an exact `Content-Type`; now a compatible-type check (a charset suffix must not fail it).
 
 ## 4. What exists now
+
+**P19 Observability, hardening, scale proof, trail removal, release (DONE, CI run 43309873447, git `4eef6f3`; release branch `release/v2.0` CI run 43309975646, git `9d1fedd`)** — ADR-0025, ADR-0026, ADR-0027, A-120..A-133, MASTER_PLAN P19
+
+- **Observability (ADR-0025).** `libs/dexter-observability` (new): Spring Boot's OpenTelemetry starter in all ten
+  services + `MicrometerEventTracing`, installed into the event library's new static seam `EventTracing`: the outbox
+  writer stores the current W3C `traceparent` in every envelope, every `EventConsumer` runs its handler in a
+  `consume <type>` CONSUMER span continuing it — one trace from the gateway through the outbox and Kafka to every
+  consumer. `EventMetrics` (dexter-events): `dexter_outbox_lag_millis` / `dexter_outbox_pending` (relay leader, own
+  thread every 5 s), `dexter_outbox_leader`, `dexter_dlq_messages` (each consumer, every 30 s),
+  `dexter_event_handle_seconds` (histogram), Kafka client metrics; reco `dexter_sse_connections`. Every meter tagged
+  `service` + `application=dexter`; histograms for `http.server.requests` and `dexter.event.handle`; OTLP export
+  `DEXTER_TRACING_ENABLED` (on in `run.sh`, off in the ITs). `infra/grafana/dashboards/` Services (RED), Events,
+  Resources (provisioned); `infra/prometheus/alerts.yml` 8 alerts + 3 recording rules, each with a runbook.
+  `DlqReplay` (dexter-events) + `scripts/dlq-replay.sh`: a consumer's dead letters back onto its own retry-1m topic,
+  then `deleteRecords`.
+- **Vault (ADR-0026).** Compose `vault` (core profile, file storage in a volume), initialised + unsealed by
+  `scripts/lib/vault_tool.py init` on every `run.sh core`: Transit key `dexter-kek`, `secret/dexter/<svc>` holding
+  exactly the secrets that service's `application.yml` references, one policy and one token per service.
+  `run.sh services` starts each service with `env -u <every secret>` + its own secrets read with its own token (the
+  Vault Agent pattern; `DEXTER_VAULT=off` for the old way). Identity: `KekRing` holds local KEKs and one remote
+  `TransitKek` (`transit:dexter-kek`, same AAD as the local AES-GCM), active under Vault; the KEK re-wrap job
+  (`KekRewrapService`, `identity.kek_stale` / `kek_swap` (compare-and-set) / `kek_usage`, V202611121000).
+- **Security (ADR-0027).** `infra/docker/service.Dockerfile` (distroless Java 25, non-root); `scripts/image-scan.sh`
+  (ten images, Trivy 0.72.0 pinned, from a `docker save` tar, HIGH/CRITICAL with a fix, waivers in
+  `infra/security/trivyignore.yaml` — none); `scripts/zap-baseline.sh` (ZAP 2.16.1 baseline, signed in, 24 seeded
+  routes, rules `infra/security/zap-rules.tsv`); platform-bom pins Jackson 3.1.7 / 2.21.7, Tomcat 11.0.25,
+  lz4-java 1.11.4, snappy-java 1.1.10.9; every GitHub Action pinned by commit SHA. `docs/security/mtls.md`,
+  `docs/security/pentest-checklist.md`.
+- **Chaos, restore, scale.** `scripts/lib/chaos.py` (Kafka down 60 s, relay-leader kill -9 with a second ledger
+  instance, Postgres restart, Redis down), `scripts/restore-drill.sh` (every service database dumped and restored
+  identically: counts, key hashes, RLS), `.github/workflows/scale.yml` (seed large, `perf/k6/p19-scale.js`,
+  `scripts/lib/scale_report.py`, results on branch `scale-reports`), `docs/perf/results.md`.
+- **verify.sh** gains `static.obs-config`, `static.release-guard`, `full.obs-up`, `full.vault-check`,
+  `full.obs-check`, `full.zap-baseline`, `full.chaos`, `full.restore-drill`, `full.image-scan` (31 steps).
+- **Runbooks** `docs/runbooks/`: alerts, deploy (+ rollback), key-rotation, partition-maintenance, dlq-replay,
+  restore, partitioning-playbook. `docs/release/checklist.md` (release branch, gates, `v2.0.0` tag).
+- **Release branch `release/v2.0`** = main minus the trail: no `test-ui/`, `trail-check.sh`, trail compose profile,
+  `infra/nginx`, `libs/dexter-lab`, `P01LabController`, `DevKeysController`, gateway dev route / dev CORS, `/_dev/**`
+  default public path, `seed.sh fixtures`, `FixturesInSyncTest`; smoke asserts nothing answers under `/_dev`;
+  `scripts/release-guard.sh` fails a release branch on any of it (and fails `main` if it stops seeing the trail).
+  Its verify-full reports to branch `verify-reports-release`.
 
 **P18 Audit, notifications, privacy (DONE, CI run 43142625115, git `2635579`)** — ADR-0024, A-109..A-119, MASTER_PLAN P18
 
@@ -1155,6 +1221,9 @@ Croma Online vs label Croma).
 | 0018 | The calc library: BigDecimal **rupees** inside with the original's rounding points (paise only at the boundary) so the ported fixtures hold to the paisa, bps for rates, final classes of static methods with `Lot` mutable and package-private, all 31 old calc tests ported and green with no value needing explanation, `emi/CardEmiCalculator` not ported (P11's `EmiMath` is v2's EMI engine and rounds differently), preconditions rejected instead of dereferenced, `/v1/calc/*` stateless and capped | Accepted: proven by CI run 40962182275 (portfolio-calc unit 40, `CalcIT` 16, api-smoke P12 calc 27, trail-check `p12-calc` 4) |
 | 0023 | Commerce: integer savings capped per component and an integer score (card-match a ranking branch), an in-memory rank over the bounded active set paged by a signed keyset cursor, the optional verified token on public routes, the signed `/r/` link as the click's only credential, raw clicks + Lua counters drained atomically inside the Redis ACL, postbacks idempotent by (network, ref) counted in their own transaction, one open application per card in the database, weighted rotation + atomic frequency caps, ad-free from the entitlements event | Accepted: proven by CI run 42502207781 (P17) |
 | 0024 | Audit: one SQL writer under an advisory lock and one SQL canonical row for writer and verifier; verification to a head read first, anchors (by seq, exported before stored) catching a rewritten tail; notifications one row per (event, channel), a SKIP LOCKED worker with exponential backoff, security never muted; the privacy saga's whole state in one row, phases asked over the outbox and re-asked of the silent on timeout, resumable; each service's part SQL it owns that finds its account tables, run by `libs/dexter-privacy`; a deletion leaves a tombstone, a shredded key, re-keyed financial rows and a pseudonym | Accepted: proven by CI run 43142625115 (P18) |
+| 0025 | Observability: OpenTelemetry through `libs/dexter-observability` and a static tracing seam in the event library (traceparent into every outbox envelope, a CONSUMER span per handled event), metrics pulled with histograms, outbox / DLQ / handler / Kafka / SSE meters, dashboards and alert rules as checked files, a live check on data the run produced, DLQ replay as a tool | Accepted: proven by CI run 43309873447 (`full.obs-check` 13/13, `static.obs-config`) |
+| 0026 | Vault: per-service secrets in KV delivered by the launcher with per-service tokens (the Agent pattern), the identity KEK in Transit (same AAD), a compare-and-set re-wrap job because Transit's rewrap takes no AAD; Consul dropped | Accepted: proven by CI run 43309873447 (`full.vault-check` 6/6, `TransitKekIT`, `KekRewrapIT`) |
+| 0027 | Security: distroless non-root images from one Dockerfile, Trivy (pinned, socket-less) and a signed-in ZAP baseline in every full run, waivers with expiry, mTLS documented as an option, management off the public port, pen-test checklist | Accepted: proven by CI run 43309873447 (`full.image-scan` clean, `full.zap-baseline` 0 FAIL-level) |
 | 0022 | Billing: the checkout as Mode B in three phases and never abandoned after the provider call; one `PaymentOutcomes.apply` for every source of an outcome (a payment is decided once); the sweeper and period-end job through owner functions; `incomplete` counts as live; signature = credential, event id = replay guard; GST computed once and split; entitlements computed on read and announced on change; the tier reaching the token through identity's own projection | Accepted (P16, CI run 42449818720) |
 | 0021 | Reco B: a wallet valued **as a wallet** (a rupee routed once, caps per card, fees and milestones following the routed spend), exact routing of the contested roots with a greedy fallback that says so, **dominance pruning reported rather than applied** because every quantity that decides a wallet is per card and non-additive, nothing cached, best-card-now on this month's per-card spend with the purchase's exact category path, and SSE behind a one-time ticket fanned out over Redis pub/sub after the commit | Accepted (P15): proved by CI run 41952698922 (git `35a2ed7`) |
 | 0020 | Reco A: a rolling spend window **rebuilt** from exact per-month deltas (a window cannot be incremented — an expense leaves it because time passed), the inbox as the exactly-once guard for spend while the per-aggregate projections are version-guarded, `rateBps` as a value rate shared with portfolio rather than reimplemented (A-82), the root/depth share as one explicit assumption reported in every explanation, a fee-waiver **ramp** so a recommendation cannot flip on a rupee, savings normalized against the best candidate, no catalog fan-out (the read notices through the state hash), and a state hash of the **inputs** including the engine's own version | Accepted (P14): proved by CI run 41226988389 (git `88a3cb8`) |
@@ -1285,9 +1354,48 @@ Croma Online vs label Croma).
 | 2026-11-12 | P18 | A-117: the privacy endpoints are not run through `IdempotencyContract` — they take no body, so its different-body case has nothing to differ on; `PrivacyIT` covers replay, key required and 409. The inbox's `PaginationContract` asks its plan on 200 rows per account: the SYSTEM policy's OR halves the planner's estimate for an account it cannot know at plan time, and at 60 rows a Sort is the right plan. | Stated so the gap in the contract matrix is deliberate. | — |
 | 2026-11-12 | P18 | A-118 (P15 fix): reco's Redis listener container is no longer started by the context; a lifecycle bean subscribes it on a daemon thread and retries every 2 s. `StreamIT` waits for the subscription. | Under the eleven-service stack Lettuce's 200 ms handshake timed out on reco's startup path and reco never came up (r5) — contrary to ADR-0021's "a Redis that is down costs the stream, not the service". | — |
 | 2026-11-12 | P18 | A-119: only `POST /v1/notifications/{id}:read` (no read-all); operators read a request at `/v1/admin/audit/privacy-requests/{id}` (inside the routed `/v1/admin/audit/**`); the dashboard reads only `activity_hourly` (services and hours, no per-route breakdown). | Kept to what the plan names; a class-level mapping cannot express `/v1/notifications:read-all` without a second controller. | — |
+| 2026-11-13 | P19 | A-120: tracing through one library, `libs/dexter-observability` (Spring Boot's OpenTelemetry starter + `MicrometerEventTracing`), installed into a **static** seam in dexter-events (`EventTracing`): the outbox writer stores the current `traceparent`, every `EventConsumer` handles inside a `consume <type>` CONSUMER span. The relay adds no span. | Relays and consumers are built by hand in each service's configuration and in tests; a static seam reaches all of them without a bean in each. The hop the operator follows is request → consumer, and the envelope carries it. | Gateway activity events (written straight to Kafka) still carry no traceparent (§7). |
+| 2026-11-13 | P19 | A-121: metrics are pulled (Prometheus scrapes `/actuator/prometheus`), OTLP metric push is off; trace export is `DEXTER_TRACING_ENABLED` — on in `run.sh`, off in the ITs (not in `.env`: verify.sh exports `.env` into Maven). | One metrics path; the ITs must not try to reach a collector. | — |
+| 2026-11-13 | P19 | A-122: Vault runs as a real server with file storage in a compose volume, initialised and unsealed by `vault_tool.py init` (1 key share, kept in `.run/vault/init.json`, never published by CI), not `server -dev`. | Dev mode is in-memory: a Vault restart would lose the Transit key while Postgres kept every DEK it wrapped. The ITs (`TestVault`) use dev mode — throwaway by design. | Production: Raft + auto-unseal (deploy.md). |
+| 2026-11-13 | P19 | A-123: secrets reach a service **through the launcher** (`env -u <every secret> <its own, read with its own token>`), the Vault Agent pattern — not Spring Cloud Vault in every service. Only identity holds a Vault token at run time (Transit). | The services keep reading `${...}` placeholders, so laptop and cluster (Agent injector) are the same code; no second config source, no start-up dependency on Vault for nine services. `vault-check` proves each process holds its own secrets and nobody else's. | `DEXTER_VAULT=off` keeps the `.env` launch. |
+| 2026-11-13 | P19 | A-124: a KEK **re-wrap job** in identity (`KekRewrapService`, `identity.kek_stale/kek_swap/kek_usage`, V202611121000), not in the plan. | Transit's own `rewrap` takes no associated data (proved: 400 on AAD-bound ciphertext, `TransitKekIT`), and a local KEK can only be retired once nothing names it. Compare-and-set per row, safe on every instance. | Rotating a Transit key *version* is not automated: the job keys on the KEK id (§7, key-rotation.md). |
+| 2026-11-13 | P19 | A-125: Consul dropped (ADR-0026 §5). | DNS (compose / Kubernetes Services), files + env, orchestrator probes and Vault cover what it would add. | — |
+| 2026-11-13 | P19 | A-126: images from one `infra/docker/service.Dockerfile` (distroless Java 25, non-root) over the jar `mvn verify` built, not Jib. | Jib's class-file reading lags Java 25; eight lines do the same, and the scanned image is the tested jar. | — |
+| 2026-11-13 | P19 | A-127: the image scan, ZAP baseline, chaos tests and the restore drill are **steps of `verify.sh full`** (31 steps), not separate workflows; the scale proof is its own on-demand workflow (`scale.yml`, results on branch `scale-reports`). | One report per commit, readable from `verify-reports`; the scale run takes an hour and a large seed. | Each full run is ~8 min longer. |
+| 2026-11-13 | P19 | A-128: Trivy pinned to `aquasec/trivy:0.72.0`, run on a `docker save` tar with no socket and no credentials; ZAP pinned to 2.16.1. | The March 2026 Trivy supply-chain compromise (CVE-2026-33634). | Moving a pin is a reviewed change. |
+| 2026-11-13 | P19 | A-129: the trail is removed **on `release/v2.0`**, not on `main`: `main` keeps it for development, the release branch is main minus the trail (one commit, rebased). `release-guard.sh` fails a release branch on any trail/dev item and fails `main` if it stops seeing them; the release branch reports to `verify-reports-release`. | The DoD asks for `verify.sh full` green on the release branch; later phases (and fixes) still want the trail on main. | Fixes go to main first, then the release branch is rebased (checklist §5). |
+| 2026-11-13 | P19 | A-130: the relay gains `dexter_outbox_leader`, and measures lag on its **own thread and connection** every 5 s while leading; a follower reports 0. | Chaos on the release branch caught the gauge at 0 during a Kafka outage: the publish loop was blocked in a send — the moment the alert matters most. | — |
+| 2026-11-13 | P19 | A-131: DLQ replay is a tool (`DlqReplay`, `scripts/dlq-replay.sh`): re-publish to the consumer's **retry-1m** topic, then `deleteRecords` up to what was replayed. | Never the shared main topic (other consumers would see it again); deleting makes the DLQ gauge — the alert — fall. | A filtered replay keeps everything after a kept record on its partition (runbook). |
+| 2026-11-13 | P19 | A-132: platform-bom pins Jackson 3.1.7 / 2.21.7, Tomcat 11.0.25, lz4-java 1.11.4, snappy-java 1.1.10.9; every GitHub Action pinned by commit SHA. | The first image scan found 13–17 HIGH/CRITICAL with fixes per image; MASTER_PLAN 7.5. | Drop each pin once a Boot release manages a fixed version. |
+| 2026-11-13 | P19 | A-133: the scale proof is measured, and the measurement fixed, over five runs: per-VU client IPs (`CLIENT_IP_PER_VU`), sessions refreshed every 8 min, sign-in jittered with back-off, full JIT + 768 MB heaps (`DEXTER_JAVA_OPTS`), 10 % activity sampling (`GATEWAY_ACTIVITY_SAMPLE_RATE`); the gateway's upstream pool sized and its breaker transitions logged; **the default 25-call bulkhead of Spring Cloud CircuitBreaker turned off** (the hotspot). | r1 measured the per-IP auth limit, r2/r3 expired tokens and a self-made login storm, r4/r5 open breakers — r5's transition log named `BulkheadFullException`. | docs/perf/results.md. |
 
 ## 7. Known gaps / tech debt (honest, never deleted silently)
 
+- **P19 hardening & release (ADR-0025..0027):**
+  - **Scale targets not met end-to-end on one runner.** On a single 4-vCPU runner hosting everything, list / write /
+    reco p99 were 6.1–6.4 s and ledger peaked at 474 req/s (8.1: 150 / 200 / 100 ms, ≥ 1,500 req/s); the data-bound
+    rows are met (docs/perf/results.md). Plan: a perf environment with k6 on its own host, ledger and Postgres on
+    dedicated nodes, identity × 3, gateway × 2; re-run `scale.yml` against it before tagging `v2.0.0`.
+  - **Sign-in is CPU-heavy by design** (Argon2id): 1,871 VUs signing in took p99 13.7 s on the shared host.
+    Production scales identity out; nothing else to do unless the parameters change (ADR-0007).
+  - **Gateway activity events carry no traceparent** (they go straight to Kafka, not through an outbox; A-120).
+  - **Vault locally is one node with one unseal key** in `.run/vault/init.json`; production's Raft cluster,
+    auto-unseal and the Agent injector (Kubernetes auth) are documented (deploy.md), not exercised here. Service
+    tokens have a 768 h TTL locally.
+  - **Rotating the Transit key's version is not automated**: the re-wrap job moves rows between KEK *ids*; rows on an
+    old version of `dexter-kek` stay until moved by switching ids (key-rotation.md §2).
+  - **ZAP is passive (baseline) only**; no active scan, no authenticated spider of the admin console.
+  - **Third-party images** (Postgres, Kafka, Vault, Grafana, ...) are not scanned; production pins them by digest.
+  - **mTLS is documented, not enabled** (docs/security/mtls.md); **`MANAGEMENT_SERVER_PORT`** (actuator off the
+    public port) is documented in deploy.md, not set in any profile.
+  - **The release branch still carries the `lab` database and Redis user** in the infrastructure init (unused; the
+    P02 lab code is gone) and the seed generator's `--fixtures` option.
+  - **`v2.0.0` is not tagged**: the checklist's gates include the perf re-run above; tagging is the owner's call.
+  - One flaky observation: gateway `RateLimitIT` timed out once (verify-full 43281427690; green on ci for the same
+    commit and in every run before and since).
+  - Carried from P18 and still open: objects outside the databases survive a deletion, no real email / push
+    transport, anchors not on WORM storage. Spring Boot 4.0 OSS end of life 2026-12-31 (ADR-0001) is now seven weeks
+    away: the Boot 4.2 + Cloud 2026.0 upgrade is the next platform task.
 - **P18 audit / privacy (ADR-0024):**
   - **Objects outside the databases survive a deletion.** Portfolio's uploaded statement files (quarantine and
     clean keys) and the export archives themselves stay in the object store; Redis caches (identity sessions,
@@ -1580,7 +1688,7 @@ Croma Online vs label Croma).
 - **Spring Boot 4.0 OSS end of life is 2026-12-31.** The upgrade to Boot 4.2 + Cloud 2026.0 must be scheduled (ADR-0001).
 - **Postgres 17 behaviour** was verified on PG16 in the sandbox. The Codespaces `infra-checks` step re-verifies on 17.
 - Roles are created only on first volume init. Changing `.env` passwords requires `run.sh nuke` (see the runbook).
-- CI actions are pinned by major tag. SHA pinning comes in P19 (§7.5).
+- ~~CI actions are pinned by major tag. SHA pinning comes in P19 (§7.5).~~ Done in P19: every action pinned by commit SHA (A-132).
 - ~~`seed.sh` is a stub (P03).~~ Done in P03; the demo accounts are seeded (staging until P04).
 
 ## 8. How to run & verify (Codespaces)
@@ -1635,6 +1743,14 @@ press **Lab status / start**, then **Get a valid token**. (After a manual `run.s
 
 ## 10. Changelog (one line per response)
 
+- 2026-11-13 P19 (docs): BUILD_README evidence for main CI run 43309873447 (git `4eef6f3`) and release CI run 43309975646 (git `9d1fedd`): header, §1, §2, §3 P19 DoD, §4, §5 ADR-0025..0027 Accepted, A-120..A-133, §7; `docs/perf/results.md`.
+- 2026-11-13 P19 r9: scale r6 (run 43309886082) under real load — 93 % success, data-bound targets met, end-to-end gap recorded; main 31/31 (`4eef6f3`) and release 30/30 (`9d1fedd`) green.
+- 2026-11-13 P19 r8: the gateway's default 25-call bulkhead off (the hotspot scale r5's breaker log named); `ResilienceIT` 60 concurrent calls.
+- 2026-11-12 P19 r7: outbox lag on its own thread (release chaos caught it blind during the outage); k6 sign-in jitter; gateway pool + breaker log.
+- 2026-11-12 P19 r6: release branch `release/v2.0` cut (trail removed, release guard clean); Actions pinned by SHA; k6 per-VU IPs and session refresh.
+- 2026-11-12 P19 r5: **31/31** at `936cca9` after pinning Jackson 2/3, Tomcat, lz4-java, snappy-java (first image scan).
+- 2026-11-12 P19 r2–r4: Vault (KV per service, Transit KEK, re-wrap job), ZAP, image scan, chaos, restore drill, runbooks, security docs, release guard; two identity IT fixes (pool exhaustion; Transit rewrap has no AAD).
+- 2026-11-12 P19 r1: P18 re-verified from `verify-reports` (run 43173657246); observability (OTel across Kafka, meters, dashboards, alerts, DLQ replay) green first time (`3bc3909`).
 - 2026-11-12 P18 r8 (docs): BUILD_README evidence for CI run 43142625115, git `2635579` (header, §1, §2, §3 P17 re-verification + P18 DoD, §4, §5, A-109..A-119, §7), ADR-0024 Accepted.
 - 2026-11-12 P18 r7: **green** — CI run 43142625115, git `2635579`: `verify.sh full` PASS 22/22 + `trail-check.sh` PASS, audit unit 9 + IT 28, api-smoke **659 PASS / 0 FAIL** (83 P18), `p18-*` 9/9, trail-check 125/0/0. The fix: SQL renders a boolean as `true`.
 - 2026-11-12 P18 r6: reco's stream subscription off the startup path (A-118); api-smoke 658/1.

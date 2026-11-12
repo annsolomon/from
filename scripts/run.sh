@@ -106,7 +106,7 @@ status() {
 cmd=${1:-help}
 case "$cmd" in
   core)           "${COMPOSE[@]}" --profile core up -d --wait --wait-timeout 300 --remove-orphans
-                  # P19 (ADR-0026): Vault dev mode keeps nothing across restarts - seed it every time.
+                  # P19 (ADR-0026): initialise / unseal Vault and (re)write the per-service secrets, policies, tokens.
                   python3 scripts/lib/vault_tool.py init ;;
   obs)            "${COMPOSE[@]}" --profile obs up -d --wait --wait-timeout 300 --remove-orphans ;;
   trail)          # stateless: always recreate so nginx picks up the current trail.conf

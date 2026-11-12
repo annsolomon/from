@@ -164,7 +164,7 @@ check_trail_pager() {
 # config pass promtool (in the pinned Prometheus image, when Docker is there).
 check_obs_config() {
   python3 "$ROOT/scripts/lib/obs_static.py" "$ROOT" || return 1
-  if command -v docker >/dev/null 2>&1; then
+  if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
     local img; img=$(sed -n 's/^ *image: \(prom\/prometheus:.*\)$/\1/p' "$ROOT/infra/compose/docker-compose.yml" | head -n1)
     local log="$VDIR/promtool.log"
     timeout -k 10 300 docker run --rm --entrypoint promtool -v "$ROOT/infra/prometheus:/etc/prometheus:ro" "$img" \
