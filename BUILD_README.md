@@ -1391,8 +1391,10 @@ Croma Online vs label Croma).
   - **The release branch still carries the `lab` database and Redis user** in the infrastructure init (unused; the
     P02 lab code is gone) and the seed generator's `--fixtures` option.
   - **`v2.0.0` is not tagged**: the checklist's gates include the perf re-run above; tagging is the owner's call.
-  - One flaky observation: gateway `RateLimitIT` timed out once (verify-full 43281427690; green on ci for the same
-    commit and in every run before and since).
+  - Gateway `RateLimitIT` timed out twice in verify-full (43281427690 on main, 43316616151 on the release branch):
+    a 40 s client timeout with no gateway log, i.e. the request never reached it. Fixed on the most likely cause —
+    the tests' shared `HttpClient` reusing a connection the gateway had closed after answering a POST from a filter
+    without reading its body; `GatewayBase` now opens a connection per request. If it recurs, the cause is elsewhere.
   - Carried from P18 and still open: objects outside the databases survive a deletion, no real email / push
     transport, anchors not on WORM storage. Spring Boot 4.0 OSS end of life 2026-12-31 (ADR-0001) is now seven weeks
     away: the Boot 4.2 + Cloud 2026.0 upgrade is the next platform task.
@@ -1743,6 +1745,7 @@ press **Lab status / start**, then **Get a valid token**. (After a manual `run.s
 
 ## 10. Changelog (one line per response)
 
+- 2026-11-13 P19 r10: release r3 hit the RateLimitIT timeout again (run 43316616151); gateway tests now use a connection per request.
 - 2026-11-13 P19 (docs): BUILD_README evidence for main CI run 43309873447 (git `4eef6f3`) and release CI run 43309975646 (git `9d1fedd`): header, §1, §2, §3 P19 DoD, §4, §5 ADR-0025..0027 Accepted, A-120..A-133, §7; `docs/perf/results.md`.
 - 2026-11-13 P19 r9: scale r6 (run 43309886082) under real load — 93 % success, data-bound targets met, end-to-end gap recorded; main 31/31 (`4eef6f3`) and release 30/30 (`9d1fedd`) green.
 - 2026-11-13 P19 r8: the gateway's default 25-call bulkhead off (the hotspot scale r5's breaker log named); `ResilienceIT` 60 concurrent calls.

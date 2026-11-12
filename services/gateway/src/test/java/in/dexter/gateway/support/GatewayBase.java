@@ -52,7 +52,6 @@ public abstract class GatewayBase {
       .withExposedPorts(6379);
   public static final KafkaContainer KAFKA = new KafkaContainer("apache/kafka:4.1.0");
   static final String REDIS_PW = "gateway-it-pw";
-  static final HttpClient HTTP = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
   static final AtomicInteger IPS = new AtomicInteger(1);
 
   static {
@@ -160,7 +159,15 @@ public abstract class GatewayBase {
   protected Res send(HttpRequest req) {
     long t0 = System.nanoTime();
     try {
-      HttpResponse<String> r = HTTP.send(req, HttpResponse.BodyHandlers.ofString());
+      // A fresh connection per request (P19): the gateway answers some POSTs from a filter without reading the body
+      // (401, 413, 429, 503), so Reactor Netty closes that connection after the response; a shared client could
+      // hand the next POST that half-closed pooled connection and wait for an answer that never comes - the likely
+      // cause of RateLimitIT's 40 s timeout, twice in verify-full (43281427690, 43316616151): no gateway log at all,
+      // the request never reached it.
+      HttpResponse<String> r;
+      try (HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build()) {
+        r = http.send(req, HttpResponse.BodyHandlers.ofString());
+      }
       Map<String, String> h = new LinkedHashMap<>();
       r.headers().map().forEach((k, v) -> h.put(k.toLowerCase(java.util.Locale.ROOT), v.getFirst()));
       return new Res(r.statusCode(), h, r.body(), (System.nanoTime() - t0) / 1_000_000);
