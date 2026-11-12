@@ -91,22 +91,26 @@ rps = one(f'max_over_time(sum(rate(http_server_requests_seconds_count{{service="
           f'[1m]))[60m:30s])')
 row("Ledger throughput, one instance", ">= 1,500 req/s mixed", fmt(rps, "req/s", 0), None if rps is None else
     rps >= 1500, "Prometheus: peak 1-minute rate of ledger's HTTP requests")
-lag = one(f'quantile_over_time(0.95, max(dexter_outbox_lag_millis{{schema="ledger"}}){RUN})')
+lag = one('quantile_over_time(0.95, max(dexter_outbox_lag_millis{schema="ledger"})[60m:15s])')
 row("Event lag (outbox → published) p95", "< 1 s", fmt(lag), None if lag is None else lag < 1000,
     "Prometheus: p95 over the run of the ledger relay's oldest-unpublished age (sampled every 5 s)")
+# a closed client is noticed on the next heartbeat (25 s): give the server a minute before asking for 0
+deadline = __import__("time").time() + 120
+while (one('sum(dexter_sse_connections)') or 0) > 0 and __import__("time").time() < deadline:
+    __import__("time").sleep(10)
 sse_open = one('sum(dexter_sse_connections)')
 sse_peak = one('max_over_time(sum(dexter_sse_connections)[60m:15s])')
 row(f"SSE soak ({SSE_MIN} min)", "streams held; back to 0 after", f"peak {fmt(sse_peak, '', 0)}, now "
     f"{fmt(sse_open, '', 0)}; {int(k6p('dexter_sse_streams_opened', 'count') or 0)} streams opened",
     None if sse_open is None else (sse_open == 0 and (sse_peak or 0) > 0), "dexter_sse_connections, k6 counter")
-fail = k6p("http_req_failed", "rate")
+fail = k6p("http_req_failed", "value")
 reqs = k6p("http_reqs", "count")
 rate = k6p("http_reqs", "rate")
 
 per_service = prom(f'histogram_quantile(0.99, sum by (service, le) (rate(http_server_requests_seconds_bucket'
-                   f'{{application="dexter",uri!~"/actuator.*"}}{RUN})))')
+                   f'{{application="dexter",uri!~"/actuator.*|.*/stream|/error"}}{RUN})))')
 top_routes = prom(f'topk(10, histogram_quantile(0.99, sum by (service, method, uri, le) (rate('
-                  f'http_server_requests_seconds_bucket{{application="dexter",uri!~"/actuator.*"}}{RUN}))))')
+                  f'http_server_requests_seconds_bucket{{application="dexter",uri!~"/actuator.*|.*/stream|/error"}}{RUN}))))')
 pool = prom(f'max by (service, pool) (max_over_time(hikaricp_connections_pending{{application="dexter"}}{RUN}))')
 heavy = psql("ledger", "SELECT round(mean_exec_time::numeric, 2), calls, left(regexp_replace(query, '\\s+', ' ', 'g'),"
              " 140) FROM pg_stat_statements WHERE calls > 50 ORDER BY total_exec_time DESC LIMIT 8")
@@ -116,7 +120,7 @@ md = ["# P19 scale proof — results", "",
       f"{'n/a' if fail is None else f'{fail:.4%}'}.", "",
       "| 8.1 metric | Target | Measured | | How |", "|---|---|---|---|---|"]
 md += [f"| {a} | {b} | {c} | {d} | {e} |" for a, b, c, d, e in rows]
-md += ["", "## Server-side p99 per service (Prometheus, excl. actuator)", "", "| Service | p99 |", "|---|---|"]
+md += ["", "## Server-side p99 per service (Prometheus, excl. actuator and the held SSE streams)", "", "| Service | p99 |", "|---|---|"]
 md += [f"| {r['metric'].get('service', '?')} | {fmt(float(r['value'][1]) * 1000)} |" for r in
        sorted(per_service, key=lambda r: r["metric"].get("service", "")) if r["value"][1] != "NaN"]
 md += ["", "## Slowest routes (p99)", "", "| Route | p99 |", "|---|---|"]

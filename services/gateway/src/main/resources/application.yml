@@ -88,7 +88,7 @@ dexter:
   gateway:
     dev-routes: true
     activity:
-      sample-rate: 1.0
+      sample-rate: ${GATEWAY_ACTIVITY_SAMPLE_RATE:1.0}
     cors:
       allowed-origins: [ "http://localhost:8099", "http://127.0.0.1:8099" ]
     headers:

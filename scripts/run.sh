@@ -69,7 +69,9 @@ start_services() {
       mapfile -d '' venv < <(python3 scripts/lib/vault_tool.py env "$svc")
       [[ ${#venv[@]} -gt 0 ]] || { echo "vault: no environment for $svc - not started"; continue; }
     fi
-    nohup env "${venv[@]}" java -Xms64m -Xmx256m -XX:TieredStopAtLevel=1 -jar "services/$svc/target/app.jar" \
+    # DEXTER_JAVA_OPTS: small heaps and C1 only for a fast local start; the scale workflow gives full JIT + heap.
+    # shellcheck disable=SC2086
+    nohup env "${venv[@]}" java ${DEXTER_JAVA_OPTS:--Xms64m -Xmx256m -XX:TieredStopAtLevel=1} -jar "services/$svc/target/app.jar" \
       > "$RUN_DIR/logs/$svc.log" 2>&1 &
     echo $! > "$RUN_DIR/pids/$svc.pid"
   done

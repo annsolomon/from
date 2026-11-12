@@ -34,6 +34,10 @@ jobs:
       - name: infrastructure (core + obs)
         run: ./scripts/run.sh core && ./scripts/run.sh obs
       - name: services
+        env:
+          # production-like: full JIT, real heaps, 10 % activity sampling (dev's 100 % is a debugging setting)
+          DEXTER_JAVA_OPTS: -Xms256m -Xmx768m -XX:+UseG1GC
+          GATEWAY_ACTIVITY_SAMPLE_RATE: '0.1'
         run: ./scripts/run.sh services
       - name: seed large
         run: SEED_MAX_SECONDS=5400 ./scripts/seed.sh large 2>&1 | tail -n 30
@@ -44,7 +48,7 @@ jobs:
           ./scripts/install-tools.sh
           mkdir -p target/scale
           set -a; source .env; set +a
-          k6 run --quiet -e PROFILE=full -e SEED_BULK_ACCOUNTS=99998 -e SSE_MINUTES=${{ inputs.sse_minutes }} \
+          k6 run --quiet -e PROFILE=full -e CLIENT_IP_PER_VU=1 -e SEED_BULK_ACCOUNTS=99998 -e SSE_MINUTES=${{ inputs.sse_minutes }} \
             --summary-export target/scale/k6-summary.json perf/k6/p19-scale.js 2>&1 | tail -n 120 | tee target/scale/k6.txt
       - name: report
         if: always()

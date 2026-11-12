@@ -31,6 +31,10 @@ export function requestId() {
 /** Request params: X-Request-Id, optional bearer token, JSON content type for bodies, a `class` tag. */
 export function params({ token = null, cls = CLASS.READ, headers = {}, name = null, json = false } = {}) {
   const h = { 'Accept': 'application/json', 'X-Request-Id': requestId(), ...headers };
+  // CLIENT_IP_PER_VU=1 (scale runs): each VU is its own client behind the trusted local proxy, as real users are -
+  // otherwise every request shares 127.0.0.1 and the per-IP auth limit (10/min) is the whole test.
+  // 198.18.0.0/15 is the benchmarking range: never one of the gateway's trusted proxies.
+  if (__ENV.CLIENT_IP_PER_VU === '1') h['X-Forwarded-For'] = `198.18.${(__VU >> 8) & 255}.${__VU & 255}`;
   if (token) h.Authorization = `Bearer ${token}`;
   if (json) h['Content-Type'] = 'application/json';
   const tags = { class: cls };
