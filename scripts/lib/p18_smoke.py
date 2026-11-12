@@ -245,8 +245,8 @@ def main():
     check("identity: A is a tombstone, its data key shredded",
           sql("identity", f"SELECT status || '|' || (email LIKE '%@deleted.invalid') || '|' || (SELECT length(dek_enc)"
                           f" || '/' || (destroyed_at IS NOT NULL) FROM identity.account_keys WHERE account_id ="
-                          f" '{a['account']}') FROM identity.accounts WHERE id = '{a['account']}'") == "deleted|t|0/t",
-          sql("identity", f"SELECT status FROM identity.accounts WHERE id = '{a['account']}'"))
+                          f" '{a['account']}') FROM identity.accounts WHERE id = '{a['account']}'") == "deleted|true|0/true",
+          sql("identity", f"SELECT status || '|' || email FROM identity.accounts WHERE id = '{a['account']}'"))
     check("billing: A's invoices kept but no longer A's (re-keyed), its subscription ended",
           sql("billing", f"SELECT count(*) FROM billing.invoices WHERE account_id = '{a['account']}'") == "0"
           and int(sql("billing", "SELECT count(*) FROM billing.subscriptions WHERE status = 'canceled'"
