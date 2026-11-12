@@ -96,12 +96,14 @@ class TransitKekIT {
     assertThat(new String(v1, StandardCharsets.US_ASCII)).startsWith("vault:v1:");
     assertThat(new String(v2, StandardCharsets.US_ASCII)).startsWith("vault:v2:");
     assertThat(t.unwrap(aad("a"), v1)).containsExactly(1);
-    // rewrap (docs/runbooks/key-rotation.md) moves v1 ciphertext to v2 without the plaintext leaving Vault
-    String rewrapped = TestVault.root("POST", "transit/rewrap/rot-key", "{\"ciphertext\":\""
-        + new String(v1, StandardCharsets.US_ASCII) + "\",\"associated_data\":\"YQ==\"}");
-    Matcher c = Pattern.compile("\"ciphertext\":\"(vault:v2:[^\"]+)\"").matcher(rewrapped);
-    assertThat(c.find()).isTrue();
-    assertThat(t.unwrap(aad("a"), c.group(1).getBytes(StandardCharsets.US_ASCII))).containsExactly(1);
+    // Vault's own transit/rewrap takes no associated data, so it cannot re-wrap AAD-bound ciphertext (this is why the
+    // KEK re-wrap job unwraps and wraps in identity: ADR-0026 §4, docs/runbooks/key-rotation.md)
+    assertThat(TestVault.api(TestVault.ROOT_TOKEN, "POST", "transit/rewrap/rot-key", "{\"ciphertext\":\""
+        + new String(v1, StandardCharsets.US_ASCII) + "\"}").statusCode()).isEqualTo(400);
+    // unwrap + wrap moves v1 ciphertext to the latest version, still bound to the same associated data
+    byte[] moved = t.wrap(aad("a"), t.unwrap(aad("a"), v1));
+    assertThat(new String(moved, StandardCharsets.US_ASCII)).startsWith("vault:v2:");
+    assertThat(t.unwrap(aad("a"), moved)).containsExactly(1);
   }
 
   @Test

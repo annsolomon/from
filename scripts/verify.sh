@@ -369,6 +369,8 @@ chaos() {
   step_limit 1200 python3 "$ROOT/scripts/lib/chaos.py"
 }
 image_scan() { step_limit 1800 "$ROOT/scripts/image-scan.sh"; }
+# P19 runbook proof: every service database dumped and restored identically (docs/runbooks/restore.md).
+restore_drill() { step_limit 900 "$ROOT/scripts/restore-drill.sh"; }
 services_down() { "$ROOT/scripts/run.sh" stop >/dev/null 2>&1 || true; }
 api_smoke() { SMOKE_OUT="$VDIR/smoke.txt" step_limit 1500 "$ROOT/scripts/api-smoke.sh"; }
 # P03 (MASTER_PLAN 11.1): medium seed generated + loaded into the core Postgres within 10 min, then determinism
@@ -403,6 +405,7 @@ run_step static.shell-syntax       check_shell_syntax
 run_step static.readme             check_readme
 run_step static.trail-pager        check_trail_pager
 run_step static.obs-config         check_obs_config
+run_step static.release-guard      "$ROOT/scripts/release-guard.sh"
 if command -v docker >/dev/null 2>&1 && [[ -f .env ]]; then run_step static.compose-config check_compose_config
 else skip static.compose-config "docker or .env not available"; fi
 
@@ -448,6 +451,7 @@ if [[ $MODE == full ]]; then
     run_step full.zap-baseline zap_baseline
     run_step full.chaos chaos
     services_down
+    run_step full.restore-drill restore_drill
     run_step full.image-scan image_scan
   else
     skip full.api-smoke "maven build failed"; skip full.k6-smoke "maven build failed"
