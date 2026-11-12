@@ -47,7 +47,7 @@ public abstract class IdentityBase {
    * One set of keys per JVM: every test context (IdentityIT's and LockoutIT's) shares the database, so the signing
    * keys and DEKs one context wrapped must open in the other.
    */
-  static final String KEK = randomKey();
+  public static final String KEK = randomKey();
   static final String PEPPER = randomKey();
   static final String CURSOR_KEY = randomKey();
   /** Superuser: assertions and bulk seeding only (bypasses RLS). */

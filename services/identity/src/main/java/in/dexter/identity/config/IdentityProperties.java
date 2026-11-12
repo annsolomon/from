@@ -53,11 +53,23 @@ public record IdentityProperties(
       @DefaultValue("10m") Duration checkEvery) {}
 
   /** Key-encryption keys: {@code keys.<id>} = base64 of 32 random bytes; new material uses {@code activeId}. */
-  public record Kek(@DefaultValue("k1") String activeId, Map<String, String> keys) {
+  public record Kek(@DefaultValue("k1") String activeId, Map<String, String> keys, @DefaultValue Transit transit) {
     public Kek {
       keys = keys == null ? Map.of() : Map.copyOf(keys);
     }
   }
+
+  /**
+   * P19 (ADR-0026): the KEK in Vault Transit, used when {@code address} is set; {@code activeId =
+   * transit:<key>} makes it the one new material is wrapped with. The token comes from {@code VAULT_TOKEN}, or from
+   * {@code tokenFile} (a Vault Agent sink), re-read on every call.
+   */
+  public record Transit(
+      @DefaultValue("") String address,
+      @DefaultValue("") String token,
+      @DefaultValue("") String tokenFile,
+      @DefaultValue("dexter-kek") String key,
+      @DefaultValue("5s") Duration timeout) {}
 
   /** A calling service: its secret (env) and the audiences it may request. Empty secret = client disabled. */
   public record ServiceClient(String secret, List<String> audiences) {}

@@ -108,6 +108,7 @@ public final class OutboxRelay implements AutoCloseable {
   private volatile long lastMaintenanceNanos;
   private final AtomicLong published = new AtomicLong();
   private final AtomicLong lagMillis;
+  private final AtomicLong leaderGauge;
   private final AtomicLong pending;
   private final String lagSql;
   private long lastLagNanos;
@@ -134,6 +135,8 @@ public final class OutboxRelay implements AutoCloseable {
         + " count(*) FROM " + t + " WHERE published_at IS NULL";
     this.lagMillis = in.dexter.events.EventMetrics.outboxLagMillis(s.schema());
     this.pending = in.dexter.events.EventMetrics.outboxPending(s.schema());
+    this.leaderGauge = in.dexter.events.EventMetrics.gauge("dexter.outbox.leader",
+        "1 on the instance whose relay holds the outbox lock", "schema", s.schema());
   }
 
   public synchronized void start() {
@@ -187,17 +190,23 @@ public final class OutboxRelay implements AutoCloseable {
       try (Connection c = dataSource.getConnection()) {
         c.setAutoCommit(true);
         if (!tryLock(c)) {
+          // another instance leads: this one reports nothing it does not measure
+          leaderGauge.set(0);
+          lagMillis.set(0);
+          pending.set(0);
           sleep(s.standbyRetry());
           continue;
         }
         try {
           leader = true;
+          leaderGauge.set(1);
           log.info("outbox relay {}: leader", s.schema());
           exec(c, "LISTEN " + channel);
           lastMaintenanceNanos = 0;
           lead(c);
         } finally {
           leader = false;
+          leaderGauge.set(0);
           releaseQuietly(c);
         }
       } catch (SQLException | RuntimeException e) {

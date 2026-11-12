@@ -27,6 +27,8 @@ import in.dexter.identity.app.ServiceTokenService;
 import in.dexter.identity.app.SessionService;
 import in.dexter.identity.app.SessionStore;
 import in.dexter.identity.app.SigningKeyService;
+import in.dexter.identity.app.KekRewrapService;
+import in.dexter.identity.app.KekRewrapStore;
 import in.dexter.identity.app.SigningKeyStore;
 import in.dexter.identity.app.Throttles;
 import in.dexter.identity.app.TierService;
@@ -40,7 +42,10 @@ import in.dexter.identity.infra.Argon2Hasher;
 import in.dexter.identity.infra.BundledBreachedList;
 import in.dexter.identity.infra.EnvelopeCipher;
 import in.dexter.identity.infra.JoseKeyCrypto;
+import in.dexter.identity.infra.KekRewrapRepository;
 import in.dexter.identity.infra.KekRing;
+import in.dexter.identity.infra.KekRingRewrapper;
+import in.dexter.identity.infra.TransitKek;
 import in.dexter.identity.infra.MemoryTransport;
 import in.dexter.identity.infra.PreAuthRepository;
 import in.dexter.identity.infra.RefreshTokenRepository;
@@ -115,11 +120,31 @@ public class IdentityConfiguration {
 
   @Bean
   KekRing kekRing(IdentityProperties p) {
-    if (p.kek().keys().isEmpty()) {
-      throw new IllegalStateException("dexter.identity.kek.keys is empty: set IDENTITY_KEK_K1 (base64 of 32 random"
-          + " bytes; dev value in .env.example)");
+    IdentityProperties.Transit t = p.kek().transit();
+    KekRing.RemoteKek transit = null;
+    if (!t.address().isBlank()) {
+      java.util.function.Supplier<String> token;
+      if (!t.tokenFile().isBlank()) {
+        java.nio.file.Path file = java.nio.file.Path.of(t.tokenFile());
+        token = () -> {
+          try {
+            return java.nio.file.Files.readString(file).strip();
+          } catch (java.io.IOException e) {
+            throw new IllegalStateException("Vault token file " + file + " unreadable: " + e);
+          }
+        };
+      } else {
+        String fixed = t.token();
+        token = () -> fixed;
+      }
+      transit = new TransitKek(t.address(), t.key(), token, t.timeout());
     }
-    return KekRing.fromBase64(p.kek().activeId(), p.kek().keys());
+    boolean noLocal = p.kek().keys().values().stream().allMatch(v -> v == null || v.isBlank());
+    if (noLocal && transit == null) {
+      throw new IllegalStateException("no KEK: set IDENTITY_KEK_K1 (base64 of 32 random bytes; dev value in"
+          + " .env.example) or Vault Transit (VAULT_ADDR + VAULT_TOKEN, IDENTITY_KEK_ACTIVE=transit:dexter-kek)");
+    }
+    return KekRing.fromBase64(p.kek().activeId(), p.kek().keys(), transit);
   }
 
   @Bean
@@ -196,6 +221,16 @@ public class IdentityConfiguration {
   @Bean
   SigningKeyStore signingKeyStore(JdbcClient jdbc) {
     return new SigningKeyRepository(jdbc);
+  }
+
+  @Bean
+  KekRewrapStore kekRewrapStore(JdbcClient jdbc) {
+    return new KekRewrapRepository(jdbc);
+  }
+
+  @Bean
+  KekRewrapService kekRewrapService(TenantTx tx, KekRewrapStore store, KekRing kek) {
+    return new KekRewrapService(tx, store, new KekRingRewrapper(kek));
   }
 
   // ------------------------------------------------------------------------------------------- app

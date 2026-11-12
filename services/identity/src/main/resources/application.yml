@@ -114,9 +114,15 @@ dexter:
       reset-password: ${IDENTITY_PUBLIC_URL:http://localhost:8099}/p04-identity.html#reset={token}
       sign-in: ${IDENTITY_PUBLIC_URL:http://localhost:8099}/p04-identity.html
     kek:
-      active-id: k1
+      # P19 (ADR-0026): transit:dexter-kek when Vault is up (scripts/run.sh); k1 stays for unwrapping older keys.
+      active-id: ${IDENTITY_KEK_ACTIVE:k1}
       keys:
         k1: ${IDENTITY_KEK_K1:}
+      transit:
+        address: ${VAULT_ADDR:}
+        token: ${VAULT_TOKEN:}
+        token-file: ${VAULT_TOKEN_FILE:}
+        key: ${IDENTITY_TRANSIT_KEY:dexter-kek}
     phone-pepper: ${IDENTITY_PHONE_PEPPER:}
     mail:
       mode: ${IDENTITY_MAIL_MODE:smtp}

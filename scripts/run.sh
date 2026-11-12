@@ -48,11 +48,28 @@ start_services() {
   # P19 (ADR-0025): spans go to the obs profile's collector (127.0.0.1:4318). Exporting with no collector running
   # only logs a warning. Not in .env, for the same reason as above: the Maven ITs must not export.
   export DEXTER_TRACING_ENABLED=${DEXTER_TRACING_ENABLED:-true}
+  # P19 (ADR-0026): the KEK re-wrap job every 30 s locally (10 min default), so keys the seed wrapped under k1 move to
+  # Transit within a smoke run.
+  export DEXTER_IDENTITY_KEK_REWRAP_EVERY=${DEXTER_IDENTITY_KEK_REWRAP_EVERY:-30s}
   mkdir -p "$RUN_DIR/logs" "$RUN_DIR/pids"
+  # P19 (ADR-0026): with Vault up, each service starts with only its own secrets, read from Vault with its own
+  # scoped token (vault_tool.py env); every other secret in .env is removed from its environment. DEXTER_VAULT=off
+  # starts them the old way (.env for everyone).
+  local vault=off
+  if [[ ${DEXTER_VAULT:-auto} != off && -f $RUN_DIR/vault/identity.token ]] \
+      && curl -fsS --max-time 2 "http://127.0.0.1:${VAULT_PORT:-8200}/v1/sys/health" >/dev/null 2>&1; then
+    vault=on
+  fi
+  echo "secrets: $([[ $vault == on ]] && echo 'from Vault (per-service tokens)' || echo 'from .env (Vault not used)')"
   for entry in "${DEXTER_SERVICES[@]}"; do
     svc=${entry%%:*}; port=${entry##*:}
     if health "$port"; then echo "$svc already UP on $port"; continue; fi
-    nohup java -Xms64m -Xmx256m -XX:TieredStopAtLevel=1 -jar "services/$svc/target/app.jar" \
+    local venv=()
+    if [[ $vault == on ]]; then
+      mapfile -d '' venv < <(python3 scripts/lib/vault_tool.py env "$svc")
+      [[ ${#venv[@]} -gt 0 ]] || { echo "vault: no environment for $svc - not started"; continue; }
+    fi
+    nohup env "${venv[@]}" java -Xms64m -Xmx256m -XX:TieredStopAtLevel=1 -jar "services/$svc/target/app.jar" \
       > "$RUN_DIR/logs/$svc.log" 2>&1 &
     echo $! > "$RUN_DIR/pids/$svc.pid"
   done
@@ -86,17 +103,21 @@ status() {
 
 cmd=${1:-help}
 case "$cmd" in
-  core|obs)       "${COMPOSE[@]}" --profile "$cmd" up -d --wait --wait-timeout 300 --remove-orphans ;;
+  core)           "${COMPOSE[@]}" --profile core up -d --wait --wait-timeout 300 --remove-orphans
+                  # P19 (ADR-0026): Vault dev mode keeps nothing across restarts - seed it every time.
+                  python3 scripts/lib/vault_tool.py init ;;
+  obs)            "${COMPOSE[@]}" --profile obs up -d --wait --wait-timeout 300 --remove-orphans ;;
   trail)          # stateless: always recreate so nginx picks up the current trail.conf
                   "${COMPOSE[@]}" --profile trail up -d --wait --wait-timeout 120 --force-recreate trail ;;
-  all)            "${COMPOSE[@]}" "${ALL_PROFILES[@]}" up -d --wait --wait-timeout 300 --remove-orphans ;;
+  all)            "${COMPOSE[@]}" "${ALL_PROFILES[@]}" up -d --wait --wait-timeout 300 --remove-orphans
+                  python3 scripts/lib/vault_tool.py init ;;
   services)       start_services ;;
   parser)         parser_start ;;
   svc)            [[ -n ${2:-} ]] || { echo "usage: run.sh svc <name>"; exit 2; }
                   mvn -B -q -pl "services/$2" -am -DskipTests install && mvn -B -pl "services/$2" spring-boot:run ;;
   stop)           stop_services ;;
   down)           stop_services; "${COMPOSE[@]}" "${ALL_PROFILES[@]}" down --remove-orphans ;;
-  nuke)           stop_services; "${COMPOSE[@]}" "${ALL_PROFILES[@]}" down -v --remove-orphans ;;
+  nuke)           stop_services; "${COMPOSE[@]}" "${ALL_PROFILES[@]}" down -v --remove-orphans; rm -rf "$RUN_DIR/vault" ;;
   status)         status ;;
   *)              sed -n '2,12p' "$0"; exit 2 ;;
 esac

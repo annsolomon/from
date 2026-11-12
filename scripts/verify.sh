@@ -337,6 +337,11 @@ services_up() {
   echo "services not UP; tails above, full logs in target/verify/run-logs-at-failure"
   return 1
 }
+# P19 (ADR-0026): secrets came from Vault, scoped per service; identity's keys are under Transit.
+vault_check() {
+  set -a; source "$ROOT/.env"; set +a
+  step_limit 300 python3 "$ROOT/scripts/lib/vault_tool.py" check
+}
 # P19: the obs profile (collector, Tempo, Prometheus, Grafana) runs alongside the services, which export traces to
 # the collector (DEXTER_TRACING_ENABLED, set by run.sh) and are scraped by Prometheus.
 obs_up() { step_limit 900 "$ROOT/scripts/run.sh" obs; }
@@ -355,6 +360,15 @@ obs_check() {
   echo "obs: $(grep -c '^PASS' "$VDIR/obs.txt" 2>/dev/null) PASS / $(grep -c '^FAIL' "$VDIR/obs.txt" 2>/dev/null) FAIL; dlq replay $([[ $rc -eq 0 ]] && echo ok || echo checked)"
   return $rc
 }
+# P19 (ADR-0027): passive ZAP scan of the gateway as a signed-in user; image build + Trivy scan of all ten services.
+zap_baseline() { step_limit 1200 "$ROOT/scripts/zap-baseline.sh"; }
+# P19 step 5: Kafka down 60 s, relay-leader kill, Postgres restart, Redis down (scripts/lib/chaos.py). Last step on
+# the running stack: it restarts infrastructure under the services.
+chaos() {
+  set -a; source "$ROOT/.env"; set +a
+  step_limit 1200 python3 "$ROOT/scripts/lib/chaos.py"
+}
+image_scan() { step_limit 1800 "$ROOT/scripts/image-scan.sh"; }
 services_down() { "$ROOT/scripts/run.sh" stop >/dev/null 2>&1 || true; }
 api_smoke() { SMOKE_OUT="$VDIR/smoke.txt" step_limit 1500 "$ROOT/scripts/api-smoke.sh"; }
 # P03 (MASTER_PLAN 11.1): medium seed generated + loaded into the core Postgres within 10 min, then determinism
@@ -427,10 +441,14 @@ if [[ $MODE == full ]]; then
     run_step full.services-up services_up
     run_step full.seed-small seed_small_real
     run_step full.api-smoke api_smoke
+    run_step full.vault-check vault_check
     if command -v k6 >/dev/null; then run_step full.k6-smoke k6_smoke; else record full.k6-smoke FAIL "k6 not installed and auto-install failed - see target/verify/k6-install.log"; fi
     if grep -q $'full.obs-up\tPASS' "$VDIR/steps.tsv"; then run_step full.obs-check obs_check
     else skip full.obs-check "obs profile did not start"; fi
+    run_step full.zap-baseline zap_baseline
+    run_step full.chaos chaos
     services_down
+    run_step full.image-scan image_scan
   else
     skip full.api-smoke "maven build failed"; skip full.k6-smoke "maven build failed"
   fi

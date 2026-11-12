@@ -1,0 +1,72 @@
+# P19 step 4 scale proof (MASTER_PLAN 8.1): the whole stack on one runner, the large seed (100k accounts, 5M
+# expenses), the k6 scale scenarios (perf/k6/p19-scale.js) incl. a 30-minute SSE soak, then the numbers that 8.1
+# names, from k6 and from Prometheus / pg_stat_statements (scripts/lib/scale_report.py). Results are published to
+# the orphan branch `scale-reports` (results.md + raw data); docs/perf/results.md records them against the targets.
+# On demand only: it runs for about an hour.
+name: scale
+
+on:
+  workflow_dispatch:
+    inputs:
+      sse_minutes: { description: SSE soak minutes, default: '30' }
+
+permissions:
+  contents: read
+
+concurrency:
+  group: scale
+  cancel-in-progress: false
+
+jobs:
+  scale:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # only to force-push the results to the orphan branch `scale-reports`
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with: { distribution: temurin, java-version: '25', cache: maven }
+      - name: dev .env from the example
+        run: cp .env.example .env
+      - name: build
+        run: mvn -B -U -q -DskipTests package
+      - name: infrastructure (core + obs)
+        run: ./scripts/run.sh core && ./scripts/run.sh obs
+      - name: services
+        run: ./scripts/run.sh services
+      - name: seed large
+        run: SEED_MAX_SECONDS=5400 ./scripts/seed.sh large 2>&1 | tail -n 30
+      - name: k6
+        id: k6
+        continue-on-error: true
+        run: |
+          ./scripts/install-tools.sh
+          mkdir -p target/scale
+          set -a; source .env; set +a
+          k6 run --quiet -e PROFILE=full -e SEED_BULK_ACCOUNTS=99998 -e SSE_MINUTES=${{ inputs.sse_minutes }} \
+            --summary-export target/scale/k6-summary.json perf/k6/p19-scale.js 2>&1 | tail -n 120 | tee target/scale/k6.txt
+      - name: report
+        if: always()
+        run: |
+          set -a; source .env; set +a
+          python3 scripts/lib/scale_report.py target/scale ${{ inputs.sse_minutes }} | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: publish results to branch scale-reports
+        if: always()
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          out="$RUNNER_TEMP/scale"; rm -rf "$out"; mkdir -p "$out"
+          cp -r target/scale/. "$out/" 2>/dev/null
+          mkdir -p "$out/logs"; cp .run/logs/*.log "$out/logs/" 2>/dev/null
+          find "$out" -type f -size +20M -exec sh -c 'tail -c 5M "$1" > "$1.tail" && rm "$1"' _ {} \;
+          printf 'sha=%s\nrun=%s\nk6=%s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "${{ steps.k6.outcome }}" > "$out/RUN.txt"
+          cd "$out" && git init -q && git checkout -q -b scale-reports
+          git config user.name github-actions
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A && git commit -qm "scale run $GITHUB_RUN_ID for $GITHUB_SHA"
+          git push -q -f "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" scale-reports
+      - name: stop
+        if: always()
+        run: ./scripts/run.sh stop || true

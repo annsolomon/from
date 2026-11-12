@@ -55,6 +55,31 @@ services:
       timeout: 3s
       retries: 20
 
+  # P19 (ADR-0026): KV for each service's secrets, Transit for the identity KEK. A real server (file storage in a
+  # volume, so the Transit key outlives a restart along with the data it wrapped), initialised and unsealed by
+  # scripts/run.sh core (scripts/lib/vault_tool.py init; unseal key + root token in .run/vault/init.json, dev only).
+  vault:
+    <<: *restart
+    image: hashicorp/vault:2.0
+    profiles: [core]
+    cap_add: [IPC_LOCK]
+    environment:
+      VAULT_ADDR: http://127.0.0.1:8200
+      SKIP_SETCAP: "true"
+      VAULT_LOCAL_CONFIG: >-
+        {"storage": {"file": {"path": "/vault/file"}},
+         "listener": [{"tcp": {"address": "0.0.0.0:8200", "tls_disable": true}}],
+         "disable_mlock": true, "ui": false}
+    command: ["server"]
+    ports: ["127.0.0.1:${VAULT_PORT:-8200}:8200"]
+    volumes: [vaultdata:/vault/file]
+    healthcheck:
+      # up = answering; sealed (exit 2) is fine here, vault_tool.py unseals it. Exit 1 = not answering.
+      test: ["CMD-SHELL", "vault status >/dev/null 2>&1; test $$? -ne 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
   kafka:
     <<: *restart
     image: apache/kafka:4.1.0
@@ -200,3 +225,4 @@ volumes:
   redisdata:
   s3data:
   tempodata:
+  vaultdata:

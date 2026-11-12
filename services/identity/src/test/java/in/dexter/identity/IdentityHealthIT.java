@@ -20,8 +20,8 @@ class IdentityHealthIT extends IdentityIT {
     assertThat(nf.body()).contains("\"requestId\":");
 
     assertThat(ADMIN.sql("SELECT count(1) FROM identity.flyway_schema_history WHERE success AND type = 'SQL'")
-        .query(Long.class).single()).isEqualTo(6); // P16 V202611081000__identity_tier, P17 V202611081300__identity_commerce_permissions,
-        // P18 V202611111000__identity_privacy
+        .query(Long.class).single()).isEqualTo(7); // P16 V202611081000__identity_tier, P17 V202611081300__identity_commerce_permissions,
+        // P18 V202611111000__identity_privacy, P19 V202611121000__identity_kek_rewrap
     assertThat(ADMIN.sql("SELECT tableowner FROM pg_tables WHERE schemaname = 'identity' AND tablename = 'accounts'")
         .query(String.class).single()).isEqualTo("identity_owner");
   }

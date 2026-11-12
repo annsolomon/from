@@ -58,9 +58,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  trivy:
-    # Enabled once Jib images exist (P19), pinned by commit SHA.
-    if: false
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "trivy image scan - enabled in P19"
+  # Image scans (Trivy) and the ZAP baseline run in verify-full (full.image-scan, full.zap-baseline: ADR-0027),
+  # where the jars and the running stack exist.

@@ -60,7 +60,8 @@ jobs:
           mkdir -p target/verify/reports
           find . -path ./target -prune -o -type d \( -name surefire-reports -o -name failsafe-reports \) -print \
             | while read -r d; do m=$(echo "$d" | sed 's#^\./##; s#/target/.*##; s#/#_#g'); mkdir -p "target/verify/reports/$m"; cp -r "$d" "target/verify/reports/$m/"; done
-          ls .run 2>/dev/null && cp -r .run target/verify/run-logs || true
+          # .run/vault holds the throwaway CI Vault's unseal key and tokens: never published.
+          ls .run 2>/dev/null && cp -r .run target/verify/run-logs && rm -rf target/verify/run-logs/vault || true
       - name: publish reports to branch verify-reports
         # Reports as plain files on an orphan branch, readable with git (no log/artifact download needed).
         if: always()
