@@ -107,6 +107,10 @@ public final class OutboxRelay implements AutoCloseable {
   private volatile boolean partitionsHealthy = true;
   private volatile long lastMaintenanceNanos;
   private final AtomicLong published = new AtomicLong();
+  private final AtomicLong lagMillis;
+  private final AtomicLong pending;
+  private final String lagSql;
+  private long lastLagNanos;
   private Thread thread;
 
   public OutboxRelay(DataSource relayDataSource, Producer<String, byte[]> producer, Settings settings, Hooks hooks,
@@ -126,6 +130,10 @@ public final class OutboxRelay implements AutoCloseable {
     this.markSql = "UPDATE " + t + " SET published_at = now(), attempts = attempts + 1"
         + " WHERE id = ANY(?) AND created_at >= ? AND created_at <= ?";
     this.failSql = "UPDATE " + t + " SET attempts = attempts + 1 WHERE id = ANY(?) AND created_at >= ? AND created_at <= ?";
+    this.lagSql = "SELECT coalesce((extract(epoch FROM clock_timestamp() - min(created_at)) * 1000)::bigint, 0),"
+        + " count(*) FROM " + t + " WHERE published_at IS NULL";
+    this.lagMillis = in.dexter.events.EventMetrics.outboxLagMillis(s.schema());
+    this.pending = in.dexter.events.EventMetrics.outboxPending(s.schema());
   }
 
   public synchronized void start() {
@@ -214,6 +222,7 @@ public final class OutboxRelay implements AutoCloseable {
       do {
         n = relayBatch(c);
       } while (running && n >= s.batchSize());
+      measureLag(c);
       pg.getNotifications(waitMs); // returns early on NOTIFY, else after the poll interval
     }
   }
@@ -319,6 +328,22 @@ public final class OutboxRelay implements AutoCloseable {
       ps.setObject(2, min);
       ps.setObject(3, max);
       ps.executeUpdate();
+    }
+  }
+
+  /** The leader's lag gauges (P19: alert when the oldest unpublished row is older than 5 s), at most every 5 s. */
+  private void measureLag(Connection c) {
+    if (lastLagNanos != 0 && System.nanoTime() - lastLagNanos < 5_000_000_000L) {
+      return;
+    }
+    lastLagNanos = System.nanoTime();
+    try (PreparedStatement ps = c.prepareStatement(lagSql); ResultSet rs = ps.executeQuery()) {
+      if (rs.next()) {
+        lagMillis.set(Math.max(0, rs.getLong(1)));
+        pending.set(rs.getLong(2));
+      }
+    } catch (SQLException e) {
+      log.debug("outbox relay {}: lag not measured: {}", s.schema(), e.toString());
     }
   }
 

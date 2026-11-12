@@ -149,7 +149,9 @@ services:
     profiles: [obs]
     command: ["--config.file=/etc/prometheus/prometheus.yml", "--web.enable-remote-write-receiver"]
     extra_hosts: ["host.docker.internal:host-gateway"]
-    volumes: [../prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro]
+    volumes:
+      - ../prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
     ports: ["127.0.0.1:9090:9090"]
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:9090/-/healthy"]
@@ -165,7 +167,9 @@ services:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?set in .env}
       GF_USERS_ALLOW_SIGN_UP: "false"
-    volumes: [../grafana/provisioning:/etc/grafana/provisioning:ro]
+    volumes:
+      - ../grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../grafana/dashboards:/var/lib/grafana/dashboards/dexter:ro
     ports: ["127.0.0.1:3000:3000"]
     depends_on: [prometheus, tempo]
     healthcheck:

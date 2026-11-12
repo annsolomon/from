@@ -92,6 +92,11 @@ public final class StreamService {
     this.tx = tx;
     this.store = store;
     this.mapper = mapper;
+    // P19: open SSE streams on this instance (Grafana "SSE connections"; soak test watches it return to 0).
+    io.micrometer.core.instrument.Gauge.builder("dexter.sse.connections", sinks,
+            m -> m.values().stream().mapToInt(List::size).sum())
+        .description("Open recommendation SSE streams on this instance")
+        .register(io.micrometer.core.instrument.Metrics.globalRegistry);
   }
 
   /**

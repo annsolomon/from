@@ -9,7 +9,10 @@ import in.dexter.core.id.Ids;
 import in.dexter.events.EventEnvelope;
 import in.dexter.events.EventType;
 import in.dexter.events.KafkaClients;
+import in.dexter.events.consumer.DlqReplay;
 import in.dexter.events.consumer.EventConsumer;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.Metrics;
 import in.dexter.testkit.containers.TestKafka;
 import in.dexter.testkit.demo.DemoEvents;
 import in.dexter.testkit.demo.config.DemoApp;
@@ -39,6 +42,8 @@ class ConsumerIT {
 
   @BeforeAll
   static void setUp() {
+    // Spring Boot adds its registries to the global one; a plain IT gives it one so the event meters hold values.
+    Metrics.addRegistry(new io.micrometer.core.instrument.simple.SimpleMeterRegistry());
     app = DemoApp.get();
     DemoKafka.ensureTopics(CONSUMER);
     producer = KafkaClients.idempotentProducer(TestKafka.bootstrapServers(), "consumer-it");
@@ -144,6 +149,81 @@ class ConsumerIT {
     assertThat(header(dlq.getFirst(), EventConsumer.H_ATTEMPT)).isEqualTo("3");
     assertThat(header(dlq.getFirst(), EventConsumer.H_ERROR)).contains("never be projected");
     assertThat(stats(a)[0]).isZero();
+  }
+
+  /**
+   * P19 (docs/runbooks/dlq-replay.md): a dead letter is visible on the dexter_dlq_messages gauge; once the cause is
+   * fixed, replay puts it back on the consumer's retry topic, it is applied once, and it is gone from the DLQ.
+   */
+  @Test
+  void aDeadLetterIsCountedThenReplayedOnceTheCauseIsFixed() throws Exception {
+    UUID a = UUID.randomUUID();
+    String title = "fixed-later-" + a;
+    projector.failTitle(title, 3); // fails the first delivery and both retries → DLQ
+    publish(created(a, UUID.randomUUID(), title, 77));
+    List<ConsumerRecord<String, byte[]>> dead = KafkaProbe.read(DemoKafka.dlq(CONSUMER),
+        r -> a.toString().equals(r.key()), l -> !l.isEmpty(), Duration.ofSeconds(60));
+    assertThat(dead).hasSize(1);
+    assertThat(stats(a)[0]).isZero();
+    // the main stage measures its DLQ depth every 30 s
+    await().atMost(Duration.ofSeconds(75)).until(() -> dlqGauge() > 0);
+
+    DlqReplay.Result dry = DlqReplay.replay(TestKafka.bootstrapServers(), producer, DemoEvents.TOPIC, CONSUMER,
+        "retry-1m", r -> a.toString().equals(r.key()), true);
+    assertThat(dry.replayed()).isEqualTo(1);
+    assertThat(stats(a)[0]).isZero();
+
+    // the cause is fixed (the injected failures are used up): replay only this account's message
+    DlqReplay.Result r = DlqReplay.replay(TestKafka.bootstrapServers(), producer, DemoEvents.TOPIC, CONSUMER,
+        "retry-1m", rec -> a.toString().equals(rec.key()), false);
+    assertThat(r.replayed()).isEqualTo(1);
+    assertThat(r.target()).isEqualTo(DemoKafka.retryTopic(CONSUMER, "retry-1m"));
+    await().atMost(Duration.ofSeconds(60)).until(() -> stats(a)[0] == 1);
+    assertThat(stats(a)).containsExactly(1, 77);
+    List<ConsumerRecord<String, byte[]>> replayed = KafkaProbe.read(DemoKafka.retryTopic(CONSUMER, "retry-1m"),
+        rec -> a.toString().equals(rec.key()) && rec.headers().lastHeader(DlqReplay.H_REPLAYED) != null,
+        l -> !l.isEmpty(), Duration.ofSeconds(20));
+    assertThat(header(replayed.getFirst(), DlqReplay.H_REPLAYED)).isEqualTo("1");
+    assertThat(header(replayed.getFirst(), EventConsumer.H_ATTEMPT)).isEqualTo("1");
+    // Replay is safe to repeat: a filtered replay leaves the DLQ in place where other messages sit before this one
+    // on its partition, so the same dead letter can be replayed twice; the inbox makes the second a no-op.
+    int skippedBefore = projector.duplicatesSkipped.get();
+    DlqReplay.Result again = DlqReplay.replay(TestKafka.bootstrapServers(), producer, DemoEvents.TOPIC, CONSUMER,
+        "retry-1m", rec -> a.toString().equals(rec.key()), false);
+    if (again.replayed() > 0) {
+      await().atMost(Duration.ofSeconds(60)).until(() -> projector.duplicatesSkipped.get() > skippedBefore);
+    }
+    assertThat(stats(a)).containsExactly(1, 77);
+  }
+
+  @Test
+  void anUnfilteredReplayEmptiesTheDlq() throws Exception {
+    UUID a = UUID.randomUUID();
+    String title = "fixed-later-" + a;
+    projector.failTitle(title, 3);
+    publish(created(a, UUID.randomUUID(), title, 5));
+    KafkaProbe.read(DemoKafka.dlq(CONSUMER), r -> a.toString().equals(r.key()), l -> !l.isEmpty(),
+        Duration.ofSeconds(60));
+    DlqReplay.Result r = DlqReplay.replay(TestKafka.bootstrapServers(), producer, DemoEvents.TOPIC, CONSUMER,
+        "retry-1m", rec -> true, false);
+    assertThat(r.replayed()).isGreaterThanOrEqualTo(1);
+    assertThat(r.kept()).isZero();
+    assertThat(r.truncatedTo()).isNotEmpty();
+    await().atMost(Duration.ofSeconds(60)).until(() -> stats(a)[0] == 1);
+    // what was on the DLQ when the replay started is gone (messages that fail again come back after it)
+    try (var kc = new org.apache.kafka.clients.consumer.KafkaConsumer<String, byte[]>(java.util.Map.of(
+        "bootstrap.servers", TestKafka.bootstrapServers()), new org.apache.kafka.common.serialization.StringDeserializer(),
+        new org.apache.kafka.common.serialization.ByteArrayDeserializer())) {
+      r.truncatedTo().forEach((partition, offset) -> {
+        var tp = new org.apache.kafka.common.TopicPartition(DemoKafka.dlq(CONSUMER), partition);
+        assertThat(kc.beginningOffsets(List.of(tp)).get(tp)).isGreaterThanOrEqualTo(offset);
+      });
+    }
+  }
+
+  static double dlqGauge() {
+    Gauge g = Metrics.globalRegistry.find("dexter.dlq.messages").tag("consumer", CONSUMER).gauge();
+    return g == null ? 0 : g.value();
   }
 
   static String header(ConsumerRecord<String, byte[]> r, String k) {

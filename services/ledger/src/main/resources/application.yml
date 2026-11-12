@@ -51,6 +51,28 @@ management:
   metrics:
     tags:
       service: ledger
+      application: dexter
+    distribution:
+      # P19: histogram buckets so Prometheus can compute p95/p99 per route (dashboards, SLO alerts).
+      percentiles-histogram:
+        http.server.requests: true
+        dexter.event.handle: true
+  # P19 (ADR-0025): traces over OTLP to the collector; on in the live stack (scripts/run.sh), off in tests.
+  tracing:
+    sampling:
+      probability: ${DEXTER_TRACING_SAMPLING:1.0}
+    export:
+      enabled: ${DEXTER_TRACING_ENABLED:false}
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: ${DEXTER_OTLP_TRACES:http://127.0.0.1:4318/v1/traces}
+  otlp:
+    metrics:
+      export:
+        # Metrics are pulled by Prometheus from /actuator/prometheus; no OTLP push.
+        enabled: false
 
 logging:
   pattern:

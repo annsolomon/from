@@ -45,6 +45,9 @@ start_services() {
   # P18 (ADR-0024): the running stack takes part in the privacy saga. Set here, not in .env: verify.sh exports .env
   # into the Maven ITs, whose service contexts must never start a privacy consumer.
   export DEXTER_PRIVACY_ENABLED=${DEXTER_PRIVACY_ENABLED:-true}
+  # P19 (ADR-0025): spans go to the obs profile's collector (127.0.0.1:4318). Exporting with no collector running
+  # only logs a warning. Not in .env, for the same reason as above: the Maven ITs must not export.
+  export DEXTER_TRACING_ENABLED=${DEXTER_TRACING_ENABLED:-true}
   mkdir -p "$RUN_DIR/logs" "$RUN_DIR/pids"
   for entry in "${DEXTER_SERVICES[@]}"; do
     svc=${entry%%:*}; port=${entry##*:}

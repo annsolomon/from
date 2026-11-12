@@ -57,7 +57,7 @@ public class CatalogConfiguration {
       this.dataSource = dataSource;
       this.jdbc = JdbcClient.create(dataSource);
       this.tx = new TenantTx(new JdbcTransactionManager(dataSource), jdbc);
-      this.outbox = new OutboxWriter(jdbc, codec, schema, schema, clock, () -> null);
+      this.outbox = new OutboxWriter(jdbc, codec, schema, schema, clock, in.dexter.events.EventTracing.traceparentSupplier());
     }
 
     @Override

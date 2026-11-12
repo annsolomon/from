@@ -15,6 +15,7 @@
   <description>Spend profile, catalog projection, scoring, wallet optimizer, best-card, SSE</description>
 
   <dependencies>
+    <dependency><groupId>in.dexter</groupId><artifactId>dexter-observability</artifactId></dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-webmvc</artifactId>

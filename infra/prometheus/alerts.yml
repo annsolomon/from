@@ -1,0 +1,81 @@
+# P19 (ADR-0025): alert rules for the Dexter services. Loaded by prometheus.yml (rule_files); checked by
+# `promtool check rules` in verify.sh static (static.obs-config) and listed by the obs check in verify.sh full.
+# Thresholds are MASTER_PLAN 8.1's targets; the runbook for each alert is in docs/runbooks/alerts.md.
+groups:
+  - name: dexter-availability
+    rules:
+      - alert: DexterServiceDown
+        expr: up{job="dexter-services"} == 0
+        for: 1m
+        labels: {severity: page}
+        annotations:
+          summary: "{{ $labels.instance }} is not answering /actuator/prometheus"
+          runbook: docs/runbooks/alerts.md#dexterservicedown
+
+  - name: dexter-red
+    rules:
+      - record: dexter:http_requests:rate5m
+        expr: sum by (service) (rate(http_server_requests_seconds_count{application="dexter"}[5m]))
+      - record: dexter:http_errors:rate5m
+        expr: sum by (service) (rate(http_server_requests_seconds_count{application="dexter", status=~"5.."}[5m]))
+      - record: dexter:http_latency_p99:5m
+        expr: >-
+          histogram_quantile(0.99, sum by (service, le)
+            (rate(http_server_requests_seconds_bucket{application="dexter", uri!~"/actuator.*"}[5m])))
+      - alert: DexterHighErrorRate
+        expr: dexter:http_errors:rate5m / clamp_min(dexter:http_requests:rate5m, 0.001) > 0.02
+        for: 5m
+        labels: {severity: page}
+        annotations:
+          summary: "{{ $labels.service }}: more than 2% of requests answer 5xx"
+          runbook: docs/runbooks/alerts.md#dexterhigherrorrate
+      - alert: DexterSlowRequests
+        expr: dexter:http_latency_p99:5m > 0.2
+        for: 10m
+        labels: {severity: ticket}
+        annotations:
+          summary: "{{ $labels.service }}: p99 above 200 ms for 10 minutes (target: reads 150 ms, writes 200 ms)"
+          runbook: docs/runbooks/alerts.md#dexterslowrequests
+
+  - name: dexter-events
+    rules:
+      - alert: DexterOutboxLag
+        expr: max by (schema) (dexter_outbox_lag_millis) > 5000
+        for: 2m
+        labels: {severity: page}
+        annotations:
+          summary: "{{ $labels.schema }}: oldest unpublished outbox row is older than 5 s (target p95 < 1 s)"
+          runbook: docs/runbooks/alerts.md#dexteroutboxlag
+      - alert: DexterDeadLetters
+        expr: max by (consumer, topic) (dexter_dlq_messages) > 0
+        for: 1m
+        labels: {severity: ticket}
+        annotations:
+          summary: "{{ $labels.consumer }}: {{ $value }} message(s) on {{ $labels.topic }}"
+          runbook: docs/runbooks/dlq-replay.md
+      - alert: DexterConsumerLag
+        expr: max by (service, client_id) (kafka_consumer_fetch_manager_records_lag_max{application="dexter"}) > 1000
+        for: 5m
+        labels: {severity: ticket}
+        annotations:
+          summary: "{{ $labels.service }} consumer {{ $labels.client_id }} is more than 1000 records behind"
+          runbook: docs/runbooks/alerts.md#dexterconsumerlag
+
+  - name: dexter-resources
+    rules:
+      - alert: DexterDbPoolExhausted
+        expr: max by (service, pool) (hikaricp_connections_pending{application="dexter"}) > 0
+        for: 2m
+        labels: {severity: ticket}
+        annotations:
+          summary: "{{ $labels.service }} pool {{ $labels.pool }}: requests waiting for a connection"
+          runbook: docs/runbooks/alerts.md#dexterdbpoolexhausted
+      - alert: DexterHeapPressure
+        expr: >-
+          max by (service) (sum by (service, id) (jvm_memory_used_bytes{application="dexter", area="heap"})
+            / sum by (service, id) (jvm_memory_max_bytes{application="dexter", area="heap"} > 0)) > 0.9
+        for: 10m
+        labels: {severity: ticket}
+        annotations:
+          summary: "{{ $labels.service }}: a heap pool above 90% for 10 minutes"
+          runbook: docs/runbooks/alerts.md#dexterheappressure

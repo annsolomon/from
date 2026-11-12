@@ -2,6 +2,8 @@ package in.dexter.events.consumer;
 
 import in.dexter.events.EnvelopeCodec;
 import in.dexter.events.EventEnvelope;
+import in.dexter.events.EventMetrics;
+import in.dexter.events.EventTracing;
 import in.dexter.events.Topics;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
@@ -169,9 +171,15 @@ public final class EventConsumer implements AutoCloseable {
 
   private void run(KafkaConsumer<String, byte[]> kc, List<String> topics, int stage) {
     Map<TopicPartition, Long> pausedUntil = new HashMap<>();
+    AutoCloseable meters = EventMetrics.bind(kc);
+    long lastDlqCheck = 0;
     try {
       kc.subscribe(topics);
       while (running) {
+        if (stage == 0 && System.currentTimeMillis() - lastDlqCheck >= 30_000) {
+          lastDlqCheck = System.currentTimeMillis();
+          measureDlq(kc);
+        }
         resumeDue(kc, pausedUntil);
         ConsumerRecords<String, byte[]> records = kc.poll(s.pollTimeout());
         Map<TopicPartition, OffsetAndMetadata> commit = new HashMap<>();
@@ -218,9 +226,40 @@ public final class EventConsumer implements AutoCloseable {
       log.error("consumer {} stopped: {}", s.groupId(stage), e.toString(), e);
     } finally {
       try {
+        meters.close();
+      } catch (Exception ignored) {
+        // metrics only
+      }
+      try {
         kc.close(Duration.ofSeconds(5));
       } catch (RuntimeException ignored) {
         // closing anyway
+      }
+    }
+  }
+
+  /**
+   * {@code dexter_dlq_messages{consumer,topic}}: end minus beginning offsets of each dead-letter topic of this
+   * consumer (P19 alert: DLQ non-empty). Called from the main stage's own poll thread (a KafkaConsumer is not
+   * thread-safe) every 30 s; a missing topic counts 0.
+   */
+  private void measureDlq(KafkaConsumer<String, byte[]> kc) {
+    for (String topic : s.topics()) {
+      String dlq = Topics.dlq(topic, s.consumer());
+      try {
+        List<TopicPartition> parts = kc.partitionsFor(dlq, Duration.ofSeconds(2)).stream()
+            .map(pi -> new TopicPartition(pi.topic(), pi.partition())).toList();
+        long n = 0;
+        if (!parts.isEmpty()) {
+          Map<TopicPartition, Long> end = kc.endOffsets(parts, Duration.ofSeconds(2));
+          Map<TopicPartition, Long> begin = kc.beginningOffsets(parts, Duration.ofSeconds(2));
+          for (TopicPartition tp : parts) {
+            n += Math.max(0, end.getOrDefault(tp, 0L) - begin.getOrDefault(tp, 0L));
+          }
+        }
+        EventMetrics.dlqMessages(s.consumer(), dlq).set(n);
+      } catch (RuntimeException e) {
+        log.debug("consumer {}: DLQ depth of {} not measured: {}", s.consumer(), dlq, e.toString());
       }
     }
   }
@@ -257,9 +296,13 @@ public final class EventConsumer implements AutoCloseable {
       forward(r, Topics.dlq(original, s.consumer()), original, stage + 1, 0, poison);
       return;
     }
+    long started = System.nanoTime();
     try {
-      handler.handle(e);
+      final EventEnvelope event = e;
+      EventTracing.current().consume(s.consumer(), event, () -> handler.handle(event));
+      EventMetrics.handled(s.consumer(), e.type(), "ok", System.nanoTime() - started);
     } catch (Exception failure) {
+      EventMetrics.handled(s.consumer(), e.type(), "error", System.nanoTime() - started);
       if (failure instanceof InterruptedException) {
         Thread.currentThread().interrupt();
       }

@@ -67,6 +67,14 @@ Next chat: **P19** (hardening & release). Upload `MASTER_PLAN.md` + this file; v
 
 ## 3. Verification of previous phase
 
+### P18 re-verified in the P19 chat (latest report on `verify-reports`: CI run 43173657246, git e2d2589, 2026-11-12)
+
+Read, not re-run: `RUN.txt` says `verify_full=success`, `trail_check=success` for `e2d2589` (the P18 docs commit on
+top of `2635579`). `steps.tsv` has all **22** steps PASS, no SKIP; api-smoke **659 PASS / 0 FAIL** (83 of them P18's:
+two accounts with data in all seven services, the export's seven parts, 0 rows of the deleted account in every
+service and audit, the other account untouched); trail-check **125 PASS / 0 FAIL / 0 SKIP** including `p18-*` 9/9;
+`ci` green on the same commit. P18 stands as DONE; nothing to fix before P19.
+
 ### P18 against its DoD (CI run 43142625115, git `2635579`, 2026-11-12)
 
 MASTER_PLAN P18 ticks one box, IT-GREEN; as for P15–P17 the table takes the phase's schema, consumers, saga,

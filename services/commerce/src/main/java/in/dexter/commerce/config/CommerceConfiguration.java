@@ -72,7 +72,7 @@ public class CommerceConfiguration {
       this.dataSource = dataSource;
       JdbcClient jdbc = JdbcClient.create(dataSource);
       this.tx = new TenantTx(new JdbcTransactionManager(dataSource), jdbc);
-      this.outbox = new OutboxWriter(jdbc, codec, schema, schema, clock, () -> null);
+      this.outbox = new OutboxWriter(jdbc, codec, schema, schema, clock, in.dexter.events.EventTracing.traceparentSupplier());
       this.repo = new CommerceRepository(jdbc, pager, mapper);
       this.ads = new AdRepository(jdbc, pager);
     }

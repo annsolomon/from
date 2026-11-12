@@ -4,6 +4,7 @@ import in.dexter.events.EnvelopeCodec;
 import in.dexter.events.InboxGuard;
 import in.dexter.events.InboxPurgeJob;
 import in.dexter.events.KafkaClients;
+import in.dexter.events.EventTracing;
 import in.dexter.events.OutboxWriter;
 import in.dexter.events.relay.OutboxRelay;
 import java.time.Clock;
@@ -48,7 +49,8 @@ public class DexterEventsAutoConfiguration {
     @ConditionalOnMissingBean
     OutboxWriter outboxWriter(JdbcClient jdbc, EnvelopeCodec codec, Environment env, ObjectProvider<Clock> clock) {
       String schema = env.getRequiredProperty("dexter.db.schema");
-      return new OutboxWriter(jdbc, codec, schema, schema, clock.getIfAvailable(Clock::systemUTC), () -> null);
+      return new OutboxWriter(jdbc, codec, schema, schema, clock.getIfAvailable(Clock::systemUTC),
+          EventTracing.traceparentSupplier());
     }
 
     @Bean

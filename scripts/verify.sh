@@ -160,6 +160,24 @@ check_trail_pager() {
   return "$rc"
 }
 
+# P19 (ADR-0025): dashboards are valid JSON whose every panel queries something; alert rules and the Prometheus
+# config pass promtool (in the pinned Prometheus image, when Docker is there).
+check_obs_config() {
+  python3 "$ROOT/scripts/lib/obs_static.py" "$ROOT" || return 1
+  if command -v docker >/dev/null 2>&1; then
+    local img; img=$(sed -n 's/^ *image: \(prom\/prometheus:.*\)$/\1/p' "$ROOT/infra/compose/docker-compose.yml" | head -n1)
+    local log="$VDIR/promtool.log"
+    timeout -k 10 300 docker run --rm --entrypoint promtool -v "$ROOT/infra/prometheus:/etc/prometheus:ro" "$img" \
+      check rules /etc/prometheus/alerts.yml > "$log" 2>&1 || { tail -n 15 "$log"; echo "promtool check rules failed"; return 1; }
+    timeout -k 10 120 docker run --rm --entrypoint promtool -v "$ROOT/infra/prometheus:/etc/prometheus:ro" "$img" \
+      check config --syntax-only /etc/prometheus/prometheus.yml >> "$log" 2>&1 || { tail -n 15 "$log"; echo "promtool check config failed"; return 1; }
+    grep -E 'SUCCESS' "$log" | head -n 4
+    echo "dashboards + promtool rules/config OK"
+  else
+    echo "dashboards OK; promtool skipped (no docker)"
+  fi
+}
+
 check_compose_config() { "${COMPOSE[@]}" --profile core --profile obs --profile trail config -q && echo "compose config valid"; }
 
 # ------------------------------------------------------------------ environment
@@ -319,6 +337,24 @@ services_up() {
   echo "services not UP; tails above, full logs in target/verify/run-logs-at-failure"
   return 1
 }
+# P19: the obs profile (collector, Tempo, Prometheus, Grafana) runs alongside the services, which export traces to
+# the collector (DEXTER_TRACING_ENABLED, set by run.sh) and are scraped by Prometheus.
+obs_up() { step_limit 900 "$ROOT/scripts/run.sh" obs; }
+obs_check() {
+  set -a; source "$ROOT/.env"; set +a
+  local rc=0 replay="$VDIR/dlq-replay.txt"
+  OBS_OUT="$VDIR/obs.txt" step_limit 900 python3 "$ROOT/scripts/lib/obs_check.py" || rc=1
+  # The DLQ replay tool runs from a real service jar against the live Kafka (dry run: reads, moves nothing).
+  step_limit 180 "$ROOT/scripts/dlq-replay.sh" ledger dexter.audit.privacy.v1 privacy-ledger --dry-run \
+    > "$replay" 2>&1 || rc=1
+  if grep -q '"dlq":"dexter.audit.privacy.v1.privacy-ledger.dlq"' "$replay"; then
+    echo "PASS  dlq-replay.dry-run: $(grep '"dlq"' "$replay" | tail -n 1)"
+  else
+    echo "FAIL  dlq-replay.dry-run:"; tail -n 20 "$replay"; rc=1
+  fi
+  echo "obs: $(grep -c '^PASS' "$VDIR/obs.txt" 2>/dev/null) PASS / $(grep -c '^FAIL' "$VDIR/obs.txt" 2>/dev/null) FAIL; dlq replay $([[ $rc -eq 0 ]] && echo ok || echo checked)"
+  return $rc
+}
 services_down() { "$ROOT/scripts/run.sh" stop >/dev/null 2>&1 || true; }
 api_smoke() { SMOKE_OUT="$VDIR/smoke.txt" step_limit 1500 "$ROOT/scripts/api-smoke.sh"; }
 # P03 (MASTER_PLAN 11.1): medium seed generated + loaded into the core Postgres within 10 min, then determinism
@@ -352,6 +388,7 @@ run_step static.poms-wellformed    check_xml_wellformed
 run_step static.shell-syntax       check_shell_syntax
 run_step static.readme             check_readme
 run_step static.trail-pager        check_trail_pager
+run_step static.obs-config         check_obs_config
 if command -v docker >/dev/null 2>&1 && [[ -f .env ]]; then run_step static.compose-config check_compose_config
 else skip static.compose-config "docker or .env not available"; fi
 
@@ -386,10 +423,13 @@ if [[ $MODE == full ]]; then
   fi
   if grep -q $'full.maven\tPASS' "$VDIR/steps.tsv"; then
     trap services_down EXIT
+    run_step full.obs-up obs_up
     run_step full.services-up services_up
     run_step full.seed-small seed_small_real
     run_step full.api-smoke api_smoke
     if command -v k6 >/dev/null; then run_step full.k6-smoke k6_smoke; else record full.k6-smoke FAIL "k6 not installed and auto-install failed - see target/verify/k6-install.log"; fi
+    if grep -q $'full.obs-up\tPASS' "$VDIR/steps.tsv"; then run_step full.obs-check obs_check
+    else skip full.obs-check "obs profile did not start"; fi
     services_down
   else
     skip full.api-smoke "maven build failed"; skip full.k6-smoke "maven build failed"

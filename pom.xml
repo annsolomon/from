@@ -28,6 +28,7 @@
     <module>libs/dexter-objectstore</module>
     <module>contracts</module>
     <module>libs/dexter-privacy</module>
+    <module>libs/dexter-observability</module>
     <module>libs/dexter-test</module>
     <module>libs/dexter-lab</module>
     <module>libs/portfolio-calc</module>
@@ -89,6 +90,11 @@
       <dependency>
         <groupId>in.dexter</groupId>
         <artifactId>dexter-privacy</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>in.dexter</groupId>
+        <artifactId>dexter-observability</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
