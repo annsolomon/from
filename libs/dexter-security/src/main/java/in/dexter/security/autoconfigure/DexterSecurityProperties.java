@@ -27,7 +27,7 @@ public record DexterSecurityProperties(
     @DefaultValue("5m") Duration jwksTtl,
     @DefaultValue("10s") Duration jwksMinRefetchInterval,
     @DefaultValue("1h") Duration jwksMaxStale,
-    @DefaultValue({"/_dev/**", "/error"}) List<String> publicPaths,
+    @DefaultValue({"/error"}) List<String> publicPaths,
     @DefaultValue Client client) {
 
   /**

@@ -121,12 +121,6 @@ breaker (Resilience4j, per service) and a 10 s response timeout.
 | `/v1/admin/audit:*` | `POST /v1/admin/audit:verify-chain` | audit | token | write | P18 |
 | `/v1/admin/activity/**` | `GET /v1/admin/activity/dashboard` | audit | token | read | P18 |
 
-## Dev profile only
-
-| Pattern | Example | Service | Access | Class | Phase |
-|---|---|---|---|---|---|
-| `/_dev/p04/**` (dev) | `POST /_dev/p04/keys/rotate` | identity | public | write | P04 |
-
 ## `/v1/calc/*` (P12b, portfolio)
 
 Stateless, POST only, no database, no idempotency key, no ETag: every answer is a pure function of the body
@@ -266,7 +260,7 @@ SUPER_ADMIN) or `audit:verify` (SUPER_ADMIN). ADR-0024.
 
 - `/oauth2/token` (service client credentials) and `/internal/**`: service-to-service only, never at the edge.
 - `/actuator/**` of the services: not routed; the gateway answers its own `/actuator/health` and `prometheus`.
-- `/_dev/**` other than the dev-profile row above.
+- `/_dev/**`: the trail's dev endpoints were removed for the release (P19); nothing answers there.
 
 ## Edge behaviour common to every route
 

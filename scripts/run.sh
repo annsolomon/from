@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Local runner for Codespaces.
-#   run.sh core|obs|trail|all   start infra profile(s) and wait until healthy
+#   run.sh core|obs|all   start infra profile(s) and wait until healthy
 #   run.sh services             build (if needed) and start all 10 services + the ai-parser in the background
 #   run.sh parser               start only the ai-parser (Python venv in .run/venv-ai-parser)
 #   run.sh svc <name>           run one service in the foreground (mvn spring-boot:run)
@@ -15,7 +15,7 @@ source scripts/lib/services.sh
 source scripts/lib/ai_parser.sh
 RUN_DIR="$ROOT/.run"
 COMPOSE=(docker compose --env-file "$ROOT/.env" -f "$ROOT/infra/compose/docker-compose.yml")
-ALL_PROFILES=(--profile core --profile obs --profile trail)
+ALL_PROFILES=(--profile core --profile obs)
 
 [[ -f .env ]] || { echo "no .env - run: cp .env.example .env" >&2; exit 1; }
 # Keys that later phases add to .env.example (P04: IDENTITY_*, SERVICE_CLIENT_SECRET) are appended to an existing
@@ -39,7 +39,7 @@ start_services() {
     fi
   done
   if [[ $missing -eq 1 ]]; then echo "building service jars (missing or stale)..."; mvn -B -q -DskipTests package; fi
-  # Local runs use the dev profile (dev-only endpoints such as /_dev/p01 for the trail). Never in prod.
+  # Local runs use the dev profile (relaxed local settings: plain-HTTP headers, full activity sampling). Never in prod.
   export SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-dev}
   echo "SPRING_PROFILES_ACTIVE=$SPRING_PROFILES_ACTIVE"
   # P18 (ADR-0024): the running stack takes part in the privacy saga. Set here, not in .env: verify.sh exports .env
@@ -109,8 +109,6 @@ case "$cmd" in
                   # P19 (ADR-0026): initialise / unseal Vault and (re)write the per-service secrets, policies, tokens.
                   python3 scripts/lib/vault_tool.py init ;;
   obs)            "${COMPOSE[@]}" --profile obs up -d --wait --wait-timeout 300 --remove-orphans ;;
-  trail)          # stateless: always recreate so nginx picks up the current trail.conf
-                  "${COMPOSE[@]}" --profile trail up -d --wait --wait-timeout 120 --force-recreate trail ;;
   all)            "${COMPOSE[@]}" "${ALL_PROFILES[@]}" up -d --wait --wait-timeout 300 --remove-orphans
                   python3 scripts/lib/vault_tool.py init ;;
   services)       start_services ;;

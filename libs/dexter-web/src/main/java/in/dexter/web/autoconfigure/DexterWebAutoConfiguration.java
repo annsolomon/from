@@ -1,6 +1,5 @@
 package in.dexter.web.autoconfigure;
 
-import in.dexter.web.dev.P01LabController;
 import in.dexter.web.error.ProblemDetailsAdvice;
 import in.dexter.web.etag.IfMatchArgumentResolver;
 import in.dexter.web.json.StrictJsonCustomizer;
@@ -12,7 +11,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -51,12 +49,5 @@ public class DexterWebAutoConfiguration {
         resolvers.add(new IfMatchArgumentResolver());
       }
     };
-  }
-
-  /** Dev-only trail lab (MASTER_PLAN 11.2). Never active outside the {@code dev} profile. */
-  @Bean
-  @Profile("dev")
-  P01LabController dexterP01LabController() {
-    return new P01LabController();
   }
 }

@@ -37,17 +37,8 @@ public final class RouteMatcher {
     }
   }
 
-  public static RouteMatcher standard(boolean devRoutes) {
-    List<ServiceRoute> table = new ArrayList<>(RouteTable.ROUTES);
-    List<PublicRoute> pub = new ArrayList<>(RouteTable.PUBLIC);
-    if (devRoutes) {
-      table.add(RouteTable.DEV_IDENTITY);
-      RouteTable.DEV_IDENTITY.patterns().forEach(p -> {
-        pub.add(new PublicRoute("GET", p));
-        pub.add(new PublicRoute("POST", p));
-      });
-    }
-    return new RouteMatcher(table, pub);
+  public static RouteMatcher standard() {
+    return new RouteMatcher(new ArrayList<>(RouteTable.ROUTES), new ArrayList<>(RouteTable.PUBLIC));
   }
 
   /** The first route (table order) whose pattern matches, or null. */

@@ -73,10 +73,6 @@ public final class RouteTable {
       new PublicRoute("POST", "/v1/webhooks/**"),
       new PublicRoute("GET", "/v1/recommendations/stream"));
 
-  /** Dev profile only: the trail's dev endpoints of identity (P04 key rotation). */
-  public static final ServiceRoute DEV_IDENTITY = new ServiceRoute("identity-dev", "identity",
-      List.of("/_dev/p04/**"), false);
-
   public static final List<String> SERVICES = List.of("identity", "ledger", "catalog", "portfolio", "planning",
       "reco", "billing", "commerce", "audit");
 

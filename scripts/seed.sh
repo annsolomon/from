@@ -6,8 +6,6 @@
 #       seed_stage.<table>). Needs ./scripts/run.sh core.
 #   ./scripts/seed.sh check [medium] [--seed 42]
 #       determinism: generates the dataset a second time and requires the identical checksum.
-#   ./scripts/seed.sh fixtures
-#       regenerates test-ui/fixtures/seed/*.json (small, seed 42) for the trail's mock mode.
 # Time limit: SEED_MAX_SECONDS (default 600) fails generate+load if it takes longer (P03 DoD: medium < 10 min).
 set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -19,7 +17,6 @@ SIZE=""; SEED=42; REGEN=0; LOAD=1
 case "$CMD" in
   small|medium|large) SIZE=$CMD ;;
   check) if [[ ${1:-} =~ ^(small|medium|large)$ ]]; then SIZE=$1; shift; else SIZE=medium; fi ;;
-  fixtures) SIZE=small ;;
   *) usage ;;
 esac
 while [[ $# -gt 0 ]]; do
@@ -63,12 +60,6 @@ build_jar
 OUT=target/seed/$SIZE-$SEED
 
 case "$CMD" in
-  fixtures)
-    tmp=$(mktemp -d)
-    rm -rf test-ui/fixtures/seed
-    generate "$tmp/ds" --fixtures test-ui/fixtures/seed && rm -rf "$tmp" || exit 1
-    echo "fixtures written: test-ui/fixtures/seed ($(ls test-ui/fixtures/seed | wc -l) files) - commit them"
-    exit 0 ;;
   check)
     a=$(checksum_of "$OUT")
     if [[ -z $a || $REGEN -eq 1 ]]; then generate "$OUT" >/dev/null || exit 1; a=$(checksum_of "$OUT"); fi

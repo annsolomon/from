@@ -59,7 +59,7 @@ public class GatewayConfiguration {
 
   @Bean
   RouteMatcher routeMatcher(GatewayProperties p) {
-    return RouteMatcher.standard(p.devRoutes());
+    return RouteMatcher.standard();
   }
 
   @Bean
@@ -72,9 +72,6 @@ public class GatewayConfiguration {
   @Bean
   RouteLocator dexterRoutes(RouteLocatorBuilder builder, GatewayProperties p) {
     List<ServiceRoute> table = new ArrayList<>(RouteTable.ROUTES);
-    if (p.devRoutes()) {
-      table.add(RouteTable.DEV_IDENTITY);
-    }
     RouteLocatorBuilder.Builder routes = builder.routes();
     long connectMs = p.connectTimeout().toMillis();
     long responseMs = p.responseTimeout().toMillis();

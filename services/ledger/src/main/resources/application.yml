@@ -97,7 +97,7 @@ dexter:
     active-kid: c1
     keys:
       c1: ${LEDGER_CURSOR_KEY_C1:}
-  # Every request needs a user token from identity (audience "ledger"); /_dev/** stays public (dev labs).
+  # Every request needs a user token from identity (audience "ledger").
   security:
     jwks-uri: ${IDENTITY_JWKS_URI:http://127.0.0.1:${PORT_IDENTITY:8081}/.well-known/jwks.json}
     issuer: ${IDENTITY_ISSUER:https://identity.dexter.internal}
@@ -129,23 +129,3 @@ logging:
     json:
       # PII masking for ECS JSON logs (MASTER_PLAN 7.4)
       customizer: in.dexter.web.logging.PiiMaskingJsonMembersCustomizer
-
----
-# DEV-ONLY P02 lab (dexter-lab, A-23): database `lab`, Kafka, Redis user `lab`. run.sh exports .env, so these
-# placeholders pick up the dev passwords; the defaults match .env.example. Removed in P19.
-spring:
-  config:
-    activate:
-      on-profile: dev
-dexter:
-  lab:
-    p02:
-      enabled: true
-      jdbc-url: jdbc:postgresql://127.0.0.1:${POSTGRES_PORT:5432}/lab
-      owner-password: ${PG_PW_LAB_OWNER:${PG_PW_OWNER:dev_owner_pw}}
-      app-password: ${PG_PW_LAB_APP:${PG_PW_APP:dev_app_pw}}
-      relay-password: ${PG_PW_LAB_RELAY:${PG_PW_RELAY:dev_relay_pw}}
-      kafka-bootstrap: 127.0.0.1:${KAFKA_PORT:9092}
-      redis-host: 127.0.0.1
-      redis-port: ${REDIS_PORT:6379}
-      redis-password: ${REDIS_PW_LAB:${REDIS_PW_SERVICE:dev_redis_svc_pw}}

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Dexter v2 verification (MASTER_PLAN 10).
-#   ./scripts/verify.sh static   no Maven: forbidden patterns, migration names, RLS gate, skeletons, README,
-#                                trail kit spec (node --test test-ui/tests/pager.spec.js)
+#   ./scripts/verify.sh static   no Maven: forbidden patterns, migration names, RLS gate, skeletons, README, obs
+#                                config, release guard
 #   ./scripts/verify.sh unit     static + mvn -DskipITs verify + ai-parser pytest (venv in .run/venv-ai-parser)
 #   ./scripts/verify.sh full     static + infra up (core) + mvn verify (ITs) + ai-parser pytest + seed medium
 #                                (generate + load, < 10 min) + seed determinism + services (+ ai-parser) + api-smoke
@@ -151,15 +151,6 @@ check_readme() {
   [[ $miss -eq 0 ]]
 }
 
-check_trail_pager() {
-  # MASTER_PLAN P03: the trail kit's pager/mock router/idempotency spec. Plain node, no npm install.
-  command -v node >/dev/null || { echo "node not installed (devcontainer feature 'node'; apt-get install nodejs)"; return 1; }
-  node --test test-ui/tests/pager.spec.js 2>&1 | tail -n 12
-  local rc=${PIPESTATUS[0]}
-  echo "pager.spec.js (node $(node --version)): $([[ $rc -eq 0 ]] && echo PASS || echo FAIL)"
-  return "$rc"
-}
-
 # P19 (ADR-0025): dashboards are valid JSON whose every panel queries something; alert rules and the Prometheus
 # config pass promtool (in the pinned Prometheus image, when Docker is there).
 check_obs_config() {
@@ -178,7 +169,7 @@ check_obs_config() {
   fi
 }
 
-check_compose_config() { "${COMPOSE[@]}" --profile core --profile obs --profile trail config -q && echo "compose config valid"; }
+check_compose_config() { "${COMPOSE[@]}" --profile core --profile obs config -q && echo "compose config valid"; }
 
 # ------------------------------------------------------------------ environment
 write_env() {
@@ -235,7 +226,7 @@ infra_up() {
   local down=(down --remove-orphans --timeout 20)
   [[ ${KEEP_VOLUMES:-0} == 1 ]] || down+=(-v)
   echo "reset: docker compose ${down[*]}"
-  "${COMPOSE[@]}" --profile core --profile obs --profile trail "${down[@]}" 2>&1 | tail -n 3
+  "${COMPOSE[@]}" --profile core --profile obs "${down[@]}" 2>&1 | tail -n 3
   timeout -k 20 900 "$ROOT/scripts/run.sh" core || rc=$?
   "${COMPOSE[@]}" --profile core ps -a > "$VDIR/compose-ps.txt" 2>&1
   if [[ $rc -ne 0 ]]; then
@@ -403,7 +394,6 @@ run_step static.skeletons          check_skeletons
 run_step static.poms-wellformed    check_xml_wellformed
 run_step static.shell-syntax       check_shell_syntax
 run_step static.readme             check_readme
-run_step static.trail-pager        check_trail_pager
 run_step static.obs-config         check_obs_config
 run_step static.release-guard      "$ROOT/scripts/release-guard.sh"
 if command -v docker >/dev/null 2>&1 && [[ -f .env ]]; then run_step static.compose-config check_compose_config

@@ -98,7 +98,6 @@ dexter:
     # cannot set a header - the gateway lists it public and forwards it with no Authorization, so this service has
     # to let it reach the controller, which then checks the ticket (ADR-0021 §9).
     public-paths:
-      - /_dev/**
       - /error
       - /v1/recommendations/stream
   reco:

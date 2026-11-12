@@ -104,8 +104,7 @@ def main():
           (statuses, h, d))
 
     s, h, d = call("GET", GW + "/_dev/p04/keys")
-    check("dev route /_dev/p04/keys (dev profile): 200 through the gateway", s == 200 and (d or {}).get("activeKid"),
-          (s, d))
+    check("release: /_dev/p04/keys has no route at the gateway (404)", s == 404, (s, d))
 
 
 if __name__ == "__main__":

@@ -30,7 +30,6 @@
     <module>libs/dexter-privacy</module>
     <module>libs/dexter-observability</module>
     <module>libs/dexter-test</module>
-    <module>libs/dexter-lab</module>
     <module>libs/portfolio-calc</module>
     <module>seed</module>
     <module>services/gateway</module>
@@ -105,11 +104,6 @@
       <dependency>
         <groupId>in.dexter</groupId>
         <artifactId>dexter-test</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>in.dexter</groupId>
-        <artifactId>dexter-lab</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

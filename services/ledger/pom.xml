@@ -21,14 +21,9 @@
       <artifactId>spring-boot-starter-webmvc</artifactId>
     </dependency>
     <dependency>
-      <!-- P01: request id + MDC, ProblemDetail codes, strict JSON, PII-masked logs, dev-only /_dev/p01 lab -->
+      <!-- P01: request id + MDC, ProblemDetail codes, strict JSON, PII-masked logs -->
       <groupId>in.dexter</groupId>
       <artifactId>dexter-web</artifactId>
-    </dependency>
-    <dependency>
-      <!-- DEV-ONLY P02 lab (/_dev/p02/*, dev profile + dexter.lab.p02.enabled), A-23. Removed in P19. -->
-      <groupId>in.dexter</groupId>
-      <artifactId>dexter-lab</artifactId>
     </dependency>
     <!-- P07: the platform libraries (TenantTx/keyset, Idempotency-Key, outbox + relay, JWT verification) -->
     <dependency><groupId>in.dexter</groupId><artifactId>dexter-db</artifactId></dependency>

@@ -15,13 +15,12 @@ import org.junit.jupiter.api.Test;
 /** docs/api/routes.md and the code's route table are the same thing (MASTER_PLAN P06 DoD). */
 class RouteDocsTest {
   final List<RoutesDoc.Row> rows = RoutesDoc.rows();
-  final RouteMatcher matcher = RouteMatcher.standard(true);
+  final RouteMatcher matcher = RouteMatcher.standard();
 
   @Test
   void everyPatternIsDocumentedAndNothingElse() {
     Set<String> code = new LinkedHashSet<>();
     RouteTable.ROUTES.forEach(r -> code.addAll(r.patterns()));
-    code.addAll(RouteTable.DEV_IDENTITY.patterns());
     Set<String> doc = new LinkedHashSet<>();
     rows.forEach(r -> doc.add(r.pattern()));
     assertThat(doc).containsExactlyInAnyOrderElementsOf(code);
@@ -57,7 +56,7 @@ class RouteDocsTest {
         "/v1/expensesx", "/v1/admin/unknown", "/_dev/p02/status")) {
       assertThat(matcher.match("GET", p)).as(p).isNull();
     }
-    assertThat(RouteMatcher.standard(false).match("POST", "/_dev/p04/keys/rotate")).isNull();
+    assertThat(matcher.match("POST", "/_dev/p04/keys/rotate")).isNull();
   }
 
   @Test

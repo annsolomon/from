@@ -178,12 +178,10 @@ def main():
         check("client credentials", False, "SERVICE_CLIENT_SECRET not set")
 
     before = t2["accessToken"]
-    s, _, k1 = call("GET", ID + "/_dev/p04/keys")
-    s, _, k2 = call("POST", ID + "/_dev/p04/keys/rotate")
-    check("dev key rotation: new active kid", s == 200 and k1 and k2 and k1.get("activeKid") != k2.get("activeKid"),
-          (k1, k2))
+    s, _, _ = call("GET", ID + "/_dev/p04/keys")
+    check("release: the dev key-rotation endpoint is gone (rotation is the scheduled job)", s in (401, 404), s)
     s, _, d = call("GET", ID + "/v1/me", headers=bearer(before))
-    check("token signed before the rotation is still accepted", s == 200, (s, d))
+    check("token still accepted", s == 200, (s, d))
 
     s, _, _ = call("POST", ID + "/v1/auth/logout", headers=bearer(before))
     check("logout: 204", s == 204, s)

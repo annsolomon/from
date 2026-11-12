@@ -1,5 +1,5 @@
 # Dexter v2 local infrastructure. Run through scripts/run.sh (it passes --env-file ../../.env).
-# Profiles: core (verify.sh full), obs (observability), trail (throwaway HTML trail, deleted in P19).
+# Profiles: core (verify.sh full), obs (observability). The trail profile was deleted for the release (P19).
 name: ${COMPOSE_PROJECT_NAME:-dexter}
 
 x-restart: &restart
@@ -203,22 +203,6 @@ services:
       timeout: 5s
       retries: 10
 
-  # ------------------------------------------------------------------ trail (deleted in P19)
-  trail:
-    <<: *restart
-    image: nginx:1.28-alpine
-    profiles: [trail]
-    extra_hosts: ["host.docker.internal:host-gateway"]
-    volumes:
-      - ../../test-ui:/usr/share/nginx/html:ro
-      # directory mount, not a single file: single-file bind mounts pin the old inode when the file is replaced
-      - ../nginx:/etc/nginx/conf.d:ro
-    ports: ["127.0.0.1:8099:80"]
-    healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/index.html"]  # not "localhost": may resolve to ::1
-      interval: 10s
-      timeout: 3s
-      retries: 10
 
 volumes:
   pgdata:

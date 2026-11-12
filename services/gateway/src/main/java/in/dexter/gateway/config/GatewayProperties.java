@@ -11,7 +11,6 @@ import org.springframework.util.unit.DataSize;
  * {@code dexter.gateway.*} (MASTER_PLAN P06, 7.3).
  *
  * @param services       base URI per service name (the route table's targets)
- * @param devRoutes      route the trail's dev endpoints ({@code /_dev/p04/**}); dev profile only
  * @param maxBody        request body limit (256 KB; uploads use presigned URLs)
  * @param responseTimeout per-route response timeout (not for SSE)
  * @param trustedProxies proxies whose {@code X-Forwarded-For} is believed (CIDRs); the client IP is the right-most
@@ -20,7 +19,6 @@ import org.springframework.util.unit.DataSize;
 @ConfigurationProperties("dexter.gateway")
 public record GatewayProperties(
     Map<String, String> services,
-    @DefaultValue("false") boolean devRoutes,
     @DefaultValue("256KB") DataSize maxBody,
     @DefaultValue("2s") Duration connectTimeout,
     @DefaultValue("10s") Duration responseTimeout,
