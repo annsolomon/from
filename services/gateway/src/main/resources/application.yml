@@ -6,6 +6,13 @@ spring:
   # P19: the upstream connection pool. Reactor Netty's default (2 x cores, min 16, a short pending queue) is the
   # first thing a load test meets; a pool acquire failure counts against the route's breaker and opens it.
   cloud:
+    # P19 scale r5: Spring Cloud CircuitBreaker's default Resilience4j bulkhead (25 concurrent calls per breaker)
+    # rejected the 26th concurrent request, counted it as a failure and opened the breaker for everyone. Off:
+    # concurrency is bounded by the rate limits and the upstream pool (ResilienceIT.manyConcurrentCalls...).
+    circuitbreaker:
+      bulkhead:
+        resilience4j:
+          enabled: false
     gateway:
       server:
         webflux:

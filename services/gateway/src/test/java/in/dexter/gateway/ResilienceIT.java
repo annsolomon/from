@@ -26,6 +26,34 @@ class ResilienceIT extends GatewayIT {
     r.add("dexter.gateway.breaker.wait-open", () -> "60s");
   }
 
+  /**
+   * P19 scale r5: Spring Cloud CircuitBreaker wraps every call in a Resilience4j bulkhead of 25 concurrent calls by
+   * default; the 26th concurrent request to one service was rejected (BulkheadFullException), counted as a failure,
+   * and the breaker opened for everyone - 385k 503s in the scale run. The bulkhead is off; concurrency is bounded by
+   * the rate limits and the upstream pool. 60 concurrent calls to one service all reach it.
+   */
+  @Test
+  void manyConcurrentCallsToOneServiceAreNotRejected() throws Exception {
+    BACKENDS.get("portfolio").stubFor(get(urlPathEqualTo("/v1/cards/concurrent")).atPriority(1)
+        .willReturn(aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBody("{}")
+            .withFixedDelay(300)));
+    String token = Tokens.user();
+    java.util.List<java.util.concurrent.CompletableFuture<java.net.http.HttpResponse<String>>> calls =
+        new java.util.ArrayList<>();
+    java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+    for (int i = 0; i < 60; i++) {
+      calls.add(client.sendAsync(java.net.http.HttpRequest.newBuilder(
+              java.net.URI.create("http://localhost:" + port + "/v1/cards/concurrent"))
+              .timeout(java.time.Duration.ofSeconds(20)).header("Authorization", "Bearer " + token)
+              .header("X-Forwarded-For", ip()).GET().build(),
+          java.net.http.HttpResponse.BodyHandlers.ofString()));
+    }
+    java.util.Map<Integer, Long> statuses = calls.stream().map(java.util.concurrent.CompletableFuture::join)
+        .collect(java.util.stream.Collectors.groupingBy(java.net.http.HttpResponse::statusCode,
+            java.util.stream.Collectors.counting()));
+    assertThat(statuses).as("status -> count").containsExactly(java.util.Map.entry(200, 60L));
+  }
+
   @Test
   void sseIsNotCutAfterTenSeconds() {
     String sse = "event: tick\ndata: {\"n\":1}\n\nevent: tick\ndata: {\"n\":2}\n\nevent: tick\ndata: {\"n\":3}\n\n"
