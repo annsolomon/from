@@ -12,7 +12,7 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { Counter, Trend } from 'k6/metrics';
-import { CLASS, bulkEmail, get, idempotentPost, login } from './lib/base.js';
+import { CLASS, bulkEmail, get, idempotentPost } from './lib/base.js';
 import { SHAPES, thresholds } from './thresholds.js';
 
 const PROFILE = __ENV.PROFILE || 'smoke';
@@ -41,15 +41,33 @@ export const options = {
   summaryTrendStats: ['avg', 'min', 'med', 'p(90)', 'p(95)', 'p(99)', 'max', 'count'],
 };
 
-// One token per VU per scenario (sign-in is Argon2-expensive and rate-limited by design).
-const tokens = {};
+// One session per VU per scenario (sign-in is Argon2-expensive and rate-limited by design). Access tokens live
+// 10 minutes, the run is longer: refresh at 8 minutes with the rotating refresh token (cheap, no Argon2), sign in
+// again only if that fails. (r2 kept one token for the whole run: everything after minute 10 was a 401.)
+const sessions = {};
 function me(offset) {
-  if (!tokens[offset]) {
-    // spread VUs over the whole seed so the database sees 100k accounts, not a hot handful
-    const n = 1 + ((__VU * 7919 + offset) % BULK_ACCOUNTS);
-    tokens[offset] = login(bulkEmail(n), PASSWORD);
+  let s = sessions[offset];
+  if (s && Date.now() - s.at < 8 * 60 * 1000) return s.access;
+  if (s && s.refresh) {
+    const r = http.post(`${BASE}/v1/auth/token/refresh`, JSON.stringify({ refreshToken: s.refresh }),
+      { headers: { 'Content-Type': 'application/json', ...(__ENV.CLIENT_IP_PER_VU === '1'
+        ? { 'X-Forwarded-For': `198.18.${(__VU >> 8) & 255}.${__VU & 255}` } : {}) },
+        tags: { class: CLASS.AUTH, name: 'POST /v1/auth/token/refresh' } });
+    if (r.status === 200) {
+      sessions[offset] = { access: r.json('accessToken'), refresh: r.json('refreshToken'), at: Date.now() };
+      return sessions[offset].access;
+    }
   }
-  return tokens[offset];
+  // spread VUs over the whole seed so the database sees 100k accounts, not a hot handful
+  const n = 1 + ((__VU * 7919 + offset) % BULK_ACCOUNTS);
+  const res = http.post(`${BASE}/v1/auth/login`, JSON.stringify({ email: bulkEmail(n), password: PASSWORD }),
+    { headers: { 'Content-Type': 'application/json', ...(__ENV.CLIENT_IP_PER_VU === '1'
+      ? { 'X-Forwarded-For': `198.18.${(__VU >> 8) & 255}.${__VU & 255}` } : {}) },
+      tags: { class: CLASS.AUTH, name: 'POST /v1/auth/login' } });
+  check(res, { 'login 200': r => r.status === 200 });
+  sessions[offset] = res.status === 200
+    ? { access: res.json('accessToken'), refresh: res.json('refreshToken'), at: Date.now() } : null;
+  return sessions[offset] ? sessions[offset].access : null;
 }
 
 function page(token, limit, cursor) {

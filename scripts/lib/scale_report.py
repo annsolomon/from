@@ -111,6 +111,8 @@ per_service = prom(f'histogram_quantile(0.99, sum by (service, le) (rate(http_se
                    f'{{application="dexter",uri!~"/actuator.*|.*/stream|/error"}}{RUN})))')
 top_routes = prom(f'topk(10, histogram_quantile(0.99, sum by (service, method, uri, le) (rate('
                   f'http_server_requests_seconds_bucket{{application="dexter",uri!~"/actuator.*|.*/stream|/error"}}{RUN}))))')
+statuses = prom(f'sum by (status) (increase(http_server_requests_seconds_count{{service="gateway",'
+                f'uri!~"/actuator.*"}}{RUN}))')
 pool = prom(f'max by (service, pool) (max_over_time(hikaricp_connections_pending{{application="dexter"}}{RUN}))')
 heavy = psql("ledger", "SELECT round(mean_exec_time::numeric, 2), calls, left(regexp_replace(query, '\\s+', ' ', 'g'),"
              " 140) FROM pg_stat_statements WHERE calls > 50 ORDER BY total_exec_time DESC LIMIT 8")
@@ -126,6 +128,9 @@ md += [f"| {r['metric'].get('service', '?')} | {fmt(float(r['value'][1]) * 1000)
 md += ["", "## Slowest routes (p99)", "", "| Route | p99 |", "|---|---|"]
 md += [f"| {r['metric'].get('service')} {r['metric'].get('method')} {r['metric'].get('uri')} | "
        f"{fmt(float(r['value'][1]) * 1000)} |" for r in top_routes if r["value"][1] != "NaN"]
+md += ["", "## What the gateway answered (status codes over the run)", "", "| Status | Responses |", "|---|---|"]
+md += [f"| {r['metric'].get('status')} | {float(r['value'][1]):,.0f} |" for r in
+       sorted(statuses, key=lambda r: -float(r["value"][1]))]
 md += ["", "## Connection pool waiters (max during the run)", "", "| Service | Pool | Max pending |", "|---|---|---|"]
 md += [f"| {r['metric'].get('service')} | {r['metric'].get('pool')} | {r['value'][1]} |" for r in pool]
 md += ["", "## Ledger statements by total time (pg_stat_statements)", "", "| Mean ms | Calls | Query |", "|---|---|---|"]
