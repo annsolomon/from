@@ -51,6 +51,19 @@ class StreamIT extends RecoIT {
   @Autowired
   RedisConnectionFactory redisFactory;
 
+  /** This instance's subscription: started off the startup path (P18 r6), so each test waits until it is in. */
+  @Autowired
+  RedisMessageListenerContainer recoStreamListener;
+
+  @org.junit.jupiter.api.BeforeEach
+  void awaitSubscribed() throws InterruptedException {
+    long deadline = System.currentTimeMillis() + 15_000;
+    while (!recoStreamListener.isRunning() && System.currentTimeMillis() < deadline) {
+      Thread.sleep(25);
+    }
+    org.assertj.core.api.Assertions.assertThat(recoStreamListener.isRunning()).as("subscribed").isTrue();
+  }
+
   /** Instance B: its own service and its own subscription, the same Redis. */
   private StreamService other;
   private RedisMessageListenerContainer otherListener;

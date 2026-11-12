@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.PatternTopic;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -60,7 +61,59 @@ public class RecoStreamConfiguration {
         log.warn("RECO_STREAM_RELAY_FAILED channel={} error={}", channel, e.toString());
       }
     }, new PatternTopic(StreamService.CHANNEL_PATTERN));
+    // started by recoStreamListenerStarter, never by the context: subscribing blocks on Redis, and a slow or absent
+    // Redis must cost the stream, not the service's start (P18 r6: a 200 ms handshake under a loaded CI host)
+    container.setAutoStartup(false);
     return container;
+  }
+
+  /**
+   * Starts the listener container off the startup path and keeps trying (every 2 s) until it is subscribed, so a
+   * Redis that is slow or down at boot delays the stream instead of failing the application.
+   */
+  @Bean
+  SmartLifecycle recoStreamListenerStarter(RedisMessageListenerContainer container) {
+    return new SmartLifecycle() {
+      private volatile boolean running;
+      private Thread thread;
+
+      @Override
+      public synchronized void start() {
+        running = true;
+        thread = Thread.ofPlatform().daemon().name("reco-stream-subscribe").start(() -> {
+          while (running && !container.isRunning()) {
+            try {
+              container.start();
+              log.info("RECO_STREAM_SUBSCRIBED pattern={}", StreamService.CHANNEL_PATTERN);
+            } catch (RuntimeException e) {
+              log.warn("RECO_STREAM_SUBSCRIBE_RETRY error={}", e.toString());
+              try {
+                Thread.sleep(2_000);
+              } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+                return;
+              }
+            }
+          }
+        });
+      }
+
+      @Override
+      public synchronized void stop() {
+        running = false;
+        if (thread != null) {
+          thread.interrupt();
+        }
+        if (container.isRunning()) {
+          container.stop();
+        }
+      }
+
+      @Override
+      public boolean isRunning() {
+        return running;
+      }
+    };
   }
 
   @Bean
