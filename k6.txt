@@ -1,0 +1,120 @@
+time="2026-11-12T22:01:34Z" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-12T22:01:34Z" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-12T22:01:34Z" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-12T22:01:36Z" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-12T22:01:36Z" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-12T22:01:36Z" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-12T22:01:36Z" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-12T22:01:36Z" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-12T22:01:36Z" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-12T22:01:36Z" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-12T22:01:36Z" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-12T22:01:36Z" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-12T22:01:38Z" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-12T22:01:38Z" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-12T22:01:38Z" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-12T22:01:38Z" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-12T22:01:38Z" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-12T22:01:38Z" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-12T22:01:39Z" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-12T22:01:39Z" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-12T22:01:40Z" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-12T22:01:41Z" level=warning msg="Request Failed" error="request timeout"
+
+
+  █ THRESHOLDS 
+
+    checks
+    ✗ 'rate>0.99' rate=93.44%
+
+    http_req_duration{class:auth}
+    ✗ 'p(99)<300' p(99)=10.39s
+
+    http_req_duration{class:list}
+    ✗ 'p(99)<150' p(99)=6.18s
+
+    http_req_duration{class:read}
+    ✗ 'p(99)<150' p(99)=6.15s
+
+    http_req_duration{class:reco}
+    ✗ 'p(99)<100' p(99)=6.07s
+
+    http_req_duration{class:write}
+    ✗ 'p(99)<200' p(99)=6.37s
+
+    http_req_failed
+    ✗ 'rate<0.001' rate=6.94%
+
+      {class:auth}
+      ✗ 'rate<0.001' rate=89.06%
+
+      {class:list}
+      ✓ 'rate<0.001' rate=0.00%
+
+      {class:read}
+      ✓ 'rate<0.001' rate=0.00%
+
+      {class:reco}
+      ✓ 'rate<0.001' rate=0.00%
+
+      {class:write}
+      ✓ 'rate<0.001' rate=0.00%
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 395920 212.863089/s
+    checks_succeeded...: 93.44% 369976 out of 395920
+    checks_failed......: 6.55%  25944 out of 395920
+
+    ✗ login 200
+      ↳  9% — ✓ 2836 / ✗ 25932
+    ✗ list 200
+      ↳  99% — ✓ 97879 / ✗ 3
+    ✗ totals 200
+      ↳  99% — ✓ 68285 / ✗ 4
+    ✗ categories 200
+      ↳  99% — ✓ 68287 / ✗ 2
+    ✓ reco 200
+    ✗ ticket 200
+      ↳  99% — ✓ 4410 / ✗ 3
+    ✓ write 2xx
+    ✓ retry replays (Idempotent-Replayed)
+    ✓ retry returns the same body
+    ✓ stream held >= 50 s
+
+    CUSTOM
+    dexter_sse_held_ms.............: avg=1m0s     min=1m0s     med=1m0s  p(90)=1m0s  p(95)=1m0s   p(99)=1m0s   max=1m2s   count=4410  
+    dexter_sse_streams_opened......: 4410   2.371/s
+    dexter_window_rows.............: avg=43.89499 min=0        med=38    p(90)=84    p(95)=99     p(99)=99     max=99     count=68289 
+
+    HTTP
+    http_req_duration..............: avg=3.35s    min=936.45µs med=3.1s  p(90)=5.21s p(95)=5.69s  p(99)=1m0s   max=1m2s   count=393318
+      { class:auth }...............: avg=3.14s    min=936.45µs med=3.45s p(90)=5.91s p(95)=8.17s  p(99)=10.39s max=13.12s count=30659 
+      { class:list }...............: avg=2.64s    min=30.55ms  med=2.77s p(90)=5.1s  p(95)=5.41s  p(99)=6.18s  max=1m0s   count=97882 
+      { class:read }...............: avg=2.64s    min=24.46ms  med=2.88s p(90)=5.1s  p(95)=5.4s   p(99)=6.15s  max=1m1s   count=136578
+      { class:reco }...............: avg=2.41s    min=7ms      med=2.17s p(90)=5.09s p(95)=5.37s  p(99)=6.07s  max=7s     count=70253 
+      { class:write }..............: avg=3.13s    min=2.04ms   med=3.58s p(90)=5.32s p(95)=5.69s  p(99)=6.37s  max=1m0s   count=53536 
+      { expected_response:true }...: avg=3.38s    min=2.04ms   med=3.09s p(90)=5.19s p(95)=5.62s  p(99)=1m0s   max=1m2s   count=365997
+    http_req_failed................: 6.94%  27321 out of 393318
+      { class:auth }...............: 89.06% 27307 out of 30659
+      { class:list }...............: 0.00%  3 out of 97882
+      { class:read }...............: 0.00%  6 out of 136578
+      { class:reco }...............: 0.00%  0 out of 70253
+      { class:write }..............: 0.00%  5 out of 53536
+    http_reqs......................: 393318 211.464146/s
+
+    EXECUTION
+    dropped_iterations.............: 933850 502.076672/s
+    iteration_duration.............: avg=2.85s    min=16.08µs  med=1s    p(90)=5.89s p(95)=11.71s p(99)=22.98s max=1m18s  count=635767
+    iterations.....................: 635767 341.814831/s
+    vus............................: 1      min=1               max=1863
+    vus_max........................: 1871   min=611             max=1871
+
+    NETWORK
+    data_received..................: 2.1 GB 1.1 MB/s
+    data_sent......................: 384 MB 207 kB/s
+
+
+
+time="2026-11-12T22:01:41Z" level=error msg="thresholds on metrics 'checks, http_req_duration{class:auth}, http_req_duration{class:list}, http_req_duration{class:read}, http_req_duration{class:reco}, http_req_duration{class:write}, http_req_failed, http_req_failed{class:auth}' have been crossed"

@@ -1,0 +1,13 @@
+INFO:     Started server process [12918]
+INFO:     Waiting for application startup.
+2026-11-12 21:27:04,018  INFO aiokafka.consumer.subscription_state Updating subscribed topics to: frozenset({'dexter.portfolio.statement.v1'})
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8090 (Press CTRL+C to quit)
+2026-11-12 21:27:04,031  INFO aiokafka.consumer.group_coordinator Discovered coordinator 1 for group ai-parser
+2026-11-12 21:27:04,031  INFO aiokafka.consumer.group_coordinator Revoking previously assigned partitions set() for group ai-parser
+2026-11-12 21:27:04,031  INFO aiokafka.consumer.group_coordinator (Re-)joining group ai-parser
+2026-11-12 21:27:04,036  INFO aiokafka.consumer.group_coordinator Joined group 'ai-parser' (generation 1) with member_id ai-parser-e8974362-5649-4f32-a9f1-f29896dacee4
+2026-11-12 21:27:04,036  INFO aiokafka.consumer.group_coordinator Elected group leader -- performing partition assignments using roundrobin
+2026-11-12 21:27:04,038  INFO aiokafka.consumer.group_coordinator Successfully synced group ai-parser with generation 1
+2026-11-12 21:27:04,038  INFO aiokafka.consumer.group_coordinator Setting newly assigned partitions {TopicPartition(topic='dexter.portfolio.statement.v1', partition=0), TopicPartition(topic='dexter.portfolio.statement.v1', partition=1), TopicPartition(topic='dexter.portfolio.statement.v1', partition=2)} for group ai-parser
+2026-11-12 21:27:04,038  INFO dexter_parser.worker PARSER_CONSUMING topic=dexter.portfolio.statement.v1 bootstrap=127.0.0.1:9092
