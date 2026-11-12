@@ -64,7 +64,8 @@ jobs:
           out="$RUNNER_TEMP/scale"; rm -rf "$out"; mkdir -p "$out"
           cp -r target/scale/. "$out/" 2>/dev/null
           mkdir -p "$out/logs"; cp .run/logs/*.log "$out/logs/" 2>/dev/null
-          find "$out" -type f -size +20M -exec sh -c 'tail -c 5M "$1" > "$1.tail" && rm "$1"' _ {} \;
+          # big logs: keep the first and the last 5 MB (the cause is usually at the start, the steady state at the end)
+          find "$out" -type f -size +20M -exec sh -c 'head -c 5M "$1" > "$1.head" && tail -c 5M "$1" > "$1.tail" && rm "$1"' _ {} \;
           printf 'sha=%s\nrun=%s\nk6=%s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "${{ steps.k6.outcome }}" > "$out/RUN.txt"
           cd "$out" && git init -q && git checkout -q -b scale-reports
           git config user.name github-actions

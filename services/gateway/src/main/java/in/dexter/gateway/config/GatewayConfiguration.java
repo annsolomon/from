@@ -122,6 +122,21 @@ public class GatewayConfiguration {
         .build());
   }
 
+  /**
+   * P19: every breaker transition is logged with the failure that tipped it (scale r4 showed 1.7M 503s from open
+   * breakers and nothing said why: the log only had the rejections). One line per transition, not per failure.
+   */
+  @Bean
+  Customizer<ReactiveResilience4JCircuitBreakerFactory> breakerTransitionLog() {
+    java.util.Map<String, String> lastError = new java.util.concurrent.ConcurrentHashMap<>();
+    return factory -> factory.addCircuitBreakerCustomizer(cb -> cb.getEventPublisher()
+        .onError(e -> lastError.put(cb.getName(), e.getThrowable().getClass().getSimpleName() + ": "
+            + String.valueOf(e.getThrowable().getMessage()).lines().findFirst().orElse("")))
+        .onStateTransition(e -> log.warn("GATEWAY_BREAKER {} {} failureRate={}% lastError={}", cb.getName(),
+            e.getStateTransition(), cb.getMetrics().getFailureRate(), lastError.getOrDefault(cb.getName(), "-"))),
+        RouteTable.SERVICES.toArray(String[]::new));
+  }
+
   // ------------------------------------------------------------------------------------------- filters (order: FilterOrder)
 
   @Bean

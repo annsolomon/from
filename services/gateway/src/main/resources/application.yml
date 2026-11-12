@@ -3,6 +3,18 @@ spring:
     name: gateway
   main:
     banner-mode: "off"
+  # P19: the upstream connection pool. Reactor Netty's default (2 x cores, min 16, a short pending queue) is the
+  # first thing a load test meets; a pool acquire failure counts against the route's breaker and opens it.
+  cloud:
+    gateway:
+      server:
+        webflux:
+          httpclient:
+            pool:
+              type: fixed
+              max-connections: ${GATEWAY_POOL_MAX_CONNECTIONS:1000}
+              acquire-timeout: ${GATEWAY_POOL_ACQUIRE_TIMEOUT_MS:5000}
+              max-idle-time: 30s
   # P06 rate limiter: per-service ACL user (infra/redis/acl.tmpl: keys gateway:*, scripts only). 200 ms timeout.
   data:
     redis:
