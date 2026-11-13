@@ -72,7 +72,10 @@ public class RecoStreamConfiguration {
    * Redis that is slow or down at boot delays the stream instead of failing the application.
    */
   @Bean
-  SmartLifecycle recoStreamListenerStarter(RedisMessageListenerContainer container) {
+  SmartLifecycle recoStreamListenerStarter(
+      // Boot 4.1 auto-configures its own (annotation-driven) container next to this one (A-134): name ours
+      @org.springframework.beans.factory.annotation.Qualifier("recoStreamListener")
+      RedisMessageListenerContainer container) {
     return new SmartLifecycle() {
       private volatile boolean running;
       private Thread thread;
