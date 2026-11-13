@@ -1,0 +1,21 @@
+PASS  setup: asha signs in: 
+PASS  setup: the ledger expense topic exists: dexter.ledger.expense.v1
+PASS  kafka-down: writes succeed while Kafka is down: 20/20 created, slowest 0.03s
+PASS  kafka-down: the ledger relay reports them pending: dexter_outbox_pending{schema=ledger} = 20.0
+PASS  kafka-down: the outbox catches up after Kafka returns: dexter.ledger.expense.v1 end offsets 23 -> 43 in 13s
+PASS  kafka-down: every consumer group of the topic catches up: lag 0 across ['planning.budget-spend', 'portfolio.expense-match', 'reco.spend-profile']
+----  kafka-down took 83s
+PASS  relay-failover: a second ledger instance starts: port 8092
+PASS  relay-failover: exactly one instance leads: dexter_outbox_leader per port {8082: 1.0, 8092: 0.0}
+PASS  relay-failover: the other instance takes the lock: leader :8082 killed -9, :8092 leads after 1.1s
+PASS  relay-failover: writes after the kill are published by the new leader: 10/10 created on :8092; offsets 43 -> 53
+PASS  relay-failover: ledger :8082 restarted: 
+----  relay-failover took 20s
+PASS  postgres-restart: every service is UP again: 1s; down: none
+PASS  postgres-restart: pools recovered (read 200, write 201 through the gateway): 3s after the restart
+----  postgres-restart took 3s
+PASS  redis-down: reads through the gateway still work (limiter fails open): GET /v1/expenses 200, GET /v1/categories 200
+PASS  redis-down: sign-in fails closed (503): POST /v1/auth/login 503 SERVICE_UNAVAILABLE
+PASS  redis-down: sign-in works again after Redis returns: 
+----  redis-down took 1s
+chaos: 16 PASS / 0 FAIL

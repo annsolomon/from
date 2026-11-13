@@ -1,0 +1,515 @@
+2026-11-13T08:49:45.651Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] in.dexter.catalog.CatalogApplication     : Starting CatalogApplication v0.1.0-SNAPSHOT using Java 25.0.5 with PID 55337 (/home/runner/work/from/from/services/catalog/target/app.jar started by runner in /home/runner/work/from/from)
+2026-11-13T08:49:45.706Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] in.dexter.catalog.CatalogApplication     : The following 1 profile is active: "dev"
+2026-11-13T08:49:51.917Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8083 (http)
+2026-11-13T08:49:51.964Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-11-13T08:49:51.970Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.27]
+2026-11-13T08:49:52.073Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 6062 ms
+2026-11-13T08:49:53.997Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] com.zaxxer.hikari.HikariDataSource       : catalog-admin - Starting...
+2026-11-13T08:49:54.162Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] com.zaxxer.hikari.HikariDataSource       : catalog-admin - Start completed.
+2026-11-13T08:49:56.288Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://127.0.0.1:5432/catalog?ApplicationName=catalog (PostgreSQL 17.12)
+2026-11-13T08:49:56.557Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] o.f.core.internal.database.base.Schema   : Creating schema "catalog" ...
+2026-11-13T08:49:56.582Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "catalog"."flyway_schema_history" ...
+2026-11-13T08:49:56.789Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] o.f.core.internal.command.DbMigrate      : Current version of schema "catalog": null
+2026-11-13T08:49:56.857Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] o.f.core.internal.command.DbMigrate      : Migrating schema "catalog" to version "202610171500 - platform"
+2026-11-13T08:49:56.872Z  WARN [] 55337 --- [catalog] [           main] [                                                 ] o.f.c.i.s.DefaultSqlScriptExecutor       : DB: schema "catalog" already exists, skipping (SQL State: 42P06 - Error Code: 0)
+2026-11-13T08:49:56.921Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] o.f.c.i.s.DefaultSqlScriptExecutor       : +-------------------------+
+| create_partitions_ahead |
++-------------------------+
+| 4                       |
++-------------------------+
+
+2026-11-13T08:49:56.979Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] o.f.core.internal.command.DbMigrate      : Migrating schema "catalog" to version "202610171501 - catalog core"
+2026-11-13T08:49:57.141Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] o.f.core.internal.command.DbMigrate      : Migrating schema "catalog" to version "202610171600 - catalog ingestion"
+2026-11-13T08:49:57.257Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] o.f.core.internal.command.DbMigrate      : Successfully applied 3 migrations to schema "catalog", now at version v202610171600 (execution time 00:00.279s)
+2026-11-13T08:49:58.065Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] o.a.kafka.common.config.AbstractConfig   : ProducerConfig values: 
+	acks = -1
+	batch.size = 16384
+	bootstrap.servers = [127.0.0.1:9092]
+	buffer.memory = 33554432
+	client.dns.lookup = use_all_dns_ips
+	client.id = catalog-relay
+	compression.gzip.level = -1
+	compression.lz4.level = 9
+	compression.type = none
+	compression.zstd.level = 3
+	config.providers = []
+	connections.max.idle.ms = 540000
+	delivery.timeout.ms = 15000
+	enable.idempotence = true
+	enable.metrics.push = true
+	interceptor.classes = []
+	key.serializer = class org.apache.kafka.common.serialization.StringSerializer
+	linger.ms = 5
+	max.block.ms = 60000
+	max.in.flight.requests.per.connection = 5
+	max.request.size = 1048576
+	metadata.max.age.ms = 300000
+	metadata.max.idle.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partitioner.adaptive.partitioning.enable = true
+	partitioner.availability.timeout.ms = 0
+	partitioner.class = null
+	partitioner.ignore.keys = false
+	receive.buffer.bytes = 32768
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 10000
+	retries = 2147483647
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = []
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = []
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	transaction.timeout.ms = 60000
+	transaction.two.phase.commit.enable = false
+	transactional.id = null
+	value.serializer = class org.apache.kafka.common.serialization.ByteArraySerializer
+
+2026-11-13T08:49:58.286Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-13T08:49:58.566Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] o.a.k.clients.producer.KafkaProducer     : [Producer clientId=catalog-relay] Instantiated an idempotent producer.
+2026-11-13T08:49:58.741Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.2.2
+2026-11-13T08:49:58.741Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c5e942859576203e
+2026-11-13T08:49:58.741Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-8733]
+2026-11-13T08:50:01.002Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=catalog-relay] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-13T08:50:01.059Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] o.a.k.c.p.internals.TransactionManager   : [Producer clientId=catalog-relay] ProducerId set to 3 with epoch 0
+2026-11-13T08:50:01.387Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 3 endpoints beneath base path '/actuator'
+2026-11-13T08:50:01.607Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8083 (http) with context path '/'
+2026-11-13T08:50:01.621Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] o.a.kafka.common.config.AbstractConfig   : AdminClientConfig values: 
+	bootstrap.controllers = []
+	bootstrap.servers = [127.0.0.1:9092]
+	client.dns.lookup = use_all_dns_ips
+	client.id = 
+	config.providers = []
+	connections.max.idle.ms = 300000
+	default.api.timeout.ms = 10000
+	enable.metrics.push = false
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 5000
+	retries = 2147483647
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = []
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = []
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+
+2026-11-13T08:50:01.917Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.2.2
+2026-11-13T08:50:01.917Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c5e942859576203e
+2026-11-13T08:50:01.917Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-1917]
+2026-11-13T08:50:02.043Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] in.dexter.events.topics.TopicRegistry    : created 2 topic(s): [dexter.catalog.offer.v1, dexter.catalog.card.v1]
+2026-11-13T08:50:02.044Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] c.CatalogRelayConfiguration$EnsureTopics : TOPICS_READY created=[dexter.catalog.offer.v1, dexter.catalog.card.v1]
+2026-11-13T08:50:02.044Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-13T08:50:02.044Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-13T08:50:02.044Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-13T08:50:02.048Z  INFO [] 55337 --- [catalog] [| adminclient-1] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : App info kafka.admin.client for adminclient-1 unregistered
+2026-11-13T08:50:02.068Z  INFO [] 55337 --- [catalog] [| adminclient-1] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-13T08:50:02.069Z  INFO [] 55337 --- [catalog] [| adminclient-1] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-13T08:50:02.069Z  INFO [] 55337 --- [catalog] [| adminclient-1] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-13T08:50:02.162Z  INFO [] 55337 --- [catalog] [           main] [                                                 ] in.dexter.catalog.CatalogApplication     : Started CatalogApplication in 19.227 seconds (process running for 21.289)
+2026-11-13T08:50:02.190Z  INFO [] 55337 --- [catalog] [x-relay-catalog] [                                                 ] in.dexter.events.relay.OutboxRelay       : outbox relay catalog: leader
+2026-11-13T08:50:04.979Z  INFO [] 55337 --- [catalog] [omcat-handler-0] [                                                 ] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-11-13T08:50:04.982Z  INFO [] 55337 --- [catalog] [omcat-handler-0] [                                                 ] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-11-13T08:50:04.988Z  INFO [] 55337 --- [catalog] [omcat-handler-0] [                                                 ] o.s.web.servlet.DispatcherServlet        : Completed initialization in 5 ms
+2026-11-13T08:50:05.538Z  INFO [01a1d419-86a6-7bbb-8092-0a364cfda239] 55337 --- [catalog] [omcat-handler-0] [60b8cb4475d66f5beea023b26c71b353-89920fe7a0e69041] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-11-13T08:50:05.587Z  INFO [01a1d419-86a6-7bbb-8092-0a364cfda239] 55337 --- [catalog] [omcat-handler-0] [60b8cb4475d66f5beea023b26c71b353-89920fe7a0e69041] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@1a472356
+2026-11-13T08:50:05.599Z  INFO [01a1d419-86a6-7bbb-8092-0a364cfda239] 55337 --- [catalog] [omcat-handler-0] [60b8cb4475d66f5beea023b26c71b353-89920fe7a0e69041] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-11-13T08:53:43.203Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:53:43.299Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node 1 disconnected.
+2026-11-13T08:53:43.300Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Cancelled in-flight METADATA request with correlation id 7 due to node 1 being disconnected (elapsed time since creation: 3ms, elapsed time since send: 3ms, throttle time: 0ms, request timeout: 10000ms)
+2026-11-13T08:53:43.426Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node 1 disconnected.
+2026-11-13T08:53:43.426Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Cancelled in-flight API_VERSIONS request with correlation id 8 due to node 1 being disconnected (elapsed time since creation: 2ms, elapsed time since send: 2ms, throttle time: 0ms, request timeout: 10000ms)
+2026-11-13T08:53:43.656Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node 1 disconnected.
+2026-11-13T08:53:43.657Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Cancelled in-flight API_VERSIONS request with correlation id 9 due to node 1 being disconnected (elapsed time since creation: 0ms, elapsed time since send: 0ms, throttle time: 0ms, request timeout: 10000ms)
+2026-11-13T08:53:44.046Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node 1 disconnected.
+2026-11-13T08:53:44.047Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node 1 (localhost/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:44.088Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=catalog-relay] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:53:44.089Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:53:44.089Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:44.092Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:44.092Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=catalog-relay] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:53:44.143Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=catalog-relay] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:53:44.194Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:53:44.194Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:44.194Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:45.100Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:53:45.101Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:45.101Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:46.101Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:53:46.101Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:46.101Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:47.103Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:53:47.103Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:47.103Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:48.104Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:53:48.104Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:48.104Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:49.105Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:53:49.106Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:49.106Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:50.106Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:53:50.106Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:50.106Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:51.106Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:53:51.107Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:51.107Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:52.108Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:53:52.108Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:52.108Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:53.109Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:53:53.109Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:53.109Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:54.076Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=catalog-relay] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:53:54.127Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:53:54.127Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:54.127Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:55.128Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:53:55.128Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:55.129Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:56.129Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:53:56.130Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:56.130Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:57.130Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:53:57.130Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:57.130Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:58.132Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:53:58.132Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:58.132Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:59.027Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=catalog-relay] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:53:59.132Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:53:59.132Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:59.133Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:00.133Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:00.133Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:00.133Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:01.134Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:01.134Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:01.134Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:02.136Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:02.136Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:02.136Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:03.137Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:03.137Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:03.137Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:04.138Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:04.139Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:04.139Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:05.140Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:05.140Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:05.140Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:06.143Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:06.143Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:06.143Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:07.144Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:07.144Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:07.144Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:08.145Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:08.146Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:08.146Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:09.146Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:09.146Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:09.146Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:10.147Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:10.147Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:10.147Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:11.148Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:11.148Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:11.148Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:12.149Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:12.150Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:12.150Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:13.150Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:13.151Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:13.151Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:14.151Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:14.151Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:14.151Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:15.152Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:15.152Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:15.152Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:16.156Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:16.156Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:16.156Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:17.157Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:17.158Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:17.158Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:18.042Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=catalog-relay] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:18.158Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:18.158Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:18.159Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:19.160Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:19.160Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:19.160Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:20.160Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:20.161Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:20.161Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:20.996Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=catalog-relay] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:21.160Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:21.161Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:21.161Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:22.160Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:22.161Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:22.161Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:23.161Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:23.162Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:23.162Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:24.163Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:24.163Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:24.163Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:25.163Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:25.163Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:25.163Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:26.164Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:26.164Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:26.164Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:27.164Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:27.164Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:27.164Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:28.168Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:28.168Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:28.168Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:29.170Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:29.170Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:29.170Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:30.172Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:30.172Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:30.172Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:31.173Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:31.173Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:31.173Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:32.174Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:32.174Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:32.174Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:33.148Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:33.149Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:33.149Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:34.149Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:34.149Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:34.149Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:35.150Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:35.150Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:35.151Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:36.154Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:36.154Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:36.154Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:37.156Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:37.156Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:37.156Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:38.157Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:38.158Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:38.158Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:39.158Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:39.159Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:39.159Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:40.159Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:40.159Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:40.160Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:41.092Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=catalog-relay] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:41.143Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=catalog-relay] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:41.193Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:41.194Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:41.194Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:42.194Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:42.194Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:42.194Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:43.195Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:43.195Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:43.196Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:44.196Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:44.196Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:44.196Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:45.198Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:45.198Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Cancelled in-flight API_VERSIONS request with correlation id 10 due to node -1 being disconnected (elapsed time since creation: 1ms, elapsed time since send: 1ms, throttle time: 0ms, request timeout: 10000ms)
+2026-11-13T08:54:45.198Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:46.199Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:46.199Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Cancelled in-flight API_VERSIONS request with correlation id 11 due to node -1 being disconnected (elapsed time since creation: 0ms, elapsed time since send: 0ms, throttle time: 0ms, request timeout: 10000ms)
+2026-11-13T08:54:46.200Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:47.200Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:47.200Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Cancelled in-flight API_VERSIONS request with correlation id 12 due to node -1 being disconnected (elapsed time since creation: 0ms, elapsed time since send: 0ms, throttle time: 0ms, request timeout: 10000ms)
+2026-11-13T08:54:47.200Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:48.201Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Node -1 disconnected.
+2026-11-13T08:54:48.201Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Cancelled in-flight API_VERSIONS request with correlation id 13 due to node -1 being disconnected (elapsed time since creation: 0ms, elapsed time since send: 0ms, throttle time: 0ms, request timeout: 10000ms)
+2026-11-13T08:54:48.201Z  WARN [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=catalog-relay] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:49.223Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=catalog-relay] Resetting the last seen epoch of partition dexter.catalog.card.v1-2 to 2 since the associated topicId changed from null to lWFrFeoPSw-fAlfqJrgluA
+2026-11-13T08:54:49.226Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=catalog-relay] Resetting the last seen epoch of partition dexter.catalog.card.v1-1 to 2 since the associated topicId changed from null to lWFrFeoPSw-fAlfqJrgluA
+2026-11-13T08:54:49.226Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=catalog-relay] Resetting the last seen epoch of partition dexter.catalog.card.v1-0 to 2 since the associated topicId changed from null to lWFrFeoPSw-fAlfqJrgluA
+2026-11-13T08:54:49.226Z  INFO [] 55337 --- [catalog] [| catalog-relay] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=catalog-relay] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-13T08:55:23.735Z  WARN [] 55337 --- [catalog] [x-relay-catalog] [                                                 ] in.dexter.events.relay.OutboxRelay       : outbox relay catalog: org.postgresql.util.PSQLException: This connection has been closed. (retrying)
+2026-11-13T08:55:24.455Z  WARN [01a1d41e-6625-76e0-a7c6-e622d7a876cb] 55337 --- [catalog] [mcat-handler-67] [79ebdb45b6aeace0b030d46236c59084-e897c3cdad221247] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@1a472356 (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-11-13T08:55:24.456Z  WARN [01a1d41e-6625-76e0-a7c6-e622d7a876cb] 55337 --- [catalog] [mcat-handler-67] [79ebdb45b6aeace0b030d46236c59084-e897c3cdad221247] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@2597cf78 (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-11-13T08:55:24.456Z  WARN [01a1d41e-6625-76e0-a7c6-e622d7a876cb] 55337 --- [catalog] [mcat-handler-67] [79ebdb45b6aeace0b030d46236c59084-e897c3cdad221247] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@c559c9a (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-11-13T08:55:24.457Z  WARN [01a1d41e-6625-76e0-a7c6-e622d7a876cb] 55337 --- [catalog] [mcat-handler-67] [79ebdb45b6aeace0b030d46236c59084-e897c3cdad221247] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@20650338 (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-11-13T08:55:24.457Z  WARN [01a1d41e-6625-76e0-a7c6-e622d7a876cb] 55337 --- [catalog] [mcat-handler-67] [79ebdb45b6aeace0b030d46236c59084-e897c3cdad221247] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@5852f83 (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-11-13T08:55:24.457Z  WARN [01a1d41e-6625-76e0-a7c6-e622d7a876cb] 55337 --- [catalog] [mcat-handler-67] [79ebdb45b6aeace0b030d46236c59084-e897c3cdad221247] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@1ef2cc44 (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-11-13T08:55:24.458Z  WARN [01a1d41e-6625-76e0-a7c6-e622d7a876cb] 55337 --- [catalog] [mcat-handler-67] [79ebdb45b6aeace0b030d46236c59084-e897c3cdad221247] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@3ee3224c (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-11-13T08:55:24.458Z  WARN [01a1d41e-6625-76e0-a7c6-e622d7a876cb] 55337 --- [catalog] [mcat-handler-67] [79ebdb45b6aeace0b030d46236c59084-e897c3cdad221247] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@36979a6b (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-11-13T08:55:24.458Z  WARN [01a1d41e-6625-76e0-a7c6-e622d7a876cb] 55337 --- [catalog] [mcat-handler-67] [79ebdb45b6aeace0b030d46236c59084-e897c3cdad221247] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@1a42520d (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-11-13T08:55:24.458Z  WARN [01a1d41e-6625-76e0-a7c6-e622d7a876cb] 55337 --- [catalog] [mcat-handler-67] [79ebdb45b6aeace0b030d46236c59084-e897c3cdad221247] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@12da2ded (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-11-13T08:55:24.458Z  WARN [01a1d41e-6625-76e0-a7c6-e622d7a876cb] 55337 --- [catalog] [mcat-handler-67] [79ebdb45b6aeace0b030d46236c59084-e897c3cdad221247] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@350c9cb8 (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-11-13T08:55:24.458Z  WARN [01a1d41e-6625-76e0-a7c6-e622d7a876cb] 55337 --- [catalog] [mcat-handler-67] [79ebdb45b6aeace0b030d46236c59084-e897c3cdad221247] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@3fc21cb0 (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-11-13T08:55:24.459Z  WARN [01a1d41e-6625-76e0-a7c6-e622d7a876cb] 55337 --- [catalog] [mcat-handler-67] [79ebdb45b6aeace0b030d46236c59084-e897c3cdad221247] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@3718e37f (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-11-13T08:55:24.459Z  WARN [01a1d41e-6625-76e0-a7c6-e622d7a876cb] 55337 --- [catalog] [mcat-handler-67] [79ebdb45b6aeace0b030d46236c59084-e897c3cdad221247] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@746e0534 (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-11-13T08:55:24.459Z  WARN [01a1d41e-6625-76e0-a7c6-e622d7a876cb] 55337 --- [catalog] [mcat-handler-67] [79ebdb45b6aeace0b030d46236c59084-e897c3cdad221247] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@25d6be5d (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-11-13T08:55:24.459Z  WARN [01a1d41e-6625-76e0-a7c6-e622d7a876cb] 55337 --- [catalog] [mcat-handler-67] [79ebdb45b6aeace0b030d46236c59084-e897c3cdad221247] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@a5e01cb (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-11-13T08:55:24.460Z  WARN [01a1d41e-6625-76e0-a7c6-e622d7a876cb] 55337 --- [catalog] [mcat-handler-67] [79ebdb45b6aeace0b030d46236c59084-e897c3cdad221247] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@7a2d08e4 (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-11-13T08:55:24.460Z  WARN [01a1d41e-6625-76e0-a7c6-e622d7a876cb] 55337 --- [catalog] [mcat-handler-67] [79ebdb45b6aeace0b030d46236c59084-e897c3cdad221247] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@7e6ef530 (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-11-13T08:55:24.460Z  WARN [01a1d41e-6625-76e0-a7c6-e622d7a876cb] 55337 --- [catalog] [mcat-handler-67] [79ebdb45b6aeace0b030d46236c59084-e897c3cdad221247] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@6eda98f6 (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-11-13T08:55:24.460Z  WARN [01a1d41e-6625-76e0-a7c6-e622d7a876cb] 55337 --- [catalog] [mcat-handler-67] [79ebdb45b6aeace0b030d46236c59084-e897c3cdad221247] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@14f09cbf (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-11-13T08:55:24.784Z  INFO [] 55337 --- [catalog] [x-relay-catalog] [                                                 ] in.dexter.events.relay.OutboxRelay       : outbox relay catalog: leader
+2026-11-13T08:55:25.078Z  WARN [] 55337 --- [catalog] [ngestion-worker] [                                                 ] com.zaxxer.hikari.pool.PoolBase          : catalog-admin - Failed to validate connection org.postgresql.jdbc.PgConnection@1c6d2ac8 (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-11-13T08:55:27.837Z  INFO [] 55337 --- [catalog] [ionShutdownHook] [                                                 ] o.a.k.clients.producer.KafkaProducer     : [Producer clientId=catalog-relay] Closing the Kafka producer with timeoutMillis = [CARD-5807] ms.
+2026-11-13T08:55:27.848Z  INFO [] 55337 --- [catalog] [ionShutdownHook] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-13T08:55:27.848Z  INFO [] 55337 --- [catalog] [ionShutdownHook] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-13T08:55:27.848Z  INFO [] 55337 --- [catalog] [ionShutdownHook] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.telemetry.internals.ClientTelemetryReporter
+2026-11-13T08:55:27.848Z  INFO [] 55337 --- [catalog] [ionShutdownHook] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-13T08:55:27.852Z  INFO [] 55337 --- [catalog] [ionShutdownHook] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : App info kafka.producer for catalog-relay unregistered
+2026-11-13T08:55:27.856Z  INFO [] 55337 --- [catalog] [ionShutdownHook] [                                                 ] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-11-13T08:55:27.865Z  INFO [] 55337 --- [catalog] [tomcat-shutdown] [                                                 ] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+2026-11-13T08:55:27.883Z  INFO [] 55337 --- [catalog] [ionShutdownHook] [                                                 ] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-11-13T08:55:27.890Z  INFO [] 55337 --- [catalog] [ionShutdownHook] [                                                 ] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-11-13T08:55:27.895Z  INFO [] 55337 --- [catalog] [ionShutdownHook] [                                                 ] com.zaxxer.hikari.HikariDataSource       : catalog-admin - Shutdown initiated...
+2026-11-13T08:55:27.906Z  INFO [] 55337 --- [catalog] [ionShutdownHook] [                                                 ] com.zaxxer.hikari.HikariDataSource       : catalog-admin - Shutdown completed.

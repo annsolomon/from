@@ -1,0 +1,928 @@
+2026-11-13T08:55:04.894Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] in.dexter.ledger.LedgerApplication       : Starting LedgerApplication v0.1.0-SNAPSHOT using Java 25.0.5 with PID 88078 (/home/runner/work/from/from/services/ledger/target/app.jar started by runner in /home/runner/work/from/from)
+2026-11-13T08:55:04.901Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] in.dexter.ledger.LedgerApplication       : The following 1 profile is active: "dev"
+2026-11-13T08:55:05.836Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-11-13T08:55:05.840Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2026-11-13T08:55:05.880Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 22 ms. Found 0 Redis repository interfaces.
+2026-11-13T08:55:06.481Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8092 (http)
+2026-11-13T08:55:06.491Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-11-13T08:55:06.491Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.27]
+2026-11-13T08:55:06.513Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 1561 ms
+2026-11-13T08:55:07.162Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://127.0.0.1:5432/ledger?ApplicationName=ledger (PostgreSQL 17.12)
+2026-11-13T08:55:07.224Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.f.core.internal.command.DbValidate     : Successfully validated 5 migrations (execution time 00:00.023s)
+2026-11-13T08:55:07.247Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.f.core.internal.command.DbMigrate      : Current version of schema "ledger": 202611111000
+2026-11-13T08:55:07.249Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.f.core.internal.command.DbMigrate      : Schema "ledger" is up to date. No migration necessary.
+2026-11-13T08:55:07.827Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.kafka.common.config.AbstractConfig   : ProducerConfig values: 
+	acks = -1
+	batch.size = 16384
+	bootstrap.servers = [127.0.0.1:9092]
+	buffer.memory = 33554432
+	client.dns.lookup = use_all_dns_ips
+	client.id = ledger-relay
+	compression.gzip.level = -1
+	compression.lz4.level = 9
+	compression.type = none
+	compression.zstd.level = 3
+	config.providers = []
+	connections.max.idle.ms = 540000
+	delivery.timeout.ms = 15000
+	enable.idempotence = true
+	enable.metrics.push = true
+	interceptor.classes = []
+	key.serializer = class org.apache.kafka.common.serialization.StringSerializer
+	linger.ms = 5
+	max.block.ms = 60000
+	max.in.flight.requests.per.connection = 5
+	max.request.size = 1048576
+	metadata.max.age.ms = 300000
+	metadata.max.idle.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partitioner.adaptive.partitioning.enable = true
+	partitioner.availability.timeout.ms = 0
+	partitioner.class = null
+	partitioner.ignore.keys = false
+	receive.buffer.bytes = 32768
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 10000
+	retries = 2147483647
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = []
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = []
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	transaction.timeout.ms = 60000
+	transaction.two.phase.commit.enable = false
+	transactional.id = null
+	value.serializer = class org.apache.kafka.common.serialization.ByteArraySerializer
+
+2026-11-13T08:55:07.857Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-13T08:55:07.914Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.k.clients.producer.KafkaProducer     : [Producer clientId=ledger-relay] Instantiated an idempotent producer.
+2026-11-13T08:55:07.952Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.2.2
+2026-11-13T08:55:07.952Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c5e942859576203e
+2026-11-13T08:55:07.953Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-7951]
+2026-11-13T08:55:08.264Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.kafka.common.config.AbstractConfig   : ProducerConfig values: 
+	acks = -1
+	batch.size = 16384
+	bootstrap.servers = [127.0.0.1:9092]
+	buffer.memory = 33554432
+	client.dns.lookup = use_all_dns_ips
+	client.id = ledger-privacy
+	compression.gzip.level = -1
+	compression.lz4.level = 9
+	compression.type = none
+	compression.zstd.level = 3
+	config.providers = []
+	connections.max.idle.ms = 540000
+	delivery.timeout.ms = 15000
+	enable.idempotence = true
+	enable.metrics.push = true
+	interceptor.classes = []
+	key.serializer = class org.apache.kafka.common.serialization.StringSerializer
+	linger.ms = 5
+	max.block.ms = 60000
+	max.in.flight.requests.per.connection = 5
+	max.request.size = 1048576
+	metadata.max.age.ms = 300000
+	metadata.max.idle.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partitioner.adaptive.partitioning.enable = true
+	partitioner.availability.timeout.ms = 0
+	partitioner.class = null
+	partitioner.ignore.keys = false
+	receive.buffer.bytes = 32768
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 10000
+	retries = 2147483647
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = []
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = []
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	transaction.timeout.ms = 60000
+	transaction.two.phase.commit.enable = false
+	transactional.id = null
+	value.serializer = class org.apache.kafka.common.serialization.ByteArraySerializer
+
+2026-11-13T08:55:08.267Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-13T08:55:08.268Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.k.clients.producer.KafkaProducer     : [Producer clientId=ledger-privacy] Instantiated an idempotent producer.
+2026-11-13T08:55:08.272Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.2.2
+2026-11-13T08:55:08.272Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c5e942859576203e
+2026-11-13T08:55:08.272Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-8272]
+2026-11-13T08:55:08.402Z  INFO [] 88078 --- [ledger] [ | ledger-relay] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=ledger-relay] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-13T08:55:08.402Z  INFO [] 88078 --- [ledger] [ ledger-privacy] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=ledger-privacy] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-13T08:55:08.476Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 3 endpoints beneath base path '/actuator'
+2026-11-13T08:55:08.508Z  INFO [] 88078 --- [ledger] [ | ledger-relay] [                                                 ] o.a.k.c.p.internals.TransactionManager   : [Producer clientId=ledger-relay] ProducerId set to 1000 with epoch 0
+2026-11-13T08:55:08.510Z  INFO [] 88078 --- [ledger] [ ledger-privacy] [                                                 ] o.a.k.c.p.internals.TransactionManager   : [Producer clientId=ledger-privacy] ProducerId set to 1001 with epoch 0
+2026-11-13T08:55:08.548Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8092 (http) with context path '/'
+2026-11-13T08:55:08.554Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.kafka.common.config.AbstractConfig   : AdminClientConfig values: 
+	bootstrap.controllers = []
+	bootstrap.servers = [127.0.0.1:9092]
+	client.dns.lookup = use_all_dns_ips
+	client.id = 
+	config.providers = []
+	connections.max.idle.ms = 300000
+	default.api.timeout.ms = 10000
+	enable.metrics.push = false
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 5000
+	retries = 2147483647
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = []
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = []
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+
+2026-11-13T08:55:08.580Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.2.2
+2026-11-13T08:55:08.580Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c5e942859576203e
+2026-11-13T08:55:08.580Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-8580]
+2026-11-13T08:55:08.596Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] .c.LedgerRelayConfiguration$EnsureTopics : TOPICS_READY created=[]
+2026-11-13T08:55:08.597Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-13T08:55:08.597Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-13T08:55:08.598Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-13T08:55:08.599Z  INFO [] 88078 --- [ledger] [| adminclient-1] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : App info kafka.admin.client for adminclient-1 unregistered
+2026-11-13T08:55:08.601Z  INFO [] 88078 --- [ledger] [| adminclient-1] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-13T08:55:08.602Z  INFO [] 88078 --- [ledger] [| adminclient-1] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-13T08:55:08.602Z  INFO [] 88078 --- [ledger] [| adminclient-1] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-13T08:55:08.606Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.kafka.common.config.AbstractConfig   : AdminClientConfig values: 
+	bootstrap.controllers = []
+	bootstrap.servers = [127.0.0.1:9092]
+	client.dns.lookup = use_all_dns_ips
+	client.id = 
+	config.providers = []
+	connections.max.idle.ms = 300000
+	default.api.timeout.ms = 10000
+	enable.metrics.push = false
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 5000
+	retries = 2147483647
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = []
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = []
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+
+2026-11-13T08:55:08.611Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.2.2
+2026-11-13T08:55:08.611Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c5e942859576203e
+2026-11-13T08:55:08.611Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-8611]
+2026-11-13T08:55:08.621Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] i.d.p.PrivacyAutoConfiguration$Lifecycle : PRIVACY_TOPICS_READY created=[]
+2026-11-13T08:55:08.621Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-13T08:55:08.621Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-13T08:55:08.621Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-13T08:55:08.621Z  INFO [] 88078 --- [ledger] [| adminclient-2] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : App info kafka.admin.client for adminclient-2 unregistered
+2026-11-13T08:55:08.622Z  INFO [] 88078 --- [ledger] [| adminclient-2] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-13T08:55:08.622Z  INFO [] 88078 --- [ledger] [| adminclient-2] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-13T08:55:08.622Z  INFO [] 88078 --- [ledger] [| adminclient-2] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-13T08:55:08.635Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.kafka.common.config.AbstractConfig   : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = earliest
+	bootstrap.servers = [127.0.0.1:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-ledger.privacy-ledger-1
+	client.rack = 
+	config.providers = []
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = ledger.privacy-ledger
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_committed
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 200
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = []
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	share.acknowledgement.mode = implicit
+	share.acquire.mode = BATCH_OPTIMIZED
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = []
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+2026-11-13T08:55:08.644Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-13T08:55:08.680Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.2.2
+2026-11-13T08:55:08.681Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c5e942859576203e
+2026-11-13T08:55:08.681Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-8680]
+2026-11-13T08:55:08.682Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.kafka.common.config.AbstractConfig   : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = earliest
+	bootstrap.servers = [127.0.0.1:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-ledger.privacy-ledger.retry-1m-2
+	client.rack = 
+	config.providers = []
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = ledger.privacy-ledger.retry-1m
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_committed
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 200
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = []
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	share.acknowledgement.mode = implicit
+	share.acquire.mode = BATCH_OPTIMIZED
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = []
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+2026-11-13T08:55:08.684Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-13T08:55:08.685Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.2.2
+2026-11-13T08:55:08.685Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c5e942859576203e
+2026-11-13T08:55:08.685Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-8685]
+2026-11-13T08:55:08.686Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.kafka.common.config.AbstractConfig   : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = earliest
+	bootstrap.servers = [127.0.0.1:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-ledger.privacy-ledger.retry-10m-3
+	client.rack = 
+	config.providers = []
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = ledger.privacy-ledger.retry-10m
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_committed
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 200
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = []
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	share.acknowledgement.mode = implicit
+	share.acquire.mode = BATCH_OPTIMIZED
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = []
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+2026-11-13T08:55:08.688Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-13T08:55:08.690Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.2.2
+2026-11-13T08:55:08.690Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c5e942859576203e
+2026-11-13T08:55:08.690Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-8690]
+2026-11-13T08:55:08.701Z  INFO [] 88078 --- [ledger] [edger.retry-10m] [                                                 ] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-ledger.privacy-ledger.retry-10m-3, groupId=ledger.privacy-ledger.retry-10m] Subscribed to topic(s): dexter.audit.privacy.v1.privacy-ledger.retry-10m
+2026-11-13T08:55:08.702Z  INFO [] 88078 --- [ledger] [.privacy-ledger] [                                                 ] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-ledger.privacy-ledger-1, groupId=ledger.privacy-ledger] Subscribed to topic(s): dexter.audit.privacy.v1
+2026-11-13T08:55:08.702Z  INFO [] 88078 --- [ledger] [           main] [                                                 ] in.dexter.ledger.LedgerApplication       : Started LedgerApplication in 4.297 seconds (process running for 4.731)
+2026-11-13T08:55:08.701Z  INFO [] 88078 --- [ledger] [ledger.retry-1m] [                                                 ] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-ledger.privacy-ledger.retry-1m-2, groupId=ledger.privacy-ledger.retry-1m] Subscribed to topic(s): dexter.audit.privacy.v1.privacy-ledger.retry-1m
+2026-11-13T08:55:08.720Z  INFO [] 88078 --- [ledger] [.privacy-ledger] [                                                 ] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-ledger.privacy-ledger-1, groupId=ledger.privacy-ledger] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-13T08:55:08.720Z  INFO [] 88078 --- [ledger] [ledger.retry-1m] [                                                 ] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-ledger.privacy-ledger.retry-1m-2, groupId=ledger.privacy-ledger.retry-1m] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-13T08:55:08.721Z  INFO [] 88078 --- [ledger] [edger.retry-10m] [                                                 ] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-ledger.privacy-ledger.retry-10m-3, groupId=ledger.privacy-ledger.retry-10m] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-13T08:55:08.723Z  INFO [] 88078 --- [ledger] [edger.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger.retry-10m-3, groupId=ledger.privacy-ledger.retry-10m] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false)
+2026-11-13T08:55:08.723Z  INFO [] 88078 --- [ledger] [ledger.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger.retry-1m-2, groupId=ledger.privacy-ledger.retry-1m] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false)
+2026-11-13T08:55:08.725Z  INFO [] 88078 --- [ledger] [ledger.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger.retry-1m-2, groupId=ledger.privacy-ledger.retry-1m] (Re-)joining group
+2026-11-13T08:55:08.725Z  INFO [] 88078 --- [ledger] [edger.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger.retry-10m-3, groupId=ledger.privacy-ledger.retry-10m] (Re-)joining group
+2026-11-13T08:55:08.734Z  WARN [] 88078 --- [ledger] [.privacy-ledger] [                                                 ] o.a.k.c.c.internals.OffsetFetcherUtils   : [Consumer clientId=consumer-ledger.privacy-ledger-1, groupId=ledger.privacy-ledger] Not updating last stable offset for partition dexter.audit.privacy.v1.privacy-ledger.dlq-1 as it is no longer assigned
+2026-11-13T08:55:08.734Z  WARN [] 88078 --- [ledger] [.privacy-ledger] [                                                 ] o.a.k.c.c.internals.OffsetFetcherUtils   : [Consumer clientId=consumer-ledger.privacy-ledger-1, groupId=ledger.privacy-ledger] Not updating last stable offset for partition dexter.audit.privacy.v1.privacy-ledger.dlq-2 as it is no longer assigned
+2026-11-13T08:55:08.734Z  WARN [] 88078 --- [ledger] [.privacy-ledger] [                                                 ] o.a.k.c.c.internals.OffsetFetcherUtils   : [Consumer clientId=consumer-ledger.privacy-ledger-1, groupId=ledger.privacy-ledger] Not updating last stable offset for partition dexter.audit.privacy.v1.privacy-ledger.dlq-0 as it is no longer assigned
+2026-11-13T08:55:08.738Z  WARN [] 88078 --- [ledger] [.privacy-ledger] [                                                 ] o.a.k.c.c.internals.OffsetFetcherUtils   : [Consumer clientId=consumer-ledger.privacy-ledger-1, groupId=ledger.privacy-ledger] Not updating last stable offset for partition dexter.audit.privacy.v1.privacy-ledger.dlq-1 as it is no longer assigned
+2026-11-13T08:55:08.739Z  WARN [] 88078 --- [ledger] [.privacy-ledger] [                                                 ] o.a.k.c.c.internals.OffsetFetcherUtils   : [Consumer clientId=consumer-ledger.privacy-ledger-1, groupId=ledger.privacy-ledger] Not updating last stable offset for partition dexter.audit.privacy.v1.privacy-ledger.dlq-2 as it is no longer assigned
+2026-11-13T08:55:08.739Z  WARN [] 88078 --- [ledger] [.privacy-ledger] [                                                 ] o.a.k.c.c.internals.OffsetFetcherUtils   : [Consumer clientId=consumer-ledger.privacy-ledger-1, groupId=ledger.privacy-ledger] Not updating last stable offset for partition dexter.audit.privacy.v1.privacy-ledger.dlq-0 as it is no longer assigned
+2026-11-13T08:55:08.742Z  INFO [] 88078 --- [ledger] [ledger.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger.retry-1m-2, groupId=ledger.privacy-ledger.retry-1m] Request joining group due to: need to re-join with the given member-id: consumer-ledger.privacy-ledger.retry-1m-2-5c0489ea-b6fb-43eb-aeca-7faa7e4621b5
+2026-11-13T08:55:08.743Z  INFO [] 88078 --- [ledger] [ledger.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger.retry-1m-2, groupId=ledger.privacy-ledger.retry-1m] (Re-)joining group
+2026-11-13T08:55:08.742Z  INFO [] 88078 --- [ledger] [edger.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger.retry-10m-3, groupId=ledger.privacy-ledger.retry-10m] Request joining group due to: need to re-join with the given member-id: consumer-ledger.privacy-ledger.retry-10m-3-50073e05-b4a8-4d03-9d05-1939f9e11572
+2026-11-13T08:55:08.743Z  INFO [] 88078 --- [ledger] [.privacy-ledger] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger-1, groupId=ledger.privacy-ledger] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false)
+2026-11-13T08:55:08.743Z  INFO [] 88078 --- [ledger] [edger.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger.retry-10m-3, groupId=ledger.privacy-ledger.retry-10m] (Re-)joining group
+2026-11-13T08:55:08.744Z  INFO [] 88078 --- [ledger] [.privacy-ledger] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger-1, groupId=ledger.privacy-ledger] (Re-)joining group
+2026-11-13T08:55:08.747Z  INFO [] 88078 --- [ledger] [.privacy-ledger] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger-1, groupId=ledger.privacy-ledger] Request joining group due to: need to re-join with the given member-id: consumer-ledger.privacy-ledger-1-39750ab3-d83a-41ea-a86f-b4b1feaf6c04
+2026-11-13T08:55:08.747Z  INFO [] 88078 --- [ledger] [.privacy-ledger] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger-1, groupId=ledger.privacy-ledger] (Re-)joining group
+2026-11-13T08:55:08.762Z  INFO [] 88078 --- [ledger] [ledger.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger.retry-1m-2, groupId=ledger.privacy-ledger.retry-1m] Successfully joined group with generation Generation{generationId=3, memberId='consumer-ledger.privacy-ledger.retry-1m-2-5c0489ea-b6fb-43eb-aeca-7faa7e4621b5', protocol='range'}
+2026-11-13T08:55:08.771Z  INFO [] 88078 --- [ledger] [ledger.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger.retry-1m-2, groupId=ledger.privacy-ledger.retry-1m] Successfully synced group in generation Generation{generationId=3, memberId='consumer-ledger.privacy-ledger.retry-1m-2-5c0489ea-b6fb-43eb-aeca-7faa7e4621b5', protocol='range'}
+2026-11-13T08:55:08.774Z  INFO [] 88078 --- [ledger] [ledger.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger.retry-1m-2, groupId=ledger.privacy-ledger.retry-1m] Notifying assignor about the new Assignment(partitions=[dexter.audit.privacy.v1.privacy-ledger.retry-1m-0, dexter.audit.privacy.v1.privacy-ledger.retry-1m-1])
+2026-11-13T08:55:08.776Z  INFO [] 88078 --- [ledger] [ledger.retry-1m] [                                                 ] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-ledger.privacy-ledger.retry-1m-2, groupId=ledger.privacy-ledger.retry-1m] Adding newly assigned partitions: [dexter.audit.privacy.v1.privacy-ledger.retry-1m-0, dexter.audit.privacy.v1.privacy-ledger.retry-1m-1]
+2026-11-13T08:55:08.781Z  INFO [] 88078 --- [ledger] [ledger.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger.retry-1m-2, groupId=ledger.privacy-ledger.retry-1m] Found no committed offset for partition dexter.audit.privacy.v1.privacy-ledger.retry-1m-1
+2026-11-13T08:55:08.781Z  INFO [] 88078 --- [ledger] [ledger.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger.retry-1m-2, groupId=ledger.privacy-ledger.retry-1m] Found no committed offset for partition dexter.audit.privacy.v1.privacy-ledger.retry-1m-0
+2026-11-13T08:55:08.787Z  INFO [] 88078 --- [ledger] [ledger.retry-1m] [                                                 ] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-ledger.privacy-ledger.retry-1m-2, groupId=ledger.privacy-ledger.retry-1m] Resetting offset for partition dexter.audit.privacy.v1.privacy-ledger.retry-1m-1 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=2}}.
+2026-11-13T08:55:08.787Z  INFO [] 88078 --- [ledger] [ledger.retry-1m] [                                                 ] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-ledger.privacy-ledger.retry-1m-2, groupId=ledger.privacy-ledger.retry-1m] Resetting offset for partition dexter.audit.privacy.v1.privacy-ledger.retry-1m-0 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=2}}.
+2026-11-13T08:55:08.970Z  INFO [] 88078 --- [ledger] [.privacy-ledger] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger-1, groupId=ledger.privacy-ledger] Successfully joined group with generation Generation{generationId=3, memberId='consumer-ledger.privacy-ledger-1-39750ab3-d83a-41ea-a86f-b4b1feaf6c04', protocol='range'}
+2026-11-13T08:55:08.978Z  INFO [] 88078 --- [ledger] [.privacy-ledger] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger-1, groupId=ledger.privacy-ledger] Successfully synced group in generation Generation{generationId=3, memberId='consumer-ledger.privacy-ledger-1-39750ab3-d83a-41ea-a86f-b4b1feaf6c04', protocol='range'}
+2026-11-13T08:55:08.979Z  INFO [] 88078 --- [ledger] [.privacy-ledger] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger-1, groupId=ledger.privacy-ledger] Notifying assignor about the new Assignment(partitions=[dexter.audit.privacy.v1-0, dexter.audit.privacy.v1-1])
+2026-11-13T08:55:08.980Z  INFO [] 88078 --- [ledger] [.privacy-ledger] [                                                 ] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-ledger.privacy-ledger-1, groupId=ledger.privacy-ledger] Adding newly assigned partitions: [dexter.audit.privacy.v1-0, dexter.audit.privacy.v1-1]
+2026-11-13T08:55:08.982Z  INFO [] 88078 --- [ledger] [.privacy-ledger] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger-1, groupId=ledger.privacy-ledger] Found no committed offset for partition dexter.audit.privacy.v1-1
+2026-11-13T08:55:08.983Z  INFO [] 88078 --- [ledger] [.privacy-ledger] [                                                 ] o.a.k.c.c.internals.ConsumerUtils        : Setting offset for partition dexter.audit.privacy.v1-0 to the committed offset FetchPosition{offset=4, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=2}}
+2026-11-13T08:55:08.985Z  INFO [] 88078 --- [ledger] [.privacy-ledger] [                                                 ] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-ledger.privacy-ledger-1, groupId=ledger.privacy-ledger] Resetting offset for partition dexter.audit.privacy.v1-1 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=2}}.
+2026-11-13T08:55:09.699Z  INFO [] 88078 --- [ledger] [r-import-worker] [                                                 ] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-11-13T08:55:09.724Z  INFO [] 88078 --- [ledger] [r-import-worker] [                                                 ] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@7004393c
+2026-11-13T08:55:09.727Z  INFO [] 88078 --- [ledger] [r-import-worker] [                                                 ] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-11-13T08:55:10.013Z  INFO [] 88078 --- [ledger] [omcat-handler-0] [                                                 ] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-11-13T08:55:10.013Z  INFO [] 88078 --- [ledger] [omcat-handler-0] [                                                 ] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-11-13T08:55:10.014Z  INFO [] 88078 --- [ledger] [omcat-handler-0] [                                                 ] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-11-13T08:55:10.661Z  INFO [] 88078 --- [ledger] [ox-relay-ledger] [                                                 ] in.dexter.events.relay.OutboxRelay       : outbox relay ledger: leader
+2026-11-13T08:55:23.567Z  INFO [] 88078 --- [ledger] [ledger.retry-1m] [                                                 ] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-ledger.privacy-ledger.retry-1m-2, groupId=ledger.privacy-ledger.retry-1m] Revoke previously assigned partitions [dexter.audit.privacy.v1.privacy-ledger.retry-1m-0, dexter.audit.privacy.v1.privacy-ledger.retry-1m-1]
+2026-11-13T08:55:23.567Z  INFO [] 88078 --- [ledger] [edger.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger.retry-10m-3, groupId=ledger.privacy-ledger.retry-10m] Member consumer-ledger.privacy-ledger.retry-10m-3-50073e05-b4a8-4d03-9d05-1939f9e11572 sending LeaveGroup request to coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false) due to the consumer is being closed
+2026-11-13T08:55:23.568Z  INFO [] 88078 --- [ledger] [.privacy-ledger] [                                                 ] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-ledger.privacy-ledger-1, groupId=ledger.privacy-ledger] Revoke previously assigned partitions [dexter.audit.privacy.v1-0, dexter.audit.privacy.v1-1]
+2026-11-13T08:55:23.568Z  INFO [] 88078 --- [ledger] [ledger.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger.retry-1m-2, groupId=ledger.privacy-ledger.retry-1m] Member consumer-ledger.privacy-ledger.retry-1m-2-5c0489ea-b6fb-43eb-aeca-7faa7e4621b5 sending LeaveGroup request to coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false) due to the consumer is being closed
+2026-11-13T08:55:23.568Z  INFO [] 88078 --- [ledger] [.privacy-ledger] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger-1, groupId=ledger.privacy-ledger] Member consumer-ledger.privacy-ledger-1-39750ab3-d83a-41ea-a86f-b4b1feaf6c04 sending LeaveGroup request to coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false) due to the consumer is being closed
+2026-11-13T08:55:23.569Z  INFO [] 88078 --- [ledger] [.privacy-ledger] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger-1, groupId=ledger.privacy-ledger] Resetting generation and member id due to: consumer pro-actively leaving the group
+2026-11-13T08:55:23.569Z  INFO [] 88078 --- [ledger] [ledger.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger.retry-1m-2, groupId=ledger.privacy-ledger.retry-1m] Resetting generation and member id due to: consumer pro-actively leaving the group
+2026-11-13T08:55:23.569Z  INFO [] 88078 --- [ledger] [edger.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger.retry-10m-3, groupId=ledger.privacy-ledger.retry-10m] Resetting generation and member id due to: consumer pro-actively leaving the group
+2026-11-13T08:55:23.570Z  INFO [] 88078 --- [ledger] [ledger.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger.retry-1m-2, groupId=ledger.privacy-ledger.retry-1m] Request joining group due to: consumer pro-actively leaving the group
+2026-11-13T08:55:23.570Z  INFO [] 88078 --- [ledger] [.privacy-ledger] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger-1, groupId=ledger.privacy-ledger] Request joining group due to: consumer pro-actively leaving the group
+2026-11-13T08:55:23.571Z  INFO [] 88078 --- [ledger] [edger.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger.retry-10m-3, groupId=ledger.privacy-ledger.retry-10m] Request joining group due to: consumer pro-actively leaving the group
+2026-11-13T08:55:23.810Z  WARN [] 88078 --- [ledger] [ox-relay-ledger] [                                                 ] in.dexter.events.relay.OutboxRelay       : outbox relay ledger: org.postgresql.util.PSQLException: FATAL: terminating connection due to administrator command (retrying)
+2026-11-13T08:55:23.858Z  INFO [] 88078 --- [ledger] [ledger.retry-1m] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-13T08:55:23.858Z  INFO [] 88078 --- [ledger] [ledger.retry-1m] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-13T08:55:23.858Z  INFO [] 88078 --- [ledger] [ledger.retry-1m] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.telemetry.internals.ClientTelemetryReporter
+2026-11-13T08:55:23.858Z  INFO [] 88078 --- [ledger] [ledger.retry-1m] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-13T08:55:23.863Z  INFO [] 88078 --- [ledger] [ledger.retry-1m] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : App info kafka.consumer for consumer-ledger.privacy-ledger.retry-1m-2 unregistered
+2026-11-13T08:55:24.050Z  INFO [] 88078 --- [ledger] [.privacy-ledger] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-13T08:55:24.050Z  INFO [] 88078 --- [ledger] [.privacy-ledger] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-13T08:55:24.050Z  INFO [] 88078 --- [ledger] [.privacy-ledger] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.telemetry.internals.ClientTelemetryReporter
+2026-11-13T08:55:24.050Z  INFO [] 88078 --- [ledger] [.privacy-ledger] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-13T08:55:24.054Z  INFO [] 88078 --- [ledger] [.privacy-ledger] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : App info kafka.consumer for consumer-ledger.privacy-ledger-1 unregistered
+2026-11-13T08:55:24.933Z  INFO [] 88078 --- [ledger] [ox-relay-ledger] [                                                 ] in.dexter.events.relay.OutboxRelay       : outbox relay ledger: leader
+2026-11-13T08:55:26.514Z  INFO [] 88078 --- [ledger] [xecutorLoop-1-1] [                                                 ] i.l.core.protocol.ConnectionWatchdog     : Reconnecting, last destination was /127.0.0.1:6379
+2026-11-13T08:55:26.560Z  WARN [] 88078 --- [ledger] [ioEventLoop-4-2] [                                                 ] i.l.core.protocol.ConnectionWatchdog     : Cannot reconnect to [127.0.0.1/<unresolved>:6379]: Connection refused (connect failed): /127.0.0.1:6379
+2026-11-13T08:55:27.611Z  INFO [] 88078 --- [ledger] [ioEventLoop-4-2] [                                                 ] i.l.core.protocol.ReconnectionHandler    : Reconnected to 127.0.0.1/<unresolved>:6379
+2026-11-13T08:55:28.567Z  WARN [] 88078 --- [ledger] [edger.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-ledger.privacy-ledger.retry-10m-3, groupId=ledger.privacy-ledger.retry-10m] Close timed out with 2 pending requests to coordinator, terminating client connections
+2026-11-13T08:55:28.571Z  INFO [] 88078 --- [ledger] [edger.retry-10m] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-13T08:55:28.571Z  INFO [] 88078 --- [ledger] [edger.retry-10m] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-13T08:55:28.571Z  INFO [] 88078 --- [ledger] [edger.retry-10m] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.telemetry.internals.ClientTelemetryReporter
+2026-11-13T08:55:28.572Z  INFO [] 88078 --- [ledger] [edger.retry-10m] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-13T08:55:28.576Z  INFO [] 88078 --- [ledger] [edger.retry-10m] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : App info kafka.consumer for consumer-ledger.privacy-ledger.retry-10m-3 unregistered
+2026-11-13T08:55:28.576Z  INFO [] 88078 --- [ledger] [ionShutdownHook] [                                                 ] o.a.k.clients.producer.KafkaProducer     : [Producer clientId=ledger-privacy] Closing the Kafka producer with timeoutMillis = [CARD-5807] ms.
+2026-11-13T08:55:28.579Z  INFO [] 88078 --- [ledger] [ionShutdownHook] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-13T08:55:28.579Z  INFO [] 88078 --- [ledger] [ionShutdownHook] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-13T08:55:28.579Z  INFO [] 88078 --- [ledger] [ionShutdownHook] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.telemetry.internals.ClientTelemetryReporter
+2026-11-13T08:55:28.579Z  INFO [] 88078 --- [ledger] [ionShutdownHook] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-13T08:55:28.579Z  INFO [] 88078 --- [ledger] [ionShutdownHook] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : App info kafka.producer for ledger-privacy unregistered
+2026-11-13T08:55:28.580Z  INFO [] 88078 --- [ledger] [ionShutdownHook] [                                                 ] o.a.k.clients.producer.KafkaProducer     : [Producer clientId=ledger-relay] Closing the Kafka producer with timeoutMillis = [CARD-5807] ms.
+2026-11-13T08:55:28.583Z  INFO [] 88078 --- [ledger] [ionShutdownHook] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-13T08:55:28.583Z  INFO [] 88078 --- [ledger] [ionShutdownHook] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-13T08:55:28.583Z  INFO [] 88078 --- [ledger] [ionShutdownHook] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.telemetry.internals.ClientTelemetryReporter
+2026-11-13T08:55:28.584Z  INFO [] 88078 --- [ledger] [ionShutdownHook] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-13T08:55:28.584Z  INFO [] 88078 --- [ledger] [ionShutdownHook] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : App info kafka.producer for ledger-relay unregistered
+2026-11-13T08:55:28.585Z  INFO [] 88078 --- [ledger] [ionShutdownHook] [                                                 ] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-11-13T08:55:28.587Z  INFO [] 88078 --- [ledger] [tomcat-shutdown] [                                                 ] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+2026-11-13T08:55:28.613Z  INFO [] 88078 --- [ledger] [ionShutdownHook] [                                                 ] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-11-13T08:55:28.615Z  INFO [] 88078 --- [ledger] [ionShutdownHook] [                                                 ] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.

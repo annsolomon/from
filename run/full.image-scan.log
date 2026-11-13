@@ -1,0 +1,11 @@
+ok   gateway: user nonroot, 0 HIGH/CRITICAL fixable (2 scan targets)
+ok   identity: user nonroot, 0 HIGH/CRITICAL fixable (2 scan targets)
+ok   ledger: user nonroot, 0 HIGH/CRITICAL fixable (2 scan targets)
+ok   catalog: user nonroot, 0 HIGH/CRITICAL fixable (2 scan targets)
+ok   portfolio: user nonroot, 0 HIGH/CRITICAL fixable (2 scan targets)
+ok   planning: user nonroot, 0 HIGH/CRITICAL fixable (2 scan targets)
+ok   reco: user nonroot, 0 HIGH/CRITICAL fixable (2 scan targets)
+ok   billing: user nonroot, 0 HIGH/CRITICAL fixable (2 scan targets)
+ok   commerce: user nonroot, 0 HIGH/CRITICAL fixable (2 scan targets)
+ok   audit: user nonroot, 0 HIGH/CRITICAL fixable (2 scan targets)
+images: 10/10 built; findings in target/verify/trivy/summary.tsv; clean

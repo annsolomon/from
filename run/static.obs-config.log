@@ -1,0 +1,4 @@
+3 dashboards, 18 panels, 18 queries; 8 alerts, 3 recording rules; 0 errors
+  SUCCESS: 11 rules found
+ SUCCESS: /etc/prometheus/prometheus.yml is valid prometheus config file syntax
+dashboards + promtool rules/config OK

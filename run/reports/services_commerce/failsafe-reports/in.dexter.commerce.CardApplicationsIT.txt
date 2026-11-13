@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: in.dexter.commerce.CardApplicationsIT
+-------------------------------------------------------------------------------
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 11.80 s -- in in.dexter.commerce.CardApplicationsIT

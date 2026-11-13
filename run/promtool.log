@@ -1,0 +1,40 @@
+Unable to find image 'prom/prometheus:v3.5.0' locally
+v3.5.0: Pulling from prom/prometheus
+208063e2dcbb: Pulling fs layer
+76619c1908eb: Pulling fs layer
+2ee6cb77bebd: Pulling fs layer
+fd1d3a5a5f79: Pulling fs layer
+5e4c02bc6754: Pulling fs layer
+2dfc70ad9941: Pulling fs layer
+097a69c6efe6: Pulling fs layer
+a4e782810d03: Pulling fs layer
+1617e25568b2: Pulling fs layer
+9fa9226be034: Pulling fs layer
+5e4c02bc6754: Download complete
+208063e2dcbb: Download complete
+2dfc70ad9941: Download complete
+1617e25568b2: Download complete
+76619c1908eb: Download complete
+9fa9226be034: Download complete
+fd1d3a5a5f79: Download complete
+a4e782810d03: Download complete
+9fa9226be034: Pull complete
+1617e25568b2: Pull complete
+2ee6cb77bebd: Download complete
+097a69c6efe6: Download complete
+097a69c6efe6: Pull complete
+5e4c02bc6754: Pull complete
+208063e2dcbb: Pull complete
+2dfc70ad9941: Pull complete
+76619c1908eb: Pull complete
+fd1d3a5a5f79: Pull complete
+a4e782810d03: Pull complete
+2ee6cb77bebd: Pull complete
+Digest: sha256:63805ebb8d2b3920190daf1cb14a60871b16fd38bed42b857a3182bc621f4996
+Status: Downloaded newer image for prom/prometheus:v3.5.0
+Checking /etc/prometheus/alerts.yml
+  SUCCESS: 11 rules found
+
+Checking /etc/prometheus/prometheus.yml
+ SUCCESS: /etc/prometheus/prometheus.yml is valid prometheus config file syntax
+

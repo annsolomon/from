@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: in.dexter.gateway.ResilienceIT
+-------------------------------------------------------------------------------
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 17.18 s -- in in.dexter.gateway.ResilienceIT

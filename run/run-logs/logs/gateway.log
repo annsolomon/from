@@ -1,0 +1,563 @@
+2026-11-13T08:49:45.429Z  INFO 55035 --- [gateway] [           main] [                                                 ] in.dexter.gateway.GatewayApplication     : Starting GatewayApplication v0.1.0-SNAPSHOT using Java 25.0.5 with PID 55035 (/home/runner/work/from/from/services/gateway/target/app.jar started by runner in /home/runner/work/from/from)
+2026-11-13T08:49:45.454Z  INFO 55035 --- [gateway] [           main] [                                                 ] in.dexter.gateway.GatewayApplication     : The following 1 profile is active: "dev"
+2026-11-13T08:49:51.551Z  INFO 55035 --- [gateway] [           main] [                                                 ] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-11-13T08:49:51.565Z  INFO 55035 --- [gateway] [           main] [                                                 ] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2026-11-13T08:49:51.679Z  INFO 55035 --- [gateway] [           main] [                                                 ] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 50 ms. Found 0 Redis repository interfaces.
+2026-11-13T08:49:52.647Z  INFO 55035 --- [gateway] [           main] [                                                 ] o.s.cloud.context.scope.GenericScope     : BeanFactory id=964bde3c-42bf-39fd-949f-f3b2206c8162
+2026-11-13T08:49:54.884Z  INFO 55035 --- [gateway] [           main] [                                                 ] i.d.gateway.config.GatewayConfiguration  : GATEWAY_ROUTES routes=11 services=[reco, ledger, identity, catalog, planning, billing, commerce, audit, portfolio]
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::loadLibrary has been called by io.netty.util.internal.NativeLibraryUtil in an unnamed module (jar:nested:/home/runner/work/from/from/services/gateway/target/app.jar/!BOOT-INF/lib/netty-common-4.2.19.Final.jar!/)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+2026-11-13T08:50:00.695Z  WARN 55035 --- [gateway] [           main] [                                                 ] o.h.v.i.m.a.CascadingMetaDataBuilder     : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: routes
+2026-11-13T08:50:01.272Z  INFO 55035 --- [gateway] [           main] [                                                 ] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [After]
+2026-11-13T08:50:01.273Z  INFO 55035 --- [gateway] [           main] [                                                 ] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Before]
+2026-11-13T08:50:01.273Z  INFO 55035 --- [gateway] [           main] [                                                 ] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Between]
+2026-11-13T08:50:01.273Z  INFO 55035 --- [gateway] [           main] [                                                 ] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Cookie]
+2026-11-13T08:50:01.273Z  INFO 55035 --- [gateway] [           main] [                                                 ] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Header]
+2026-11-13T08:50:01.273Z  INFO 55035 --- [gateway] [           main] [                                                 ] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Host]
+2026-11-13T08:50:01.273Z  INFO 55035 --- [gateway] [           main] [                                                 ] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Method]
+2026-11-13T08:50:01.273Z  INFO 55035 --- [gateway] [           main] [                                                 ] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Path]
+2026-11-13T08:50:01.273Z  INFO 55035 --- [gateway] [           main] [                                                 ] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Query]
+2026-11-13T08:50:01.273Z  INFO 55035 --- [gateway] [           main] [                                                 ] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [ReadBody]
+2026-11-13T08:50:01.273Z  INFO 55035 --- [gateway] [           main] [                                                 ] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [RemoteAddr]
+2026-11-13T08:50:01.274Z  INFO 55035 --- [gateway] [           main] [                                                 ] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Version]
+2026-11-13T08:50:01.278Z  INFO 55035 --- [gateway] [           main] [                                                 ] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [XForwardedRemoteAddr]
+2026-11-13T08:50:01.278Z  INFO 55035 --- [gateway] [           main] [                                                 ] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Weight]
+2026-11-13T08:50:01.278Z  INFO 55035 --- [gateway] [           main] [                                                 ] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [CloudFoundryRouteService]
+2026-11-13T08:50:02.202Z  INFO 55035 --- [gateway] [           main] [                                                 ] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 3 endpoints beneath base path '/actuator'
+2026-11-13T08:50:05.323Z  INFO 55035 --- [gateway] [           main] [                                                 ] o.s.boot.reactor.netty.NettyWebServer    : Netty started on port 8080 (http)
+2026-11-13T08:50:05.536Z  INFO 55035 --- [gateway] [           main] [                                                 ] in.dexter.gateway.GatewayApplication     : Started GatewayApplication in 22.982 seconds (process running for 25.036)
+2026-11-13T08:50:24.386Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] o.a.kafka.common.config.AbstractConfig   : AdminClientConfig values: 
+	bootstrap.controllers = []
+	bootstrap.servers = [127.0.0.1:9092]
+	client.dns.lookup = use_all_dns_ips
+	client.id = 
+	config.providers = []
+	connections.max.idle.ms = 300000
+	default.api.timeout.ms = 5000
+	enable.metrics.push = false
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 3000
+	retries = 2147483647
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = null
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = []
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = []
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = null
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = null
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = null
+	ssl.truststore.type = JKS
+
+2026-11-13T08:50:24.467Z  INFO 55035 --- [gateway] [oundedElastic-4] [                                                 ] i.d.gateway.infra.JwtPreCheckFilter      : GATEWAY_AUTH_REJECTED reason=MALFORMED route=identity
+2026-11-13T08:50:24.549Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.2.2
+2026-11-13T08:50:24.549Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c5e942859576203e
+2026-11-13T08:50:24.549Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: 1794559824546
+2026-11-13T08:50:25.302Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-13T08:50:25.302Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-13T08:50:25.303Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-13T08:50:25.303Z  INFO 55035 --- [gateway] [| adminclient-1] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : App info kafka.admin.client for adminclient-1 unregistered
+2026-11-13T08:50:25.308Z  INFO 55035 --- [gateway] [| adminclient-1] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-13T08:50:25.308Z  INFO 55035 --- [gateway] [| adminclient-1] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-13T08:50:25.308Z  INFO 55035 --- [gateway] [| adminclient-1] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-13T08:50:25.327Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] o.a.kafka.common.config.AbstractConfig   : ProducerConfig values: 
+	acks = 1
+	batch.size = 16384
+	bootstrap.servers = [127.0.0.1:9092]
+	buffer.memory = 8388608
+	client.dns.lookup = use_all_dns_ips
+	client.id = gateway-activity
+	compression.gzip.level = -1
+	compression.lz4.level = 9
+	compression.type = none
+	compression.zstd.level = 3
+	config.providers = []
+	connections.max.idle.ms = 540000
+	delivery.timeout.ms = 30000
+	enable.idempotence = false
+	enable.metrics.push = true
+	interceptor.classes = []
+	key.serializer = class org.apache.kafka.common.serialization.StringSerializer
+	linger.ms = 50
+	max.block.ms = 500
+	max.in.flight.requests.per.connection = 5
+	max.request.size = 1048576
+	metadata.max.age.ms = 300000
+	metadata.max.idle.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partitioner.adaptive.partitioning.enable = true
+	partitioner.availability.timeout.ms = 0
+	partitioner.class = null
+	partitioner.ignore.keys = false
+	receive.buffer.bytes = 32768
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 10000
+	retries = 2147483647
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = null
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = []
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = []
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = null
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = null
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = null
+	ssl.truststore.type = JKS
+	transaction.timeout.ms = 60000
+	transaction.two.phase.commit.enable = false
+	transactional.id = null
+	value.serializer = class org.apache.kafka.common.serialization.ByteArraySerializer
+
+2026-11-13T08:50:25.379Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-13T08:50:25.411Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.2.2
+2026-11-13T08:50:25.411Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c5e942859576203e
+2026-11-13T08:50:25.412Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: 1794559825411
+2026-11-13T08:50:25.425Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-13T08:50:25.998Z  INFO 55035 --- [gateway] [llEventLoop-5-1] [                                                 ] i.dexter.gateway.infra.RateLimitFilter   : GATEWAY_RATE_LIMITED class=auth route=identity
+2026-11-13T08:53:43.206Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:53:43.247Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node 1 disconnected.
+2026-11-13T08:53:43.248Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Cancelled in-flight METADATA request with correlation id 219 due to node 1 being disconnected (elapsed time since creation: 8ms, elapsed time since send: 8ms, throttle time: 0ms, request timeout: 10000ms)
+2026-11-13T08:53:43.355Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node 1 disconnected.
+2026-11-13T08:53:43.362Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Cancelled in-flight API_VERSIONS request with correlation id 220 due to node 1 being disconnected (elapsed time since creation: 6ms, elapsed time since send: 6ms, throttle time: 0ms, request timeout: 10000ms)
+2026-11-13T08:53:43.369Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:53:43.377Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:53:43.377Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Cancelled in-flight API_VERSIONS request with correlation id 221 due to node -1 being disconnected (elapsed time since creation: 7ms, elapsed time since send: 7ms, throttle time: 0ms, request timeout: 10000ms)
+2026-11-13T08:53:43.410Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:43.601Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:53:43.602Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Cancelled in-flight API_VERSIONS request with correlation id 222 due to node -1 being disconnected (elapsed time since creation: 0ms, elapsed time since send: 0ms, throttle time: 0ms, request timeout: 10000ms)
+2026-11-13T08:53:43.602Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:44.074Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:53:44.074Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:44.074Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:44.945Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:53:44.946Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:44.946Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:45.946Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:53:45.946Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:45.946Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:46.947Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:53:46.947Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:46.947Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:47.948Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:53:47.948Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:47.948Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:48.949Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:53:48.949Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:48.949Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:49.950Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:53:49.950Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:49.950Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:50.951Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:53:50.952Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:50.952Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:51.952Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:53:51.953Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:51.953Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:52.953Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:53:52.953Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:52.953Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:53.954Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:53:53.954Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:53.954Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:54.955Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:53:54.956Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:54.956Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:55.847Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:53:55.955Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:53:55.955Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:55.955Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:56.956Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:53:56.957Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:56.957Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:57.960Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:53:57.960Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:57.960Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:53:58.950Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:53:59.001Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:53:59.001Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:53:59.001Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:00.002Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:00.002Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:00.002Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:01.002Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:01.002Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:01.002Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:02.003Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:02.003Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:02.003Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:03.004Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:03.004Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:03.004Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:04.006Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:04.006Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:04.006Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:05.000Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:05.000Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:05.000Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:05.899Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:05.900Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:05.900Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:05.990Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:06.041Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:06.091Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:06.143Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:06.194Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:06.244Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:06.295Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:06.345Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:06.396Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:06.446Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:06.496Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:06.547Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:06.597Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:06.647Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:06.698Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:06.748Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:06.798Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:06.849Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:06.899Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:06.899Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:06.900Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:07.899Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:07.900Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:07.900Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:08.900Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:08.900Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:08.900Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:09.901Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:09.901Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:09.901Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:10.901Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:10.902Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:10.902Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:11.901Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:11.902Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:11.902Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:12.902Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:12.903Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:12.903Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:13.903Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:13.903Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:13.903Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:14.904Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:14.904Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:14.904Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:15.904Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:15.904Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:15.905Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:16.905Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:16.905Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:16.905Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:17.749Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:17.906Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:17.906Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:17.906Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:18.906Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:18.907Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:18.907Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:19.820Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:19.907Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:19.907Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:19.907Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:20.884Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:20.935Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:20.935Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:20.935Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:21.937Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:21.937Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:21.937Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:22.938Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:22.938Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:22.938Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:23.940Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:23.940Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:23.940Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:24.942Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:24.942Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:24.942Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:25.943Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:25.943Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:25.943Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:26.944Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:26.944Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:26.944Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:27.945Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:27.945Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:27.946Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:28.945Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:28.946Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:28.946Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:29.850Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:29.851Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:29.851Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:29.945Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:29.995Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:30.046Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:30.096Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:30.146Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:30.197Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:30.247Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:30.298Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:30.348Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:30.398Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:30.449Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:30.499Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:30.550Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:30.600Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:30.650Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:30.701Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:30.751Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:30.801Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:30.852Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:30.852Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:30.852Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:31.853Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:31.854Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:31.854Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:32.853Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:32.854Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:32.854Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:33.784Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:33.784Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:33.784Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:33.808Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:33.858Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:33.909Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:33.959Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:34.009Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:34.060Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:34.110Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:34.160Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:34.211Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:34.261Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:34.311Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:34.362Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:34.412Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:34.462Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:34.512Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:34.563Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:34.613Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:34.663Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:34.713Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:34.764Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:34.814Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:34.814Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:34.814Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:35.815Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:35.815Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:35.815Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:36.816Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:36.816Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:36.817Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:37.801Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:37.802Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:37.802Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:38.802Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:38.802Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:38.802Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:39.803Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:39.804Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:39.804Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:40.762Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:40.762Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:40.762Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:40.804Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:40.854Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:40.904Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:40.955Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:41.005Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:41.055Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:41.106Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:41.156Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:41.206Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:41.256Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:41.307Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:41.357Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:41.407Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:41.457Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:41.508Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:41.558Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:41.608Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:41.658Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:41.709Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:41.759Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:41.810Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:41.810Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:41.810Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:42.811Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:42.811Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:42.811Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:43.811Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:43.811Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Connection to node -1 (/127.0.0.1:9092) could not be established. Node may not be available.
+2026-11-13T08:54:43.811Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:44.785Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Rebootstrapping with [/127.0.0.1:9092]
+2026-11-13T08:54:44.837Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:44.837Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Cancelled in-flight API_VERSIONS request with correlation id 223 due to node -1 being disconnected (elapsed time since creation: 0ms, elapsed time since send: 0ms, throttle time: 0ms, request timeout: 10000ms)
+2026-11-13T08:54:44.837Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:45.838Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:45.838Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Cancelled in-flight API_VERSIONS request with correlation id 224 due to node -1 being disconnected (elapsed time since creation: 1ms, elapsed time since send: 1ms, throttle time: 0ms, request timeout: 10000ms)
+2026-11-13T08:54:45.838Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:46.841Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:46.841Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Cancelled in-flight API_VERSIONS request with correlation id 225 due to node -1 being disconnected (elapsed time since creation: 1ms, elapsed time since send: 1ms, throttle time: 0ms, request timeout: 10000ms)
+2026-11-13T08:54:46.841Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:47.844Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Node -1 disconnected.
+2026-11-13T08:54:47.844Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Cancelled in-flight API_VERSIONS request with correlation id 226 due to node -1 being disconnected (elapsed time since creation: 1ms, elapsed time since send: 1ms, throttle time: 0ms, request timeout: 10000ms)
+2026-11-13T08:54:47.844Z  WARN 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.NetworkClient   : [Producer clientId=gateway-activity] Bootstrap broker 127.0.0.1:9092 (id: -1 rack: null isFenced: false) disconnected
+2026-11-13T08:54:48.871Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Resetting the last seen epoch of partition dexter.gateway.activity.v1-2 to 2 since the associated topicId changed from null to 0P6WWUsjTj2BPJrX8jiXSQ
+2026-11-13T08:54:48.871Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Resetting the last seen epoch of partition dexter.gateway.activity.v1-1 to 2 since the associated topicId changed from null to 0P6WWUsjTj2BPJrX8jiXSQ
+2026-11-13T08:54:48.871Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Resetting the last seen epoch of partition dexter.gateway.activity.v1-0 to 2 since the associated topicId changed from null to 0P6WWUsjTj2BPJrX8jiXSQ
+2026-11-13T08:54:48.872Z  INFO 55035 --- [gateway] [ateway-activity] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=gateway-activity] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-13T08:55:26.522Z  INFO 55035 --- [gateway] [xecutorLoop-3-1] [                                                 ] i.l.core.protocol.ConnectionWatchdog     : Reconnecting, last destination was 127.0.0.1/127.0.0.1:6379
+2026-11-13T08:55:26.549Z  WARN 55035 --- [gateway] [xecutorLoop-3-1] [                                                 ] i.l.core.protocol.ConnectionWatchdog     : Cannot reconnect to [127.0.0.1/<unresolved>:6379]: finishConnect(..) failed with error(-111): Connection refused: /127.0.0.1:6379
+2026-11-13T08:55:26.830Z  WARN 55035 --- [gateway] [     parallel-1] [                                                 ] i.dexter.gateway.infra.RateLimitFilter   : GATEWAY_RATE_LIMIT_UNAVAILABLE class=read: java.util.concurrent.TimeoutException: Did not observe any item or terminal signal within 200ms in 'next' (and no fallback has been configured)
+2026-11-13T08:55:27.058Z  WARN 55035 --- [gateway] [     parallel-1] [                                                 ] i.dexter.gateway.infra.RateLimitFilter   : GATEWAY_RATE_LIMIT_UNAVAILABLE class=read: java.util.concurrent.TimeoutException: Did not observe any item or terminal signal within 200ms in 'next' (and no fallback has been configured)
+2026-11-13T08:55:27.302Z  WARN 55035 --- [gateway] [     parallel-1] [                                                 ] i.dexter.gateway.infra.RateLimitFilter   : GATEWAY_RATE_LIMIT_UNAVAILABLE class=auth: java.util.concurrent.TimeoutException: Did not observe any item or terminal signal within 200ms in 'next' (and no fallback has been configured)
+2026-11-13T08:55:27.615Z  INFO 55035 --- [gateway] [llEventLoop-5-2] [                                                 ] i.l.core.protocol.ReconnectionHandler    : Reconnected to 127.0.0.1/<unresolved>:6379
+2026-11-13T08:55:27.886Z  INFO 55035 --- [gateway] [ionShutdownHook] [                                                 ] o.s.boot.reactor.netty.GracefulShutdown  : Commencing graceful shutdown. Waiting for active requests to complete
+2026-11-13T08:55:27.910Z  INFO 55035 --- [gateway] [ netty-shutdown] [                                                 ] o.s.boot.reactor.netty.GracefulShutdown  : Graceful shutdown complete
+2026-11-13T08:55:29.987Z  INFO 55035 --- [gateway] [ionShutdownHook] [                                                 ] o.a.k.clients.producer.KafkaProducer     : [Producer clientId=gateway-activity] Closing the Kafka producer with timeoutMillis = 2000 ms.
+2026-11-13T08:55:29.997Z  INFO 55035 --- [gateway] [ionShutdownHook] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-13T08:55:29.998Z  INFO 55035 --- [gateway] [ionShutdownHook] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-13T08:55:29.998Z  INFO 55035 --- [gateway] [ionShutdownHook] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.telemetry.internals.ClientTelemetryReporter
+2026-11-13T08:55:29.998Z  INFO 55035 --- [gateway] [ionShutdownHook] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-13T08:55:30.001Z  INFO 55035 --- [gateway] [ionShutdownHook] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : App info kafka.producer for gateway-activity unregistered

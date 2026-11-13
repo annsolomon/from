@@ -1,0 +1,7 @@
+PASS  vault.own-secrets-readable: 10/10
+PASS  vault.cross-service-denied: ledger->identity:403, identity->ledger:403, gateway->billing:403, audit->commerce:403
+PASS  vault.transit-only-identity: ledger encrypt 403, identity encrypt 200
+PASS  vault.process-environments: 71 secrets across 10 processes, each its own only
+PASS  vault.keys-under-transit: usage [['account_key', 'transit:dexter-kek', '2'], ['signing_key', 'transit:dexter-kek', '2'], ['admin_totp', 'transit:dexter-kek', '1']]
+PASS  vault.ciphertext-is-vaults: 2/2 account DEKs are Vault Transit ciphertext
+vault check: 6 PASS / 0 FAIL
