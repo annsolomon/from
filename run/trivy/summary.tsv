@@ -1,0 +1,10 @@
+gateway	nonroot	0	2	-
+identity	nonroot	0	2	-
+ledger	nonroot	0	2	-
+catalog	nonroot	0	2	-
+portfolio	nonroot	0	2	-
+planning	nonroot	0	2	-
+reco	nonroot	0	2	-
+billing	nonroot	0	2	-
+commerce	nonroot	0	2	-
+audit	nonroot	0	2	-

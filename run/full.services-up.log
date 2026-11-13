@@ -1,0 +1,4 @@
+SPRING_PROFILES_ACTIVE=dev
+secrets: from Vault (per-service tokens)
+all 10 services UP
+ai-parser UP on 8090

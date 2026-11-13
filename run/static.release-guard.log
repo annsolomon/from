@@ -1,0 +1,16 @@
+  - test-ui/ exists
+  - scripts/trail-check.sh exists
+  - compose has a trail profile
+  - trail nginx config in infra/nginx/
+  - verify-full.yml runs trail-check
+  - dev-profile bean: services/identity/src/main/java/in/dexter/identity/api/DevKeysController.java
+  - dev-profile bean: libs/dexter-lab/src/main/java/in/dexter/lab/p02/P02LabAutoConfiguration.java
+  - dev-profile bean: libs/dexter-web/src/main/java/in/dexter/web/autoconfigure/DexterWebAutoConfiguration.java
+  - dev endpoint mapping: services/identity/src/main/java/in/dexter/identity/api/DevKeysController.java
+  - dev endpoint mapping: libs/dexter-lab/src/main/java/in/dexter/lab/p02/P02LabController.java
+  - dev endpoint mapping: libs/dexter-web/src/main/java/in/dexter/web/dev/P01LabController.java
+  - gateway dev-routes: true
+  - gateway dev CORS origins
+  - libs/dexter-lab exists
+  - code that reads the trail: seed/src/test/java/in/dexter/seed/FixturesInSyncTest.java
+release guard (main, not a release branch): sees 15 trail/dev items (expected off release)

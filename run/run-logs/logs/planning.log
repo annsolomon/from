@@ -1,0 +1,1526 @@
+2026-11-13T09:02:06.981Z  INFO [] 117772 --- [planning] [           main] [                                                 ] in.dexter.planning.PlanningApplication   : Starting PlanningApplication v0.1.0-SNAPSHOT using Java 25.0.5 with PID 117772 (/home/runner/work/from/from/services/planning/target/app.jar started by runner in /home/runner/work/from/from)
+2026-11-13T09:02:07.055Z  INFO [] 117772 --- [planning] [           main] [                                                 ] in.dexter.planning.PlanningApplication   : The following 1 profile is active: "dev"
+2026-11-13T09:02:19.497Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8085 (http)
+2026-11-13T09:02:19.586Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-11-13T09:02:19.588Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.27]
+2026-11-13T09:02:19.787Z  INFO [] 117772 --- [planning] [           main] [                                                 ] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 12217 ms
+2026-11-13T09:02:24.297Z  INFO [] 117772 --- [planning] [           main] [                                                 ] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://127.0.0.1:5432/planning?ApplicationName=planning (PostgreSQL 17.12)
+2026-11-13T09:02:24.628Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.f.core.internal.command.DbValidate     : Successfully validated 4 migrations (execution time 00:00.127s)
+2026-11-13T09:02:24.792Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.f.core.internal.command.DbMigrate      : Current version of schema "planning": 202611111000
+2026-11-13T09:02:24.804Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.f.core.internal.command.DbMigrate      : Schema "planning" is up to date. No migration necessary.
+2026-11-13T09:02:25.937Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.config.AbstractConfig   : ProducerConfig values: 
+	acks = -1
+	batch.size = 16384
+	bootstrap.servers = [127.0.0.1:9092]
+	buffer.memory = 33554432
+	client.dns.lookup = use_all_dns_ips
+	client.id = planning-consumers
+	compression.gzip.level = -1
+	compression.lz4.level = 9
+	compression.type = none
+	compression.zstd.level = 3
+	config.providers = []
+	connections.max.idle.ms = 540000
+	delivery.timeout.ms = 15000
+	enable.idempotence = true
+	enable.metrics.push = true
+	interceptor.classes = []
+	key.serializer = class org.apache.kafka.common.serialization.StringSerializer
+	linger.ms = 5
+	max.block.ms = 60000
+	max.in.flight.requests.per.connection = 5
+	max.request.size = 1048576
+	metadata.max.age.ms = 300000
+	metadata.max.idle.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partitioner.adaptive.partitioning.enable = true
+	partitioner.availability.timeout.ms = 0
+	partitioner.class = null
+	partitioner.ignore.keys = false
+	receive.buffer.bytes = 32768
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 10000
+	retries = 2147483647
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = []
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = []
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	transaction.timeout.ms = 60000
+	transaction.two.phase.commit.enable = false
+	transactional.id = null
+	value.serializer = class org.apache.kafka.common.serialization.ByteArraySerializer
+
+2026-11-13T09:02:26.083Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-13T09:02:26.358Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.k.clients.producer.KafkaProducer     : [Producer clientId=planning-consumers] Instantiated an idempotent producer.
+2026-11-13T09:02:26.570Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.2.2
+2026-11-13T09:02:26.571Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c5e942859576203e
+2026-11-13T09:02:26.571Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-6541]
+2026-11-13T09:02:26.605Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.config.AbstractConfig   : ProducerConfig values: 
+	acks = -1
+	batch.size = 16384
+	bootstrap.servers = [127.0.0.1:9092]
+	buffer.memory = 33554432
+	client.dns.lookup = use_all_dns_ips
+	client.id = planning-relay
+	compression.gzip.level = -1
+	compression.lz4.level = 9
+	compression.type = none
+	compression.zstd.level = 3
+	config.providers = []
+	connections.max.idle.ms = 540000
+	delivery.timeout.ms = 15000
+	enable.idempotence = true
+	enable.metrics.push = true
+	interceptor.classes = []
+	key.serializer = class org.apache.kafka.common.serialization.StringSerializer
+	linger.ms = 5
+	max.block.ms = 60000
+	max.in.flight.requests.per.connection = 5
+	max.request.size = 1048576
+	metadata.max.age.ms = 300000
+	metadata.max.idle.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partitioner.adaptive.partitioning.enable = true
+	partitioner.availability.timeout.ms = 0
+	partitioner.class = null
+	partitioner.ignore.keys = false
+	receive.buffer.bytes = 32768
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 10000
+	retries = 2147483647
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = []
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = []
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	transaction.timeout.ms = 60000
+	transaction.two.phase.commit.enable = false
+	transactional.id = null
+	value.serializer = class org.apache.kafka.common.serialization.ByteArraySerializer
+
+2026-11-13T09:02:26.618Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-13T09:02:26.624Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.k.clients.producer.KafkaProducer     : [Producer clientId=planning-relay] Instantiated an idempotent producer.
+2026-11-13T09:02:26.658Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.2.2
+2026-11-13T09:02:26.660Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c5e942859576203e
+2026-11-13T09:02:26.661Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-6658]
+2026-11-13T09:02:29.123Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.config.AbstractConfig   : ProducerConfig values: 
+	acks = -1
+	batch.size = 16384
+	bootstrap.servers = [127.0.0.1:9092]
+	buffer.memory = 33554432
+	client.dns.lookup = use_all_dns_ips
+	client.id = planning-privacy
+	compression.gzip.level = -1
+	compression.lz4.level = 9
+	compression.type = none
+	compression.zstd.level = 3
+	config.providers = []
+	connections.max.idle.ms = 540000
+	delivery.timeout.ms = 15000
+	enable.idempotence = true
+	enable.metrics.push = true
+	interceptor.classes = []
+	key.serializer = class org.apache.kafka.common.serialization.StringSerializer
+	linger.ms = 5
+	max.block.ms = 60000
+	max.in.flight.requests.per.connection = 5
+	max.request.size = 1048576
+	metadata.max.age.ms = 300000
+	metadata.max.idle.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partitioner.adaptive.partitioning.enable = true
+	partitioner.availability.timeout.ms = 0
+	partitioner.class = null
+	partitioner.ignore.keys = false
+	receive.buffer.bytes = 32768
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 10000
+	retries = 2147483647
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = []
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = []
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	transaction.timeout.ms = 60000
+	transaction.two.phase.commit.enable = false
+	transactional.id = null
+	value.serializer = class org.apache.kafka.common.serialization.ByteArraySerializer
+
+2026-11-13T09:02:29.147Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-13T09:02:29.158Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.k.clients.producer.KafkaProducer     : [Producer clientId=planning-privacy] Instantiated an idempotent producer.
+2026-11-13T09:02:29.194Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.2.2
+2026-11-13T09:02:29.201Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c5e942859576203e
+2026-11-13T09:02:29.201Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-9194]
+2026-11-13T09:02:29.780Z  INFO [] 117772 --- [planning] [ planning-relay] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=planning-relay] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-13T09:02:29.789Z  INFO [] 117772 --- [planning] [nning-consumers] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=planning-consumers] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-13T09:02:29.794Z  INFO [] 117772 --- [planning] [ planning-relay] [                                                 ] o.a.k.c.p.internals.TransactionManager   : [Producer clientId=planning-relay] ProducerId set to 1005 with epoch 0
+2026-11-13T09:02:29.795Z  INFO [] 117772 --- [planning] [lanning-privacy] [                                                 ] org.apache.kafka.clients.Metadata        : [Producer clientId=planning-privacy] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-13T09:02:29.797Z  INFO [] 117772 --- [planning] [lanning-privacy] [                                                 ] o.a.k.c.p.internals.TransactionManager   : [Producer clientId=planning-privacy] ProducerId set to 1006 with epoch 0
+2026-11-13T09:02:29.852Z  INFO [] 117772 --- [planning] [nning-consumers] [                                                 ] o.a.k.c.p.internals.TransactionManager   : [Producer clientId=planning-consumers] ProducerId set to 1004 with epoch 0
+2026-11-13T09:02:31.065Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 3 endpoints beneath base path '/actuator'
+2026-11-13T09:02:31.561Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8085 (http) with context path '/'
+2026-11-13T09:02:31.586Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.config.AbstractConfig   : AdminClientConfig values: 
+	bootstrap.controllers = []
+	bootstrap.servers = [127.0.0.1:9092]
+	client.dns.lookup = use_all_dns_ips
+	client.id = 
+	config.providers = []
+	connections.max.idle.ms = 300000
+	default.api.timeout.ms = 10000
+	enable.metrics.push = false
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 5000
+	retries = 2147483647
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = []
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = []
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+
+2026-11-13T09:02:31.980Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.2.2
+2026-11-13T09:02:31.989Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c5e942859576203e
+2026-11-13T09:02:31.990Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-1980]
+2026-11-13T09:02:32.081Z  INFO [] 117772 --- [planning] [           main] [                                                 ] .PlanningRelayConfiguration$EnsureTopics : TOPICS_READY created=[]
+2026-11-13T09:02:32.082Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-13T09:02:32.082Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-13T09:02:32.082Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-13T09:02:32.092Z  INFO [] 117772 --- [planning] [| adminclient-1] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : App info kafka.admin.client for adminclient-1 unregistered
+2026-11-13T09:02:32.110Z  INFO [] 117772 --- [planning] [| adminclient-1] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-13T09:02:32.110Z  INFO [] 117772 --- [planning] [| adminclient-1] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-13T09:02:32.124Z  INFO [] 117772 --- [planning] [| adminclient-1] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-13T09:02:32.339Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.config.AbstractConfig   : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = earliest
+	bootstrap.servers = [127.0.0.1:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-planning.budget-spend-1
+	client.rack = 
+	config.providers = []
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = planning.budget-spend
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_committed
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 200
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = []
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	share.acknowledgement.mode = implicit
+	share.acquire.mode = BATCH_OPTIMIZED
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = []
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+2026-11-13T09:02:32.404Z  INFO [] 117772 --- [planning] [-relay-planning] [                                                 ] in.dexter.events.relay.OutboxRelay       : outbox relay planning: leader
+2026-11-13T09:02:32.474Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-13T09:02:32.751Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.2.2
+2026-11-13T09:02:32.756Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c5e942859576203e
+2026-11-13T09:02:32.756Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-2751]
+2026-11-13T09:02:32.771Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.config.AbstractConfig   : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = earliest
+	bootstrap.servers = [127.0.0.1:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-planning.budget-spend.retry-1m-2
+	client.rack = 
+	config.providers = []
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = planning.budget-spend.retry-1m
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_committed
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 200
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = []
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	share.acknowledgement.mode = implicit
+	share.acquire.mode = BATCH_OPTIMIZED
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = []
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+2026-11-13T09:02:32.803Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-13T09:02:32.833Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.2.2
+2026-11-13T09:02:32.834Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c5e942859576203e
+2026-11-13T09:02:32.834Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-2833]
+2026-11-13T09:02:32.835Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.config.AbstractConfig   : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = earliest
+	bootstrap.servers = [127.0.0.1:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-planning.budget-spend.retry-10m-3
+	client.rack = 
+	config.providers = []
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = planning.budget-spend.retry-10m
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_committed
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 200
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = []
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	share.acknowledgement.mode = implicit
+	share.acquire.mode = BATCH_OPTIMIZED
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = []
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+2026-11-13T09:02:32.853Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-13T09:02:32.867Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.2.2
+2026-11-13T09:02:32.867Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c5e942859576203e
+2026-11-13T09:02:32.874Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-2867]
+2026-11-13T09:02:32.882Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.config.AbstractConfig   : AdminClientConfig values: 
+	bootstrap.controllers = []
+	bootstrap.servers = [127.0.0.1:9092]
+	client.dns.lookup = use_all_dns_ips
+	client.id = 
+	config.providers = []
+	connections.max.idle.ms = 300000
+	default.api.timeout.ms = 10000
+	enable.metrics.push = false
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 5000
+	retries = 2147483647
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = []
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = []
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+
+2026-11-13T09:02:32.904Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.2.2
+2026-11-13T09:02:32.904Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c5e942859576203e
+2026-11-13T09:02:32.904Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-2904]
+2026-11-13T09:02:32.911Z  INFO [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-planning.budget-spend-1, groupId=planning.budget-spend] Subscribed to topic(s): dexter.ledger.expense.v1
+2026-11-13T09:02:32.918Z  INFO [] 117772 --- [planning] [-spend.retry-1m] [                                                 ] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-planning.budget-spend.retry-1m-2, groupId=planning.budget-spend.retry-1m] Subscribed to topic(s): dexter.ledger.expense.v1.budget-spend.retry-1m
+2026-11-13T09:02:32.932Z  INFO [] 117772 --- [planning] [           main] [                                                 ] i.d.p.PrivacyAutoConfiguration$Lifecycle : PRIVACY_TOPICS_READY created=[]
+2026-11-13T09:02:32.932Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-13T09:02:32.932Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-13T09:02:32.932Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-13T09:02:32.938Z  INFO [] 117772 --- [planning] [| adminclient-2] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : App info kafka.admin.client for adminclient-2 unregistered
+2026-11-13T09:02:32.943Z  INFO [] 117772 --- [planning] [| adminclient-2] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-13T09:02:32.943Z  INFO [] 117772 --- [planning] [| adminclient-2] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-13T09:02:32.943Z  INFO [] 117772 --- [planning] [spend.retry-10m] [                                                 ] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-planning.budget-spend.retry-10m-3, groupId=planning.budget-spend.retry-10m] Subscribed to topic(s): dexter.ledger.expense.v1.budget-spend.retry-10m
+2026-11-13T09:02:32.944Z  INFO [] 117772 --- [planning] [| adminclient-2] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-13T09:02:32.958Z  INFO [] 117772 --- [planning] [ng.budget-spend] [                                                 ] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-planning.budget-spend-1, groupId=planning.budget-spend] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-13T09:02:32.959Z  INFO [] 117772 --- [planning] [-spend.retry-1m] [                                                 ] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-planning.budget-spend.retry-1m-2, groupId=planning.budget-spend.retry-1m] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-13T09:02:32.993Z  INFO [] 117772 --- [planning] [spend.retry-10m] [                                                 ] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-planning.budget-spend.retry-10m-3, groupId=planning.budget-spend.retry-10m] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-13T09:02:33.004Z  INFO [] 117772 --- [planning] [-spend.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend.retry-1m-2, groupId=planning.budget-spend.retry-1m] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false)
+2026-11-13T09:02:32.952Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.config.AbstractConfig   : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = earliest
+	bootstrap.servers = [127.0.0.1:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-planning.privacy-planning-4
+	client.rack = 
+	config.providers = []
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = planning.privacy-planning
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_committed
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 200
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = []
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	share.acknowledgement.mode = implicit
+	share.acquire.mode = BATCH_OPTIMIZED
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = []
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+2026-11-13T09:02:33.009Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-13T09:02:33.004Z  INFO [] 117772 --- [planning] [spend.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend.retry-10m-3, groupId=planning.budget-spend.retry-10m] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false)
+2026-11-13T09:02:33.027Z  INFO [] 117772 --- [planning] [-spend.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend.retry-1m-2, groupId=planning.budget-spend.retry-1m] (Re-)joining group
+2026-11-13T09:02:33.030Z  INFO [] 117772 --- [planning] [spend.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend.retry-10m-3, groupId=planning.budget-spend.retry-10m] (Re-)joining group
+2026-11-13T09:02:33.051Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.2.2
+2026-11-13T09:02:33.052Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c5e942859576203e
+2026-11-13T09:02:33.052Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-3051]
+2026-11-13T09:02:33.073Z  WARN [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.a.k.c.c.internals.OffsetFetcherUtils   : [Consumer clientId=consumer-planning.budget-spend-1, groupId=planning.budget-spend] Not updating last stable offset for partition dexter.ledger.expense.v1.budget-spend.dlq-1 as it is no longer assigned
+2026-11-13T09:02:33.073Z  WARN [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.a.k.c.c.internals.OffsetFetcherUtils   : [Consumer clientId=consumer-planning.budget-spend-1, groupId=planning.budget-spend] Not updating last stable offset for partition dexter.ledger.expense.v1.budget-spend.dlq-2 as it is no longer assigned
+2026-11-13T09:02:33.080Z  WARN [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.a.k.c.c.internals.OffsetFetcherUtils   : [Consumer clientId=consumer-planning.budget-spend-1, groupId=planning.budget-spend] Not updating last stable offset for partition dexter.ledger.expense.v1.budget-spend.dlq-0 as it is no longer assigned
+2026-11-13T09:02:33.060Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.config.AbstractConfig   : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = earliest
+	bootstrap.servers = [127.0.0.1:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-planning.privacy-planning.retry-1m-5
+	client.rack = 
+	config.providers = []
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = planning.privacy-planning.retry-1m
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_committed
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 200
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = []
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	share.acknowledgement.mode = implicit
+	share.acquire.mode = BATCH_OPTIMIZED
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = []
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+2026-11-13T09:02:33.085Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-13T09:02:33.097Z  INFO [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] Subscribed to topic(s): dexter.audit.privacy.v1
+2026-11-13T09:02:33.102Z  WARN [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.a.k.c.c.internals.OffsetFetcherUtils   : [Consumer clientId=consumer-planning.budget-spend-1, groupId=planning.budget-spend] Not updating last stable offset for partition dexter.ledger.expense.v1.budget-spend.dlq-1 as it is no longer assigned
+2026-11-13T09:02:33.103Z  WARN [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.a.k.c.c.internals.OffsetFetcherUtils   : [Consumer clientId=consumer-planning.budget-spend-1, groupId=planning.budget-spend] Not updating last stable offset for partition dexter.ledger.expense.v1.budget-spend.dlq-2 as it is no longer assigned
+2026-11-13T09:02:33.103Z  WARN [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.a.k.c.c.internals.OffsetFetcherUtils   : [Consumer clientId=consumer-planning.budget-spend-1, groupId=planning.budget-spend] Not updating last stable offset for partition dexter.ledger.expense.v1.budget-spend.dlq-0 as it is no longer assigned
+2026-11-13T09:02:33.107Z  INFO [] 117772 --- [planning] [rivacy-planning] [                                                 ] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-13T09:02:33.109Z  INFO [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend-1, groupId=planning.budget-spend] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false)
+2026-11-13T09:02:33.112Z  INFO [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend-1, groupId=planning.budget-spend] (Re-)joining group
+2026-11-13T09:02:33.120Z  INFO [] 117772 --- [planning] [-spend.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend.retry-1m-2, groupId=planning.budget-spend.retry-1m] Request joining group due to: need to re-join with the given member-id: consumer-planning.budget-spend.retry-1m-2-850e1dcc-922e-4284-ac9b-68fbb7912ef2
+2026-11-13T09:02:33.126Z  INFO [] 117772 --- [planning] [-spend.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend.retry-1m-2, groupId=planning.budget-spend.retry-1m] (Re-)joining group
+2026-11-13T09:02:33.122Z  INFO [] 117772 --- [planning] [spend.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend.retry-10m-3, groupId=planning.budget-spend.retry-10m] Request joining group due to: need to re-join with the given member-id: consumer-planning.budget-spend.retry-10m-3-4b0d3b2f-7678-43e9-8bed-4923e1571709
+2026-11-13T09:02:33.127Z  INFO [] 117772 --- [planning] [spend.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend.retry-10m-3, groupId=planning.budget-spend.retry-10m] (Re-)joining group
+2026-11-13T09:02:33.128Z  INFO [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend-1, groupId=planning.budget-spend] Request joining group due to: need to re-join with the given member-id: consumer-planning.budget-spend-1-eb5ecdd6-6528-4713-81c8-b5111867b108
+2026-11-13T09:02:33.125Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.2.2
+2026-11-13T09:02:33.133Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c5e942859576203e
+2026-11-13T09:02:33.133Z  INFO [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend-1, groupId=planning.budget-spend] (Re-)joining group
+2026-11-13T09:02:33.133Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-3125]
+2026-11-13T09:02:33.132Z  WARN [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.a.k.c.c.internals.OffsetFetcherUtils   : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] Not updating last stable offset for partition dexter.audit.privacy.v1.privacy-planning.dlq-2 as it is no longer assigned
+2026-11-13T09:02:33.134Z  WARN [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.a.k.c.c.internals.OffsetFetcherUtils   : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] Not updating last stable offset for partition dexter.audit.privacy.v1.privacy-planning.dlq-1 as it is no longer assigned
+2026-11-13T09:02:33.132Z  INFO [] 117772 --- [planning] [spend.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend.retry-10m-3, groupId=planning.budget-spend.retry-10m] Successfully joined group with generation Generation{generationId=4, memberId='consumer-planning.budget-spend.retry-10m-3-4b0d3b2f-7678-43e9-8bed-4923e1571709', protocol='range'}
+2026-11-13T09:02:33.136Z  WARN [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.a.k.c.c.internals.OffsetFetcherUtils   : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] Not updating last stable offset for partition dexter.audit.privacy.v1.privacy-planning.dlq-0 as it is no longer assigned
+2026-11-13T09:02:33.137Z  INFO [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend-1, groupId=planning.budget-spend] Successfully joined group with generation Generation{generationId=3, memberId='consumer-planning.budget-spend-1-eb5ecdd6-6528-4713-81c8-b5111867b108', protocol='range'}
+2026-11-13T09:02:33.141Z  INFO [] 117772 --- [planning] [-spend.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend.retry-1m-2, groupId=planning.budget-spend.retry-1m] Successfully joined group with generation Generation{generationId=4, memberId='consumer-planning.budget-spend.retry-1m-2-850e1dcc-922e-4284-ac9b-68fbb7912ef2', protocol='range'}
+2026-11-13T09:02:33.134Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.config.AbstractConfig   : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = earliest
+	bootstrap.servers = [127.0.0.1:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-planning.privacy-planning.retry-10m-6
+	client.rack = 
+	config.providers = []
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = planning.privacy-planning.retry-10m
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_committed
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 200
+	metadata.max.age.ms = 300000
+	metadata.recovery.rebootstrap.trigger.ms = 300000
+	metadata.recovery.strategy = rebootstrap
+	metric.reporters = [org.apache.kafka.common.metrics.JmxReporter]
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.assertion.algorithm = RS256
+	sasl.oauthbearer.assertion.claim.aud = null
+	sasl.oauthbearer.assertion.claim.exp.seconds = 300
+	sasl.oauthbearer.assertion.claim.iss = null
+	sasl.oauthbearer.assertion.claim.jti.include = false
+	sasl.oauthbearer.assertion.claim.nbf.seconds = 60
+	sasl.oauthbearer.assertion.claim.sub = null
+	sasl.oauthbearer.assertion.file = null
+	sasl.oauthbearer.assertion.private.key.file = null
+	sasl.oauthbearer.assertion.private.key.passphrase = null
+	sasl.oauthbearer.assertion.template.file = null
+	sasl.oauthbearer.client.credentials.client.id = null
+	sasl.oauthbearer.client.credentials.client.secret = [REDACTED]
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = []
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.header.urlencode = false
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.jwt.retriever.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtRetriever
+	sasl.oauthbearer.jwt.validator.class = class org.apache.kafka.common.security.oauthbearer.DefaultJwtValidator
+	sasl.oauthbearer.scope = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	share.acknowledgement.mode = implicit
+	share.acquire.mode = BATCH_OPTIMIZED
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = []
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = [REDACTED]
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = [REDACTED]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = [REDACTED]
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+2026-11-13T09:02:33.158Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2026-11-13T09:02:33.167Z  INFO [] 117772 --- [planning] [anning.retry-1m] [                                                 ] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-planning.privacy-planning.retry-1m-5, groupId=planning.privacy-planning.retry-1m] Subscribed to topic(s): dexter.audit.privacy.v1.privacy-planning.retry-1m
+2026-11-13T09:02:33.167Z  INFO [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend-1, groupId=planning.budget-spend] Finished assignment for group at generation 3: {consumer-planning.budget-spend-1-eb5ecdd6-6528-4713-81c8-b5111867b108=Assignment(partitions=[dexter.ledger.expense.v1-0, dexter.ledger.expense.v1-1, dexter.ledger.expense.v1-2])}
+2026-11-13T09:02:33.171Z  INFO [] 117772 --- [planning] [spend.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend.retry-10m-3, groupId=planning.budget-spend.retry-10m] Finished assignment for group at generation 4: {consumer-planning.budget-spend.retry-10m-3-4b0d3b2f-7678-43e9-8bed-4923e1571709=Assignment(partitions=[dexter.ledger.expense.v1.budget-spend.retry-10m-0, dexter.ledger.expense.v1.budget-spend.retry-10m-1, dexter.ledger.expense.v1.budget-spend.retry-10m-2])}
+2026-11-13T09:02:33.172Z  INFO [] 117772 --- [planning] [-spend.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend.retry-1m-2, groupId=planning.budget-spend.retry-1m] Finished assignment for group at generation 4: {consumer-planning.budget-spend.retry-1m-2-850e1dcc-922e-4284-ac9b-68fbb7912ef2=Assignment(partitions=[dexter.ledger.expense.v1.budget-spend.retry-1m-0, dexter.ledger.expense.v1.budget-spend.retry-1m-1, dexter.ledger.expense.v1.budget-spend.retry-1m-2])}
+2026-11-13T09:02:33.173Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 4.2.2
+2026-11-13T09:02:33.173Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c5e942859576203e
+2026-11-13T09:02:33.173Z  INFO [] 117772 --- [planning] [           main] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: [CARD-3173]
+2026-11-13T09:02:33.193Z  INFO [] 117772 --- [planning] [spend.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend.retry-10m-3, groupId=planning.budget-spend.retry-10m] Successfully synced group in generation Generation{generationId=4, memberId='consumer-planning.budget-spend.retry-10m-3-4b0d3b2f-7678-43e9-8bed-4923e1571709', protocol='range'}
+2026-11-13T09:02:33.197Z  WARN [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.a.k.c.c.internals.OffsetFetcherUtils   : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] Not updating last stable offset for partition dexter.audit.privacy.v1.privacy-planning.dlq-2 as it is no longer assigned
+2026-11-13T09:02:33.198Z  WARN [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.a.k.c.c.internals.OffsetFetcherUtils   : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] Not updating last stable offset for partition dexter.audit.privacy.v1.privacy-planning.dlq-1 as it is no longer assigned
+2026-11-13T09:02:33.198Z  WARN [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.a.k.c.c.internals.OffsetFetcherUtils   : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] Not updating last stable offset for partition dexter.audit.privacy.v1.privacy-planning.dlq-0 as it is no longer assigned
+2026-11-13T09:02:33.196Z  INFO [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend-1, groupId=planning.budget-spend] Successfully synced group in generation Generation{generationId=3, memberId='consumer-planning.budget-spend-1-eb5ecdd6-6528-4713-81c8-b5111867b108', protocol='range'}
+2026-11-13T09:02:33.204Z  INFO [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend-1, groupId=planning.budget-spend] Notifying assignor about the new Assignment(partitions=[dexter.ledger.expense.v1-0, dexter.ledger.expense.v1-1, dexter.ledger.expense.v1-2])
+2026-11-13T09:02:33.213Z  INFO [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false)
+2026-11-13T09:02:33.195Z  INFO [] 117772 --- [planning] [nning.retry-10m] [                                                 ] o.a.k.c.c.i.ClassicKafkaConsumer         : [Consumer clientId=consumer-planning.privacy-planning.retry-10m-6, groupId=planning.privacy-planning.retry-10m] Subscribed to topic(s): dexter.audit.privacy.v1.privacy-planning.retry-10m
+2026-11-13T09:02:33.215Z  INFO [] 117772 --- [planning] [anning.retry-1m] [                                                 ] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-planning.privacy-planning.retry-1m-5, groupId=planning.privacy-planning.retry-1m] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-13T09:02:33.218Z  INFO [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] (Re-)joining group
+2026-11-13T09:02:33.221Z  INFO [] 117772 --- [planning] [nning.retry-10m] [                                                 ] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-planning.privacy-planning.retry-10m-6, groupId=planning.privacy-planning.retry-10m] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-11-13T09:02:33.222Z  INFO [] 117772 --- [planning] [nning.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning.retry-10m-6, groupId=planning.privacy-planning.retry-10m] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false)
+2026-11-13T09:02:33.224Z  INFO [] 117772 --- [planning] [nning.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning.retry-10m-6, groupId=planning.privacy-planning.retry-10m] (Re-)joining group
+2026-11-13T09:02:33.224Z  INFO [] 117772 --- [planning] [anning.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning.retry-1m-5, groupId=planning.privacy-planning.retry-1m] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false)
+2026-11-13T09:02:33.230Z  INFO [] 117772 --- [planning] [-spend.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend.retry-1m-2, groupId=planning.budget-spend.retry-1m] Successfully synced group in generation Generation{generationId=4, memberId='consumer-planning.budget-spend.retry-1m-2-850e1dcc-922e-4284-ac9b-68fbb7912ef2', protocol='range'}
+2026-11-13T09:02:33.232Z  INFO [] 117772 --- [planning] [-spend.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend.retry-1m-2, groupId=planning.budget-spend.retry-1m] Notifying assignor about the new Assignment(partitions=[dexter.ledger.expense.v1.budget-spend.retry-1m-0, dexter.ledger.expense.v1.budget-spend.retry-1m-1, dexter.ledger.expense.v1.budget-spend.retry-1m-2])
+2026-11-13T09:02:33.233Z  INFO [] 117772 --- [planning] [anning.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning.retry-1m-5, groupId=planning.privacy-planning.retry-1m] (Re-)joining group
+2026-11-13T09:02:33.235Z  INFO [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] Request joining group due to: need to re-join with the given member-id: consumer-planning.privacy-planning-4-c0688af0-9f81-44ad-b4db-510a98b0744b
+2026-11-13T09:02:33.239Z  INFO [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] (Re-)joining group
+2026-11-13T09:02:33.244Z  INFO [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] Successfully joined group with generation Generation{generationId=4, memberId='consumer-planning.privacy-planning-4-c0688af0-9f81-44ad-b4db-510a98b0744b', protocol='range'}
+2026-11-13T09:02:33.246Z  INFO [] 117772 --- [planning] [-spend.retry-1m] [                                                 ] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-planning.budget-spend.retry-1m-2, groupId=planning.budget-spend.retry-1m] Adding newly assigned partitions: [dexter.ledger.expense.v1.budget-spend.retry-1m-0, dexter.ledger.expense.v1.budget-spend.retry-1m-1, dexter.ledger.expense.v1.budget-spend.retry-1m-2]
+2026-11-13T09:02:33.249Z  INFO [] 117772 --- [planning] [ng.budget-spend] [                                                 ] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-planning.budget-spend-1, groupId=planning.budget-spend] Adding newly assigned partitions: [dexter.ledger.expense.v1-0, dexter.ledger.expense.v1-1, dexter.ledger.expense.v1-2]
+2026-11-13T09:02:33.253Z  INFO [] 117772 --- [planning] [nning.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning.retry-10m-6, groupId=planning.privacy-planning.retry-10m] Request joining group due to: need to re-join with the given member-id: consumer-planning.privacy-planning.retry-10m-6-82f126a8-dd91-4251-ba34-65d716bfea07
+2026-11-13T09:02:33.254Z  INFO [] 117772 --- [planning] [nning.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning.retry-10m-6, groupId=planning.privacy-planning.retry-10m] (Re-)joining group
+2026-11-13T09:02:33.255Z  INFO [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] Finished assignment for group at generation 4: {consumer-planning.privacy-planning-4-c0688af0-9f81-44ad-b4db-510a98b0744b=Assignment(partitions=[dexter.audit.privacy.v1-0, dexter.audit.privacy.v1-1, dexter.audit.privacy.v1-2])}
+2026-11-13T09:02:33.261Z  INFO [] 117772 --- [planning] [           main] [                                                 ] in.dexter.planning.PlanningApplication   : Started PlanningApplication in 31.298 seconds (process running for 33.662)
+2026-11-13T09:02:33.260Z  INFO [] 117772 --- [planning] [anning.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning.retry-1m-5, groupId=planning.privacy-planning.retry-1m] Request joining group due to: need to re-join with the given member-id: consumer-planning.privacy-planning.retry-1m-5-a2e83ec4-1371-45f9-a5ed-871280698252
+2026-11-13T09:02:33.262Z  INFO [] 117772 --- [planning] [anning.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning.retry-1m-5, groupId=planning.privacy-planning.retry-1m] (Re-)joining group
+2026-11-13T09:02:33.267Z  INFO [] 117772 --- [planning] [spend.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend.retry-10m-3, groupId=planning.budget-spend.retry-10m] Notifying assignor about the new Assignment(partitions=[dexter.ledger.expense.v1.budget-spend.retry-10m-0, dexter.ledger.expense.v1.budget-spend.retry-10m-1, dexter.ledger.expense.v1.budget-spend.retry-10m-2])
+2026-11-13T09:02:33.270Z  INFO [] 117772 --- [planning] [anning.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning.retry-1m-5, groupId=planning.privacy-planning.retry-1m] Successfully joined group with generation Generation{generationId=4, memberId='consumer-planning.privacy-planning.retry-1m-5-a2e83ec4-1371-45f9-a5ed-871280698252', protocol='range'}
+2026-11-13T09:02:33.272Z  INFO [] 117772 --- [planning] [spend.retry-10m] [                                                 ] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-planning.budget-spend.retry-10m-3, groupId=planning.budget-spend.retry-10m] Adding newly assigned partitions: [dexter.ledger.expense.v1.budget-spend.retry-10m-0, dexter.ledger.expense.v1.budget-spend.retry-10m-1, dexter.ledger.expense.v1.budget-spend.retry-10m-2]
+2026-11-13T09:02:33.275Z  INFO [] 117772 --- [planning] [anning.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning.retry-1m-5, groupId=planning.privacy-planning.retry-1m] Finished assignment for group at generation 4: {consumer-planning.privacy-planning.retry-1m-5-a2e83ec4-1371-45f9-a5ed-871280698252=Assignment(partitions=[dexter.audit.privacy.v1.privacy-planning.retry-1m-0, dexter.audit.privacy.v1.privacy-planning.retry-1m-1, dexter.audit.privacy.v1.privacy-planning.retry-1m-2])}
+2026-11-13T09:02:33.276Z  INFO [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend-1, groupId=planning.budget-spend] Found no committed offset for partition dexter.ledger.expense.v1-2
+2026-11-13T09:02:33.283Z  INFO [] 117772 --- [planning] [nning.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning.retry-10m-6, groupId=planning.privacy-planning.retry-10m] Successfully joined group with generation Generation{generationId=4, memberId='consumer-planning.privacy-planning.retry-10m-6-82f126a8-dd91-4251-ba34-65d716bfea07', protocol='range'}
+2026-11-13T09:02:33.283Z  INFO [] 117772 --- [planning] [nning.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning.retry-10m-6, groupId=planning.privacy-planning.retry-10m] Finished assignment for group at generation 4: {consumer-planning.privacy-planning.retry-10m-6-82f126a8-dd91-4251-ba34-65d716bfea07=Assignment(partitions=[dexter.audit.privacy.v1.privacy-planning.retry-10m-0, dexter.audit.privacy.v1.privacy-planning.retry-10m-1, dexter.audit.privacy.v1.privacy-planning.retry-10m-2])}
+2026-11-13T09:02:33.285Z  INFO [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.a.k.c.c.internals.ConsumerUtils        : Setting offset for partition dexter.ledger.expense.v1-0 to the committed offset FetchPosition{offset=53, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=2}}
+2026-11-13T09:02:33.287Z  INFO [] 117772 --- [planning] [-spend.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend.retry-1m-2, groupId=planning.budget-spend.retry-1m] Found no committed offset for partition dexter.ledger.expense.v1.budget-spend.retry-1m-2
+2026-11-13T09:02:33.287Z  INFO [] 117772 --- [planning] [-spend.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend.retry-1m-2, groupId=planning.budget-spend.retry-1m] Found no committed offset for partition dexter.ledger.expense.v1.budget-spend.retry-1m-1
+2026-11-13T09:02:33.288Z  INFO [] 117772 --- [planning] [-spend.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend.retry-1m-2, groupId=planning.budget-spend.retry-1m] Found no committed offset for partition dexter.ledger.expense.v1.budget-spend.retry-1m-0
+2026-11-13T09:02:33.292Z  INFO [] 117772 --- [planning] [spend.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend.retry-10m-3, groupId=planning.budget-spend.retry-10m] Found no committed offset for partition dexter.ledger.expense.v1.budget-spend.retry-10m-0
+2026-11-13T09:02:33.292Z  INFO [] 117772 --- [planning] [spend.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend.retry-10m-3, groupId=planning.budget-spend.retry-10m] Found no committed offset for partition dexter.ledger.expense.v1.budget-spend.retry-10m-2
+2026-11-13T09:02:33.292Z  INFO [] 117772 --- [planning] [spend.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend.retry-10m-3, groupId=planning.budget-spend.retry-10m] Found no committed offset for partition dexter.ledger.expense.v1.budget-spend.retry-10m-1
+2026-11-13T09:02:33.291Z  INFO [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] Successfully synced group in generation Generation{generationId=4, memberId='consumer-planning.privacy-planning-4-c0688af0-9f81-44ad-b4db-510a98b0744b', protocol='range'}
+2026-11-13T09:02:33.299Z  INFO [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.a.k.c.c.internals.ConsumerUtils        : Setting offset for partition dexter.ledger.expense.v1-1 to the committed offset FetchPosition{offset=1, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=2}}
+2026-11-13T09:02:33.300Z  INFO [] 117772 --- [planning] [anning.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning.retry-1m-5, groupId=planning.privacy-planning.retry-1m] Successfully synced group in generation Generation{generationId=4, memberId='consumer-planning.privacy-planning.retry-1m-5-a2e83ec4-1371-45f9-a5ed-871280698252', protocol='range'}
+2026-11-13T09:02:33.304Z  INFO [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] Notifying assignor about the new Assignment(partitions=[dexter.audit.privacy.v1-0, dexter.audit.privacy.v1-1, dexter.audit.privacy.v1-2])
+2026-11-13T09:02:33.304Z  INFO [] 117772 --- [planning] [rivacy-planning] [                                                 ] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] Adding newly assigned partitions: [dexter.audit.privacy.v1-0, dexter.audit.privacy.v1-1, dexter.audit.privacy.v1-2]
+2026-11-13T09:02:33.306Z  INFO [] 117772 --- [planning] [anning.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning.retry-1m-5, groupId=planning.privacy-planning.retry-1m] Notifying assignor about the new Assignment(partitions=[dexter.audit.privacy.v1.privacy-planning.retry-1m-0, dexter.audit.privacy.v1.privacy-planning.retry-1m-1, dexter.audit.privacy.v1.privacy-planning.retry-1m-2])
+2026-11-13T09:02:33.307Z  INFO [] 117772 --- [planning] [anning.retry-1m] [                                                 ] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-planning.privacy-planning.retry-1m-5, groupId=planning.privacy-planning.retry-1m] Adding newly assigned partitions: [dexter.audit.privacy.v1.privacy-planning.retry-1m-0, dexter.audit.privacy.v1.privacy-planning.retry-1m-1, dexter.audit.privacy.v1.privacy-planning.retry-1m-2]
+2026-11-13T09:02:33.309Z  INFO [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] Found no committed offset for partition dexter.audit.privacy.v1-1
+2026-11-13T09:02:33.309Z  INFO [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] Found no committed offset for partition dexter.audit.privacy.v1-2
+2026-11-13T09:02:33.309Z  INFO [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.a.k.c.c.internals.ConsumerUtils        : Setting offset for partition dexter.audit.privacy.v1-0 to the committed offset FetchPosition{offset=4, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=2}}
+2026-11-13T09:02:33.313Z  INFO [] 117772 --- [planning] [anning.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning.retry-1m-5, groupId=planning.privacy-planning.retry-1m] Found no committed offset for partition dexter.audit.privacy.v1.privacy-planning.retry-1m-0
+2026-11-13T09:02:33.314Z  INFO [] 117772 --- [planning] [anning.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning.retry-1m-5, groupId=planning.privacy-planning.retry-1m] Found no committed offset for partition dexter.audit.privacy.v1.privacy-planning.retry-1m-1
+2026-11-13T09:02:33.314Z  INFO [] 117772 --- [planning] [anning.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning.retry-1m-5, groupId=planning.privacy-planning.retry-1m] Found no committed offset for partition dexter.audit.privacy.v1.privacy-planning.retry-1m-2
+2026-11-13T09:02:33.300Z  INFO [] 117772 --- [planning] [nning.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning.retry-10m-6, groupId=planning.privacy-planning.retry-10m] Successfully synced group in generation Generation{generationId=4, memberId='consumer-planning.privacy-planning.retry-10m-6-82f126a8-dd91-4251-ba34-65d716bfea07', protocol='range'}
+2026-11-13T09:02:33.320Z  INFO [] 117772 --- [planning] [nning.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning.retry-10m-6, groupId=planning.privacy-planning.retry-10m] Notifying assignor about the new Assignment(partitions=[dexter.audit.privacy.v1.privacy-planning.retry-10m-0, dexter.audit.privacy.v1.privacy-planning.retry-10m-1, dexter.audit.privacy.v1.privacy-planning.retry-10m-2])
+2026-11-13T09:02:33.322Z  INFO [] 117772 --- [planning] [nning.retry-10m] [                                                 ] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-planning.privacy-planning.retry-10m-6, groupId=planning.privacy-planning.retry-10m] Adding newly assigned partitions: [dexter.audit.privacy.v1.privacy-planning.retry-10m-0, dexter.audit.privacy.v1.privacy-planning.retry-10m-1, dexter.audit.privacy.v1.privacy-planning.retry-10m-2]
+2026-11-13T09:02:33.334Z  INFO [] 117772 --- [planning] [nning.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning.retry-10m-6, groupId=planning.privacy-planning.retry-10m] Found no committed offset for partition dexter.audit.privacy.v1.privacy-planning.retry-10m-2
+2026-11-13T09:02:33.334Z  INFO [] 117772 --- [planning] [nning.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning.retry-10m-6, groupId=planning.privacy-planning.retry-10m] Found no committed offset for partition dexter.audit.privacy.v1.privacy-planning.retry-10m-1
+2026-11-13T09:02:33.335Z  INFO [] 117772 --- [planning] [nning.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning.retry-10m-6, groupId=planning.privacy-planning.retry-10m] Found no committed offset for partition dexter.audit.privacy.v1.privacy-planning.retry-10m-0
+2026-11-13T09:02:33.336Z  INFO [] 117772 --- [planning] [anning.retry-1m] [                                                 ] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-planning.privacy-planning.retry-1m-5, groupId=planning.privacy-planning.retry-1m] Resetting offset for partition dexter.audit.privacy.v1.privacy-planning.retry-1m-0 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=2}}.
+2026-11-13T09:02:33.337Z  INFO [] 117772 --- [planning] [anning.retry-1m] [                                                 ] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-planning.privacy-planning.retry-1m-5, groupId=planning.privacy-planning.retry-1m] Resetting offset for partition dexter.audit.privacy.v1.privacy-planning.retry-1m-1 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=2}}.
+2026-11-13T09:02:33.341Z  INFO [] 117772 --- [planning] [anning.retry-1m] [                                                 ] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-planning.privacy-planning.retry-1m-5, groupId=planning.privacy-planning.retry-1m] Resetting offset for partition dexter.audit.privacy.v1.privacy-planning.retry-1m-2 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=2}}.
+2026-11-13T09:02:33.351Z  INFO [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] Resetting offset for partition dexter.audit.privacy.v1-1 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=2}}.
+2026-11-13T09:02:33.352Z  INFO [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] Resetting offset for partition dexter.audit.privacy.v1-2 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=2}}.
+2026-11-13T09:02:33.350Z  INFO [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-planning.budget-spend-1, groupId=planning.budget-spend] Resetting offset for partition dexter.ledger.expense.v1-2 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=2}}.
+2026-11-13T09:02:33.359Z  INFO [] 117772 --- [planning] [nning.retry-10m] [                                                 ] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-planning.privacy-planning.retry-10m-6, groupId=planning.privacy-planning.retry-10m] Resetting offset for partition dexter.audit.privacy.v1.privacy-planning.retry-10m-2 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=2}}.
+2026-11-13T09:02:33.360Z  INFO [] 117772 --- [planning] [-spend.retry-1m] [                                                 ] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-planning.budget-spend.retry-1m-2, groupId=planning.budget-spend.retry-1m] Resetting offset for partition dexter.ledger.expense.v1.budget-spend.retry-1m-2 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=2}}.
+2026-11-13T09:02:33.360Z  INFO [] 117772 --- [planning] [-spend.retry-1m] [                                                 ] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-planning.budget-spend.retry-1m-2, groupId=planning.budget-spend.retry-1m] Resetting offset for partition dexter.ledger.expense.v1.budget-spend.retry-1m-1 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=2}}.
+2026-11-13T09:02:33.361Z  INFO [] 117772 --- [planning] [-spend.retry-1m] [                                                 ] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-planning.budget-spend.retry-1m-2, groupId=planning.budget-spend.retry-1m] Resetting offset for partition dexter.ledger.expense.v1.budget-spend.retry-1m-0 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=2}}.
+2026-11-13T09:02:33.359Z  INFO [] 117772 --- [planning] [nning.retry-10m] [                                                 ] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-planning.privacy-planning.retry-10m-6, groupId=planning.privacy-planning.retry-10m] Resetting offset for partition dexter.audit.privacy.v1.privacy-planning.retry-10m-1 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=2}}.
+2026-11-13T09:02:33.363Z  INFO [] 117772 --- [planning] [nning.retry-10m] [                                                 ] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-planning.privacy-planning.retry-10m-6, groupId=planning.privacy-planning.retry-10m] Resetting offset for partition dexter.audit.privacy.v1.privacy-planning.retry-10m-0 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=2}}.
+2026-11-13T09:02:33.365Z  INFO [] 117772 --- [planning] [spend.retry-10m] [                                                 ] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-planning.budget-spend.retry-10m-3, groupId=planning.budget-spend.retry-10m] Resetting offset for partition dexter.ledger.expense.v1.budget-spend.retry-10m-0 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=2}}.
+2026-11-13T09:02:33.365Z  INFO [] 117772 --- [planning] [spend.retry-10m] [                                                 ] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-planning.budget-spend.retry-10m-3, groupId=planning.budget-spend.retry-10m] Resetting offset for partition dexter.ledger.expense.v1.budget-spend.retry-10m-2 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=2}}.
+2026-11-13T09:02:33.366Z  INFO [] 117772 --- [planning] [spend.retry-10m] [                                                 ] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-planning.budget-spend.retry-10m-3, groupId=planning.budget-spend.retry-10m] Resetting offset for partition dexter.ledger.expense.v1.budget-spend.retry-10m-1 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null isFenced: false)], epoch=2}}.
+2026-11-13T09:02:33.871Z  INFO [] 117772 --- [planning] [omcat-handler-0] [                                                 ] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-11-13T09:02:33.878Z  INFO [] 117772 --- [planning] [omcat-handler-0] [                                                 ] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-11-13T09:02:33.880Z  INFO [] 117772 --- [planning] [omcat-handler-0] [                                                 ] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-11-13T09:02:36.900Z  INFO [01a1d424-ff55-7b2a-92c1-1eb6e8165abd] 117772 --- [planning] [omcat-handler-1] [da3e3d02cd22a88c0355ec96dfb845ff-3afe401876d79cfa] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-11-13T09:02:37.191Z  INFO [01a1d424-ff55-7b2a-92c1-1eb6e8165abd] 117772 --- [planning] [omcat-handler-1] [da3e3d02cd22a88c0355ec96dfb845ff-3afe401876d79cfa] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@2d530df7
+2026-11-13T09:02:37.244Z  INFO [01a1d424-ff55-7b2a-92c1-1eb6e8165abd] 117772 --- [planning] [omcat-handler-1] [da3e3d02cd22a88c0355ec96dfb845ff-3afe401876d79cfa] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-11-13T09:03:03.651Z  WARN [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.a.k.c.c.internals.OffsetFetcherUtils   : [Consumer clientId=consumer-planning.budget-spend-1, groupId=planning.budget-spend] Not updating last stable offset for partition dexter.ledger.expense.v1.budget-spend.dlq-1 as it is no longer assigned
+2026-11-13T09:03:03.651Z  WARN [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.a.k.c.c.internals.OffsetFetcherUtils   : [Consumer clientId=consumer-planning.budget-spend-1, groupId=planning.budget-spend] Not updating last stable offset for partition dexter.ledger.expense.v1.budget-spend.dlq-2 as it is no longer assigned
+2026-11-13T09:03:03.652Z  WARN [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.a.k.c.c.internals.OffsetFetcherUtils   : [Consumer clientId=consumer-planning.budget-spend-1, groupId=planning.budget-spend] Not updating last stable offset for partition dexter.ledger.expense.v1.budget-spend.dlq-1 as it is no longer assigned
+2026-11-13T09:03:03.652Z  WARN [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.a.k.c.c.internals.OffsetFetcherUtils   : [Consumer clientId=consumer-planning.budget-spend-1, groupId=planning.budget-spend] Not updating last stable offset for partition dexter.ledger.expense.v1.budget-spend.dlq-0 as it is no longer assigned
+2026-11-13T09:03:03.652Z  WARN [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.a.k.c.c.internals.OffsetFetcherUtils   : [Consumer clientId=consumer-planning.budget-spend-1, groupId=planning.budget-spend] Not updating last stable offset for partition dexter.ledger.expense.v1.budget-spend.dlq-2 as it is no longer assigned
+2026-11-13T09:03:03.652Z  WARN [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.a.k.c.c.internals.OffsetFetcherUtils   : [Consumer clientId=consumer-planning.budget-spend-1, groupId=planning.budget-spend] Not updating last stable offset for partition dexter.ledger.expense.v1.budget-spend.dlq-0 as it is no longer assigned
+2026-11-13T09:03:03.653Z  WARN [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.a.k.c.c.internals.OffsetFetcherUtils   : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] Not updating last stable offset for partition dexter.audit.privacy.v1.privacy-planning.dlq-2 as it is no longer assigned
+2026-11-13T09:03:03.653Z  WARN [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.a.k.c.c.internals.OffsetFetcherUtils   : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] Not updating last stable offset for partition dexter.audit.privacy.v1.privacy-planning.dlq-1 as it is no longer assigned
+2026-11-13T09:03:03.654Z  WARN [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.a.k.c.c.internals.OffsetFetcherUtils   : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] Not updating last stable offset for partition dexter.audit.privacy.v1.privacy-planning.dlq-0 as it is no longer assigned
+2026-11-13T09:03:03.655Z  WARN [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.a.k.c.c.internals.OffsetFetcherUtils   : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] Not updating last stable offset for partition dexter.audit.privacy.v1.privacy-planning.dlq-2 as it is no longer assigned
+2026-11-13T09:03:03.656Z  WARN [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.a.k.c.c.internals.OffsetFetcherUtils   : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] Not updating last stable offset for partition dexter.audit.privacy.v1.privacy-planning.dlq-1 as it is no longer assigned
+2026-11-13T09:03:03.656Z  WARN [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.a.k.c.c.internals.OffsetFetcherUtils   : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] Not updating last stable offset for partition dexter.audit.privacy.v1.privacy-planning.dlq-0 as it is no longer assigned
+2026-11-13T09:03:29.520Z  INFO [] 117772 --- [planning] [rivacy-planning] [da4b709f30166ddbf8cfc28356e922ff-a78db75bb24df335] in.dexter.privacy.PrivacyParticipant     : PRIVACY_PHASE_DONE service=planning request=01a1d425-cc2a-7da7-bebc-c7d00a8c4e74 phase=export attempt=1
+2026-11-13T09:03:31.812Z  INFO [] 117772 --- [planning] [ng.budget-spend] [                                                 ] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-planning.budget-spend-1, groupId=planning.budget-spend] Revoke previously assigned partitions [dexter.ledger.expense.v1-0, dexter.ledger.expense.v1-1, dexter.ledger.expense.v1-2]
+2026-11-13T09:03:31.821Z  INFO [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend-1, groupId=planning.budget-spend] Member consumer-planning.budget-spend-1-eb5ecdd6-6528-4713-81c8-b5111867b108 sending LeaveGroup request to coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false) due to the consumer is being closed
+2026-11-13T09:03:31.822Z  INFO [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend-1, groupId=planning.budget-spend] Resetting generation and member id due to: consumer pro-actively leaving the group
+2026-11-13T09:03:31.822Z  INFO [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend-1, groupId=planning.budget-spend] Request joining group due to: consumer pro-actively leaving the group
+2026-11-13T09:03:31.813Z  INFO [] 117772 --- [planning] [spend.retry-10m] [                                                 ] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-planning.budget-spend.retry-10m-3, groupId=planning.budget-spend.retry-10m] Revoke previously assigned partitions [dexter.ledger.expense.v1.budget-spend.retry-10m-0, dexter.ledger.expense.v1.budget-spend.retry-10m-1, dexter.ledger.expense.v1.budget-spend.retry-10m-2]
+2026-11-13T09:03:31.813Z  INFO [] 117772 --- [planning] [-spend.retry-1m] [                                                 ] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-planning.budget-spend.retry-1m-2, groupId=planning.budget-spend.retry-1m] Revoke previously assigned partitions [dexter.ledger.expense.v1.budget-spend.retry-1m-0, dexter.ledger.expense.v1.budget-spend.retry-1m-1, dexter.ledger.expense.v1.budget-spend.retry-1m-2]
+2026-11-13T09:03:31.823Z  INFO [] 117772 --- [planning] [-spend.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend.retry-1m-2, groupId=planning.budget-spend.retry-1m] Member consumer-planning.budget-spend.retry-1m-2-850e1dcc-922e-4284-ac9b-68fbb7912ef2 sending LeaveGroup request to coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false) due to the consumer is being closed
+2026-11-13T09:03:31.824Z  INFO [] 117772 --- [planning] [-spend.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend.retry-1m-2, groupId=planning.budget-spend.retry-1m] Resetting generation and member id due to: consumer pro-actively leaving the group
+2026-11-13T09:03:31.824Z  INFO [] 117772 --- [planning] [-spend.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend.retry-1m-2, groupId=planning.budget-spend.retry-1m] Request joining group due to: consumer pro-actively leaving the group
+2026-11-13T09:03:31.823Z  INFO [] 117772 --- [planning] [spend.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend.retry-10m-3, groupId=planning.budget-spend.retry-10m] Member consumer-planning.budget-spend.retry-10m-3-4b0d3b2f-7678-43e9-8bed-4923e1571709 sending LeaveGroup request to coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false) due to the consumer is being closed
+2026-11-13T09:03:31.836Z  INFO [] 117772 --- [planning] [spend.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend.retry-10m-3, groupId=planning.budget-spend.retry-10m] Resetting generation and member id due to: consumer pro-actively leaving the group
+2026-11-13T09:03:31.836Z  INFO [] 117772 --- [planning] [spend.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.budget-spend.retry-10m-3, groupId=planning.budget-spend.retry-10m] Request joining group due to: consumer pro-actively leaving the group
+2026-11-13T09:03:32.176Z  INFO [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-13T09:03:32.183Z  INFO [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-13T09:03:32.183Z  INFO [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.telemetry.internals.ClientTelemetryReporter
+2026-11-13T09:03:32.185Z  INFO [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-13T09:03:32.206Z  INFO [] 117772 --- [planning] [ng.budget-spend] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : App info kafka.consumer for consumer-planning.budget-spend-1 unregistered
+2026-11-13T09:03:32.266Z  INFO [] 117772 --- [planning] [-spend.retry-1m] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-13T09:03:32.266Z  INFO [] 117772 --- [planning] [-spend.retry-1m] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-13T09:03:32.259Z  INFO [] 117772 --- [planning] [spend.retry-10m] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-13T09:03:32.270Z  INFO [] 117772 --- [planning] [spend.retry-10m] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-13T09:03:32.270Z  INFO [] 117772 --- [planning] [spend.retry-10m] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.telemetry.internals.ClientTelemetryReporter
+2026-11-13T09:03:32.270Z  INFO [] 117772 --- [planning] [spend.retry-10m] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-13T09:03:32.272Z  INFO [] 117772 --- [planning] [-spend.retry-1m] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.telemetry.internals.ClientTelemetryReporter
+2026-11-13T09:03:32.278Z  INFO [] 117772 --- [planning] [-spend.retry-1m] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-13T09:03:32.313Z  INFO [] 117772 --- [planning] [spend.retry-10m] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : App info kafka.consumer for consumer-planning.budget-spend.retry-10m-3 unregistered
+2026-11-13T09:03:32.314Z  INFO [] 117772 --- [planning] [-spend.retry-1m] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : App info kafka.consumer for consumer-planning.budget-spend.retry-1m-2 unregistered
+2026-11-13T09:03:32.315Z  INFO [] 117772 --- [planning] [ionShutdownHook] [                                                 ] o.a.k.clients.producer.KafkaProducer     : [Producer clientId=planning-consumers] Closing the Kafka producer with timeoutMillis = [CARD-5807] ms.
+2026-11-13T09:03:32.322Z  INFO [] 117772 --- [planning] [ionShutdownHook] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-13T09:03:32.322Z  INFO [] 117772 --- [planning] [ionShutdownHook] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-13T09:03:32.322Z  INFO [] 117772 --- [planning] [ionShutdownHook] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.telemetry.internals.ClientTelemetryReporter
+2026-11-13T09:03:32.323Z  INFO [] 117772 --- [planning] [ionShutdownHook] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-13T09:03:32.324Z  INFO [] 117772 --- [planning] [ionShutdownHook] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : App info kafka.producer for planning-consumers unregistered
+2026-11-13T09:03:32.325Z  INFO [] 117772 --- [planning] [rivacy-planning] [                                                 ] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] Revoke previously assigned partitions [dexter.audit.privacy.v1-0, dexter.audit.privacy.v1-1, dexter.audit.privacy.v1-2]
+2026-11-13T09:03:32.326Z  INFO [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] Member consumer-planning.privacy-planning-4-c0688af0-9f81-44ad-b4db-510a98b0744b sending LeaveGroup request to coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false) due to the consumer is being closed
+2026-11-13T09:03:32.327Z  INFO [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] Resetting generation and member id due to: consumer pro-actively leaving the group
+2026-11-13T09:03:32.328Z  INFO [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning-4, groupId=planning.privacy-planning] Request joining group due to: consumer pro-actively leaving the group
+2026-11-13T09:03:32.329Z  INFO [] 117772 --- [planning] [anning.retry-1m] [                                                 ] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-planning.privacy-planning.retry-1m-5, groupId=planning.privacy-planning.retry-1m] Revoke previously assigned partitions [dexter.audit.privacy.v1.privacy-planning.retry-1m-0, dexter.audit.privacy.v1.privacy-planning.retry-1m-1, dexter.audit.privacy.v1.privacy-planning.retry-1m-2]
+2026-11-13T09:03:32.329Z  INFO [] 117772 --- [planning] [anning.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning.retry-1m-5, groupId=planning.privacy-planning.retry-1m] Member consumer-planning.privacy-planning.retry-1m-5-a2e83ec4-1371-45f9-a5ed-871280698252 sending LeaveGroup request to coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false) due to the consumer is being closed
+2026-11-13T09:03:32.330Z  INFO [] 117772 --- [planning] [anning.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning.retry-1m-5, groupId=planning.privacy-planning.retry-1m] Resetting generation and member id due to: consumer pro-actively leaving the group
+2026-11-13T09:03:32.330Z  INFO [] 117772 --- [planning] [anning.retry-1m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning.retry-1m-5, groupId=planning.privacy-planning.retry-1m] Request joining group due to: consumer pro-actively leaving the group
+2026-11-13T09:03:32.330Z  INFO [] 117772 --- [planning] [nning.retry-10m] [                                                 ] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-planning.privacy-planning.retry-10m-6, groupId=planning.privacy-planning.retry-10m] Revoke previously assigned partitions [dexter.audit.privacy.v1.privacy-planning.retry-10m-0, dexter.audit.privacy.v1.privacy-planning.retry-10m-1, dexter.audit.privacy.v1.privacy-planning.retry-10m-2]
+2026-11-13T09:03:32.331Z  INFO [] 117772 --- [planning] [nning.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning.retry-10m-6, groupId=planning.privacy-planning.retry-10m] Member consumer-planning.privacy-planning.retry-10m-6-82f126a8-dd91-4251-ba34-65d716bfea07 sending LeaveGroup request to coordinator localhost:9092 (id: 2147483646 rack: null isFenced: false) due to the consumer is being closed
+2026-11-13T09:03:32.331Z  INFO [] 117772 --- [planning] [nning.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning.retry-10m-6, groupId=planning.privacy-planning.retry-10m] Resetting generation and member id due to: consumer pro-actively leaving the group
+2026-11-13T09:03:32.332Z  INFO [] 117772 --- [planning] [nning.retry-10m] [                                                 ] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-planning.privacy-planning.retry-10m-6, groupId=planning.privacy-planning.retry-10m] Request joining group due to: consumer pro-actively leaving the group
+2026-11-13T09:03:32.360Z  INFO [] 117772 --- [planning] [anning.retry-1m] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-13T09:03:32.360Z  INFO [] 117772 --- [planning] [anning.retry-1m] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-13T09:03:32.360Z  INFO [] 117772 --- [planning] [anning.retry-1m] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.telemetry.internals.ClientTelemetryReporter
+2026-11-13T09:03:32.361Z  INFO [] 117772 --- [planning] [anning.retry-1m] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-13T09:03:32.368Z  INFO [] 117772 --- [planning] [anning.retry-1m] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : App info kafka.consumer for consumer-planning.privacy-planning.retry-1m-5 unregistered
+2026-11-13T09:03:32.395Z  INFO [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-13T09:03:32.395Z  INFO [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-13T09:03:32.395Z  INFO [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.telemetry.internals.ClientTelemetryReporter
+2026-11-13T09:03:32.395Z  INFO [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-13T09:03:32.402Z  INFO [] 117772 --- [planning] [rivacy-planning] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : App info kafka.consumer for consumer-planning.privacy-planning-4 unregistered
+2026-11-13T09:03:32.813Z  INFO [] 117772 --- [planning] [nning.retry-10m] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-13T09:03:32.813Z  INFO [] 117772 --- [planning] [nning.retry-10m] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-13T09:03:32.813Z  INFO [] 117772 --- [planning] [nning.retry-10m] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.telemetry.internals.ClientTelemetryReporter
+2026-11-13T09:03:32.813Z  INFO [] 117772 --- [planning] [nning.retry-10m] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-13T09:03:32.825Z  INFO [] 117772 --- [planning] [nning.retry-10m] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : App info kafka.consumer for consumer-planning.privacy-planning.retry-10m-6 unregistered
+2026-11-13T09:03:32.826Z  INFO [] 117772 --- [planning] [ionShutdownHook] [                                                 ] o.a.k.clients.producer.KafkaProducer     : [Producer clientId=planning-privacy] Closing the Kafka producer with timeoutMillis = [CARD-5807] ms.
+2026-11-13T09:03:32.830Z  INFO [] 117772 --- [planning] [ionShutdownHook] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-13T09:03:32.830Z  INFO [] 117772 --- [planning] [ionShutdownHook] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-13T09:03:32.830Z  INFO [] 117772 --- [planning] [ionShutdownHook] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.telemetry.internals.ClientTelemetryReporter
+2026-11-13T09:03:32.830Z  INFO [] 117772 --- [planning] [ionShutdownHook] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-13T09:03:32.832Z  INFO [] 117772 --- [planning] [ionShutdownHook] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : App info kafka.producer for planning-privacy unregistered
+2026-11-13T09:03:32.842Z  INFO [] 117772 --- [planning] [ionShutdownHook] [                                                 ] o.a.k.clients.producer.KafkaProducer     : [Producer clientId=planning-relay] Closing the Kafka producer with timeoutMillis = [CARD-5807] ms.
+2026-11-13T09:03:32.845Z  INFO [] 117772 --- [planning] [ionShutdownHook] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-11-13T09:03:32.845Z  INFO [] 117772 --- [planning] [ionShutdownHook] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-11-13T09:03:32.846Z  INFO [] 117772 --- [planning] [ionShutdownHook] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.telemetry.internals.ClientTelemetryReporter
+2026-11-13T09:03:32.846Z  INFO [] 117772 --- [planning] [ionShutdownHook] [                                                 ] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-11-13T09:03:32.846Z  INFO [] 117772 --- [planning] [ionShutdownHook] [                                                 ] o.a.kafka.common.utils.AppInfoParser     : App info kafka.producer for planning-relay unregistered
+2026-11-13T09:03:32.847Z  INFO [] 117772 --- [planning] [ionShutdownHook] [                                                 ] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-11-13T09:03:32.850Z  INFO [] 117772 --- [planning] [tomcat-shutdown] [                                                 ] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+2026-11-13T09:03:32.853Z  INFO [] 117772 --- [planning] [ionShutdownHook] [                                                 ] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-11-13T09:03:32.858Z  INFO [] 117772 --- [planning] [ionShutdownHook] [                                                 ] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.

@@ -1,0 +1,26 @@
+PASS: Dangerous JS Functions [10110]
+PASS: Authentication Request Identified [10111]
+PASS: Session Management Response Identified [10112]
+PASS: Verification Request Identified [10113]
+PASS: Script Served From Malicious Domain (polyfill) [10115]
+PASS: Absence of Anti-CSRF Tokens [10202]
+PASS: Private IP Disclosure [2]
+PASS: Session ID in URL Rewrite [3]
+PASS: Script Passive Scan Rules [50001]
+PASS: Insecure JSF ViewState [90001]
+PASS: Java Serialization Object [90002]
+PASS: Sub Resource Integrity Attribute Missing [90003]
+PASS: Charset Mismatch [90011]
+PASS: Application Error Disclosure [90022]
+PASS: WSDL File Detection [90030]
+PASS: Loosely Scoped Cookie [90033]
+WARN-NEW: ZAP is Out of Date [10116] x 1 
+	http://127.0.0.1:8080/v1/categories (200 OK)
+WARN-NEW: Insufficient Site Isolation Against Spectre Vulnerability [90004] x 12 
+	http://127.0.0.1:8080/v1/categories (200 OK)
+	http://127.0.0.1:8080/v1/me (200 OK)
+	http://127.0.0.1:8080/v1/me/sessions (200 OK)
+	http://127.0.0.1:8080/v1/expenses?limit=5 (200 OK)
+	http://127.0.0.1:8080/v1/cards (200 OK)
+FAIL-NEW: 0	FAIL-INPROG: 0	WARN-NEW: 2	WARN-INPROG: 0	INFO: 0	IGNORE: 0	PASS: 64
+zap: 34 URLs scanned, 2 alert types (10049:Informational, 90004:Low), 0 FAIL-level, exit 0

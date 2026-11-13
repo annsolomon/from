@@ -1,0 +1,19 @@
+NOTICE:  database "identity_restore" does not exist, skipping
+ok   identity: 604 KB dump, 27 tables, 245 rows identical, key hash 9be8f5b0b27643269d60730f2ec5e09a, RLS forced on 20 tables, 2s
+NOTICE:  database "ledger_restore" does not exist, skipping
+ok   ledger: 106428 KB dump, 16 tables, 3063 rows identical, key hash a409fbc2f609fd077d8d86b0dd41a968, RLS forced on 9 tables, 22s
+NOTICE:  database "catalog_restore" does not exist, skipping
+ok   catalog: 132 KB dump, 21 tables, 220 rows identical, key hash n/a, RLS forced on 14 tables, 2s
+NOTICE:  database "portfolio_restore" does not exist, skipping
+ok   portfolio: 1788 KB dump, 21 tables, 349 rows identical, key hash n/a, RLS forced on 14 tables, 2s
+NOTICE:  database "planning_restore" does not exist, skipping
+ok   planning: 68 KB dump, 14 tables, 118 rows identical, key hash n/a, RLS forced on 7 tables, 1s
+NOTICE:  database "reco_restore" does not exist, skipping
+ok   reco: 92 KB dump, 21 tables, 172 rows identical, key hash n/a, RLS forced on 11 tables, 1s
+NOTICE:  database "billing_restore" does not exist, skipping
+ok   billing: 84 KB dump, 16 tables, 82 rows identical, key hash n/a, RLS forced on 9 tables, 2s
+NOTICE:  database "commerce_restore" does not exist, skipping
+ok   commerce: 108 KB dump, 29 tables, 62 rows identical, key hash n/a, RLS forced on 14 tables, 2s
+NOTICE:  database "audit_restore" does not exist, skipping
+ok   audit: 148 KB dump, 26 tables, 1272 rows identical, key hash 6c03092dc244f66700efed79920eca82, RLS forced on 9 tables, 2s
+restore drill: 9/9 databases restored identically, 5583 rows; PASS

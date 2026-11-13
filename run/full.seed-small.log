@@ -1,0 +1,8 @@
+  portfolio.user_cards                        5 rows      46 ms  (real table)
+  ledger.categories                          48 rows      37 ms  (real table)
+  ledger.merchants                          357 rows      29 ms  (real table)
+  ledger.merchant_aliases                   635 rows      45 ms  (real table)
+  ledger.expenses                          1000 rows      60 ms  (real table)
+  ledger.expense_daily_totals               797 rows      16 ms  (real table)
+loaded 15 tables, 3091 rows in 1.3 s
+seed.sh: small seed=42 generated in 2s, total 4s (limit 600s)

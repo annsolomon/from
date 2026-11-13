@@ -1,0 +1,138 @@
+Unable to find image 'ghcr.io/zaproxy/zaproxy:2.16.1' locally
+2.16.1: Pulling from zaproxy/zaproxy
+4e9df438f023: Pulling fs layer
+8bdeee89cffb: Pulling fs layer
+ae4ce04d0e1c: Pulling fs layer
+3a8cbd1f18be: Pulling fs layer
+8151d4e918e1: Pulling fs layer
+e1f26816f866: Pulling fs layer
+7bee8e08afcc: Pulling fs layer
+a66286d45436: Pulling fs layer
+4f4fb700ef54: Pulling fs layer
+8df0424a8009: Pulling fs layer
+37348ae3f453: Pulling fs layer
+7197ab8447ec: Pulling fs layer
+16545b53fadc: Pulling fs layer
+0bbe3f910383: Pulling fs layer
+dd3553062da0: Pulling fs layer
+1499ff844714: Pulling fs layer
+1c83c1bf8c58: Pulling fs layer
+df123712e52b: Pulling fs layer
+d657bf9c1577: Pulling fs layer
+04f2df22c4ac: Pulling fs layer
+4f4fb700ef54: Already exists
+4e9df438f023: Download complete
+0bbe3f910383: Download complete
+04f2df22c4ac: Download complete
+7197ab8447ec: Download complete
+dd3553062da0: Download complete
+1c83c1bf8c58: Download complete
+e1f26816f866: Download complete
+1499ff844714: Download complete
+df123712e52b: Download complete
+d657bf9c1577: Download complete
+7bee8e08afcc: Download complete
+a66286d45436: Download complete
+8df0424a8009: Download complete
+16545b53fadc: Download complete
+ae4ce04d0e1c: Download complete
+8151d4e918e1: Download complete
+8bdeee89cffb: Download complete
+ae4ce04d0e1c: Pull complete
+37348ae3f453: Download complete
+3a8cbd1f18be: Download complete
+3a8cbd1f18be: Pull complete
+4f4fb700ef54: Pull complete
+e1f26816f866: Pull complete
+7bee8e08afcc: Pull complete
+a66286d45436: Pull complete
+8df0424a8009: Pull complete
+8151d4e918e1: Pull complete
+37348ae3f453: Pull complete
+0bbe3f910383: Pull complete
+7197ab8447ec: Pull complete
+dd3553062da0: Pull complete
+1c83c1bf8c58: Pull complete
+1499ff844714: Pull complete
+df123712e52b: Pull complete
+d657bf9c1577: Pull complete
+16545b53fadc: Pull complete
+8bdeee89cffb: Pull complete
+4e9df438f023: Pull complete
+04f2df22c4ac: Pull complete
+Digest: sha256:7840969c7c9fead565bf9734b12f49f6886db90b1d35b1f74d79710bbd081dab
+Status: Downloaded newer image for ghcr.io/zaproxy/zaproxy:2.16.1
+Total of 34 URLs
+PASS: Vulnerable JS Library (Powered by Retire.js) [10003]
+PASS: In Page Banner Information Leak [10009]
+PASS: Cookie No HttpOnly Flag [10010]
+PASS: Cookie Without Secure Flag [10011]
+PASS: Re-examine Cache-control Directives [10015]
+PASS: Cross-Domain JavaScript Source File Inclusion [10017]
+PASS: Content-Type Header Missing [10019]
+PASS: Anti-clickjacking Header [10020]
+PASS: X-Content-Type-Options Header Missing [10021]
+PASS: Information Disclosure - Debug Error Messages [10023]
+PASS: Information Disclosure - Sensitive Information in URL [10024]
+PASS: Information Disclosure - Sensitive Information in HTTP Referrer Header [10025]
+PASS: HTTP Parameter Override [10026]
+PASS: Information Disclosure - Suspicious Comments [10027]
+PASS: Off-site Redirect [10028]
+PASS: Cookie Poisoning [10029]
+PASS: User Controllable Charset [10030]
+PASS: User Controllable HTML Element Attribute (Potential XSS) [10031]
+PASS: Viewstate [10032]
+PASS: Directory Browsing [10033]
+PASS: Heartbleed OpenSSL Vulnerability (Indicative) [10034]
+PASS: Strict-Transport-Security Header [10035]
+PASS: HTTP Server Response Header [10036]
+PASS: Server Leaks Information via "X-Powered-By" HTTP Response Header Field(s) [10037]
+PASS: Content Security Policy (CSP) Header Not Set [10038]
+PASS: X-Backend-Server Header Information Leak [10039]
+PASS: Secure Pages Include Mixed Content [10040]
+PASS: HTTP to HTTPS Insecure Transition in Form Post [10041]
+PASS: HTTPS to HTTP Insecure Transition in Form Post [10042]
+PASS: User Controllable JavaScript Event (XSS) [10043]
+PASS: Big Redirect Detected (Potential Sensitive Information Leak) [10044]
+PASS: Content Cacheability [10049]
+PASS: Retrieved from Cache [10050]
+PASS: X-ChromeLogger-Data (XCOLD) Header Information Leak [10052]
+PASS: Cookie without SameSite Attribute [10054]
+PASS: CSP [10055]
+PASS: X-Debug-Token Information Leak [10056]
+PASS: Username Hash Found [10057]
+PASS: X-AspNet-Version Response Header [10061]
+PASS: PII Disclosure [10062]
+PASS: Permissions Policy Header Not Set [10063]
+PASS: Timestamp Disclosure [10096]
+PASS: Hash Disclosure [10097]
+PASS: Cross-Domain Misconfiguration [10098]
+PASS: Source Code Disclosure [10099]
+PASS: Weak Authentication Method [10105]
+PASS: Reverse Tabnabbing [10108]
+PASS: Modern Web Application [10109]
+PASS: Dangerous JS Functions [10110]
+PASS: Authentication Request Identified [10111]
+PASS: Session Management Response Identified [10112]
+PASS: Verification Request Identified [10113]
+PASS: Script Served From Malicious Domain (polyfill) [10115]
+PASS: Absence of Anti-CSRF Tokens [10202]
+PASS: Private IP Disclosure [2]
+PASS: Session ID in URL Rewrite [3]
+PASS: Script Passive Scan Rules [50001]
+PASS: Insecure JSF ViewState [90001]
+PASS: Java Serialization Object [90002]
+PASS: Sub Resource Integrity Attribute Missing [90003]
+PASS: Charset Mismatch [90011]
+PASS: Application Error Disclosure [90022]
+PASS: WSDL File Detection [90030]
+PASS: Loosely Scoped Cookie [90033]
+WARN-NEW: ZAP is Out of Date [10116] x 1 
+	http://127.0.0.1:8080/v1/categories (200 OK)
+WARN-NEW: Insufficient Site Isolation Against Spectre Vulnerability [90004] x 12 
+	http://127.0.0.1:8080/v1/categories (200 OK)
+	http://127.0.0.1:8080/v1/me (200 OK)
+	http://127.0.0.1:8080/v1/me/sessions (200 OK)
+	http://127.0.0.1:8080/v1/expenses?limit=5 (200 OK)
+	http://127.0.0.1:8080/v1/cards (200 OK)
+FAIL-NEW: 0	FAIL-INPROG: 0	WARN-NEW: 2	WARN-INPROG: 0	INFO: 0	IGNORE: 0	PASS: 64

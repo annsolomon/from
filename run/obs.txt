@@ -1,0 +1,13 @@
+PASS	prometheus.targets	10/10 dexter-services targets up
+PASS	prometheus.rules	4 groups, 8 alerts, 3 recording; unhealthy: none
+PASS	metrics.http-histogram	10 series from 10 services (audit, billing, catalog, commerce, gateway, identity, ledger, planning, portfolio, reco); missing: none
+PASS	metrics.outbox-lag	10 series from 9 services (audit, billing, catalog, commerce, identity, ledger, planning, portfolio, reco); missing: none
+PASS	metrics.dlq-gauge	24 series from 8 services (audit, billing, commerce, identity, ledger, planning, portfolio, reco); missing: none
+PASS	metrics.kafka-client	8 series from 8 services (audit, billing, commerce, identity, ledger, planning, portfolio, reco); missing: none
+PASS	metrics.hikari	9 series from 9 services (audit, billing, catalog, commerce, identity, ledger, planning, portfolio, reco); missing: none
+PASS	metrics.sse-gauge	1 series from 1 services (reco); missing: none
+PASS	metrics.events-handled	708 events handled ok across 8 services
+PASS	prometheus.recording-rule	dexter:http_requests:rate5m has 10 series
+PASS	tempo.services	10/10 services exported spans; missing: none
+PASS	tempo.trace-across-kafka	trace 6704a3c7e83a68c1aa67e7878637f46d: 6 services ['audit', 'gateway', 'ledger', 'planning', 'portfolio', 'reco']; consumer spans in ['audit', 'planning', 'portfolio', 'reco'] (50 gateway→consumer traces found)
+PASS	grafana.dashboards	dashboards ['dexter-events', 'dexter-red', 'dexter-resources']; datasources ['prometheus', 'tempo']

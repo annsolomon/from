@@ -1,0 +1,299 @@
+ Image grafana/grafana:12.1.0 Pulling 
+ Image otel/opentelemetry-collector-contrib:0.130.0 Pulling 
+ Image grafana/tempo:2.8.1 Pulling 
+ 2e4cf50eeb92 Pulling fs layer 0B
+ d82bc7a76a83 Pulling fs layer 0B
+ 0f8b424aa0b9 Pulling fs layer 0B
+ d858cbc252ad Pulling fs layer 0B
+ 400fe5c6b87b Pulling fs layer 0B
+ 1069fc2daed1 Pulling fs layer 0B
+ 90e874bb30e3 Pulling fs layer 0B
+ 7f0c72ba828c Pulling fs layer 0B
+ f9e799bc133b Pulling fs layer 0B
+ 67659af19532 Pulling fs layer 0B
+ d557676654e5 Pulling fs layer 0B
+ b40161cd83fc Pulling fs layer 0B
+ bcbc11818de8 Pulling fs layer 0B
+ 4e9f20d26c87 Pulling fs layer 0B
+ 3f4e2c586348 Pulling fs layer 0B
+ a24695d302f2 Pulling fs layer 0B
+ eb8f5749650b Pulling fs layer 0B
+ 5391af8231d5 Pulling fs layer 0B
+ d82bc7a76a83 Downloading 130B
+ e387d572792a Pulling fs layer 0B
+ 575318ee9cc9 Pulling fs layer 0B
+ 3675b3b4dfae Pulling fs layer 0B
+ 7d29191c2f0b Pulling fs layer 0B
+ f18232174bc9 Pulling fs layer 0B
+ f29524dcb621 Pulling fs layer 0B
+ d919b3851dd3 Pulling fs layer 0B
+ b13b23f8a52e Pulling fs layer 0B
+ 1b0a5b3afefb Pulling fs layer 0B
+ 5d91856773d5 Pulling fs layer 0B
+ ff772a259fcb Pulling fs layer 0B
+ 80fa3fbe3c15 Pulling fs layer 0B
+ 20d3cfd99f6f Pulling fs layer 0B
+ e387d572792a Downloading 731B
+ 575318ee9cc9 Downloading 122.7kB
+ 3675b3b4dfae Downloading 3.146MB
+ 7d29191c2f0b Download complete 0B
+ 20d3cfd99f6f Downloading 59.03kB
+ bcbc11818de8 Download complete 0B
+ d557676654e5 Download complete 0B
+ a24695d302f2 Downloading 2.097MB
+ 5391af8231d5 Downloading 758.9kB
+ eb8f5749650b Download complete 0B
+ 2e4cf50eeb92 Download complete 0B
+ 7f0c72ba828c Download complete 0B
+ d82bc7a76a83 Download complete 0B
+ 400fe5c6b87b Download complete 0B
+ f9e799bc133b Download complete 0B
+ 67659af19532 Download complete 0B
+ 3f4e2c586348 Download complete 0B
+ 0f8b424aa0b9 Download complete 0B
+ 4e9f20d26c87 Download complete 0B
+ d858cbc252ad Download complete 0B
+ 1069fc2daed1 Download complete 0B
+ 90e874bb30e3 Download complete 0B
+ b40161cd83fc Download complete 0B
+ 2e4cf50eeb92 Extracting 1B
+ 20d3cfd99f6f Download complete 0B
+ e387d572792a Download complete 0B
+ f18232174bc9 Downloading 2.097MB
+ f29524dcb621 Download complete 0B
+ 575318ee9cc9 Download complete 0B
+ 3675b3b4dfae Downloading 8.389MB
+ d919b3851dd3 Download complete 0B
+ b13b23f8a52e Downloading 4.194MB
+ 1b0a5b3afefb Downloading 3.146MB
+ 5d91856773d5 Downloading 2.097MB
+ ff772a259fcb Download complete 0B
+ 80fa3fbe3c15 Downloading 2.097MB
+ 400fe5c6b87b Pull complete 0B
+ 575318ee9cc9 Pull complete 0B
+ 4e9f20d26c87 Extracting 1B
+ 3675b3b4dfae Downloading 11.53MB
+ 5d91856773d5 Download complete 0B
+ 80fa3fbe3c15 Downloading 7.34MB
+ f18232174bc9 Download complete 0B
+ b13b23f8a52e Downloading 7.34MB
+ 1b0a5b3afefb Downloading 6.291MB
+ a24695d302f2 Downloading 12.58MB
+ 5391af8231d5 Download complete 0B
+ 2e4cf50eeb92 Pull complete 0B
+ f18232174bc9 Extracting 1B
+ 3675b3b4dfae Downloading 15.73MB
+ 80fa3fbe3c15 Download complete 0B
+ b13b23f8a52e Downloading 11.53MB
+ 1b0a5b3afefb Downloading 10.49MB
+ 4e9f20d26c87 Extracting 1B
+ a24695d302f2 Downloading 19.92MB
+ f18232174bc9 Extracting 1B
+ 3675b3b4dfae Downloading 19.92MB
+ b13b23f8a52e Downloading 18.87MB
+ 1b0a5b3afefb Downloading 16.78MB
+ f18232174bc9 Extracting 1B
+ 4e9f20d26c87 Extracting 1B
+ a24695d302f2 Downloading 25.17MB
+ 3675b3b4dfae Downloading 26.21MB
+ b13b23f8a52e Downloading 24.12MB
+ 1b0a5b3afefb Downloading 22.02MB
+ 4e9f20d26c87 Extracting 1B
+ f18232174bc9 Pull complete 0B
+ b13b23f8a52e Downloading 30.41MB
+ 3675b3b4dfae Downloading 32.51MB
+ 1b0a5b3afefb Downloading 27.26MB
+ a24695d302f2 Downloading 32.51MB
+ f29524dcb621 Pull complete 0B
+ 5d91856773d5 Extracting 1B
+ 3675b3b4dfae Downloading 36.7MB
+ b13b23f8a52e Downloading 34.6MB
+ 1b0a5b3afefb Downloading 34.6MB
+ 4e9f20d26c87 Pull complete 0B
+ 5d91856773d5 Extracting 1B
+ b13b23f8a52e Downloading 40.89MB
+ 1b0a5b3afefb Downloading 41.94MB
+ a24695d302f2 Download complete 0B
+ 3675b3b4dfae Downloading 44.04MB
+ d557676654e5 Pull complete 0B
+ d82bc7a76a83 Pull complete 0B
+ 5d91856773d5 Extracting 1B
+ 0f8b424aa0b9 Pull complete 0B
+ d858cbc252ad Pull complete 0B
+ 1069fc2daed1 Pull complete 0B
+ 3675b3b4dfae Downloading 52.43MB
+ b13b23f8a52e Downloading 48.23MB
+ 1b0a5b3afefb Downloading 49.28MB
+ b40161cd83fc Extracting 1B
+ 5d91856773d5 Extracting 1B
+ 3f4e2c586348 Extracting 1B
+ b40161cd83fc Pull complete 0B
+ b13b23f8a52e Downloading 54.53MB
+ 1b0a5b3afefb Downloading 56.62MB
+ 3675b3b4dfae Downloading 57.67MB
+ eb8f5749650b Extracting 1B
+ 5d91856773d5 Extracting 1B
+ 3f4e2c586348 Pull complete 0B
+ 3675b3b4dfae Downloading 62.91MB
+ 5391af8231d5 Extracting 1B
+ b13b23f8a52e Downloading 59.77MB
+ 1b0a5b3afefb Downloading 59.77MB
+ eb8f5749650b Pull complete 0B
+ 5d91856773d5 Extracting 1B
+ 5391af8231d5 Extracting 1B
+ 3675b3b4dfae Downloading 66.06MB
+ b13b23f8a52e Downloading 63.96MB
+ 1b0a5b3afefb Downloading 62.91MB
+ 5d91856773d5 Pull complete 0B
+ 5391af8231d5 Extracting 1B
+ 3675b3b4dfae Downloading 72.35MB
+ b13b23f8a52e Downloading 71.3MB
+ 1b0a5b3afefb Downloading 69.21MB
+ 67659af19532 Extracting 1B
+ 90e874bb30e3 Pull complete 0B
+ 80fa3fbe3c15 Extracting 1B
+ 5391af8231d5 Pull complete 0B
+ b13b23f8a52e Downloading 81.79MB
+ 3675b3b4dfae Downloading 81.79MB
+ 1b0a5b3afefb Download complete 0B
+ bcbc11818de8 Pull complete 0B
+ f9e799bc133b Pull complete 0B
+ 67659af19532 Pull complete 0B
+ a24695d302f2 Extracting 1B
+ 80fa3fbe3c15 Extracting 1B
+ b13b23f8a52e Downloading 90.18MB
+ 3675b3b4dfae Downloading 89.13MB
+ a24695d302f2 Extracting 1B
+ 80fa3fbe3c15 Extracting 1B
+ b13b23f8a52e Downloading 107MB
+ 3675b3b4dfae Download complete 0B
+ 3675b3b4dfae Extracting 1B
+ a24695d302f2 Extracting 1B
+ 80fa3fbe3c15 Extracting 1B
+ b13b23f8a52e Downloading 109.8MB
+ a24695d302f2 Extracting 1B
+ 3675b3b4dfae Extracting 1B
+ 80fa3fbe3c15 Extracting 1B
+ b13b23f8a52e Download complete 0B
+ 20d3cfd99f6f Pull complete 0B
+ 3675b3b4dfae Extracting 1B
+ a24695d302f2 Extracting 1B
+ d919b3851dd3 Extracting 1B
+ 80fa3fbe3c15 Pull complete 0B
+ b13b23f8a52e Extracting 1B
+ a24695d302f2 Extracting 1B
+ 3675b3b4dfae Extracting 1B
+ d919b3851dd3 Pull complete 0B
+ b13b23f8a52e Extracting 1B
+ 3675b3b4dfae Extracting 1B
+ a24695d302f2 Extracting 1B
+ b13b23f8a52e Extracting 1B
+ a24695d302f2 Extracting 1B
+ b13b23f8a52e Extracting 1B
+ 3675b3b4dfae Extracting 1B
+ a24695d302f2 Extracting 1B
+ 3675b3b4dfae Extracting 1B
+ b13b23f8a52e Extracting 1B
+ a24695d302f2 Extracting 1B
+ 3675b3b4dfae Extracting 1B
+ b13b23f8a52e Extracting 1B
+ 3675b3b4dfae Extracting 1B
+ a24695d302f2 Extracting 1B
+ b13b23f8a52e Extracting 1B
+ 3675b3b4dfae Extracting 1B
+ a24695d302f2 Extracting 2B
+ b13b23f8a52e Extracting 1B
+ 3675b3b4dfae Extracting 1B
+ a24695d302f2 Extracting 2B
+ b13b23f8a52e Extracting 1B
+ 7f0c72ba828c Pull complete 0B
+ a24695d302f2 Pull complete 0B
+ 3675b3b4dfae Extracting 2B
+ b13b23f8a52e Extracting 1B
+ Image grafana/tempo:2.8.1 Pulled 
+ 3675b3b4dfae Extracting 2B
+ b13b23f8a52e Extracting 1B
+ 3675b3b4dfae Extracting 2B
+ b13b23f8a52e Extracting 2B
+ 3675b3b4dfae Extracting 2B
+ b13b23f8a52e Extracting 2B
+ 3675b3b4dfae Extracting 2B
+ b13b23f8a52e Extracting 2B
+ b13b23f8a52e Extracting 2B
+ 3675b3b4dfae Extracting 2B
+ 3675b3b4dfae Extracting 2B
+ b13b23f8a52e Extracting 2B
+ 3675b3b4dfae Extracting 2B
+ b13b23f8a52e Extracting 2B
+ 3675b3b4dfae Extracting 2B
+ b13b23f8a52e Extracting 2B
+ 3675b3b4dfae Extracting 2B
+ b13b23f8a52e Extracting 2B
+ 3675b3b4dfae Extracting 3B
+ b13b23f8a52e Extracting 2B
+ 3675b3b4dfae Extracting 3B
+ b13b23f8a52e Extracting 2B
+ 3675b3b4dfae Extracting 3B
+ b13b23f8a52e Extracting 3B
+ e387d572792a Pull complete 0B
+ 3675b3b4dfae Pull complete 0B
+ Image otel/opentelemetry-collector-contrib:0.130.0 Pulled 
+ b13b23f8a52e Extracting 3B
+ b13b23f8a52e Extracting 3B
+ 1b0a5b3afefb Extracting 1B
+ b13b23f8a52e Pull complete 0B
+ 1b0a5b3afefb Extracting 1B
+ 1b0a5b3afefb Extracting 1B
+ 1b0a5b3afefb Extracting 1B
+ 1b0a5b3afefb Extracting 1B
+ 1b0a5b3afefb Extracting 1B
+ 1b0a5b3afefb Extracting 1B
+ 1b0a5b3afefb Extracting 1B
+ 1b0a5b3afefb Extracting 1B
+ 1b0a5b3afefb Extracting 1B
+ 1b0a5b3afefb Extracting 2B
+ 1b0a5b3afefb Extracting 2B
+ 1b0a5b3afefb Extracting 2B
+ 1b0a5b3afefb Extracting 2B
+ 1b0a5b3afefb Extracting 2B
+ 1b0a5b3afefb Extracting 2B
+ 1b0a5b3afefb Extracting 2B
+ 1b0a5b3afefb Extracting 2B
+ 1b0a5b3afefb Extracting 2B
+ 1b0a5b3afefb Extracting 2B
+ 1b0a5b3afefb Extracting 3B
+ 1b0a5b3afefb Extracting 3B
+ 1b0a5b3afefb Extracting 3B
+ 1b0a5b3afefb Extracting 3B
+ 1b0a5b3afefb Extracting 3B
+ 1b0a5b3afefb Extracting 3B
+ 7d29191c2f0b Pull complete 0B
+ ff772a259fcb Pull complete 0B
+ 1b0a5b3afefb Pull complete 0B
+ Image grafana/grafana:12.1.0 Pulled 
+ Volume dexter_tempodata Creating 
+ Volume dexter_tempodata Created 
+ Container dexter-prometheus-1 Creating 
+ Container dexter-tempo-1 Creating 
+ Container dexter-prometheus-1 Created 
+ Container dexter-tempo-1 Created 
+ Container dexter-grafana-1 Creating 
+ Container dexter-otel-collector-1 Creating 
+ Container dexter-otel-collector-1 Created 
+ Container dexter-grafana-1 Created 
+ Container dexter-tempo-1 Starting 
+ Container dexter-prometheus-1 Starting 
+ Container dexter-prometheus-1 Started 
+ Container dexter-tempo-1 Started 
+ Container dexter-otel-collector-1 Starting 
+ Container dexter-grafana-1 Starting 
+ Container dexter-grafana-1 Started 
+ Container dexter-otel-collector-1 Started 
+ Container dexter-grafana-1 Waiting 
+ Container dexter-prometheus-1 Waiting 
+ Container dexter-otel-collector-1 Waiting 
+ Container dexter-tempo-1 Waiting 
+ Container dexter-tempo-1 Healthy 
+ Container dexter-otel-collector-1 Healthy 
+ Container dexter-prometheus-1 Healthy 
+ Container dexter-grafana-1 Healthy 
