@@ -1,6 +1,6 @@
 # ADR-0001: Toolchain and platform versions
 
-- **Status:** Accepted (pending first `verify.sh full` evidence in Codespaces)
+- **Status:** Accepted; amended 2026-11-13 (A-134: Boot 4.1.2 + Cloud 2025.1.4)
 - **Date:** 2026-09-21 · **Phase:** P00
 
 ## Context
@@ -42,3 +42,15 @@ State of the ecosystem on 2026-09-21, checked while writing this ADR:
 - `dependencyConvergence` is enforced from day one, and can be relaxed with `-Ddexter.enforce.convergence=false`
   only for diagnosis. That property must never be committed as false.
 - Nothing is proven compiled until a `verify-report.md` from Codespaces shows it.
+
+## Amendment 2026-11-13 (P19, A-134): Spring Boot 4.1.2 + Spring Cloud 2025.1.4
+
+The upgrade trigger above (Boot 4.2 and Cloud 2026.0 GA) had not fired by the end of P19 — the newest tags were
+`v4.2.0-RC2` and `v2026.0.0-RC2` — while Boot 4.0's open-source support ends on 2026-12-31. The release moves to the
+supported 4.1 line instead: **Spring Boot 4.1.2** (Spring Framework 7.0.10, Jackson 3.1.7 / 2.21.7, Tomcat 11.0.27,
+Flyway 12.4, Kafka clients 4.2.2, Lettuce 7.5, Spring Data 2026.0, Micrometer 1.17, OpenTelemetry 1.62,
+Testcontainers 2.0.5) and **Spring Cloud 2025.1.4**, whose compatibility verifier (spring-cloud-commons 5.0.4)
+accepts Boot 4.0.x and 4.1.x. One code change: reco names its Redis listener container, because Boot 4.1
+auto-configures a second (annotation-driven) one. The P19 Jackson / Tomcat security pins were removed (Boot manages
+the fixed versions; the Tomcat pin would have been a downgrade). The 4.2 / 2026.0 move remains the next platform step
+once both are GA.

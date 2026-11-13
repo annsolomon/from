@@ -1368,6 +1368,7 @@ Croma Online vs label Croma).
 | 2026-11-13 | P19 | A-131: DLQ replay is a tool (`DlqReplay`, `scripts/dlq-replay.sh`): re-publish to the consumer's **retry-1m** topic, then `deleteRecords` up to what was replayed. | Never the shared main topic (other consumers would see it again); deleting makes the DLQ gauge — the alert — fall. | A filtered replay keeps everything after a kept record on its partition (runbook). |
 | 2026-11-13 | P19 | A-132: platform-bom pins Jackson 3.1.7 / 2.21.7, Tomcat 11.0.25, lz4-java 1.11.4, snappy-java 1.1.10.9; every GitHub Action pinned by commit SHA. | The first image scan found 13–17 HIGH/CRITICAL with fixes per image; MASTER_PLAN 7.5. | Drop each pin once a Boot release manages a fixed version. |
 | 2026-11-13 | P19 | A-133: the scale proof is measured, and the measurement fixed, over five runs: per-VU client IPs (`CLIENT_IP_PER_VU`), sessions refreshed every 8 min, sign-in jittered with back-off, full JIT + 768 MB heaps (`DEXTER_JAVA_OPTS`), 10 % activity sampling (`GATEWAY_ACTIVITY_SAMPLE_RATE`); the gateway's upstream pool sized and its breaker transitions logged; **the default 25-call bulkhead of Spring Cloud CircuitBreaker turned off** (the hotspot). | r1 measured the per-IP auth limit, r2/r3 expired tokens and a self-made login storm, r4/r5 open breakers — r5's transition log named `BulkheadFullException`. | docs/perf/results.md. |
+| 2026-11-13 | P19 | A-134: platform moved to **Spring Boot 4.1.2 + Spring Cloud 2025.1.4** (ADR-0001 amendment), not to Boot 4.2 + Cloud 2026.0 as ADR-0001 planned; the P19 Jackson/Tomcat pins removed. | Boot 4.0 OSS support ends 2026-12-31 and 4.2 / 2026.0 were still RC (`v4.2.0-RC2`, `v2026.0.0-RC2`); 4.1 is supported to mid-2027 and Cloud 2025.1.4 accepts it. One fix: reco qualifies its Redis listener container (Boot 4.1 adds its own). | The 4.2 / 2026.0 step stays open (§7). |
 
 ## 7. Known gaps / tech debt (honest, never deleted silently)
 
@@ -1396,8 +1397,9 @@ Croma Online vs label Croma).
     the tests' shared `HttpClient` reusing a connection the gateway had closed after answering a POST from a filter
     without reading its body; `GatewayBase` now opens a connection per request. If it recurs, the cause is elsewhere.
   - Carried from P18 and still open: objects outside the databases survive a deletion, no real email / push
-    transport, anchors not on WORM storage. Spring Boot 4.0 OSS end of life 2026-12-31 (ADR-0001) is now seven weeks
-    away: the Boot 4.2 + Cloud 2026.0 upgrade is the next platform task.
+    transport, anchors not on WORM storage.
+  - ~~Spring Boot 4.0 OSS end of life 2026-12-31~~: resolved by A-134 (Boot 4.1.2, supported to mid-2027). Boot 4.2
+    + Cloud 2026.0 once both are GA remains the next platform step.
 - **P18 audit / privacy (ADR-0024):**
   - **Objects outside the databases survive a deletion.** Portfolio's uploaded statement files (quarantine and
     clean keys) and the export archives themselves stay in the object store; Redis caches (identity sessions,
@@ -1745,6 +1747,7 @@ press **Lab status / start**, then **Get a valid token**. (After a manual `run.s
 
 ## 10. Changelog (one line per response)
 
+- 2026-11-13 Post-P19: platform on Spring Boot 4.1.2 + Spring Cloud 2025.1.4 (A-134); r1 reco contexts failed on Boot 4.1's second Redis listener container (qualified); ci green on `9368667`.
 - 2026-11-13 P19 r10: release r3 hit the RateLimitIT timeout again (run 43316616151); gateway tests now use a connection per request.
 - 2026-11-13 P19 (docs): BUILD_README evidence for main CI run 43309873447 (git `4eef6f3`) and release CI run 43309975646 (git `9d1fedd`): header, §1, §2, §3 P19 DoD, §4, §5 ADR-0025..0027 Accepted, A-120..A-133, §7; `docs/perf/results.md`.
 - 2026-11-13 P19 r9: scale r6 (run 43309886082) under real load — 93 % success, data-bound targets met, end-to-end gap recorded; main 31/31 (`4eef6f3`) and release 30/30 (`9d1fedd`) green.
