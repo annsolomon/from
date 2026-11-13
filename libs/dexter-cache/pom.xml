@@ -18,7 +18,7 @@
     <dependency><groupId>in.dexter</groupId><artifactId>dexter-core</artifactId></dependency>
     <!-- EventEnvelope + EventConsumer.Handler for the Path B InvalidationConsumer base -->
     <dependency><groupId>in.dexter</groupId><artifactId>dexter-events</artifactId></dependency>
-    <!-- Versions managed by spring-boot-dependencies 4.0.8 (Spring Data 2025.1.7, Lettuce 6.8.2, Micrometer 1.16.7) -->
+    <!-- Versions managed by spring-boot-dependencies 4.1.2 (Spring Data 2026.0.2, Lettuce 7.5.2, Micrometer 1.17.2) -->
     <dependency><groupId>org.springframework.data</groupId><artifactId>spring-data-redis</artifactId></dependency>
     <dependency><groupId>io.lettuce</groupId><artifactId>lettuce-core</artifactId></dependency>
     <dependency><groupId>org.springframework</groupId><artifactId>spring-tx</artifactId></dependency>
