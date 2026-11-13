@@ -1747,6 +1747,7 @@ press **Lab status / start**, then **Get a valid token**. (After a manual `run.s
 
 ## 10. Changelog (one line per response)
 
+- 2026-11-13 Post-P19 r2: release 30/30 on Boot 4.1.2 (run 43390484799); main 30/31 - ZAP's proxy port was taken on the host network (run 43390478895); the script now asks for a free port.
 - 2026-11-13 Post-P19: platform on Spring Boot 4.1.2 + Spring Cloud 2025.1.4 (A-134); r1 reco contexts failed on Boot 4.1's second Redis listener container (qualified); ci green on `9368667`.
 - 2026-11-13 P19 r10: release r3 hit the RateLimitIT timeout again (run 43316616151); gateway tests now use a connection per request.
 - 2026-11-13 P19 (docs): BUILD_README evidence for main CI run 43309873447 (git `4eef6f3`) and release CI run 43309975646 (git `9d1fedd`): header, §1, §2, §3 P19 DoD, §4, §5 ADR-0025..0027 Accepted, A-120..A-133, §7; `docs/perf/results.md`.

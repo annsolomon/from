@@ -58,9 +58,12 @@ def zap_pre_shutdown(zap):
         f.write("\n".join(urls))
 PY
 
+# ZAP's own proxy port on the host network: a port that is free now (main run 43390478895 lost the race with a port
+# the stack held - "Failed to start the main proxy: Address already in use").
+zport=$(python3 -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1])')
 status=0
 timeout -k 20 900 docker run --rm --network host -v "$OUT:/zap/wrk:rw" "$IMAGE" \
-  zap-baseline.py -t "$GW/v1/me" -c rules.tsv --hook=/zap/wrk/hook.py -m 1 -I \
+  zap-baseline.py -t "$GW/v1/me" -P "$zport" -c rules.tsv --hook=/zap/wrk/hook.py -m 1 -I \
   -J zap.json -r zap.html -w zap.md > "$OUT/zap.log" 2>&1 || status=$?
 tail -n 25 "$OUT/zap.log"
 python3 - "$OUT" "$status" <<'PY'
